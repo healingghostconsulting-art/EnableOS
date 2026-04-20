@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1776705143933,
+      "tag": "0000_overrated_wrecker",
+      "breakpoints": true
+    }
+  ]
 }

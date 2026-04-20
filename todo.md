@@ -1,0 +1,23 @@
+# Project TODO
+
+- [x] Create an elegant enterprise enablement and coaching intelligence demo platform for CHCG Consulting.
+- [x] Design a premium visual system with refined typography, polished layouts, sophisticated spacing, and an enterprise-grade aesthetic.
+- [x] Build multi-role dashboard views for Executives, Managers/Supervisors, and Learners with strictly scoped role-appropriate information.
+- [x] Implement a simulated KPI and QA performance signal feed covering AHT, QA score, CSAT, and adherence.
+- [x] Build automated intervention rules that map KPI and QA threshold breaches to skill gaps and assigned actions.
+- [x] Implement role-based enablement journeys with learning path assignments, microlearning modules, and completion tracking tied to competency gaps.
+- [x] Build a coaching workflow engine with session logging, action plans, due dates, follow-up reminders, and manager audit trail history.
+- [x] Create an executive ROI dashboard with before-and-after metric comparisons, intervention correlation charts, and team-level readiness scores.
+- [x] Implement full multi-tenant client configuration with tenant-scoped data isolation, white-label branding controls, and a client admin console.
+- [x] Build a CHCG methodology content library with playbooks, operational frameworks, and structured enablement assets.
+- [x] Implement AI-assisted coaching suggestions and performance summaries with explainable rationale and human override controls.
+- [x] Build a notification and alert system for overdue interventions, threshold breaches, coaching follow-ups, and manager action items.
+- [x] Ensure all methodology references, framework assets, and content align with the CHCG methodology.
+- [x] Seed realistic demo data for tenants, users, KPI trends, interventions, coaching sessions, and content assets.
+- [ ] Implement backend schema, procedures, and access controls supporting role scoping and multi-tenancy.
+- [x] Create unit tests covering key backend logic, including role scoping, intervention rules, and explainable AI response structure.
+- [x] Validate the demo experience in the browser and confirm polished presentation across the primary role views.
+- [ ] Implement enforced tenant scoping and access control in backend procedures, and add tests proving users and admins cannot access cross-tenant data.
+- [ ] Add configurable white-label branding controls with editable tenant settings reflected dynamically in the UI, plus tests.
+- [ ] Document and encode CHCG methodology mappings from source materials to each seeded framework and content asset so alignment is verifiable.
+- [ ] Add stronger UI validation coverage for landing, executive, manager, learner, and admin experiences.
