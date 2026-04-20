@@ -29,7 +29,7 @@ function createContext(overrides?: Partial<NonNullable<TrpcContext["user"]>>): T
 }
 
 describe("demo router", () => {
-  it("returns landing data with multiple tenants and featured metrics", async () => {
+  it("returns landing data with multiple sanitized tenants and featured metrics", async () => {
     const caller = appRouter.createCaller(createContext());
 
     const landing = await caller.demo.landing();
@@ -37,21 +37,21 @@ describe("demo router", () => {
     expect(landing.tenants.length).toBeGreaterThanOrEqual(3);
     expect(landing.featuredMetrics.length).toBeGreaterThanOrEqual(4);
     expect(landing.tenants[0]).toMatchObject({
-      id: "northstar-health",
-      name: "Northstar Health Access",
+      id: "atlas-operations",
+      name: "Atlas Service Group",
     });
   });
 
-  it("returns executive data with ROI movement and methodology references", async () => {
+  it("returns executive data with ROI movement and CHCG methodology references", async () => {
     const caller = appRouter.createCaller(createContext());
 
-    const executive = await caller.demo.executive({ tenantId: "northstar-health" });
+    const executive = await caller.demo.executive({ tenantId: "atlas-operations" });
 
-    expect(executive.tenant.id).toBe("northstar-health");
+    expect(executive.tenant.id).toBe("atlas-operations");
     expect(executive.roiMetrics).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "QA score", delta: "+9 pts" }),
-        expect.objectContaining({ label: "AHT", delta: "-63 sec" }),
+        expect.objectContaining({ label: "QA score", delta: "+8 pts" }),
+        expect.objectContaining({ label: "AHT", delta: "-54 sec" }),
       ]),
     );
     expect(executive.methodologyAssets).toEqual(
@@ -63,57 +63,58 @@ describe("demo router", () => {
   it("returns manager data with explainable AI rationale and intervention workflow data", async () => {
     const caller = appRouter.createCaller(createContext());
 
-    const manager = await caller.demo.manager({ tenantId: "northstar-health" });
+    const manager = await caller.demo.manager({ tenantId: "atlas-operations" });
 
     expect(manager.openSignals.length).toBeGreaterThan(0);
-    expect(manager.interventions).toEqual(expect.arrayContaining([expect.objectContaining({ status: "overdue" })]));
+    expect(manager.interventions).toEqual(expect.arrayContaining([expect.objectContaining({ status: "in_progress" })]));
     expect(manager.documentationEntries.length).toBeGreaterThan(0);
     expect(manager.reviewLogs.length).toBeGreaterThan(0);
     expect(manager.aiSuggestion.overrideAvailable).toBe(true);
     expect(manager.aiSuggestion.rationale.length).toBeGreaterThan(1);
   });
 
-  it("returns learner data tied to a skill gap journey and assigned interventions", async () => {
+  it("returns learner data tied to a sanitized skill-gap journey and assigned interventions", async () => {
     const caller = appRouter.createCaller(createContext());
 
-    const learner = await caller.demo.learner({ tenantId: "northstar-health" });
+    const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
 
-    expect(learner.activeJourney.competencyGap).toBe("Empathy and call control");
+    expect(learner.activeJourney.competencyGap).toBe("Empathy language and call control consistency");
     expect(learner.assignedInterventions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ title: "Recover empathy and documentation precision" }),
+        expect.objectContaining({ title: "Restore workflow precision and score reliability" }),
       ]),
     );
     expect(learner.methodologyAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Service Recovery Playbook" })]),
+      expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Playbook" })]),
     );
   });
 
-  it("returns admin data with tenant-scoped branding and configuration controls", async () => {
+  it("returns admin data with tenant-scoped branding, sanitization controls, and configuration", async () => {
     const caller = appRouter.createCaller(createContext());
 
-    const admin = await caller.demo.admin({ tenantId: "northstar-health" });
+    const admin = await caller.demo.admin({ tenantId: "atlas-operations" });
 
     expect(admin.branding.dataIsolation).toContain("Strict tenant-scoped");
     expect(admin.configuration).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: "aiRationale", value: "Enabled" }),
         expect.objectContaining({ key: "humanOverride", value: "Enabled" }),
+        expect.objectContaining({ key: "sanitizedContent", value: "Verified in demo seed layer" }),
       ]),
     );
-    expect(admin.tenantUsers.every((user) => user.tenantId === "northstar-health")).toBe(true);
+    expect(admin.tenantUsers.every((user) => user.tenantId === "atlas-operations")).toBe(true);
   });
 
   it("denies cross-tenant secure access for a manager grant", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-manager",
+        openId: "atlas-manager",
         role: "user",
-        name: "Northstar Manager",
+        name: "Atlas Manager",
       }),
     );
 
-    await expect(caller.demo.secureManager({ tenantId: "summit-financial" })).rejects.toMatchObject({
+    await expect(caller.demo.secureManager({ tenantId: "lighthouse-finance" })).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
   });
@@ -121,15 +122,15 @@ describe("demo router", () => {
   it("allows secure role access inside the assigned tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-manager",
+        openId: "atlas-manager",
         role: "user",
-        name: "Northstar Manager",
+        name: "Atlas Manager",
       }),
     );
 
-    const manager = await caller.demo.secureManager({ tenantId: "northstar-health" });
+    const manager = await caller.demo.secureManager({ tenantId: "atlas-operations" });
 
-    expect(manager.tenant.id).toBe("northstar-health");
+    expect(manager.tenant.id).toBe("atlas-operations");
     expect(manager.manager.name).toBe("Marcus Bell");
   });
 
@@ -137,7 +138,7 @@ describe("demo router", () => {
     const caller = appRouter.createCaller(createContext());
 
     const created = await caller.demo.previewCreateReviewLog({
-      tenantId: "northstar-health",
+      tenantId: "atlas-operations",
       subjectUserId: "u-learn-1",
       authorRole: "manager",
       reviewType: "annual_review",
@@ -148,7 +149,7 @@ describe("demo router", () => {
 
     expect(created.reviewType).toBe("annual_review");
 
-    const learner = await caller.demo.learner({ tenantId: "northstar-health" });
+    const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
     expect(learner.reviewLogs[0]?.title).toBe("Annual performance review");
     expect(learner.documentationEntries[0]?.title).toContain("documentation summary");
   });
@@ -156,14 +157,14 @@ describe("demo router", () => {
   it("allows secure tenant-scoped review logging for a granted manager", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-manager",
+        openId: "atlas-manager",
         role: "user",
-        name: "Northstar Manager",
+        name: "Atlas Manager",
       }),
     );
 
     const created = await caller.demo.secureCreateReviewLog({
-      tenantId: "northstar-health",
+      tenantId: "atlas-operations",
       subjectUserId: "u-learn-1",
       authorRole: "manager",
       reviewType: "quarterly_check_in",
@@ -178,15 +179,15 @@ describe("demo router", () => {
   it("denies secure review logging outside the granted tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-manager",
+        openId: "atlas-manager",
         role: "user",
-        name: "Northstar Manager",
+        name: "Atlas Manager",
       }),
     );
 
     await expect(
       caller.demo.secureCreateReviewLog({
-        tenantId: "summit-financial",
+        tenantId: "lighthouse-finance",
         subjectUserId: "u-learn-1",
         authorRole: "manager",
         reviewType: "one_on_one",
@@ -207,57 +208,57 @@ describe("demo router", () => {
     );
 
     const updated = await caller.demo.updateBranding({
-      tenantId: "northstar-health",
+      tenantId: "atlas-operations",
       accent: "#123ABC",
-      logoMark: "NX",
-      preferredLabel: "Northstar Performance Hub",
-      heroStatement: "A branded CHCG performance workspace for precision coaching and operational readiness.",
+      logoMark: "AO",
+      preferredLabel: "Atlas EnableOS Workspace",
+      heroStatement: "A CHCG performance workspace for structured coaching, workflow precision, and measurable readiness movement.",
     });
 
     expect(updated).toMatchObject({
       accent: "#123ABC",
-      logoMark: "NX",
-      preferredLabel: "Northstar Performance Hub",
+      logoMark: "AO",
+      preferredLabel: "Atlas EnableOS Workspace",
     });
 
-    const admin = await caller.demo.admin({ tenantId: "northstar-health" });
-    expect(admin.branding.preferredLabel).toBe("Northstar Performance Hub");
+    const admin = await caller.demo.admin({ tenantId: "atlas-operations" });
+    expect(admin.branding.preferredLabel).toBe("Atlas EnableOS Workspace");
   });
 
   it("allows secure client-admin branding updates inside the assigned tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-admin",
+        openId: "atlas-admin",
         role: "user",
-        name: "Northstar Client Admin",
+        name: "Atlas Client Admin",
       }),
     );
 
     const updated = await caller.demo.secureUpdateBranding({
-      tenantId: "northstar-health",
+      tenantId: "atlas-operations",
       accent: "#1D4ED8",
-      logoMark: "NA",
-      preferredLabel: "Northstar Access Workspace",
-      heroStatement: "A tenant-scoped brand configuration driven through secure client-admin access.",
+      logoMark: "AE",
+      preferredLabel: "Atlas Enablement Workspace",
+      heroStatement: "A tenant-scoped CHCG workspace configured through secure client-admin access.",
     });
 
-    expect(updated.preferredLabel).toBe("Northstar Access Workspace");
+    expect(updated.preferredLabel).toBe("Atlas Enablement Workspace");
   });
 
   it("denies secure client-admin branding updates outside the assigned tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-admin",
+        openId: "atlas-admin",
         role: "user",
-        name: "Northstar Client Admin",
+        name: "Atlas Client Admin",
       }),
     );
 
     await expect(
       caller.demo.secureUpdateBranding({
-        tenantId: "summit-financial",
+        tenantId: "lighthouse-finance",
         accent: "#2F6FED",
-        logoMark: "NH",
+        logoMark: "LF",
         preferredLabel: "Invalid Tenant Update",
         heroStatement: "This secure branding update should be rejected because the client admin is outside the tenant boundary.",
       }),
@@ -267,19 +268,19 @@ describe("demo router", () => {
   it("prevents non-admin users from updating branding through the platform-admin mutation", async () => {
     const caller = appRouter.createCaller(
       createContext({
-        openId: "northstar-manager",
+        openId: "atlas-manager",
         role: "user",
-        name: "Northstar Manager",
+        name: "Atlas Manager",
       }),
     );
 
     await expect(
       caller.demo.updateBranding({
-        tenantId: "northstar-health",
+        tenantId: "atlas-operations",
         accent: "#2F6FED",
-        logoMark: "NH",
-        preferredLabel: "Northstar Health Access Enablement Hub",
-        heroStatement: "Precision patient access performance, reinforced through CHCG enablement and coaching discipline.",
+        logoMark: "AS",
+        preferredLabel: "Atlas Service Group EnableOS",
+        heroStatement: "CHCG-powered enablement intelligence for service teams that need stronger execution, cleaner coaching, and clearer ROI.",
       }),
     ).rejects.toBeInstanceOf(TRPCError);
   });

@@ -25,3 +25,9 @@
 - [x] Support structured coaching documentation for coaches, managers, and executives across one-on-ones, quarterly check-ins, and annual reviews.
 - [x] Add role-appropriate documentation views so each persona can review generated evidence, authored notes, and review history relevant to their scope.
 - [x] Extend backend procedures and tests to cover documentation entries, auto-generated completion records, and structured review logs.
+- [x] Access CHCG training decks through uploaded PowerPoint files after SharePoint sign-in was bypassed.
+- [x] Inventory the uploaded training content and map each deck into EnableOS role-based learning journeys, coaching workflows, and documentation structures.
+- [x] Upgrade the demo product with richer CHCG training content, stronger learning-path depth, and more convincing enterprise storytelling.
+- [x] Remove all client-specific data, names, branding, and identifiable references from imported training content before it is mapped into EnableOS.
+- [x] Inventory the newly uploaded agent and leadership decks and extract reusable CHCG training concepts from sanitized content only.
+- [x] Replace existing demo content that appears client-specific with neutral CHCG-branded examples and generalized enterprise scenarios.

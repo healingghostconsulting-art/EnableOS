@@ -29,3 +29,39 @@ The manager workspace now exposes a Documentation tab alongside the existing int
 The learner workspace now presents the documentation hub as a read-only evidence trail. It successfully shows auto-generated completion records alongside leadership review notes, which reinforces the story that learning completion and coaching actions become durable performance documentation rather than isolated events.
 
 The client-admin workspace now combines white-label controls with documentation governance and coach-style logging. The role roster, branding form, documentation feed, and structured review composer now work together as a credible tenant administration surface for a multi-client CHCG platform demo.
+
+## Sanitized content validation — 2026-04-20 (content remap)
+
+The executive workspace now reflects sanitized tenant naming, neutral industry framing, and CHCG-branded methodology assets without client-specific references. The ROI narrative, documentation evidence, and review-log surfaces now align more closely with the uploaded training themes around data literacy, workflow precision, and structured performance leadership.
+
+The updated seeded content makes the product story stronger. The experience feels more believable as an enterprise enablement system because the learning evidence, intervention logic, and executive review language are more specific, more method-driven, and less placeholder-oriented. The next refinement pass should deepen this same content richness in the manager, learner, and client-admin surfaces so all role views inherit the stronger module-derived narrative.
+
+## Landing refinement validation — 2026-04-20
+
+The landing page now communicates the upgraded product story more clearly. The three feature cards explicitly reference Service Foundations, Workflow Precision, explainable CHCG-guided coaching, and role-scoped governance, which makes the demo feel more rooted in the imported training architecture rather than generic enablement language.
+
+The neutral tenant set continues to read cleanly, and no client-specific names are visible in the current landing experience. The next improvement pass should push this same specificity deeper into the manager, learner, and admin panels so each role surface feels equally informed by the uploaded module library.
+
+## Manager refinement validation — 2026-04-20
+
+The manager workspace is now reading much closer to the uploaded module architecture. Workflow Precision and Service Foundations are explicitly visible in the signal feed, intervention logic, and explainable coaching recommendation, which makes the workspace feel more operationally grounded and less generic.
+
+The strongest moment in the current manager view is the coaching suggestion block, because it now ties metric variance to concrete coaching actions instead of abstract remediation language. The next upgrade pass should add the same explicit module-family language inside the documentation tab and coaching-history surfaces so the full manager experience feels consistently sourced from the CHCG learning system.
+
+## Role-storytelling refinement — 2026-04-20
+
+A second copy-refinement pass is now in place across the live role views. Executive methodology references and documentation sections explicitly call out Data-Led Leadership, Performance Leadership, and broader service/workflow/coaching evidence. Manager and learner documentation surfaces now reference Service Foundations, Workflow Precision, and CHCG performance-leadership cadence more clearly.
+
+This improves product coherence because the application now reads less like a generic dashboard shell and more like a platform built around a defined CHCG operating model. The remaining work should focus on carrying this depth into additional seeded assets, expanding module-driven examples in the content library, and then validating all four role views again before the next checkpoint.
+
+## Client-admin governance validation — 2026-04-20
+
+The client-admin workspace is now much stronger as a governance surface. The live page clearly shows branding controls, strict tenant boundaries, role-scoped account inventory, and documentation governance tied to Service Foundations, Workflow Precision, Data-Led Leadership, and Performance Leadership. The structured review-log area also reads credibly because one-on-one, quarterly, and annual review patterns are visible in the same control plane.
+
+This is one of the most convincing parts of the current demo because it communicates both platform administration and performance-governance maturity. The next enhancement step should make the manager and learner views equally rich in named CHCG module families and could add a more visible content-library or track-navigation section for users exploring the imported learning architecture.
+
+## Landing architecture validation — 2026-04-20
+
+The landing page now presents the imported CHCG training architecture much more explicitly. The new five-track section makes the demo feel more like a real product strategy and less like a generic multi-role prototype, because visitors can immediately understand the platform’s learning system: Service Foundations, Workflow Precision, Data-Led Leadership, Performance Leadership, and Engagement & Recognition.
+
+The live render is clean, and the visible copy remains free of client-specific references. The next useful step is to surface these same five tracks more directly inside the content-library, manager, learner, and executive detail views so the role experiences feel tightly connected to the upgraded landing narrative.

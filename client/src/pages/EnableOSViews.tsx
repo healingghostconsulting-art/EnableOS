@@ -51,7 +51,7 @@ const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string
     title: "Manager intervention workspace",
     route: "/manager",
     eyebrow: "Manager / Supervisor",
-    subtitle: "Review active signals, orchestrate coaching, and close workflow gaps faster.",
+    subtitle: "Review active signals, orchestrate coaching, and close workflow and service-quality gaps faster.",
   },
   learner: {
     title: "Learner enablement journey",
@@ -271,17 +271,17 @@ export function LandingView() {
           {[
             {
               title: "Signal to action",
-              description: "Simulated KPI and QA feeds trigger interventions tied to skill gaps, CHCG journeys, and coaching workflows.",
+              description: "Simulated KPI and QA feeds trigger interventions tied to Service Foundations, Workflow Precision, and CHCG coaching workflows.",
               icon: <Gauge className="h-5 w-5" />,
             },
             {
               title: "Role-specific intelligence",
-              description: "Executives, managers, learners, and client admins see only what is relevant to their decision horizon.",
+              description: "Executives, managers, learners, and client admins see only the signals, journeys, and governance content relevant to their decision horizon.",
               icon: <Users2 className="h-5 w-5" />,
             },
             {
               title: "Explainable AI support",
-              description: "AI-assisted coaching prompts include rationale and preserve explicit human override controls.",
+              description: "AI-assisted coaching prompts include rationale, connect to CHCG methodology, and preserve explicit human override controls.",
               icon: <Bot className="h-5 w-5" />,
             },
           ].map((item: any) => (
@@ -294,6 +294,31 @@ export function LandingView() {
             </PremiumCard>
           ))}
         </div>
+
+        <PremiumCard>
+          <CardHeader className="space-y-4">
+            <Badge className="w-fit rounded-full border-white/10 bg-white/8 text-slate-200">CHCG learning architecture</Badge>
+            <div className="max-w-3xl space-y-3">
+              <CardTitle className="text-2xl text-white">Five sanitized learning tracks now power the EnableOS story.</CardTitle>
+              <CardDescription className="text-base leading-7 text-slate-300">The uploaded training materials are being translated into a clearer CHCG product narrative built around frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-4 lg:grid-cols-5">
+            {[
+              ["Service Foundations", "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance."],
+              ["Workflow Precision", "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits."],
+              ["Data-Led Leadership", "KPI reading, trend interpretation, root-cause analysis, and action ownership."],
+              ["Performance Leadership", "Calibration, coaching cadence, review structure, and measurable improvement planning."],
+              ["Engagement & Recognition", "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm."],
+            ].map((track: any) => (
+              <div key={track[0]} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
+                <h3 className="mt-3 text-lg font-semibold text-white">{track[0]}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{track[1]}</p>
+              </div>
+            ))}
+          </CardContent>
+        </PremiumCard>
       </div>
     </Surface>
   );
@@ -301,7 +326,7 @@ export function LandingView() {
 
 export function RoleWorkspace({ role }: { role: DemoRole }) {
   const landing = trpc.demo.landing.useQuery();
-  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "northstar-health";
+  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
   const [tenantId, setTenantId] = useState(initialTenantId);
 
   const tenants = landing.data?.tenants ?? [];
@@ -515,7 +540,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         <PremiumCard>
           <CardHeader>
             <CardTitle className="text-white">Executive methodology references</CardTitle>
-            <CardDescription className="text-slate-400">CHCG governance assets surfaced directly in the experience.</CardDescription>
+            <CardDescription className="text-slate-400">CHCG governance assets from Data-Led Leadership, Performance Leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             {data.methodologyAssets.map((asset: any) => (
@@ -532,7 +557,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         <PremiumCard>
           <CardHeader>
             <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
-            <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity.</CardDescription>
+            <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
           </CardHeader>
           <CardContent>
             <DocumentationFeed entries={data.documentationEntries} />
@@ -582,7 +607,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} />
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals that trigger CHCG intervention logic.">
+        <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to Workflow Precision, Service Foundations, and manager-led intervention logic.">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
               <defs>
@@ -711,7 +736,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
-              <CardDescription className="text-slate-400">Completion evidence from journeys, modules, and interventions is automatically assembled for coaching use.</CardDescription>
+              <CardDescription className="text-slate-400">Completion evidence from Service Foundations, Workflow Precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentationFeed entries={data.documentationEntries} />
@@ -728,7 +753,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             <PremiumCard>
               <CardHeader>
                 <CardTitle className="text-white">Structured review history</CardTitle>
-                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record.</CardDescription>
+                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance-leadership cadence.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {data.reviewLogs.map((entry: any) => (
@@ -781,7 +806,7 @@ function LearnerPanel({ data }: { data: any }) {
         <PremiumCard>
           <CardHeader>
             <CardTitle className="text-white">Active enablement journey</CardTitle>
-            <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap.</CardDescription>
+            <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap across Service Foundations and Workflow Precision tracks.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
@@ -821,7 +846,7 @@ function LearnerPanel({ data }: { data: any }) {
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Assigned interventions</CardTitle>
-              <CardDescription className="text-slate-400">Auto-assigned actions with clear accountability.</CardDescription>
+              <CardDescription className="text-slate-400">Auto-assigned actions with clear accountability, grounded in workflow reliability and customer-service fundamentals.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {data.assignedInterventions.map((item: any) => (
@@ -848,7 +873,7 @@ function LearnerPanel({ data }: { data: any }) {
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Documentation hub</CardTitle>
-              <CardDescription className="text-slate-400">Automatically generated evidence and leadership review notes connected to your development history.</CardDescription>
+              <CardDescription className="text-slate-400">Automatically generated evidence and leadership review notes connected to your Service Foundations, Workflow Precision, and coaching history.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <DocumentationFeed entries={data.documentationEntries} />
@@ -922,7 +947,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
               <div className="mb-4 space-y-1">
                 <p className="text-sm font-medium text-white">Branding controls</p>
-                <p className="text-sm leading-6 text-slate-400">Update the label, accent, logo mark, and hero message to demonstrate tenant-specific white-label configuration.</p>
+                <p className="text-sm leading-6 text-slate-400">Update the label, accent, logo mark, and hero message to demonstrate tenant-specific white-label configuration layered over CHCG methodology tracks.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2 text-sm text-slate-300">
@@ -991,7 +1016,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Documentation governance</CardTitle>
-              <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across the tenant.</CardDescription>
+              <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across Service Foundations, Workflow Precision, Data-Led Leadership, and Performance Leadership activity.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <DocumentationFeed entries={data.documentationEntries} />
