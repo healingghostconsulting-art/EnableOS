@@ -186,6 +186,37 @@ export type BrandingUpdateInput = {
   heroStatement: string;
 };
 
+export type ContentLibraryAsset = {
+  id: string;
+  tenantId: string | "all";
+  title: string;
+  summary: string;
+  category: string;
+  sourceKind: "chcg" | "client_upload";
+  format: "Deck" | "Playbook" | "Checklist" | "Guide" | "Worksheet" | "Microlearning" | "Document";
+  linkedRoles: Array<DemoRole | "all">;
+  tags: string[];
+  linkedJourneyIds: string[];
+  linkedInterventionRuleIds: string[];
+  sourceLabel: string;
+  fileName?: string;
+  fileUrl?: string;
+  createdAt: string;
+};
+
+export type CreateClientContentInput = {
+  tenantId: string;
+  title: string;
+  summary: string;
+  category: string;
+  format: ContentLibraryAsset["format"];
+  linkedRoles: Array<DemoRole | "all">;
+  tags: string[];
+  sourceLabel: string;
+  fileName?: string;
+  fileUrl?: string;
+};
+
 export type DemoAccessGrant = {
   openId: string;
   tenantId: string;
@@ -710,6 +741,99 @@ const methodologyMappings: MethodologyMapping[] = [
   },
 ];
 
+const contentLibraryAssets: ContentLibraryAsset[] = [
+  {
+    id: "library-service-foundations-core",
+    tenantId: "all",
+    title: "Service Foundations Core Deck",
+    summary: "A CHCG learning deck covering empathy, active listening, professionalism, reassurance, and customer-service recovery behaviors for frontline roles.",
+    category: "Agent enablement",
+    sourceKind: "chcg",
+    format: "Deck",
+    linkedRoles: ["learner", "manager"],
+    tags: ["service foundations", "soft skills", "customer service", "communication"],
+    linkedJourneyIds: ["journey-service-foundations"],
+    linkedInterventionRuleIds: [],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:45:00Z",
+  },
+  {
+    id: "library-qa-essentials",
+    tenantId: "all",
+    title: "QA Essentials and Score Confidence",
+    summary: "A CHCG quality-governance asset focused on score interpretation, critical-failure handling, call-flow categories, and coaching-ready QA review conversations.",
+    category: "Quality governance",
+    sourceKind: "chcg",
+    format: "Guide",
+    linkedRoles: ["manager", "client_admin"],
+    tags: ["qa", "quality assurance", "calibration", "coaching"],
+    linkedJourneyIds: ["journey-workflow-precision"],
+    linkedInterventionRuleIds: ["rule-qa-variance"],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:46:00Z",
+  },
+  {
+    id: "library-workflow-precision-kit",
+    tenantId: "all",
+    title: "Workflow Precision Field Kit",
+    summary: "A structured CHCG toolkit for verification, hold and transfer discipline, documentation accuracy, and workflow behaviors that directly influence quality results.",
+    category: "Operational execution",
+    sourceKind: "chcg",
+    format: "Checklist",
+    linkedRoles: ["learner", "manager"],
+    tags: ["workflow", "documentation", "verification", "execution"],
+    linkedJourneyIds: ["journey-workflow-precision"],
+    linkedInterventionRuleIds: ["rule-aht-recovery", "rule-adherence-rhythm"],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:47:00Z",
+  },
+  {
+    id: "library-data-leadership-studio",
+    tenantId: "all",
+    title: "Unlocking the Power of Data",
+    summary: "A CHCG leadership deck that teaches KPI interpretation, trend reading, root-cause diagnosis, and decision-ready storytelling for enablement leaders.",
+    category: "Leadership intelligence",
+    sourceKind: "chcg",
+    format: "Deck",
+    linkedRoles: ["executive", "manager"],
+    tags: ["leadership", "data", "kpi", "analytics"],
+    linkedJourneyIds: ["journey-data-led-leadership"],
+    linkedInterventionRuleIds: [],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:48:00Z",
+  },
+  {
+    id: "library-performance-governance",
+    tenantId: "all",
+    title: "Performance Maximization Governance Playbook",
+    summary: "A CHCG leadership playbook covering performance segmentation, coaching cadence, quarterly reviews, annual reviews, and measurable improvement planning.",
+    category: "Performance governance",
+    sourceKind: "chcg",
+    format: "Playbook",
+    linkedRoles: ["executive", "manager", "client_admin"],
+    tags: ["performance management", "quarterly reviews", "annual reviews", "coaching"],
+    linkedJourneyIds: ["journey-performance-leadership"],
+    linkedInterventionRuleIds: [],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:49:00Z",
+  },
+  {
+    id: "library-gamified-engagement",
+    tenantId: "all",
+    title: "Remote-Team Engagement and Recognition System",
+    summary: "A CHCG asset focused on recognition loops, gamified motivation, pulse checks, and leadership rhythms for distributed teams.",
+    category: "Culture and motivation",
+    sourceKind: "chcg",
+    format: "Worksheet",
+    linkedRoles: ["executive", "manager", "client_admin"],
+    tags: ["gamification", "engagement", "recognition", "remote teams"],
+    linkedJourneyIds: [],
+    linkedInterventionRuleIds: [],
+    sourceLabel: "Sanitized CHCG source modules",
+    createdAt: "2026-04-20T18:50:00Z",
+  },
+];
+
 const aiSuggestions: AiSuggestion[] = [
   {
     id: "ai-1",
@@ -862,6 +986,95 @@ function getTenantCoachingSessions(tenantId: string) {
 
 function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" | "learner" | "executive">) {
   return journeys.find((journey) => journey.tenantId === tenantId && journey.role === role) ?? journeys.find((journey) => journey.role === role) ?? journeys[0]!;
+}
+
+function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
+  return contentLibraryAssets.filter((asset) => {
+    const tenantScoped = asset.tenantId === "all" || asset.tenantId === tenantId;
+    const roleScoped = !role || role === "all" || asset.linkedRoles.includes("all") || asset.linkedRoles.includes(role);
+    return tenantScoped && roleScoped;
+  });
+}
+
+export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
+  const tenant = getTenant(tenantId);
+  const assets = getTenantLibraryAssets(tenant.id, role);
+  const chcgAssets = assets.filter((asset) => asset.sourceKind === "chcg");
+  const importedAssets = assets.filter((asset) => asset.sourceKind === "client_upload");
+
+  return {
+    tenant,
+    branding: getTenantBranding(tenant.id),
+    stats: {
+      totalAssets: assets.length,
+      chcgAssets: chcgAssets.length,
+      importedAssets: importedAssets.length,
+      mappedJourneys: new Set(assets.flatMap((asset) => asset.linkedJourneyIds)).size,
+    },
+    tracks: [
+      {
+        id: "track-service-foundations",
+        title: "Service Foundations",
+        summary: "Frontline communication, empathy, confidence, and service-recovery behaviors.",
+      },
+      {
+        id: "track-workflow-precision",
+        title: "Workflow Precision",
+        summary: "Verification discipline, QA reliability, documentation accuracy, and consistent execution.",
+      },
+      {
+        id: "track-data-leadership",
+        title: "Data-Led Leadership",
+        summary: "KPI interpretation, trend analysis, root-cause thinking, and action ownership.",
+      },
+      {
+        id: "track-performance-leadership",
+        title: "Performance Leadership",
+        summary: "Coaching cadence, calibration, review rhythms, and measurable improvement planning.",
+      },
+      {
+        id: "track-engagement-recognition",
+        title: "Engagement and Recognition",
+        summary: "Recognition loops, gamified motivation, pulse checks, and distributed-team rhythm.",
+      },
+    ],
+    featuredAssets: assets.slice(0, 6),
+    chcgAssets,
+    importedAssets,
+  };
+}
+
+export function createClientContent(input: CreateClientContentInput) {
+  const created: ContentLibraryAsset = {
+    id: `library-upload-${contentLibraryAssets.length + 1}`,
+    tenantId: input.tenantId,
+    title: input.title,
+    summary: input.summary,
+    category: input.category,
+    sourceKind: "client_upload",
+    format: input.format,
+    linkedRoles: input.linkedRoles,
+    tags: input.tags,
+    linkedJourneyIds: [],
+    linkedInterventionRuleIds: [],
+    sourceLabel: input.sourceLabel,
+    fileName: input.fileName,
+    fileUrl: input.fileUrl,
+    createdAt: new Date().toISOString(),
+  };
+
+  contentLibraryAssets.unshift(created);
+  notifications.unshift({
+    id: `note-library-${notifications.length + 1}`,
+    tenantId: input.tenantId,
+    audience: "client_admin",
+    title: "New client content added to the library",
+    detail: `${input.title} is now available inside the tenant-scoped content library and can be referenced in journeys and coaching workflows.`,
+    priority: "info",
+    createdAt: created.createdAt,
+  });
+
+  return created;
 }
 
 export function listTenants() {

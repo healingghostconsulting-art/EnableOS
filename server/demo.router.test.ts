@@ -284,4 +284,82 @@ describe("demo router", () => {
       }),
     ).rejects.toBeInstanceOf(TRPCError);
   });
+
+  it("returns CHCG library assets and isolates imported tenant content", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    await caller.demo.previewUploadContent({
+      tenantId: "atlas-operations",
+      title: "Atlas workflow launch guide",
+      summary: "A tenant-scoped guide for launch governance, workflow reinforcement, and manager communication.",
+      category: "Launch enablement",
+      format: "Guide",
+      linkedRoles: ["manager"],
+      tags: ["launch", "workflow"],
+      sourceLabel: "Atlas enablement office",
+    });
+
+    const atlasLibrary = await caller.demo.library({ tenantId: "atlas-operations", role: "all" });
+    const lighthouseLibrary = await caller.demo.library({ tenantId: "lighthouse-finance", role: "all" });
+
+    expect(atlasLibrary.chcgAssets).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Core Deck" })]),
+    );
+    expect(atlasLibrary.importedAssets).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: "Atlas workflow launch guide", tenantId: "atlas-operations" })]),
+    );
+    expect(lighthouseLibrary.importedAssets.some((asset) => asset.title === "Atlas workflow launch guide")).toBe(false);
+  });
+
+  it("creates tenant-scoped client content and surfaces it in secure library access", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-admin",
+        role: "user",
+        name: "Atlas Client Admin",
+      }),
+    );
+
+    const created = await caller.demo.secureUploadContent({
+      tenantId: "atlas-operations",
+      title: "Atlas scorecard adoption checklist",
+      summary: "A checklist for scorecard launch, manager calibration, and evidence capture in quarterly reviews.",
+      category: "Governance",
+      format: "Checklist",
+      linkedRoles: ["client_admin", "manager"],
+      tags: ["scorecard", "governance", "reviews"],
+      sourceLabel: "Atlas PMO",
+    });
+
+    expect(created.sourceKind).toBe("client_upload");
+    expect(created.tenantId).toBe("atlas-operations");
+
+    const scopedLibrary = await caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "client_admin" });
+    expect(scopedLibrary.importedAssets).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: "Atlas scorecard adoption checklist" })]),
+    );
+  });
+
+  it("denies secure client-content upload outside the granted tenant", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-admin",
+        role: "user",
+        name: "Atlas Client Admin",
+      }),
+    );
+
+    await expect(
+      caller.demo.secureUploadContent({
+        tenantId: "lighthouse-finance",
+        title: "Cross-tenant upload",
+        summary: "This upload should be rejected because the client admin is not assigned to the target tenant.",
+        category: "Invalid",
+        format: "Document",
+        linkedRoles: ["client_admin"],
+        tags: ["invalid"],
+        sourceLabel: "Atlas PMO",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });

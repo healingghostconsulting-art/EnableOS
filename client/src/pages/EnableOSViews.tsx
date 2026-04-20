@@ -376,6 +376,402 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
   );
 }
 
+export function ContentLibraryView() {
+  const landing = trpc.demo.landing.useQuery();
+  const tenants = landing.data?.tenants ?? [];
+  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
+  const [tenantId, setTenantId] = useState(initialTenantId);
+  const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
+  const [trackFilter, setTrackFilter] = useState("all");
+  const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [category, setCategory] = useState("Client enablement");
+  const [format, setFormat] = useState<"Deck" | "Playbook" | "Checklist" | "Guide" | "Worksheet" | "Microlearning" | "Document">("Deck");
+  const [linkedRole, setLinkedRole] = useState<DemoRole | "all">("manager");
+  const [tags, setTags] = useState("implementation, client import");
+  const [sourceLabel, setSourceLabel] = useState("Client enablement team");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
+
+  const library = trpc.demo.library.useQuery({ tenantId, role: roleFilter });
+  const uploadMutation = trpc.demo.previewUploadContent.useMutation({
+    onSuccess: async (created) => {
+      setUploadNotice(`${created.title} is now visible in the tenant library.`);
+      setTitle("");
+      setSummary("");
+      setCategory("Client enablement");
+      setFormat("Deck");
+      setLinkedRole("manager");
+      setTags("implementation, client import");
+      setSourceLabel("Client enablement team");
+      setSelectedFile(null);
+      await library.refetch();
+    },
+    onError: (error) => {
+      setUploadNotice(error.message);
+    },
+  });
+
+  const tenantPicker = useMemo(
+    () => <TenantPicker tenants={tenants} tenantId={tenantId} setTenantId={setTenantId} />,
+    [tenantId, tenants],
+  );
+
+  const trackKeywords: Record<string, string[]> = {
+    all: [],
+    "track-service-foundations": ["service foundations", "soft skills", "customer service", "communication"],
+    "track-workflow-precision": ["workflow", "qa", "documentation", "verification", "execution"],
+    "track-data-leadership": ["data", "kpi", "analytics", "leadership intelligence"],
+    "track-performance-leadership": ["performance", "coaching", "quarterly reviews", "annual reviews"],
+    "track-engagement-recognition": ["engagement", "recognition", "gamification", "remote teams"],
+  };
+
+  const assets = useMemo(() => {
+    const sourceAssets = assetView === "chcg"
+      ? (library.data?.chcgAssets ?? [])
+      : assetView === "imported"
+        ? (library.data?.importedAssets ?? [])
+        : [...(library.data?.importedAssets ?? []), ...(library.data?.chcgAssets ?? [])];
+
+    const trackScoped = trackFilter === "all"
+      ? sourceAssets
+      : sourceAssets.filter((asset: any) => {
+          const keywords = trackKeywords[trackFilter] ?? [];
+          const haystack = `${asset.title} ${asset.summary} ${asset.category} ${asset.tags.join(" ")}`.toLowerCase();
+          return keywords.some((keyword) => haystack.includes(keyword));
+        });
+
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return trackScoped;
+    }
+
+    return trackScoped.filter((asset: any) => {
+      const haystack = `${asset.title} ${asset.summary} ${asset.category} ${asset.tags.join(" ")} ${asset.sourceLabel}`.toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [assetView, library.data, searchQuery, trackFilter]);
+
+  async function readFileAsBase64(file: File) {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === "string" ? reader.result : "";
+        resolve(result.includes(",") ? result.split(",")[1] ?? "" : result);
+      };
+      reader.onerror = () => reject(reader.error ?? new Error("Unable to read file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleUpload(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUploadNotice(null);
+
+    const normalizedTags = tags
+      .split(",")
+      .map((tag) => tag.trim().toLowerCase())
+      .filter(Boolean)
+      .slice(0, 8);
+
+    const payload: any = {
+      tenantId,
+      title,
+      summary,
+      category,
+      format,
+      linkedRoles: [linkedRole],
+      tags: normalizedTags,
+      sourceLabel,
+    };
+
+    if (selectedFile) {
+      payload.fileName = selectedFile.name;
+      payload.mimeType = selectedFile.type || "application/octet-stream";
+      payload.dataBase64 = await readFileAsBase64(selectedFile);
+    }
+
+    await uploadMutation.mutateAsync(payload);
+  }
+
+  return (
+    <Surface>
+      <SectionShell
+        eyebrow="Content Library"
+        title="CHCG methodology assets and tenant-scoped imports"
+        description="Browse the CHCG core library by learning track, then blend in client-provided materials with clear source labeling, role alignment, and tenant-safe visibility."
+        actions={
+          <>
+            {tenantPicker}
+            <Link href="/">
+              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                Back to overview
+              </Button>
+            </Link>
+          </>
+        }
+      >
+        {library.isLoading || landing.isLoading ? <LoadingState /> : null}
+        {!library.isLoading && library.data ? (
+          <div className="space-y-8">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <MetricCard label="Total assets" value={String(library.data.stats.totalAssets)} supporting="Visible under the current tenant, role, and search filters." icon={<Layers3 className="h-4 w-4" />} />
+              <MetricCard label="CHCG core assets" value={String(library.data.stats.chcgAssets)} supporting="Sanitized CHCG methodology assets ready for reuse." icon={<BookOpen className="h-4 w-4" />} />
+              <MetricCard label="Client imports" value={String(library.data.stats.importedAssets)} supporting="Tenant-scoped materials uploaded for this workspace." icon={<Building2 className="h-4 w-4" />} />
+              <MetricCard label="Mapped journeys" value={String(library.data.stats.mappedJourneys)} supporting="Assets already connected to enablement journeys." icon={<Target className="h-4 w-4" />} />
+            </div>
+
+            <PremiumCard className="overflow-hidden">
+              <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${library.data.branding.accent}, rgba(255,255,255,0.08))` }} />
+              <CardContent className="flex flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="flex h-16 w-16 items-center justify-center rounded-[1.4rem] border text-xl font-semibold text-white shadow-[0_20px_40px_rgba(8,15,30,0.35)]"
+                    style={{ borderColor: `${library.data.branding.accent}55`, backgroundColor: `${library.data.branding.accent}22` }}
+                  >
+                    {library.data.branding.logoMark}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">White-label library view</p>
+                    <h2 className="text-2xl font-semibold tracking-tight text-white">{library.data.branding.preferredLabel}</h2>
+                    <p className="max-w-2xl text-sm leading-6 text-slate-300">{library.data.branding.heroStatement}</p>
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
+                  <p className="font-medium text-white">Tenant-safe presentation</p>
+                  <p className="mt-1">Imported assets inherit this tenant context while CHCG core materials remain visibly labeled as shared methodology content.</p>
+                </div>
+              </CardContent>
+            </PremiumCard>
+
+            <PremiumCard>
+              <CardHeader className="space-y-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="space-y-3">
+                    <div>
+                      <CardTitle className="text-white">Track explorer</CardTitle>
+                      <CardDescription className="text-slate-400">Filter by CHCG learning track and role relevance to inspect how methodology assets and client imports align.</CardDescription>
+                    </div>
+                    <label className="block max-w-xl space-y-2 text-sm text-slate-200">
+                      <span>Search assets</span>
+                      <input
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500"
+                        placeholder="Search by title, category, tag, or source label"
+                      />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant="outline"
+                        onClick={() => setRoleFilter(option.value as DemoRole | "all")}
+                        className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTrackFilter("all")}
+                    className={`h-auto rounded-3xl border-white/10 px-4 py-4 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold">All tracks</p>
+                      <p className={`mt-1 text-xs leading-5 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
+                    </div>
+                  </Button>
+                  {library.data.tracks.map((track: any) => (
+                    <Button
+                      key={track.id}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setTrackFilter(track.id)}
+                      className={`h-auto rounded-3xl border-white/10 px-4 py-4 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">{track.title}</p>
+                        <p className={`mt-1 text-xs leading-5 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardHeader>
+            </PremiumCard>
+
+            <Tabs value={assetView} onValueChange={(value) => setAssetView(value as "all" | "chcg" | "imported")} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3 rounded-3xl border border-white/10 bg-white/6 p-1">
+                <TabsTrigger value="all" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Blended library</TabsTrigger>
+                <TabsTrigger value="chcg" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">CHCG core</TabsTrigger>
+                <TabsTrigger value="imported" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Client imports</TabsTrigger>
+              </TabsList>
+              <TabsContent value={assetView} className="mt-0 space-y-6">
+                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+
+                  {assets.map((asset: any) => (
+                    <PremiumCard key={asset.id} className="h-full">
+                      <CardHeader className="space-y-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{asset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.category}</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          <CardTitle className="text-xl text-white">{asset.title}</CardTitle>
+                          <CardDescription className="text-sm leading-6 text-slate-300">{asset.summary}</CardDescription>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                          {asset.linkedRoles.map((linked: string) => (
+                            <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">
+                              {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                          {asset.tags.map((tag: string) => (
+                            <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1">#{tag}</span>
+                          ))}
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
+                          <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
+                          <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        {asset.fileUrl ? (
+                          <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium text-cyan-200 transition-colors hover:text-cyan-100">
+                            Open stored asset
+                            <ChevronRight className="ml-1 h-4 w-4" />
+                          </a>
+                        ) : null}
+                      </CardContent>
+                    </PremiumCard>
+                  ))}
+                </div>
+                {assets.length === 0 ? (
+                  <PremiumCard>
+                    <CardContent className="py-12 text-center text-slate-300">
+                      No assets match the current search, track, and role filters yet. Try broadening the search, switching library views, or uploading tenant-specific material below.
+                    </CardContent>
+                  </PremiumCard>
+                ) : null}
+              </TabsContent>
+            </Tabs>
+
+            <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Client content ingestion</CardTitle>
+                  <CardDescription className="text-slate-400">Upload a deck or document to blend client-specific materials into the tenant library without diluting CHCG core content visibility.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-4" onSubmit={handleUpload}>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Asset title</span>
+                        <input value={title} onChange={(event) => setTitle(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none ring-0 placeholder:text-slate-500" placeholder="New hire workflow deck" />
+                      </label>
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Category</span>
+                        <input value={category} onChange={(event) => setCategory(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none ring-0 placeholder:text-slate-500" placeholder="Operational execution" />
+                      </label>
+                    </div>
+                    <label className="space-y-2 text-sm text-slate-200">
+                      <span>Summary</span>
+                      <textarea value={summary} onChange={(event) => setSummary(event.target.value)} required rows={4} className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none placeholder:text-slate-500" placeholder="Describe how this material supports coaching, readiness, or documentation workflows." />
+                    </label>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Format</span>
+                        <Select value={format} onValueChange={(value) => setFormat(value as typeof format)}>
+                          <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
+                            <SelectValue placeholder="Choose format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"].map((option) => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </label>
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Primary audience</span>
+                        <Select value={linkedRole} onValueChange={(value) => setLinkedRole(value as DemoRole | "all")}>
+                          <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
+                            <SelectValue placeholder="Choose audience" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="executive">Executive</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="learner">Learner</SelectItem>
+                            <SelectItem value="client_admin">Client admin</SelectItem>
+                            <SelectItem value="all">All roles</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </label>
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Source label</span>
+                        <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500" placeholder="Client enablement team" />
+                      </label>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Tags</span>
+                        <input value={tags} onChange={(event) => setTags(event.target.value)} className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500" placeholder="workflow, qa, launch" />
+                      </label>
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Optional file</span>
+                        <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} className="block h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-950" />
+                      </label>
+                    </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-slate-400">Uploads are tenant-scoped and surfaced with explicit source labeling so CHCG assets remain distinguishable from imported materials.</p>
+                      <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                        {uploadMutation.isPending ? "Uploading..." : "Add to library"}
+                      </Button>
+                    </div>
+                    {uploadNotice ? <p className="text-sm text-cyan-200">{uploadNotice}</p> : null}
+                  </form>
+                </CardContent>
+              </PremiumCard>
+
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Integration notes</CardTitle>
+                  <CardDescription className="text-slate-400">How the library fits the wider EnableOS demo story.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm leading-6 text-slate-300">
+                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                    <p className="font-medium text-white">Tenant-safe blending</p>
+                    <p className="mt-2">CHCG methodology assets stay globally available while imported client materials remain isolated to the selected tenant.</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                    <p className="font-medium text-white">Role-aware curation</p>
+                    <p className="mt-2">Role filters reveal the same library through executive, manager, learner, and client-admin relevance lenses.</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                    <p className="font-medium text-white">Journey alignment</p>
+                    <p className="mt-2">Mapped-journey counts reinforce how methodology assets can feed interventions, coaching sessions, and review evidence workflows.</p>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            </div>
+          </div>
+        ) : null}
+      </SectionShell>
+    </Surface>
+  );
+}
+
 function DocumentationFeed({ entries }: { entries: any[] }) {
   return (
     <div className="space-y-3">

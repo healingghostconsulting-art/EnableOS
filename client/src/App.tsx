@@ -1,12 +1,12 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BookOpen, Building2, Gauge, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { LandingView, RoleWorkspace } from "./pages/EnableOSViews";
+import { ContentLibraryView, LandingView, RoleWorkspace } from "./pages/EnableOSViews";
 
 const workspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
@@ -14,6 +14,7 @@ const workspaceMenu: DashboardMenuItem[] = [
   { icon: ShieldCheck, label: "Manager", path: "/manager" },
   { icon: BookOpen, label: "Learner", path: "/learner" },
   { icon: Building2, label: "Client Admin", path: "/admin" },
+  { icon: BookText, label: "Content Library", path: "/library" },
 ];
 
 function WorkspaceShell({ children, roleLabel }: { children: React.ReactNode; roleLabel: string }) {
@@ -61,6 +62,13 @@ function Router() {
         {() => (
           <WorkspaceShell roleLabel="Client Admin Console">
             <RoleWorkspace role="client_admin" />
+          </WorkspaceShell>
+        )}
+      </Route>
+      <Route path="/library">
+        {() => (
+          <WorkspaceShell roleLabel="Content Library">
+            <ContentLibraryView />
           </WorkspaceShell>
         )}
       </Route>
