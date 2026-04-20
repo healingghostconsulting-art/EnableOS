@@ -22,7 +22,58 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const tenants = mysqlTable("tenants", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  industry: varchar("industry", { length: 120 }).notNull(),
+  preferredLabel: varchar("preferredLabel", { length: 160 }).notNull(),
+  accent: varchar("accent", { length: 7 }).notNull(),
+  logoMark: varchar("logoMark", { length: 8 }).notNull(),
+  heroStatement: text("heroStatement").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const tenantAccessGrants = mysqlTable("tenantAccessGrants", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  userOpenId: varchar("userOpenId", { length: 64 }).notNull(),
+  workspaceRole: mysqlEnum("workspaceRole", ["executive", "manager", "learner", "client_admin", "platform_admin"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const documentationEntries = mysqlTable("documentationEntries", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  subjectUserId: varchar("subjectUserId", { length: 64 }).notNull(),
+  sourceType: mysqlEnum("sourceType", ["journey_completion", "module_completion", "intervention_completion", "coaching_summary"]).notNull(),
+  title: varchar("title", { length: 180 }).notNull(),
+  summary: text("summary").notNull(),
+  authoredByRole: mysqlEnum("authoredByRole", ["system", "executive", "manager", "learner", "client_admin"]).notNull(),
+  evidenceJson: text("evidenceJson").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const reviewLogs = mysqlTable("reviewLogs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).notNull(),
+  subjectUserId: varchar("subjectUserId", { length: 64 }).notNull(),
+  authorUserId: varchar("authorUserId", { length: 64 }).notNull(),
+  authorRole: mysqlEnum("authorRole", ["executive", "manager", "client_admin"]).notNull(),
+  reviewType: mysqlEnum("reviewType", ["one_on_one", "quarterly_check_in", "annual_review"]).notNull(),
+  title: varchar("title", { length: 180 }).notNull(),
+  notes: text("notes").notNull(),
+  nextStep: text("nextStep").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = typeof tenants.$inferInsert;
+export type TenantAccessGrant = typeof tenantAccessGrants.$inferSelect;
+export type InsertTenantAccessGrant = typeof tenantAccessGrants.$inferInsert;
+export type DocumentationEntry = typeof documentationEntries.$inferSelect;
+export type InsertDocumentationEntry = typeof documentationEntries.$inferInsert;
+export type ReviewLog = typeof reviewLogs.$inferSelect;
+export type InsertReviewLog = typeof reviewLogs.$inferInsert;

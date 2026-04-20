@@ -14,10 +14,14 @@
 - [x] Build a notification and alert system for overdue interventions, threshold breaches, coaching follow-ups, and manager action items.
 - [x] Ensure all methodology references, framework assets, and content align with the CHCG methodology.
 - [x] Seed realistic demo data for tenants, users, KPI trends, interventions, coaching sessions, and content assets.
-- [ ] Implement backend schema, procedures, and access controls supporting role scoping and multi-tenancy.
+- [x] Implement backend schema, procedures, and access controls supporting role scoping and multi-tenancy.
 - [x] Create unit tests covering key backend logic, including role scoping, intervention rules, and explainable AI response structure.
 - [x] Validate the demo experience in the browser and confirm polished presentation across the primary role views.
-- [ ] Implement enforced tenant scoping and access control in backend procedures, and add tests proving users and admins cannot access cross-tenant data.
-- [ ] Add configurable white-label branding controls with editable tenant settings reflected dynamically in the UI, plus tests.
-- [ ] Document and encode CHCG methodology mappings from source materials to each seeded framework and content asset so alignment is verifiable.
-- [ ] Add stronger UI validation coverage for landing, executive, manager, learner, and admin experiences.
+- [x] Implement enforced tenant scoping and access control in backend procedures, and add tests proving users and admins cannot access cross-tenant data.
+- [x] Add configurable white-label branding controls with editable tenant settings reflected dynamically in the UI, plus tests.
+- [x] Document and encode CHCG methodology mappings from source materials to each seeded framework and content asset so alignment is verifiable.
+- [x] Add stronger UI validation coverage for landing, executive, manager, learner, and admin experiences.
+- [x] Add a documentation hub that automatically creates evidence records from completed learning journeys, modules, and assigned interventions.
+- [x] Support structured coaching documentation for coaches, managers, and executives across one-on-ones, quarterly check-ins, and annual reviews.
+- [x] Add role-appropriate documentation views so each persona can review generated evidence, authored notes, and review history relevant to their scope.
+- [x] Extend backend procedures and tests to cover documentation entries, auto-generated completion records, and structured review logs.

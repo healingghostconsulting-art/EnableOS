@@ -7,6 +7,7 @@ export type DemoTenant = {
   accent: string;
   logoMark: string;
   description: string;
+  heroStatement: string;
 };
 
 export type DemoUser = {
@@ -115,6 +116,14 @@ export type MethodologyAsset = {
   linkedRole: DemoRole | "all";
 };
 
+export type MethodologyMapping = {
+  assetId: string;
+  tenantId: string | "all";
+  principle: string;
+  platformSurface: string;
+  implementationNote: string;
+};
+
 export type AiSuggestion = {
   id: string;
   tenantId: string;
@@ -126,6 +135,64 @@ export type AiSuggestion = {
   overrideAvailable: boolean;
 };
 
+export type DocumentationEntry = {
+  id: string;
+  tenantId: string;
+  subjectUserId: string;
+  sourceType: "journey_completion" | "module_completion" | "intervention_completion" | "coaching_summary";
+  title: string;
+  summary: string;
+  createdAt: string;
+  authoredByRole: "system" | DemoRole;
+  evidencePoints: string[];
+};
+
+export type ReviewLog = {
+  id: string;
+  tenantId: string;
+  subjectUserId: string;
+  authorUserId: string;
+  authorRole: "manager" | "executive" | "client_admin";
+  reviewType: "one_on_one" | "quarterly_check_in" | "annual_review";
+  title: string;
+  notes: string;
+  createdAt: string;
+  nextStep: string;
+};
+
+export type CreateReviewLogInput = {
+  tenantId: string;
+  subjectUserId: string;
+  authorRole: "manager" | "executive" | "client_admin";
+  reviewType: "one_on_one" | "quarterly_check_in" | "annual_review";
+  title: string;
+  notes: string;
+  nextStep: string;
+};
+
+export type TenantBranding = {
+  accent: string;
+  logoMark: string;
+  preferredLabel: string;
+  heroStatement: string;
+  dataIsolation: string;
+};
+
+export type BrandingUpdateInput = {
+  tenantId: string;
+  accent: string;
+  logoMark: string;
+  preferredLabel: string;
+  heroStatement: string;
+};
+
+export type DemoAccessGrant = {
+  openId: string;
+  tenantId: string;
+  role: DemoRole | "platform_admin";
+  name: string;
+};
+
 const tenants: DemoTenant[] = [
   {
     id: "northstar-health",
@@ -134,6 +201,7 @@ const tenants: DemoTenant[] = [
     accent: "#2F6FED",
     logoMark: "NH",
     description: "A patient access and contact center operation focused on adherence, QA consistency, and service recovery.",
+    heroStatement: "Precision patient access performance, reinforced through CHCG enablement and coaching discipline.",
   },
   {
     id: "summit-financial",
@@ -142,6 +210,7 @@ const tenants: DemoTenant[] = [
     accent: "#0E7490",
     logoMark: "SF",
     description: "A regulated service environment emphasizing trust, QA rigor, and customer satisfaction improvement.",
+    heroStatement: "Trust-centered coaching intelligence for regulated service teams and quality-sensitive workflows.",
   },
   {
     id: "velocity-retail",
@@ -150,6 +219,7 @@ const tenants: DemoTenant[] = [
     accent: "#7C3AED",
     logoMark: "VR",
     description: "A multi-channel retail support team balancing handle time, sentiment, and schedule adherence.",
+    heroStatement: "Retail service readiness built through intervention discipline, rapid feedback, and guided coaching.",
   },
 ];
 
@@ -292,8 +362,8 @@ const rules: InterventionRule[] = [
     thresholdLabel: "Adherence below 88%",
     skillGap: "Routine discipline and escalation handling",
     assignedJourneyId: "journey-manager-coaching",
-    assignedAction: "Create follow-up plan with supervisor and reinforce routine discipline.",
-    rationale: "Adherence slips are most durable when corrected through supervisor habit-setting and schedule coaching.",
+    assignedAction: "Create follow-up coaching plan and reinforce adherence checkpoints.",
+    rationale: "Adherence deterioration often reflects workflow instability and inconsistent escalation habits.",
   },
   {
     id: "rule-csat-recovery",
@@ -386,9 +456,7 @@ const coachingSessions: CoachingSession[] = [
       "Document repeat navigation barriers.",
       "Confirm updated call-control checkpoints.",
     ],
-    auditTrail: [
-      { at: "2026-04-18T12:30:00Z", detail: "Session created from AHT rule trigger." },
-    ],
+    auditTrail: [{ at: "2026-04-18T12:30:00Z", detail: "Session created from AHT rule trigger." }],
   },
 ];
 
@@ -462,6 +530,37 @@ const methodologyAssets: MethodologyAsset[] = [
   },
 ];
 
+const methodologyMappings: MethodologyMapping[] = [
+  {
+    assetId: "asset-1",
+    tenantId: "all",
+    principle: "Translate KPI variance into action ownership and measurable business movement.",
+    platformSurface: "Executive dashboard, manager signal feed, learner intervention cards",
+    implementationNote: "The KPI mastery framework anchors how AHT, QA, CSAT, and adherence move from signal detection to intervention assignment and readiness scoring.",
+  },
+  {
+    assetId: "asset-2",
+    tenantId: "northstar-health",
+    principle: "Structured coaching must create observable behavior targets, due dates, and follow-up evidence.",
+    platformSurface: "Manager coaching log and AI recommendation panel",
+    implementationNote: "The coaching workflow and audit trail mirror CHCG's behavior-based follow-up loop rather than generic note-taking.",
+  },
+  {
+    assetId: "asset-3",
+    tenantId: "northstar-health",
+    principle: "Executives need intervention-to-outcome visibility, not just learning activity counts.",
+    platformSurface: "Executive ROI movement cards and readiness trend chart",
+    implementationNote: "The executive workspace emphasizes uplift, correlation, and readiness movement to support business-level decision making.",
+  },
+  {
+    assetId: "asset-4",
+    tenantId: "northstar-health",
+    principle: "Learner enablement must embed CHCG playbooks directly in the flow of work.",
+    platformSurface: "Learner journey modules and assigned intervention actions",
+    implementationNote: "The service recovery journey includes playbook, microlearning, and scenario modalities tied to a named competency gap.",
+  },
+];
+
 const aiSuggestions: AiSuggestion[] = [
   {
     id: "ai-1",
@@ -479,8 +578,93 @@ const aiSuggestions: AiSuggestion[] = [
   },
 ];
 
+const documentationEntries: DocumentationEntry[] = [
+  {
+    id: "doc-1",
+    tenantId: "northstar-health",
+    subjectUserId: "u-learn-1",
+    sourceType: "module_completion",
+    title: "Empathy under pressure completion recorded",
+    summary: "The platform automatically captured completion of the empathy microlearning and attached the skill focus, completion percentage, and intended behavior shift.",
+    createdAt: "2026-04-19T18:05:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Module: Empathy under pressure",
+      "Skill focus: Empathy",
+      "Completion rate crossed the active-assignment threshold",
+    ],
+  },
+  {
+    id: "doc-2",
+    tenantId: "northstar-health",
+    subjectUserId: "u-learn-1",
+    sourceType: "journey_completion",
+    title: "Service recovery journey progress checkpoint",
+    summary: "Journey progress and assigned intervention actions were converted into a documentation artifact for coaching review.",
+    createdAt: "2026-04-20T08:10:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Journey progress: 58%",
+      "Competency gap: Empathy and call control",
+      "Associated intervention owner: Marcus Bell",
+    ],
+  },
+  {
+    id: "doc-3",
+    tenantId: "northstar-health",
+    subjectUserId: "u-learn-1",
+    sourceType: "intervention_completion",
+    title: "Workflow precision intervention evidence",
+    summary: "Assigned actions, due dates, and learner acknowledgment were assembled into a manager-ready documentation record.",
+    createdAt: "2026-04-20T09:40:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Intervention: Reduce handle time through workflow precision",
+      "Due date: 2026-04-25",
+      "Evidence includes assigned next-best-call-control checklist",
+    ],
+  },
+];
+
+const reviewLogs: ReviewLog[] = [
+  {
+    id: "review-1",
+    tenantId: "northstar-health",
+    subjectUserId: "u-learn-1",
+    authorUserId: "u-mgr-1",
+    authorRole: "manager",
+    reviewType: "one_on_one",
+    title: "Weekly coaching one-on-one",
+    notes: "Reviewed empathy phrasing, call opening discipline, and documentation consistency against the latest QA findings.",
+    createdAt: "2026-04-20T13:15:00Z",
+    nextStep: "Validate phrasing improvement in the next five monitored calls.",
+  },
+  {
+    id: "review-2",
+    tenantId: "northstar-health",
+    subjectUserId: "u-learn-1",
+    authorUserId: "u-exec-1",
+    authorRole: "executive",
+    reviewType: "quarterly_check_in",
+    title: "Quarterly readiness checkpoint",
+    notes: "Connected intervention volume to readiness movement and confirmed that coaching consistency remains the priority lever for the quarter.",
+    createdAt: "2026-04-20T15:00:00Z",
+    nextStep: "Review enterprise readiness movement after the next intervention cycle closes.",
+  },
+];
+
+const accessGrants: DemoAccessGrant[] = [
+  { openId: "northstar-exec", tenantId: "northstar-health", role: "executive", name: "Northstar Executive" },
+  { openId: "northstar-manager", tenantId: "northstar-health", role: "manager", name: "Northstar Manager" },
+  { openId: "northstar-learner", tenantId: "northstar-health", role: "learner", name: "Northstar Learner" },
+  { openId: "northstar-admin", tenantId: "northstar-health", role: "client_admin", name: "Northstar Admin" },
+  { openId: "platform-admin", tenantId: "northstar-health", role: "platform_admin", name: "Platform Admin" },
+];
+
+const brandingOverrides = new Map<string, Partial<TenantBranding>>();
+
 function getTenant(tenantId?: string) {
-  return tenants.find((tenant) => tenant.id === tenantId) ?? tenants[0];
+  return tenants.find((tenant) => tenant.id === tenantId) ?? tenants[0]!;
 }
 
 function getUser(role: DemoRole, tenantId?: string) {
@@ -488,9 +672,93 @@ function getUser(role: DemoRole, tenantId?: string) {
   return users.find((user) => user.tenantId === tenant.id && user.role === role) ?? users[0]!;
 }
 
+export function listTenants() {
+  return tenants;
+}
+
+export function listMethodologyMappings() {
+  return methodologyMappings;
+}
+
+export function getAccessGrant(openId?: string | null) {
+  if (!openId) return null;
+  return accessGrants.find((grant) => grant.openId === openId) ?? null;
+}
+
+export function getTenantBranding(tenantId?: string): TenantBranding {
+  const tenant = getTenant(tenantId);
+  const override = brandingOverrides.get(tenant.id) ?? {};
+
+  return {
+    accent: override.accent ?? tenant.accent,
+    logoMark: override.logoMark ?? tenant.logoMark,
+    preferredLabel: override.preferredLabel ?? `${tenant.name} Enablement Hub`,
+    heroStatement: override.heroStatement ?? tenant.heroStatement,
+    dataIsolation: "Strict tenant-scoped segmentation enabled",
+  };
+}
+
+export function updateTenantBranding(input: BrandingUpdateInput) {
+  const tenant = getTenant(input.tenantId);
+  brandingOverrides.set(tenant.id, {
+    accent: input.accent,
+    logoMark: input.logoMark,
+    preferredLabel: input.preferredLabel,
+    heroStatement: input.heroStatement,
+  });
+
+  return getTenantBranding(tenant.id);
+}
+
+function getDocumentationEntries(tenantId: string, subjectUserId?: string) {
+  return documentationEntries.filter((entry) => entry.tenantId === tenantId && (!subjectUserId || entry.subjectUserId === subjectUserId));
+}
+
+function getReviewLogs(tenantId: string, subjectUserId?: string) {
+  return reviewLogs.filter((entry) => entry.tenantId === tenantId && (!subjectUserId || entry.subjectUserId === subjectUserId));
+}
+
+export function createReviewLog(input: CreateReviewLogInput) {
+  const author = getUser(input.authorRole === "client_admin" ? "client_admin" : input.authorRole, input.tenantId);
+  const created: ReviewLog = {
+    id: `review-${reviewLogs.length + 1}`,
+    tenantId: input.tenantId,
+    subjectUserId: input.subjectUserId,
+    authorUserId: author.id,
+    authorRole: input.authorRole,
+    reviewType: input.reviewType,
+    title: input.title,
+    notes: input.notes,
+    createdAt: new Date().toISOString(),
+    nextStep: input.nextStep,
+  };
+
+  reviewLogs.unshift(created);
+  documentationEntries.unshift({
+    id: `doc-review-${documentationEntries.length + 1}`,
+    tenantId: input.tenantId,
+    subjectUserId: input.subjectUserId,
+    sourceType: "coaching_summary",
+    title: `${input.title} documentation summary`,
+    summary: input.notes,
+    createdAt: created.createdAt,
+    authoredByRole: input.authorRole,
+    evidencePoints: [
+      `Review type: ${input.reviewType.replaceAll("_", " ")}`,
+      `Next step: ${input.nextStep}`,
+      `Authored by: ${input.authorRole.replaceAll("_", " ")}`,
+    ],
+  });
+
+  return created;
+}
+
 export function getDemoLanding() {
   return {
-    tenants,
+    tenants: tenants.map((tenant) => ({
+      ...tenant,
+      branding: getTenantBranding(tenant.id),
+    })),
     featuredMetrics: [
       { label: "Active interventions", value: 18 },
       { label: "Avg. readiness uplift", value: "+9 pts" },
@@ -503,9 +771,11 @@ export function getDemoLanding() {
 export function getExecutiveDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const executive = getUser("executive", tenant.id);
+  const branding = getTenantBranding(tenant.id);
 
   return {
     tenant,
+    branding,
     executive,
     readiness: {
       score: 82,
@@ -531,6 +801,9 @@ export function getExecutiveDashboard(tenantId?: string) {
       { team: "Referral Services", score: 79 },
     ],
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "executive" || asset.linkedRole === "all"),
+    methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    documentationEntries: getDocumentationEntries(tenant.id),
+    reviewLogs: getReviewLogs(tenant.id),
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "executive" || item.audience === "all")),
   };
 }
@@ -539,31 +812,41 @@ export function getManagerDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const manager = getUser("manager", tenant.id);
   const learner = getUser("learner", tenant.id);
+  const branding = getTenantBranding(tenant.id);
 
   return {
     tenant,
+    branding,
     manager,
     directReport: learner,
     openSignals: signals.filter((signal) => signal.tenantId === tenant.id),
     interventions: interventions.filter((item) => item.tenantId === tenant.id),
     coachingSessions: coachingSessions.filter((session) => session.tenantId === tenant.id),
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
+    methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    documentationEntries: getDocumentationEntries(tenant.id, learner.id),
+    reviewLogs: getReviewLogs(tenant.id, learner.id),
     aiSuggestion: aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0],
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
-    rules,
+    rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
   };
 }
 
 export function getLearnerDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const learner = getUser("learner", tenant.id);
+  const branding = getTenantBranding(tenant.id);
 
   return {
     tenant,
+    branding,
     learner,
     activeJourney: journeys.find((journey) => journey.tenantId === tenant.id && journey.role === "learner") ?? journeys[0],
     assignedInterventions: interventions.filter((item) => item.tenantId === tenant.id && item.assigneeUserId === learner.id),
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "learner" || asset.linkedRole === "all"),
+    methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    documentationEntries: getDocumentationEntries(tenant.id, learner.id),
+    reviewLogs: getReviewLogs(tenant.id, learner.id),
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "learner" || item.audience === "all")),
     nextCoachingSession: coachingSessions.find((session) => session.tenantId === tenant.id && session.learnerUserId === learner.id) ?? coachingSessions[0],
   };
@@ -572,18 +855,17 @@ export function getLearnerDashboard(tenantId?: string) {
 export function getAdminDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const admin = getUser("client_admin", tenant.id);
+  const branding = getTenantBranding(tenant.id);
 
   return {
     tenant,
     admin,
-    branding: {
-      accent: tenant.accent,
-      logoMark: tenant.logoMark,
-      preferredLabel: `${tenant.name} Enablement Hub`,
-      dataIsolation: "Strict tenant-scoped segmentation enabled",
-    },
+    branding,
     tenantUsers: users.filter((user) => user.tenantId === tenant.id),
     methodologyAssets,
+    methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    documentationEntries: getDocumentationEntries(tenant.id),
+    reviewLogs: getReviewLogs(tenant.id),
     configuration: [
       { key: "whiteLabelBranding", label: "White-label branding", value: "Enabled" },
       { key: "roleScopedViews", label: "Role-scoped views", value: "Strictly enforced" },

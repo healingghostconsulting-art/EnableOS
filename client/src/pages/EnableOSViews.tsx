@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -319,6 +319,10 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
 
   const query = queryMap[role];
   const meta = roleMeta[role];
+  const refreshWorkspace = () => {
+    void landing.refetch();
+    void query.refetch();
+  };
 
   return (
     <Surface>
@@ -338,16 +342,115 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         }
       >
         {query.isLoading || landing.isLoading ? <LoadingState /> : null}
-        {!query.isLoading && role === "executive" && query.data ? <ExecutivePanel data={query.data} /> : null}
-        {!query.isLoading && role === "manager" && query.data ? <ManagerPanel data={query.data} /> : null}
+        {!query.isLoading && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && role === "learner" && query.data ? <LearnerPanel data={query.data} /> : null}
-        {!query.isLoading && role === "client_admin" && query.data ? <AdminPanel data={query.data} /> : null}
+        {!query.isLoading && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
       </SectionShell>
     </Surface>
   );
 }
 
-function ExecutivePanel({ data }: { data: any }) {
+function DocumentationFeed({ entries }: { entries: any[] }) {
+  return (
+    <div className="space-y-3">
+      {entries.map((entry: any) => (
+        <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.sourceType.replaceAll("_", " ")}</p>
+              <h4 className="mt-2 text-lg font-medium text-white">{entry.title}</h4>
+            </div>
+            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.authoredByRole.replaceAll("_", " ")}</Badge>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-slate-300">{entry.summary}</p>
+          <div className="mt-4 space-y-2 text-sm text-slate-300">
+            {entry.evidencePoints.map((point: any) => (
+              <div key={point} className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                <span>{point}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReviewLogComposer({
+  tenantId,
+  subjectUserId,
+  authorRole,
+  onCreated,
+  title,
+}: {
+  tenantId: string;
+  subjectUserId: string;
+  authorRole: "manager" | "executive" | "client_admin";
+  onCreated?: () => void;
+  title: string;
+}) {
+  const [reviewType, setReviewType] = useState<"one_on_one" | "quarterly_check_in" | "annual_review">("one_on_one");
+  const [reviewTitle, setReviewTitle] = useState(title);
+  const [notes, setNotes] = useState("");
+  const [nextStep, setNextStep] = useState("");
+  const createReviewLog = trpc.demo.previewCreateReviewLog.useMutation({
+    onSuccess: () => {
+      setNotes("");
+      setNextStep("");
+      onCreated?.();
+    },
+  });
+
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
+      <div className="mb-4 space-y-1">
+        <p className="text-sm font-medium text-white">{title}</p>
+        <p className="text-sm leading-6 text-slate-400">Capture one-on-ones, quarterly reviews, and annual summaries while the platform keeps learning evidence attached.</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="space-y-2 text-sm text-slate-300">
+          <span>Review type</span>
+          <Select value={reviewType} onValueChange={(value) => setReviewType(value as "one_on_one" | "quarterly_check_in" | "annual_review")}>
+            <SelectTrigger className="border-white/10 bg-slate-950/80 text-slate-100">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="one_on_one">One-on-one</SelectItem>
+              <SelectItem value="quarterly_check_in">Quarterly check-in</SelectItem>
+              <SelectItem value="annual_review">Annual review</SelectItem>
+            </SelectContent>
+          </Select>
+        </label>
+        <label className="space-y-2 text-sm text-slate-300">
+          <span>Title</span>
+          <input value={reviewTitle} onChange={(event) => setReviewTitle(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+        </label>
+        <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+          <span>Documentation notes</span>
+          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+        </label>
+        <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+          <span>Next step</span>
+          <input value={nextStep} onChange={(event) => setNextStep(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+        </label>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Button
+          className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+          disabled={createReviewLog.isPending || notes.trim().length < 10 || nextStep.trim().length < 5 || reviewTitle.trim().length < 3}
+          onClick={() => createReviewLog.mutate({ tenantId, subjectUserId, authorRole, reviewType, title: reviewTitle, notes, nextStep })}
+        >
+          {createReviewLog.isPending ? "Saving..." : "Save review log"}
+        </Button>
+        {createReviewLog.isSuccess ? <span className="text-sm text-emerald-300">Documentation entry saved.</span> : null}
+      </div>
+    </div>
+  );
+}
+
+function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -425,11 +528,51 @@ function ExecutivePanel({ data }: { data: any }) {
           </CardContent>
         </PremiumCard>
       </div>
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
+            <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DocumentationFeed entries={data.documentationEntries} />
+          </CardContent>
+        </PremiumCard>
+        <div className="space-y-6">
+          <ReviewLogComposer
+            tenantId={data.tenant.id}
+            subjectUserId={data.reviewLogs[0]?.subjectUserId ?? data.executive.id}
+            authorRole="executive"
+            title="Add quarterly or annual executive review"
+            onCreated={onUpdated}
+          />
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Recent executive review logs</CardTitle>
+              <CardDescription className="text-slate-400">Documented one-on-ones, quarterly check-ins, and annual reviews connected to readiness movement.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.reviewLogs.map((entry: any) => (
+                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                      <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                    </div>
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                </div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+        </div>
+      </div>
     </div>
   );
 }
 
-function ManagerPanel({ data }: { data: any }) {
+function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -492,6 +635,7 @@ function ManagerPanel({ data }: { data: any }) {
         <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
           <TabsTrigger value="interventions" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Interventions</TabsTrigger>
           <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching log</TabsTrigger>
+          <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
         </TabsList>
         <TabsContent value="interventions" className="grid gap-4 lg:grid-cols-2">
@@ -562,6 +706,46 @@ function ManagerPanel({ data }: { data: any }) {
               </CardContent>
             </PremiumCard>
           ))}
+        </TabsContent>
+        <TabsContent value="documentation" className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
+              <CardDescription className="text-slate-400">Completion evidence from journeys, modules, and interventions is automatically assembled for coaching use.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DocumentationFeed entries={data.documentationEntries} />
+            </CardContent>
+          </PremiumCard>
+          <div className="space-y-6">
+            <ReviewLogComposer
+              tenantId={data.tenant.id}
+              subjectUserId={data.directReport.id}
+              authorRole="manager"
+              title="Write a one-on-one, quarterly, or annual coaching log"
+              onCreated={onUpdated}
+            />
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Structured review history</CardTitle>
+                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {data.reviewLogs.map((entry: any) => (
+                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+          </div>
         </TabsContent>
         <TabsContent value="notifications" className="grid gap-4 lg:grid-cols-2">
           {data.notifications.map((item: any) => (
@@ -663,17 +847,25 @@ function LearnerPanel({ data }: { data: any }) {
           </PremiumCard>
           <PremiumCard>
             <CardHeader>
-              <CardTitle className="text-white">CHCG methodology references</CardTitle>
-              <CardDescription className="text-slate-400">Embedded frameworks available in the flow of work.</CardDescription>
+              <CardTitle className="text-white">Documentation hub</CardTitle>
+              <CardDescription className="text-slate-400">Automatically generated evidence and leadership review notes connected to your development history.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {data.methodologyAssets.map((asset: any) => (
-                <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{asset.category}</p>
-                  <h4 className="mt-2 text-lg font-medium text-white">{asset.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
-                </div>
-              ))}
+            <CardContent className="space-y-4">
+              <DocumentationFeed entries={data.documentationEntries} />
+              <div className="space-y-3">
+                {data.reviewLogs.map((entry: any) => (
+                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </PremiumCard>
         </div>
@@ -682,7 +874,24 @@ function LearnerPanel({ data }: { data: any }) {
   );
 }
 
-function AdminPanel({ data }: { data: any }) {
+function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+  const [preferredLabel, setPreferredLabel] = useState(data.branding.preferredLabel);
+  const [accent, setAccent] = useState(data.branding.accent);
+  const [logoMark, setLogoMark] = useState(data.branding.logoMark);
+  const [heroStatement, setHeroStatement] = useState(data.branding.heroStatement);
+  const updateBranding = trpc.demo.previewUpdateBranding.useMutation({
+    onSuccess: () => {
+      onUpdated?.();
+    },
+  });
+
+  useEffect(() => {
+    setPreferredLabel(data.branding.preferredLabel);
+    setAccent(data.branding.accent);
+    setLogoMark(data.branding.logoMark);
+    setHeroStatement(data.branding.heroStatement);
+  }, [data.branding.accent, data.branding.heroStatement, data.branding.logoMark, data.branding.preferredLabel]);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -706,7 +915,42 @@ function AdminPanel({ data }: { data: any }) {
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Preferred label</p>
                   <h3 className="mt-1 text-xl font-semibold text-white">{data.branding.preferredLabel}</h3>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{data.branding.heroStatement}</p>
                 </div>
+              </div>
+            </div>
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
+              <div className="mb-4 space-y-1">
+                <p className="text-sm font-medium text-white">Branding controls</p>
+                <p className="text-sm leading-6 text-slate-400">Update the label, accent, logo mark, and hero message to demonstrate tenant-specific white-label configuration.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-slate-300">
+                  <span>Preferred label</span>
+                  <input value={preferredLabel} onChange={(event) => setPreferredLabel(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                </label>
+                <label className="space-y-2 text-sm text-slate-300">
+                  <span>Accent</span>
+                  <input value={accent} onChange={(event) => setAccent(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                </label>
+                <label className="space-y-2 text-sm text-slate-300">
+                  <span>Logo mark</span>
+                  <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                </label>
+                <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                  <span>Hero statement</span>
+                  <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                </label>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Button
+                  className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                  onClick={() => updateBranding.mutate({ tenantId: data.tenant.id, preferredLabel, accent, logoMark, heroStatement })}
+                  disabled={updateBranding.isPending}
+                >
+                  {updateBranding.isPending ? "Applying..." : "Apply branding"}
+                </Button>
+                {updateBranding.isSuccess ? <span className="text-sm text-emerald-300">Branding updated for this tenant.</span> : null}
               </div>
             </div>
             <div className="space-y-3">
@@ -717,25 +961,57 @@ function AdminPanel({ data }: { data: any }) {
                 </div>
               ))}
             </div>
+            <ReviewLogComposer
+              tenantId={data.tenant.id}
+              subjectUserId={data.tenantUsers.find((user: any) => user.role === "learner")?.id ?? data.admin.id}
+              authorRole="client_admin"
+              title="Write coach or calibration documentation"
+              onCreated={onUpdated}
+            />
           </CardContent>
         </PremiumCard>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Tenant user roster</CardTitle>
-            <CardDescription className="text-slate-400">Role-scoped access model within the current client boundary.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.tenantUsers.map((user: any) => (
-              <div key={user.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <div>
-                  <p className="font-medium text-white">{user.name}</p>
-                  <p className="text-sm text-slate-400">{user.title} · {user.team}</p>
+        <div className="space-y-6">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Tenant user roster</CardTitle>
+              <CardDescription className="text-slate-400">Role-scoped access model within the current client boundary.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.tenantUsers.map((user: any) => (
+                <div key={user.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div>
+                    <p className="font-medium text-white">{user.name}</p>
+                    <p className="text-sm text-slate-400">{user.title} · {user.team}</p>
+                  </div>
+                  <Badge className="rounded-full border-white/10 bg-white/8 capitalize text-slate-200">{user.role.replace("_", " ")}</Badge>
                 </div>
-                <Badge className="rounded-full border-white/10 bg-white/8 capitalize text-slate-200">{user.role.replace("_", " ")}</Badge>
+              ))}
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Documentation governance</CardTitle>
+              <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across the tenant.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DocumentationFeed entries={data.documentationEntries} />
+              <div className="space-y-3">
+                {data.reviewLogs.map((entry: any) => (
+                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
+            </CardContent>
+          </PremiumCard>
+        </div>
       </div>
     </div>
   );
