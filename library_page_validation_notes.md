@@ -24,3 +24,9 @@ A browser-side submission using the sample asset title **Atlas launch readiness 
 ## Workflow mixing validation
 
 The manager workspace now renders blended content directly inside live workflows. In the **Interventions** tab, the new **Intervention content mix** section displays both a tenant-uploaded asset (**Atlas launch readiness brief**) and a CHCG core asset (**Workflow Precision Field Kit**). In the **Documentation** tab, the page also exposes the new documentation-area mixed-content treatment alongside the auto-generated learning evidence and structured coaching composer, confirming that CHCG methodology assets and tenant-provided materials are now surfaced inside intervention and documentation workflows rather than only inside the standalone library route.
+
+## Interactive training validation
+
+The new `/training` experience renders correctly on the active dev preview. The page presents a dedicated **Interactive training simulator** with tenant switching, a learner return link, a module navigator, a four-step lesson arc (**Brief**, **Practice**, **Apply**, **Reflect**), progress metrics, and a formatted-content explanation showing how CHCG structure, tenant context, and observable output are combined. The published custom domain still reflects the older deployed build and returned a 404 for `/training`, which is expected until a newer version is published from the latest checkpoint.
+
+The interactive lesson flow also responds correctly to user input. After selecting a confidence baseline on the **Brief** step, the **Next step** control became available and advanced the simulator into the **Practice** step, where rehearsal-path options are presented and the stage progress indicator increased from **6%** to **13%**.

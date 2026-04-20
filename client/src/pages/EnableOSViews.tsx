@@ -376,6 +376,331 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
   );
 }
 
+export function TrainingExperienceView() {
+  const landing = trpc.demo.landing.useQuery();
+  const tenants = landing.data?.tenants ?? [];
+  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
+  const [tenantId, setTenantId] = useState(initialTenantId);
+  const learner = trpc.demo.learner.useQuery({ tenantId });
+  const [moduleIndex, setModuleIndex] = useState(0);
+  const [stageIndex, setStageIndex] = useState(0);
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
+  const [reflection, setReflection] = useState("");
+
+  useEffect(() => {
+    setModuleIndex(0);
+    setStageIndex(0);
+    setConfidence(null);
+    setPracticeChoice(null);
+    setReflection("");
+  }, [tenantId]);
+
+  useEffect(() => {
+    setStageIndex(0);
+    setConfidence(null);
+    setPracticeChoice(null);
+    setReflection("");
+  }, [moduleIndex]);
+
+  const tenantPicker = useMemo(
+    () => <TenantPicker tenants={tenants} tenantId={tenantId} setTenantId={setTenantId} />,
+    [tenantId, tenants],
+  );
+
+  const modules = learner.data?.activeJourney.modules ?? [];
+  const selectedModule = modules[moduleIndex] ?? null;
+  const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
+  const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${learner.data?.activeJourney.competencyGap ?? ""}`
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((keyword) => keyword.length > 4);
+  const matchedResources = journeyResources.filter((asset: any) => {
+    const haystack = `${asset.title} ${asset.summary} ${asset.tags.join(" ")}`.toLowerCase();
+    return moduleKeywords.some((keyword) => haystack.includes(keyword));
+  });
+  const supportingAssets = (matchedResources.length > 0 ? matchedResources : journeyResources).slice(0, 2);
+
+  const stages = selectedModule
+    ? [
+        {
+          id: "brief",
+          label: "Brief",
+          title: "Frame the learning objective",
+          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a guided practice sequence inside ${learner.data?.activeJourney.title}.`,
+        },
+        {
+          id: "practice",
+          label: "Practice",
+          title: "Choose how to rehearse the behavior",
+          body: `Before the next coaching checkpoint, decide how you would practice ${selectedModule.skillFocus.toLowerCase()} in a realistic workflow moment.`,
+        },
+        {
+          id: "apply",
+          label: "Apply",
+          title: "Blend source content into live work",
+          body: `The system pairs this module with CHCG methodology and tenant content so it can transfer directly into interventions, readiness reviews, and workflow reinforcement.`,
+        },
+        {
+          id: "reflect",
+          label: "Reflect",
+          title: "Capture the behavior change",
+          body: `Write the action you want to demonstrate before ${learner.data?.nextCoachingSession.title ?? "your next coaching session"}.`,
+        },
+      ]
+    : [];
+
+  const currentStage = stages[stageIndex] ?? null;
+  const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
+  const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
+  const canAdvance = currentStage?.id === "brief"
+    ? confidence !== null
+    : currentStage?.id === "practice"
+      ? practiceChoice !== null
+      : currentStage?.id === "reflect"
+        ? reflection.trim().length >= 20
+        : true;
+  const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
+
+  const advanceStage = () => {
+    if (!selectedModule || !canAdvance) {
+      return;
+    }
+
+    if (stageIndex < stages.length - 1) {
+      setStageIndex((value) => value + 1);
+      return;
+    }
+
+    if (moduleIndex < modules.length - 1) {
+      setModuleIndex((value) => value + 1);
+    }
+  };
+
+  const retreatStage = () => {
+    if (stageIndex > 0) {
+      setStageIndex((value) => value - 1);
+      return;
+    }
+
+    if (moduleIndex > 0) {
+      setModuleIndex((value) => value - 1);
+    }
+  };
+
+  return (
+    <Surface>
+      <SectionShell
+        eyebrow="Interactive Training"
+        title="Interactive training simulator"
+        description="This view shows how CHCG and tenant-specific content are reformatted into a guided learning sequence with briefing, practice, live-work application, and reflection moments."
+        actions={
+          <>
+            {tenantPicker}
+            <Link href="/learner">
+              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                Back to learner
+              </Button>
+            </Link>
+          </>
+        }
+      >
+        {learner.isLoading || landing.isLoading ? <LoadingState /> : null}
+        {!learner.isLoading && learner.data && selectedModule ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <MetricCard label="Modules in path" value={String(modules.length)} supporting={learner.data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
+              <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
+              <MetricCard label="Interactive progress" value={`${overallProgress}%`} supporting={`Stage ${stageIndex + 1} of ${stages.length}`} icon={<Sparkles className="h-4 w-4" />} />
+              <MetricCard label="Mapped assets" value={String(supportingAssets.length)} supporting="CHCG and tenant materials blended into this lesson" icon={<Layers3 className="h-4 w-4" />} />
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Training path outline</CardTitle>
+                  <CardDescription className="text-slate-400">Each module is reformatted into a repeatable coaching-ready lesson structure.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm text-slate-400">Competency gap</p>
+                    <p className="mt-2 text-xl font-semibold text-white">{learner.data.activeJourney.competencyGap}</p>
+                    <Progress value={learner.data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
+                  </div>
+                  {modules.map((module: any, index: number) => (
+                    <button
+                      key={module.id}
+                      type="button"
+                      onClick={() => setModuleIndex(index)}
+                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${index === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
+                          <h3 className="mt-2 text-lg font-medium text-white">{module.title}</h3>
+                          <p className="mt-2 text-sm text-slate-300">{module.skillFocus}</p>
+                        </div>
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+                        <span>Completion</span>
+                        <span>{module.completionRate}%</span>
+                      </div>
+                      <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
+                    </button>
+                  ))}
+                </CardContent>
+              </PremiumCard>
+
+              <div className="space-y-6">
+                <PremiumCard>
+                  <CardHeader>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-white">{currentStage?.title}</CardTitle>
+                        <CardDescription className="text-slate-400">{currentStage?.body}</CardDescription>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    <div className="grid gap-3 md:grid-cols-4">
+                      {stages.map((stage, index) => (
+                        <div key={stage.id} className={`rounded-2xl border px-3 py-3 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                          <p className="font-medium">{stage.label}</p>
+                          <p className="mt-1 text-xs text-slate-400">Step {index + 1}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {currentStage?.id === "brief" ? (
+                      <div className="space-y-4 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-sm leading-6 text-slate-300">Set a quick confidence baseline before you start the lesson.</p>
+                        <div className="flex flex-wrap gap-3">
+                          {[1, 2, 3, 4, 5].map((value) => (
+                            <Button
+                              key={value}
+                              type="button"
+                              variant="outline"
+                              onClick={() => setConfidence(value)}
+                              className={`rounded-full border-white/12 ${confidence === value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/12 hover:text-white"}`}
+                            >
+                              Confidence {value}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {currentStage?.id === "practice" ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {[
+                          { id: "coach_first", title: "Manager-led rehearsal", body: "Practice the behavior with guided feedback before taking it into production work." },
+                          { id: "peer_shadow", title: "Shadow and self-correct", body: "Observe a strong example, then mirror the behavior and capture one adjustment." },
+                        ].map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setPracticeChoice(option.id as "coach_first" | "peer_shadow")}
+                            className={`rounded-[1.6rem] border p-5 text-left transition ${practiceChoice === option.id ? "border-emerald-400/40 bg-emerald-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                          >
+                            <p className="text-lg font-medium text-white">{option.title}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-300">{option.body}</p>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {currentStage?.id === "apply" ? (
+                      <div className="space-y-4">
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Live-work transfer</p>
+                          <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span> and use the mapped resources below to reinforce the behavior in context.</p>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {supportingAssets.map((asset: any) => (
+                            <div key={asset.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className={`rounded-full ${asset.sourceKind === "client_upload" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-200"}`}>{asset.sourceKind === "client_upload" ? "Client content" : "CHCG content"}</Badge>
+                                <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
+                              </div>
+                              <h4 className="mt-3 text-lg font-medium text-white">{asset.title}</h4>
+                              <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
+                              <p className="mt-3 text-sm text-slate-400">Source: {asset.sourceLabel}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {currentStage?.id === "reflect" ? (
+                      <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
+                        <textarea
+                          value={reflection}
+                          onChange={(event) => setReflection(event.target.value)}
+                          rows={5}
+                          className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
+                          placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
+                        />
+                      </div>
+                    ) : null}
+
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={retreatStage}
+                        disabled={moduleIndex === 0 && stageIndex === 0}
+                        className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                      >
+                        Previous step
+                      </Button>
+                      <div className="flex items-center gap-3">
+                        {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">Training preview complete.</span> : null}
+                        <Button
+                          type="button"
+                          onClick={advanceStage}
+                          disabled={!canAdvance || atJourneyEnd}
+                          className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
+                        >
+                          {stageIndex === stages.length - 1 && moduleIndex < modules.length - 1 ? "Next module" : atJourneyEnd ? "Preview complete" : "Next step"}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </PremiumCard>
+
+                <PremiumCard>
+                  <CardHeader>
+                    <CardTitle className="text-white">Formatted content model</CardTitle>
+                    <CardDescription className="text-slate-400">The same source material is transformed into a repeatable lesson arc that can support coaching, documentation, and workflow execution.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 md:grid-cols-3">
+                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <p className="text-sm font-medium text-white">CHCG structure</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                    </div>
+                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <p className="text-sm font-medium text-white">Tenant context</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides the scenario language, launch specifics, or compliance cues that localize the lesson.</p>
+                    </div>
+                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <p className="text-sm font-medium text-white">Observable output</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                    </div>
+                  </CardContent>
+                </PremiumCard>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </SectionShell>
+    </Surface>
+  );
+}
+
 export function ContentLibraryView() {
   const landing = trpc.demo.landing.useQuery();
   const tenants = landing.data?.tenants ?? [];
@@ -1276,6 +1601,19 @@ function LearnerPanel({ data }: { data: any }) {
                   <Badge className="rounded-full border-blue-500/20 bg-blue-500/10 text-blue-200">{data.activeJourney.progress}% complete</Badge>
                 </div>
                 <Progress value={data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/training">
+                  <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                    Launch interactive training
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/library">
+                  <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                    Open mapped resources
+                  </Button>
+                </Link>
               </div>
               <div className="space-y-3">
                 {data.activeJourney.modules.map((module: any) => (

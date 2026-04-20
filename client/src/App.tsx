@@ -6,13 +6,14 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { ContentLibraryView, LandingView, RoleWorkspace } from "./pages/EnableOSViews";
+import { ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 const workspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
   { icon: Gauge, label: "Executive", path: "/executive" },
   { icon: ShieldCheck, label: "Manager", path: "/manager" },
   { icon: BookOpen, label: "Learner", path: "/learner" },
+  { icon: BookOpen, label: "Interactive Training", path: "/training" },
   { icon: Building2, label: "Client Admin", path: "/admin" },
   { icon: BookText, label: "Content Library", path: "/library" },
 ];
@@ -62,6 +63,13 @@ function Router() {
         {() => (
           <WorkspaceShell roleLabel="Client Admin Console">
             <RoleWorkspace role="client_admin" />
+          </WorkspaceShell>
+        )}
+      </Route>
+      <Route path="/training">
+        {() => (
+          <WorkspaceShell roleLabel="Interactive Training">
+            <TrainingExperienceView />
           </WorkspaceShell>
         )}
       </Route>

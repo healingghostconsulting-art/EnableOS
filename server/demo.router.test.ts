@@ -89,6 +89,14 @@ describe("demo router", () => {
     const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
 
     expect(learner.activeJourney.competencyGap).toBe("Empathy language and call control consistency");
+    expect(learner.activeJourney.modules.length).toBeGreaterThan(1);
+    expect(learner.activeJourney.modules[0]).toEqual(
+      expect.objectContaining({
+        title: expect.any(String),
+        skillFocus: expect.any(String),
+        completionRate: expect.any(Number),
+      }),
+    );
     expect(learner.assignedInterventions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ title: "Restore workflow precision and score reliability" }),
@@ -97,6 +105,7 @@ describe("demo router", () => {
     expect(learner.methodologyAssets).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Playbook" })]),
     );
+    expect(learner.nextCoachingSession).toEqual(expect.objectContaining({ title: expect.any(String) }));
     expect(learner.workflowLibraryMix.journeyResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ title: "Atlas launch readiness brief", sourceKind: "client_upload" }),

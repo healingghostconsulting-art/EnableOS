@@ -36,3 +36,6 @@
 - [x] Support tenant-scoped imported content records with metadata, source labeling, and white-label presentation controls.
 - [x] Add UI and backend support for mixing CHCG methodology assets with client-uploaded materials in journeys, interventions, and documentation workflows.
 - [x] Add tests validating tenant isolation, upload metadata handling, and library visibility rules for client-provided content.
+- [x] Add an interactive training experience that formats CHCG and tenant content into guided, step-based learning modules with progress, practice, and reflection moments.
+- [x] Integrate the interactive training experience into the learner-facing product flow so users can launch it from the existing enablement journey and library context.
+- [x] Add tests and browser validation covering the interactive training experience and its mapped content structure.
