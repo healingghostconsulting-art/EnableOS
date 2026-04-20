@@ -871,6 +871,46 @@ function ReviewLogComposer({
   );
 }
 
+function WorkflowLibraryPanel({
+  title,
+  description,
+  resources,
+}: {
+  title: string;
+  description: string;
+  resources: any[];
+}) {
+  return (
+    <PremiumCard>
+      <CardHeader>
+        <CardTitle className="text-white">{title}</CardTitle>
+        <CardDescription className="text-slate-400">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {resources.map((asset: any) => (
+          <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className={`rounded-full ${asset.sourceKind === "client_upload" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-200"}`}>
+                {asset.sourceKind === "client_upload" ? "Client upload" : "CHCG asset"}
+              </Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
+            </div>
+            <h4 className="mt-3 text-lg font-medium text-white">{asset.title}</h4>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+              {asset.tags.slice(0, 4).map((tag: string) => (
+                <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1">#{tag}</span>
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-slate-400">Source: {asset.sourceLabel}</p>
+          </div>
+        ))}
+        {resources.length === 0 ? <p className="text-sm text-slate-400">No blended library assets are mapped yet for this workflow context.</p> : null}
+      </CardContent>
+    </PremiumCard>
+  );
+}
+
 function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   return (
     <div className="space-y-6">
@@ -950,15 +990,22 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
-            <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DocumentationFeed entries={data.documentationEntries} />
-          </CardContent>
-        </PremiumCard>
+        <div className="space-y-6">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
+              <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DocumentationFeed entries={data.documentationEntries} />
+            </CardContent>
+          </PremiumCard>
+          <WorkflowLibraryPanel
+            title="Executive content blend"
+            description="Tenant-uploaded materials can now sit beside CHCG governance assets inside executive readiness and documentation review workflows."
+            resources={data.workflowLibraryMix.documentationResources}
+          />
+        </div>
         <div className="space-y-6">
           <ReviewLogComposer
             tenantId={data.tenant.id}
@@ -1059,35 +1106,42 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
         </TabsList>
-        <TabsContent value="interventions" className="grid gap-4 lg:grid-cols-2">
-          {data.interventions.map((item: any) => (
-            <PremiumCard key={item.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-white">{item.title}</CardTitle>
-                    <CardDescription className="mt-2 text-slate-400">Gap: {item.gap}</CardDescription>
-                  </div>
-                  <StatusBadge value={item.status} />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-slate-300">
-                  {item.assignedActions.map((action: any) => (
-                    <div key={action} className="flex items-start gap-2">
-                      <ChevronRight className="mt-0.5 h-4 w-4 text-slate-500" />
-                      <span>{action}</span>
+        <TabsContent value="interventions" className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-4">
+            {data.interventions.map((item: any) => (
+              <PremiumCard key={item.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{item.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">Gap: {item.gap}</CardDescription>
                     </div>
-                  ))}
-                </div>
-                <Separator className="bg-white/8" />
-                <div className="flex items-center justify-between text-sm text-slate-400">
-                  <span>Due {new Date(item.dueDate).toLocaleDateString()}</span>
-                  <span>Owner: {data.manager.name}</span>
-                </div>
-              </CardContent>
-            </PremiumCard>
-          ))}
+                    <StatusBadge value={item.status} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2 text-sm text-slate-300">
+                    {item.assignedActions.map((action: any) => (
+                      <div key={action} className="flex items-start gap-2">
+                        <ChevronRight className="mt-0.5 h-4 w-4 text-slate-500" />
+                        <span>{action}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="bg-white/8" />
+                  <div className="flex items-center justify-between text-sm text-slate-400">
+                    <span>Due {new Date(item.dueDate).toLocaleDateString()}</span>
+                    <span>Owner: {data.manager.name}</span>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ))}
+          </div>
+          <WorkflowLibraryPanel
+            title="Intervention content mix"
+            description="Managers can pull both CHCG methodology assets and tenant uploads directly into intervention execution."
+            resources={data.workflowLibraryMix.interventionResources}
+          />
         </TabsContent>
         <TabsContent value="coaching" className="grid gap-4 lg:grid-cols-2">
           {data.coachingSessions.map((session: any) => (
@@ -1129,15 +1183,22 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           ))}
         </TabsContent>
         <TabsContent value="documentation" className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
-              <CardDescription className="text-slate-400">Completion evidence from Service Foundations, Workflow Precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DocumentationFeed entries={data.documentationEntries} />
-            </CardContent>
-          </PremiumCard>
+          <div className="space-y-6">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
+                <CardDescription className="text-slate-400">Completion evidence from Service Foundations, Workflow Precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DocumentationFeed entries={data.documentationEntries} />
+              </CardContent>
+            </PremiumCard>
+            <WorkflowLibraryPanel
+              title="Documentation-ready asset mix"
+              description="Review packets and coaching evidence can now blend tenant imports with CHCG governance references."
+              resources={data.workflowLibraryMix.documentationResources}
+            />
+          </div>
           <div className="space-y-6">
             <ReviewLogComposer
               tenantId={data.tenant.id}
@@ -1199,45 +1260,52 @@ function LearnerPanel({ data }: { data: any }) {
         <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
       </div>
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Active enablement journey</CardTitle>
-            <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap across Service Foundations and Workflow Precision tracks.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm text-slate-400">Competency gap</p>
-                  <h3 className="text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h3>
+        <div className="space-y-6">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Active enablement journey</CardTitle>
+              <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap across Service Foundations and Workflow Precision tracks.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-slate-400">Competency gap</p>
+                    <h3 className="text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h3>
+                  </div>
+                  <Badge className="rounded-full border-blue-500/20 bg-blue-500/10 text-blue-200">{data.activeJourney.progress}% complete</Badge>
                 </div>
-                <Badge className="rounded-full border-blue-500/20 bg-blue-500/10 text-blue-200">{data.activeJourney.progress}% complete</Badge>
+                <Progress value={data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
               </div>
-              <Progress value={data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
-            </div>
-            <div className="space-y-3">
-              {data.activeJourney.modules.map((module: any) => (
-                <div key={module.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{module.format}</p>
-                      <h4 className="mt-2 text-lg font-medium text-white">{module.title}</h4>
-                      <p className="mt-2 text-sm text-slate-300">Skill focus: {module.skillFocus}</p>
+              <div className="space-y-3">
+                {data.activeJourney.modules.map((module: any) => (
+                  <div key={module.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{module.format}</p>
+                        <h4 className="mt-2 text-lg font-medium text-white">{module.title}</h4>
+                        <p className="mt-2 text-sm text-slate-300">Skill focus: {module.skillFocus}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
                     </div>
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
-                  </div>
-                  <div className="mt-4">
-                    <div className="mb-2 flex items-center justify-between text-sm text-slate-400">
-                      <span>Completion</span>
-                      <span>{module.completionRate}%</span>
+                    <div className="mt-4">
+                      <div className="mb-2 flex items-center justify-between text-sm text-slate-400">
+                        <span>Completion</span>
+                        <span>{module.completionRate}%</span>
+                      </div>
+                      <Progress value={module.completionRate} className="h-2 bg-white/8" />
                     </div>
-                    <Progress value={module.completionRate} className="h-2 bg-white/8" />
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </PremiumCard>
+                ))}
+              </div>
+            </CardContent>
+          </PremiumCard>
+          <WorkflowLibraryPanel
+            title="Journey resource mix"
+            description="Your learning path can now blend CHCG core modules with tenant-provided launch or compliance materials."
+            resources={data.workflowLibraryMix.journeyResources}
+          />
+        </div>
         <div className="space-y-6">
           <PremiumCard>
             <CardHeader>
@@ -1289,6 +1357,11 @@ function LearnerPanel({ data }: { data: any }) {
               </div>
             </CardContent>
           </PremiumCard>
+          <WorkflowLibraryPanel
+            title="Documentation support assets"
+            description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents."
+            resources={data.workflowLibraryMix.documentationResources}
+          />
         </div>
       </div>
     </div>
@@ -1392,6 +1465,15 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </CardContent>
         </PremiumCard>
         <div className="space-y-6">
+          <WorkflowLibraryPanel
+            title="Blended workflow library governance"
+            description="Client admins can now see how tenant-uploaded materials are mixed with CHCG assets across journeys, interventions, and documentation support."
+            resources={[
+              ...data.workflowLibraryMix.journeyResources,
+              ...data.workflowLibraryMix.interventionResources,
+              ...data.workflowLibraryMix.documentationResources,
+            ].filter((asset: any, index: number, collection: any[]) => collection.findIndex((candidate: any) => candidate.id === asset.id) === index).slice(0, 4)}
+          />
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Tenant user roster</CardTitle>

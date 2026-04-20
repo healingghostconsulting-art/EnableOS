@@ -20,3 +20,7 @@
 ## Interactive upload verification
 
 A browser-side submission using the sample asset title **Atlas launch readiness brief** completed successfully. The form reset after submission and the page surfaced the confirmation message stating that the asset is now visible in the tenant library. Keyword verification also found the uploaded title in the library content, confirming that the new preview upload flow updates the page state end to end.
+
+## Workflow mixing validation
+
+The manager workspace now renders blended content directly inside live workflows. In the **Interventions** tab, the new **Intervention content mix** section displays both a tenant-uploaded asset (**Atlas launch readiness brief**) and a CHCG core asset (**Workflow Precision Field Kit**). In the **Documentation** tab, the page also exposes the new documentation-area mixed-content treatment alongside the auto-generated learning evidence and structured coaching composer, confirming that CHCG methodology assets and tenant-provided materials are now surfaced inside intervention and documentation workflows rather than only inside the standalone library route.

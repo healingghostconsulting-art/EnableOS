@@ -832,6 +832,51 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
     sourceLabel: "Sanitized CHCG source modules",
     createdAt: "2026-04-20T18:50:00Z",
   },
+  {
+    id: "library-atlas-launch-readiness",
+    tenantId: "atlas-operations",
+    title: "Atlas launch readiness brief",
+    summary: "A tenant-provided operational brief covering launch checkpoints, workflow reinforcement, and manager review expectations for new process rollouts.",
+    category: "Launch readiness",
+    sourceKind: "client_upload",
+    format: "Deck",
+    linkedRoles: ["executive", "manager", "learner", "client_admin"],
+    tags: ["launch", "readiness", "workflow", "documentation"],
+    linkedJourneyIds: ["journey-service-foundations", "journey-workflow-precision"],
+    linkedInterventionRuleIds: ["rule-qa-precision", "rule-aht-call-control"],
+    sourceLabel: "Atlas operations enablement",
+    createdAt: "2026-04-20T18:51:00Z",
+  },
+  {
+    id: "library-lighthouse-compliance-brief",
+    tenantId: "lighthouse-finance",
+    title: "Lighthouse compliance conversation guide",
+    summary: "A tenant-provided guide aligning frontline coaching, quality review language, and documented evidence expectations for regulated interactions.",
+    category: "Compliance enablement",
+    sourceKind: "client_upload",
+    format: "Guide",
+    linkedRoles: ["manager", "learner", "client_admin"],
+    tags: ["compliance", "qa", "documentation", "coaching"],
+    linkedJourneyIds: ["journey-service-foundations"],
+    linkedInterventionRuleIds: ["rule-qa-variance"],
+    sourceLabel: "Lighthouse enablement office",
+    createdAt: "2026-04-20T18:52:00Z",
+  },
+  {
+    id: "library-meridian-quality-brief",
+    tenantId: "meridian-health",
+    title: "Meridian care coordination review packet",
+    summary: "A tenant-provided packet for manager coaching, workflow precision reinforcement, and review-log evidence capture in healthcare operations.",
+    category: "Care coordination",
+    sourceKind: "client_upload",
+    format: "Document",
+    linkedRoles: ["manager", "learner", "client_admin"],
+    tags: ["care coordination", "workflow", "reviews", "documentation"],
+    linkedJourneyIds: ["journey-workflow-precision"],
+    linkedInterventionRuleIds: ["rule-adherence-rhythm"],
+    sourceLabel: "Meridian operations excellence",
+    createdAt: "2026-04-20T18:53:00Z",
+  },
 ];
 
 const aiSuggestions: AiSuggestion[] = [
@@ -994,6 +1039,54 @@ function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
     const roleScoped = !role || role === "all" || asset.linkedRoles.includes("all") || asset.linkedRoles.includes(role);
     return tenantScoped && roleScoped;
   });
+}
+
+function blendAssets(clientAssets: ContentLibraryAsset[], chcgAssets: ContentLibraryAsset[], maxItems = 4) {
+  const blended: ContentLibraryAsset[] = [];
+  const queues = [clientAssets, chcgAssets].map((items) => [...items]);
+
+  while (blended.length < maxItems && queues.some((queue) => queue.length > 0)) {
+    for (const queue of queues) {
+      const next = queue.shift();
+      if (next && !blended.some((asset) => asset.id === next.id)) {
+        blended.push(next);
+      }
+      if (blended.length >= maxItems) {
+        break;
+      }
+    }
+  }
+
+  return blended;
+}
+
+function getWorkflowLibraryMix(tenantId: string, role: DemoRole) {
+  const roleAssets = getTenantLibraryAssets(tenantId, role);
+  const clientAssets = roleAssets.filter((asset) => asset.sourceKind === "client_upload");
+  const chcgAssets = roleAssets.filter((asset) => asset.sourceKind === "chcg");
+  const learnerJourney = getTenantJourneys(tenantId, "learner");
+  const interventionRuleIds = getTenantInterventions(tenantId).map((intervention) => intervention.ruleId);
+
+  const journeyResources = blendAssets(
+    clientAssets.filter((asset) => asset.linkedJourneyIds.includes(learnerJourney.id)),
+    chcgAssets.filter((asset) => asset.linkedJourneyIds.includes(learnerJourney.id)),
+  );
+
+  const interventionResources = blendAssets(
+    clientAssets.filter((asset) => asset.linkedInterventionRuleIds.some((ruleId) => interventionRuleIds.includes(ruleId))),
+    chcgAssets.filter((asset) => asset.linkedInterventionRuleIds.some((ruleId) => interventionRuleIds.includes(ruleId))),
+  );
+
+  const documentationResources = blendAssets(
+    clientAssets.filter((asset) => asset.tags.some((tag) => ["documentation", "reviews", "review", "qa", "coaching"].includes(tag))),
+    chcgAssets.filter((asset) => asset.tags.some((tag) => ["documentation", "qa", "coaching", "quarterly reviews", "annual reviews"].includes(tag))),
+  );
+
+  return {
+    journeyResources,
+    interventionResources,
+    documentationResources,
+  };
 }
 
 export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
@@ -1177,6 +1270,7 @@ export function getExecutiveDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const executive = getUser("executive", tenant.id);
   const branding = getTenantBranding(tenant.id);
+  const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "executive");
 
   return {
     tenant,
@@ -1210,6 +1304,7 @@ export function getExecutiveDashboard(tenantId?: string) {
     documentationEntries: getDocumentationEntries(tenant.id),
     reviewLogs: getReviewLogs(tenant.id),
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "executive" || item.audience === "all")),
+    workflowLibraryMix,
   };
 }
 
@@ -1218,6 +1313,7 @@ export function getManagerDashboard(tenantId?: string) {
   const manager = getUser("manager", tenant.id);
   const learner = getUser("learner", tenant.id);
   const branding = getTenantBranding(tenant.id);
+  const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "manager");
 
   return {
     tenant,
@@ -1234,6 +1330,7 @@ export function getManagerDashboard(tenantId?: string) {
     aiSuggestion: aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0],
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
     rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
+    workflowLibraryMix,
   };
 }
 
@@ -1241,6 +1338,7 @@ export function getLearnerDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const learner = getUser("learner", tenant.id);
   const branding = getTenantBranding(tenant.id);
+  const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "learner");
 
   return {
     tenant,
@@ -1254,6 +1352,7 @@ export function getLearnerDashboard(tenantId?: string) {
     reviewLogs: getReviewLogs(tenant.id, learner.id),
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "learner" || item.audience === "all")),
     nextCoachingSession: getTenantCoachingSessions(tenant.id).find((session) => session.learnerUserId === learner.id) ?? coachingSessions[0],
+    workflowLibraryMix,
   };
 }
 
@@ -1261,6 +1360,7 @@ export function getAdminDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const admin = getUser("client_admin", tenant.id);
   const branding = getTenantBranding(tenant.id);
+  const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "client_admin");
 
   return {
     tenant,
@@ -1278,6 +1378,7 @@ export function getAdminDashboard(tenantId?: string) {
       { key: "humanOverride", label: "Human override controls", value: "Enabled" },
       { key: "sanitizedContent", label: "Client-specific content removed", value: "Verified in demo seed layer" },
     ],
+    workflowLibraryMix,
   };
 }
 

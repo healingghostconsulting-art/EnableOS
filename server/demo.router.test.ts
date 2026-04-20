@@ -42,22 +42,25 @@ describe("demo router", () => {
     });
   });
 
-  it("returns executive data with ROI movement and CHCG methodology references", async () => {
+  it("returns executive data with ROI, readiness, and methodology evidence", async () => {
     const caller = appRouter.createCaller(createContext());
 
     const executive = await caller.demo.executive({ tenantId: "atlas-operations" });
 
-    expect(executive.tenant.id).toBe("atlas-operations");
+    expect(executive.readiness.score).toBeGreaterThan(0);
     expect(executive.roiMetrics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ label: "QA score", delta: "+8 pts" }),
-        expect.objectContaining({ label: "AHT", delta: "-54 sec" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ label: "QA score", delta: "+8 pts" })]),
     );
     expect(executive.methodologyAssets).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "CHCG KPI Mastery Framework" })]),
     );
     expect(executive.methodologyMappings.length).toBeGreaterThan(0);
+    expect(executive.workflowLibraryMix.documentationResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceKind: "client_upload", title: "Atlas launch readiness brief" }),
+        expect.objectContaining({ sourceKind: "chcg" }),
+      ]),
+    );
   });
 
   it("returns manager data with explainable AI rationale and intervention workflow data", async () => {
@@ -71,6 +74,13 @@ describe("demo router", () => {
     expect(manager.reviewLogs.length).toBeGreaterThan(0);
     expect(manager.aiSuggestion.overrideAvailable).toBe(true);
     expect(manager.aiSuggestion.rationale.length).toBeGreaterThan(1);
+    expect(manager.workflowLibraryMix.interventionResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceKind: "client_upload" }),
+        expect.objectContaining({ sourceKind: "chcg" }),
+      ]),
+    );
+    expect(manager.workflowLibraryMix.documentationResources.length).toBeGreaterThan(0);
   });
 
   it("returns learner data tied to a sanitized skill-gap journey and assigned interventions", async () => {
@@ -86,6 +96,12 @@ describe("demo router", () => {
     );
     expect(learner.methodologyAssets).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Playbook" })]),
+    );
+    expect(learner.workflowLibraryMix.journeyResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Atlas launch readiness brief", sourceKind: "client_upload" }),
+        expect.objectContaining({ sourceKind: "chcg" }),
+      ]),
     );
   });
 
@@ -103,6 +119,7 @@ describe("demo router", () => {
       ]),
     );
     expect(admin.tenantUsers.every((user) => user.tenantId === "atlas-operations")).toBe(true);
+    expect(admin.workflowLibraryMix.documentationResources.some((asset) => asset.sourceKind === "client_upload")).toBe(true);
   });
 
   it("denies cross-tenant secure access for a manager grant", async () => {

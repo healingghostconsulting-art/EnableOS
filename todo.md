@@ -34,5 +34,5 @@
 - [x] Add a dedicated content library experience with CHCG module families, searchable assets, and role-relevant browsing paths.
 - [x] Add client-content upload and ingestion workflows so tenants can bring their own training materials into the library.
 - [x] Support tenant-scoped imported content records with metadata, source labeling, and white-label presentation controls.
-- [ ] Add UI and backend support for mixing CHCG methodology assets with client-uploaded materials in journeys, interventions, and documentation workflows.
+- [x] Add UI and backend support for mixing CHCG methodology assets with client-uploaded materials in journeys, interventions, and documentation workflows.
 - [x] Add tests validating tenant isolation, upload metadata handling, and library visibility rules for client-provided content.
