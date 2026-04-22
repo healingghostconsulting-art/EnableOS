@@ -51,7 +51,7 @@
 - [x] Implement explicit pass/fail logic, retry guidance, and progression gating for application activities inside each lesson.
 - [x] Expand slide-derived lesson pages so each module uses substantially more of the underlying presentation content as intuitive visual instruction.
 - [x] Add automated coverage and browser validation for gated application activities and the step-by-step course progression.
-- [ ] Bring presentation-derived visuals and graphs directly into the in-platform training experience so learners do not need to open PowerPoint files to follow the lesson.
-- [ ] Increase lesson fidelity so each training module uses richer deck-based visual storytelling, evidence graphics, and embedded instructional artifacts throughout the course.
-- [ ] Refine the training UI to feel more polished, intuitive, and presentation-ready across navigation, layout, visual hierarchy, and content framing.
-- [ ] Add browser validation and automated coverage for the richer visual lesson assets and refined training interface.
+- [x] Bring presentation-derived visuals and graphs directly into the in-platform training experience so learners do not need to open PowerPoint files to follow the lesson.
+- [x] Increase lesson fidelity so each training module uses richer deck-based visual storytelling, evidence graphics, and embedded instructional artifacts throughout the course.
+- [x] Refine the training UI to feel more polished, intuitive, and presentation-ready across navigation, layout, visual hierarchy, and content framing.
+- [x] Add browser validation and automated coverage for the richer visual lesson assets and refined training interface.

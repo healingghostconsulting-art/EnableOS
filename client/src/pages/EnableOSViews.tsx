@@ -468,6 +468,7 @@ export function TrainingExperienceView() {
   const insightCharts = presentation?.insightCharts ?? [];
   const featuredDeckVisual = deckVisuals[Math.min(selectedDeckVisualIndex, Math.max(deckVisuals.length - 1, 0))] ?? null;
   const contextualDeckVisual = deckVisuals[Math.min(lessonPageIndex, Math.max(deckVisuals.length - 1, 0))] ?? featuredDeckVisual;
+  const moduleFamilyLabel = featuredDeckVisual?.sourceDeck ?? presentation?.evidenceLabel ?? selectedModule?.format ?? "CHCG learning module";
 
   const stages = selectedModule
     ? [
@@ -507,6 +508,8 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
+  const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
+  const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   const applicationQuestions = presentation?.applicationActivity.questions ?? [];
   const applicationAnsweredCount = applicationQuestions.filter((question) => applicationAnswers[question.id]).length;
@@ -606,51 +609,96 @@ export function TrainingExperienceView() {
             </div>
 
             {deckVisuals.length > 0 ? (
-              <PremiumCard>
-                <CardHeader>
+              <PremiumCard className="overflow-hidden">
+                <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.42))] pb-6">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <CardTitle className="text-white">Presentation visuals inside the platform</CardTitle>
-                      <CardDescription className="text-slate-400">The lesson now carries real deck imagery directly into the course so learners can study the original visual framing, diagrams, and message architecture without leaving the training flow.</CardDescription>
+                    <div className="max-w-3xl">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">No deck download required</Badge>
+                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{moduleFamilyLabel}</Badge>
+                      </div>
+                      <CardTitle className="mt-4 text-white">Presentation visuals inside the platform</CardTitle>
+                      <CardDescription className="mt-2 text-slate-300">The training now opens with a dedicated slide stage, deck-backed storyline, and embedded evidence panels so learners can stay inside a focused course-player instead of leaving EnableOS to inspect presentation files.</CardDescription>
                     </div>
-                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">No deck download required</Badge>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Visual pages</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{deckVisuals.length}</p>
+                      </div>
+                      <div className="rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Evidence graphs</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{insightCharts.length}</p>
+                      </div>
+                      <div className="rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Mapped assets</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{supportingAssets.length}</p>
+                      </div>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                  {featuredDeckVisual ? (
-                    <div className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-slate-950/70">
-                      <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="h-full w-full object-cover object-top" />
-                    </div>
-                  ) : null}
+                <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
                   <div className="space-y-4">
                     {featuredDeckVisual ? (
-                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <div className="overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(2,6,23,0.94))] shadow-[0_32px_90px_rgba(8,15,35,0.3)]">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-100/75">Course stage visual</p>
+                            <p className="mt-1 text-sm text-slate-300">{featuredDeckVisual.pageLabel} · {featuredDeckVisual.sourceDeck}</p>
+                          </div>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">Primary learning canvas</Badge>
+                        </div>
+                        <div className="bg-slate-950/90 p-4">
+                          <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="h-full min-h-[340px] w-full rounded-[1.5rem] object-contain object-top bg-slate-950/80" />
+                        </div>
+                      </div>
+                    ) : null}
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      {deckVisuals.map((visual, index) => (
+                        <button
+                          key={visual.id}
+                          type="button"
+                          onClick={() => setSelectedDeckVisualIndex(index)}
+                          className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_20px_50px_rgba(6,182,212,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                        >
+                          <div className="h-28 overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80">
+                            <img src={visual.imageUrl} alt={visual.title} className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.02]" />
+                          </div>
+                          <div className="mt-3">
+                            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{visual.pageLabel}</p>
+                            <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {featuredDeckVisual ? (
+                      <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge>
                           <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{featuredDeckVisual.sourceDeck}</Badge>
                         </div>
                         <h3 className="mt-4 text-2xl font-semibold text-white">{featuredDeckVisual.title}</h3>
                         <p className="mt-3 text-sm leading-7 text-slate-300">{featuredDeckVisual.caption}</p>
+                        <div className="mt-5 grid gap-3">
+                          <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4">
+                            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">How this visual is used</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-200">The selected slide anchors the lesson narrative, gives the learner the original deck framing, and acts as the reference image beside each instructional page as the course advances.</p>
+                          </div>
+                          {activeChart ? (
+                            <div className="rounded-[1.25rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
+                              <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">Current evidence graphic</p>
+                              <p className="mt-2 text-sm font-medium text-white">{activeChart.title}</p>
+                              <p className="mt-2 text-sm leading-6 text-slate-200">{activeChart.description}</p>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     ) : null}
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                      {deckVisuals.map((visual, index) => (
-                        <button
-                          key={visual.id}
-                          type="button"
-                          onClick={() => setSelectedDeckVisualIndex(index)}
-                          className={`flex items-start gap-4 rounded-[1.4rem] border p-4 text-left transition ${index === selectedDeckVisualIndex ? "border-cyan-400/40 bg-cyan-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
-                        >
-                          <div className="h-20 w-24 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
-                            <img src={visual.imageUrl} alt={visual.title} className="h-full w-full object-cover object-top" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{visual.pageLabel}</p>
-                            <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">{visual.caption}</p>
-                          </div>
-                        </button>
-                      ))}
+                    <div className="rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Embedded course artifact</p>
+                      <h3 className="mt-3 text-lg font-medium text-white">The deck visuals now behave like in-product learning media</h3>
+                      <p className="mt-3 text-sm leading-7 text-slate-300">Instead of a download-first flow, the learner enters a guided presentation stage, moves through mapped lesson pages, sees aligned evidence graphics, and carries the source visuals into practice, application, and reflection moments.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -717,12 +765,21 @@ export function TrainingExperienceView() {
 
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.55))] px-5 py-4 shadow-[0_18px_50px_rgba(8,15,35,0.18)]">
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
-                            <p className="text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
-                            <div className="h-2 w-56 overflow-hidden rounded-full bg-white/8">
-                              <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${((lessonPageIndex + 1) / currentStagePages.length) * 100}%` }} />
+                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.65))] px-5 py-4 shadow-[0_18px_50px_rgba(8,15,35,0.18)]">
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label}</Badge>
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{moduleFamilyLabel}</Badge>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
+                              <p className="mt-1 text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4">
+                              <div className="h-2 w-56 overflow-hidden rounded-full bg-white/8">
+                                <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${lessonPageProgress}%` }} />
+                              </div>
+                              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{lessonPageProgress}% section complete</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -786,62 +843,87 @@ export function TrainingExperienceView() {
                           </div>
                         ) : null}
                         {insightCharts.length ? (
-                          <div className="grid gap-5 2xl:grid-cols-2">
-                            {insightCharts.map((chart, index) => (
-                              <div key={chart.id} className="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                  <div className="max-w-lg">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson graph</p>
-                                    <h4 className="mt-2 text-lg font-medium text-white">{chart.title}</h4>
-                                    <p className="mt-2 text-sm leading-6 text-slate-300">{chart.description}</p>
-                                  </div>
-                                  <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{chart.metricLabel}</Badge>
-                                </div>
-                                <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-slate-950/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                                  <ChartContainer
-                                    className="h-60"
-                                    config={{
-                                      value: { label: chart.metricLabel, color: "#67e8f9" },
-                                      benchmark: { label: "Benchmark", color: "#e2e8f0" },
-                                    }}
-                                  >
-                                    {index % 2 === 0 ? (
-                                      <BarChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                                        <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
-                                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={48} />
-                                        <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                        <ChartTooltip
-                                          content={<ChartTooltipContent indicator="dashed" />}
-                                          cursor={{ fill: "rgba(148,163,184,0.08)" }}
-                                        />
-                                        <ChartLegend content={<ChartLegendContent />} />
-                                        <Bar dataKey="value" fill="var(--color-value)" radius={[10, 10, 0, 0]} />
-                                        <Bar dataKey="benchmark" fill="var(--color-benchmark)" radius={[10, 10, 0, 0]} />
-                                      </BarChart>
-                                    ) : (
-                                      <AreaChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                                        <defs>
-                                          <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.45} />
-                                            <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.03} />
-                                          </linearGradient>
-                                        </defs>
-                                        <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
-                                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                        <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                        <ChartTooltip
-                                          content={<ChartTooltipContent indicator="dashed" />}
-                                          cursor={{ stroke: "rgba(56,189,248,0.25)", strokeWidth: 1 }}
-                                        />
-                                        <ChartLegend content={<ChartLegendContent />} />
-                                        <Area type="monotone" dataKey="value" stroke="var(--color-value)" fill={`url(#gradient-${chart.id})`} strokeWidth={3} />
-                                        <Line type="monotone" dataKey="benchmark" stroke="var(--color-benchmark)" strokeDasharray="4 4" dot={{ r: 3, fill: "var(--color-benchmark)" }} activeDot={{ r: 4 }} />
-                                      </AreaChart>
-                                    )}
-                                  </ChartContainer>
-                                </div>
+                          <div className="space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-white/10 bg-white/5 px-5 py-4">
+                              <div className="max-w-2xl">
+                                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Evidence graphics</p>
+                                <h4 className="mt-2 text-lg font-medium text-white">Charts are embedded as part of the lesson storyline</h4>
+                                <p className="mt-2 text-sm leading-6 text-slate-300">Each graph now sits directly underneath the instructional page so the learner can connect the deck message to measurable behavior, benchmark contrast, and coaching relevance without leaving the course sequence.</p>
                               </div>
-                            ))}
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} in-platform evidence views</Badge>
+                            </div>
+                            <div className="grid gap-5 2xl:grid-cols-2">
+                              {insightCharts.map((chart, index) => {
+                                const latestPoint = chart.data[chart.data.length - 1];
+                                return (
+                                  <div key={chart.id} className="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                      <div className="max-w-lg">
+                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson graph</p>
+                                        <h4 className="mt-2 text-lg font-medium text-white">{chart.title}</h4>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">{chart.description}</p>
+                                      </div>
+                                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{chart.metricLabel}</Badge>
+                                    </div>
+                                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                      <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest mapped point</p>
+                                        <p className="mt-2 text-lg font-semibold text-white">{latestPoint?.value ?? "—"}</p>
+                                        <p className="mt-1 text-sm text-slate-400">{latestPoint?.label ?? "Current lesson cue"}</p>
+                                      </div>
+                                      <div className="rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-3">
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Benchmark contrast</p>
+                                        <p className="mt-2 text-lg font-semibold text-white">{latestPoint?.benchmark ?? "—"}</p>
+                                        <p className="mt-1 text-sm text-cyan-100/80">Reference target in the same frame</p>
+                                      </div>
+                                    </div>
+                                    <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-slate-950/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                      <ChartContainer
+                                        className="h-60"
+                                        config={{
+                                          value: { label: chart.metricLabel, color: "#67e8f9" },
+                                          benchmark: { label: "Benchmark", color: "#e2e8f0" },
+                                        }}
+                                      >
+                                        {index % 2 === 0 ? (
+                                          <BarChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                            <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={48} />
+                                            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                            <ChartTooltip
+                                              content={<ChartTooltipContent indicator="dashed" />}
+                                              cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                                            />
+                                            <ChartLegend content={<ChartLegendContent />} />
+                                            <Bar dataKey="value" fill="var(--color-value)" radius={[10, 10, 0, 0]} />
+                                            <Bar dataKey="benchmark" fill="var(--color-benchmark)" radius={[10, 10, 0, 0]} />
+                                          </BarChart>
+                                        ) : (
+                                          <AreaChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                            <defs>
+                                              <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.45} />
+                                                <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.03} />
+                                              </linearGradient>
+                                            </defs>
+                                            <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                            <ChartTooltip
+                                              content={<ChartTooltipContent indicator="dashed" />}
+                                              cursor={{ stroke: "rgba(56,189,248,0.25)", strokeWidth: 1 }}
+                                            />
+                                            <ChartLegend content={<ChartLegendContent />} />
+                                            <Area type="monotone" dataKey="value" stroke="var(--color-value)" fill={`url(#gradient-${chart.id})`} strokeWidth={3} />
+                                            <Line type="monotone" dataKey="benchmark" stroke="var(--color-benchmark)" strokeDasharray="4 4" dot={{ r: 3, fill: "var(--color-benchmark)" }} activeDot={{ r: 4 }} />
+                                          </AreaChart>
+                                        )}
+                                      </ChartContainer>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -1103,31 +1185,46 @@ export function TrainingExperienceView() {
                   </CardContent>
                 </PremiumCard>
 
-                <PremiumCard>
-                  <CardHeader>
-                    <CardTitle className="text-white">Deep resources and transfer actions</CardTitle>
-                    <CardDescription className="text-slate-400">The training now carries more of the underlying presentation substance into visible resources, coaching moves, and evidence-ready next actions.</CardDescription>
+                <PremiumCard className="overflow-hidden">
+                  <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.32))]">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="max-w-2xl">
+                        <CardTitle className="text-white">Deep resources and transfer actions</CardTitle>
+                        <CardDescription className="mt-2 text-slate-300">The training now carries more of the underlying presentation substance into visible resources, coaching moves, evidence labels, and role-ready follow-through actions.</CardDescription>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{presentation?.resourceActions.length ?? 0} transfer prompts embedded</Badge>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-5">
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                        <p className="text-sm font-medium text-white">CHCG structure</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                  <CardContent className="space-y-5 p-6">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm font-medium text-white">CHCG structure</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                        </div>
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm font-medium text-white">Tenant context</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides scenario language, launch specifics, and operational cues that localize the lesson.</p>
+                        </div>
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm font-medium text-white">Observable output</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                        </div>
                       </div>
-                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                        <p className="text-sm font-medium text-white">Tenant context</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides scenario language, launch specifics, and operational cues that localize the lesson.</p>
-                      </div>
-                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                        <p className="text-sm font-medium text-white">Observable output</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                      <div className="rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">Why this matters in-product</p>
+                        <h4 className="mt-3 text-lg font-medium text-white">The course now closes with explicit transfer architecture</h4>
+                        <p className="mt-3 text-sm leading-7 text-slate-100">Learners leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
                       </div>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
-                      {presentation?.resourceActions.map((resource) => (
-                        <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Resource action</p>
-                          <h4 className="mt-2 text-lg font-medium text-white">{resource.label}</h4>
+                      {presentation?.resourceActions.map((resource, index) => (
+                        <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(15,23,42,0.62))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Resource action</p>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{String(index + 1).padStart(2, "0")}</Badge>
+                          </div>
+                          <h4 className="mt-3 text-lg font-medium text-white">{resource.label}</h4>
                           <p className="mt-3 text-sm leading-6 text-slate-300">{resource.detail}</p>
                         </div>
                       ))}
