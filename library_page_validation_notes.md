@@ -149,3 +149,7 @@ Refreshed the active training lesson after the latest layout polish. The widened
 A fresh browser pass on `/training` after the latest polish confirmed that the course now opens with a dedicated slide-stage panel, a more prominent deck-backed learning canvas, visible evidence counters, and a stronger bridge between the selected slide and the embedded lesson charts. The lesson header also now communicates section completion more clearly, and the lower transfer panel closes the module with explicit numbered resource actions instead of a flatter generic resource block.
 
 This validation confirms that the current training route feels materially closer to a polished in-platform LMS experience. The learner can stay inside the product to review the primary slide media, move through page-by-page lesson content, consume embedded graphs as part of the storyline, and finish with transfer-ready prompts without needing to open a PowerPoint file externally.
+
+## Graphic-fit refinement validation
+
+A fresh browser pass after the latest media-fit adjustments confirmed that the training graphics now sit more cleanly inside the page. The top slide stage has more room, the primary slide image is centered inside a dedicated aspect-ratio frame, the filmstrip thumbnails preserve more of each source slide instead of cropping aggressively, and the contextual lesson visual now follows the same centered framing pattern. The route remained stable while these fit refinements were applied, and the richer in-platform training treatment still rendered correctly after the update.

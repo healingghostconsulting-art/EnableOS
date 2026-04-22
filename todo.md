@@ -55,3 +55,4 @@
 - [x] Increase lesson fidelity so each training module uses richer deck-based visual storytelling, evidence graphics, and embedded instructional artifacts throughout the course.
 - [x] Refine the training UI to feel more polished, intuitive, and presentation-ready across navigation, layout, visual hierarchy, and content framing.
 - [x] Add browser validation and automated coverage for the richer visual lesson assets and refined training interface.
+- [x] Refine the training graphics and media framing so slide visuals, charts, and course-player media fit cleanly within the page without awkward cropping, overflow, or cramped composition.

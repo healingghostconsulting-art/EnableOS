@@ -636,7 +636,7 @@ export function TrainingExperienceView() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+                <CardContent className="grid gap-6 p-6 2xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.72fr)]">
                   <div className="space-y-4">
                     {featuredDeckVisual ? (
                       <div className="overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(2,6,23,0.94))] shadow-[0_32px_90px_rgba(8,15,35,0.3)]">
@@ -647,12 +647,14 @@ export function TrainingExperienceView() {
                           </div>
                           <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">Primary learning canvas</Badge>
                         </div>
-                        <div className="bg-slate-950/90 p-4">
-                          <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="h-full min-h-[340px] w-full rounded-[1.5rem] object-contain object-top bg-slate-950/80" />
+                        <div className="bg-slate-950/90 p-4 sm:p-5">
+                          <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:px-6 sm:py-5">
+                            <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="max-h-full w-full object-contain object-center" />
+                          </div>
                         </div>
                       </div>
                     ) : null}
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                       {deckVisuals.map((visual, index) => (
                         <button
                           key={visual.id}
@@ -660,8 +662,8 @@ export function TrainingExperienceView() {
                           onClick={() => setSelectedDeckVisualIndex(index)}
                           className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_20px_50px_rgba(6,182,212,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                         >
-                          <div className="h-28 overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80">
-                            <img src={visual.imageUrl} alt={visual.title} className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.02]" />
+                          <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80 px-2 py-2">
+                            <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.02]" />
                           </div>
                           <div className="mt-3">
                             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{visual.pageLabel}</p>
@@ -831,7 +833,9 @@ export function TrainingExperienceView() {
                                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{contextualDeckVisual.pageLabel}</Badge>
                                   </div>
                                   <div className="overflow-hidden rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] shadow-[0_28px_80px_rgba(15,23,42,0.42)]">
-                                    <img src={contextualDeckVisual.imageUrl} alt={contextualDeckVisual.title} className="h-full min-h-[320px] w-full object-contain object-top bg-slate-950/80 px-3 py-3" />
+                                    <div className="flex aspect-[16/10] items-center justify-center bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
+                                      <img src={contextualDeckVisual.imageUrl} alt={contextualDeckVisual.title} className="max-h-full w-full object-contain object-center" />
+                                    </div>
                                   </div>
                                   <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/60 p-4">
                                     <p className="text-sm font-medium text-white">{contextualDeckVisual.title}</p>
