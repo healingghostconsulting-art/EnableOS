@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -401,6 +402,7 @@ export function TrainingExperienceView() {
   const [reflection, setReflection] = useState("");
   const [applicationAnswers, setApplicationAnswers] = useState<Record<string, string>>({});
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
 
   useEffect(() => {
     if (requestedTenantId && requestedTenantId !== tenantId) {
@@ -417,6 +419,7 @@ export function TrainingExperienceView() {
     setReflection("");
     setApplicationAnswers({});
     setApplicationSubmitted(false);
+    setSelectedDeckVisualIndex(0);
   }, [tenantId]);
 
   useEffect(() => {
@@ -427,6 +430,7 @@ export function TrainingExperienceView() {
     setReflection("");
     setApplicationAnswers({});
     setApplicationSubmitted(false);
+    setSelectedDeckVisualIndex(0);
   }, [moduleIndex]);
 
   useEffect(() => {
@@ -460,6 +464,10 @@ export function TrainingExperienceView() {
   const presentation = selectedModule
     ? getTrainingPresentation(selectedModule, learner.data?.activeJourney.title ?? "Enablement journey", learner.data?.activeJourney.competencyGap ?? "Behavior consistency")
     : null;
+  const deckVisuals = presentation?.deckVisuals ?? [];
+  const insightCharts = presentation?.insightCharts ?? [];
+  const featuredDeckVisual = deckVisuals[Math.min(selectedDeckVisualIndex, Math.max(deckVisuals.length - 1, 0))] ?? null;
+  const contextualDeckVisual = deckVisuals[Math.min(lessonPageIndex, Math.max(deckVisuals.length - 1, 0))] ?? featuredDeckVisual;
 
   const stages = selectedModule
     ? [
@@ -597,6 +605,58 @@ export function TrainingExperienceView() {
               <MetricCard label="Mapped assets" value={String(supportingAssets.length)} supporting="CHCG and tenant materials blended into this lesson" icon={<Layers3 className="h-4 w-4" />} />
             </div>
 
+            {deckVisuals.length > 0 ? (
+              <PremiumCard>
+                <CardHeader>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-white">Presentation visuals inside the platform</CardTitle>
+                      <CardDescription className="text-slate-400">The lesson now carries real deck imagery directly into the course so learners can study the original visual framing, diagrams, and message architecture without leaving the training flow.</CardDescription>
+                    </div>
+                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">No deck download required</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                  {featuredDeckVisual ? (
+                    <div className="overflow-hidden rounded-[1.8rem] border border-white/10 bg-slate-950/70">
+                      <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="h-full w-full object-cover object-top" />
+                    </div>
+                  ) : null}
+                  <div className="space-y-4">
+                    {featuredDeckVisual ? (
+                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge>
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{featuredDeckVisual.sourceDeck}</Badge>
+                        </div>
+                        <h3 className="mt-4 text-2xl font-semibold text-white">{featuredDeckVisual.title}</h3>
+                        <p className="mt-3 text-sm leading-7 text-slate-300">{featuredDeckVisual.caption}</p>
+                      </div>
+                    ) : null}
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+                      {deckVisuals.map((visual, index) => (
+                        <button
+                          key={visual.id}
+                          type="button"
+                          onClick={() => setSelectedDeckVisualIndex(index)}
+                          className={`flex items-start gap-4 rounded-[1.4rem] border p-4 text-left transition ${index === selectedDeckVisualIndex ? "border-cyan-400/40 bg-cyan-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                        >
+                          <div className="h-20 w-24 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
+                            <img src={visual.imageUrl} alt={visual.title} className="h-full w-full object-cover object-top" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{visual.pageLabel}</p>
+                            <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-300">{visual.caption}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+
             <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
               <PremiumCard>
                 <CardHeader>
@@ -657,10 +717,13 @@ export function TrainingExperienceView() {
 
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-white/10 bg-white/5 px-4 py-3">
-                          <div>
+                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.55))] px-5 py-4 shadow-[0_18px_50px_rgba(8,15,35,0.18)]">
+                          <div className="space-y-2">
                             <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
-                            <p className="mt-1 text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
+                            <p className="text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
+                            <div className="h-2 w-56 overflow-hidden rounded-full bg-white/8">
+                              <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${((lessonPageIndex + 1) / currentStagePages.length) * 100}%` }} />
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
@@ -684,23 +747,101 @@ export function TrainingExperienceView() {
                           </div>
                         </div>
                         {currentLessonPage ? (
-                          <div className="rounded-[1.8rem] border border-cyan-400/20 bg-cyan-400/10 p-6">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
-                              <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
-                            </div>
-                            <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
-                            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
-                            <div className="mt-6 grid gap-3 md:grid-cols-3">
-                              {currentLessonPage.bullets.map((bullet) => (
-                                <div key={bullet} className="rounded-[1.4rem] border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
-                                  <div className="flex items-start gap-3">
-                                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
-                                    <span>{bullet}</span>
+                          <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8">
+                            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] xl:items-start">
+                              <div>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
+                                  <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
+                                </div>
+                                <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
+                                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
+                                <div className="mt-6 grid gap-4">
+                                  {currentLessonPage.bullets.map((bullet) => (
+                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                                      <div className="flex items-start gap-3">
+                                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
+                                        <span>{bullet}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              {contextualDeckVisual ? (
+                                <div className="space-y-4 xl:sticky xl:top-8">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Deck-aligned visual reference</p>
+                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{contextualDeckVisual.pageLabel}</Badge>
+                                  </div>
+                                  <div className="overflow-hidden rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] shadow-[0_28px_80px_rgba(15,23,42,0.42)]">
+                                    <img src={contextualDeckVisual.imageUrl} alt={contextualDeckVisual.title} className="h-full min-h-[320px] w-full object-contain object-top bg-slate-950/80 px-3 py-3" />
+                                  </div>
+                                  <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/60 p-4">
+                                    <p className="text-sm font-medium text-white">{contextualDeckVisual.title}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-300">{contextualDeckVisual.caption}</p>
                                   </div>
                                 </div>
-                              ))}
+                              ) : null}
                             </div>
+                          </div>
+                        ) : null}
+                        {insightCharts.length ? (
+                          <div className="grid gap-5 2xl:grid-cols-2">
+                            {insightCharts.map((chart, index) => (
+                              <div key={chart.id} className="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div className="max-w-lg">
+                                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson graph</p>
+                                    <h4 className="mt-2 text-lg font-medium text-white">{chart.title}</h4>
+                                    <p className="mt-2 text-sm leading-6 text-slate-300">{chart.description}</p>
+                                  </div>
+                                  <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{chart.metricLabel}</Badge>
+                                </div>
+                                <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-slate-950/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                  <ChartContainer
+                                    className="h-60"
+                                    config={{
+                                      value: { label: chart.metricLabel, color: "#67e8f9" },
+                                      benchmark: { label: "Benchmark", color: "#e2e8f0" },
+                                    }}
+                                  >
+                                    {index % 2 === 0 ? (
+                                      <BarChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                        <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={48} />
+                                        <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                        <ChartTooltip
+                                          content={<ChartTooltipContent indicator="dashed" />}
+                                          cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                                        />
+                                        <ChartLegend content={<ChartLegendContent />} />
+                                        <Bar dataKey="value" fill="var(--color-value)" radius={[10, 10, 0, 0]} />
+                                        <Bar dataKey="benchmark" fill="var(--color-benchmark)" radius={[10, 10, 0, 0]} />
+                                      </BarChart>
+                                    ) : (
+                                      <AreaChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                        <defs>
+                                          <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.45} />
+                                            <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.03} />
+                                          </linearGradient>
+                                        </defs>
+                                        <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                        <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                        <ChartTooltip
+                                          content={<ChartTooltipContent indicator="dashed" />}
+                                          cursor={{ stroke: "rgba(56,189,248,0.25)", strokeWidth: 1 }}
+                                        />
+                                        <ChartLegend content={<ChartLegendContent />} />
+                                        <Area type="monotone" dataKey="value" stroke="var(--color-value)" fill={`url(#gradient-${chart.id})`} strokeWidth={3} />
+                                        <Line type="monotone" dataKey="benchmark" stroke="var(--color-benchmark)" strokeDasharray="4 4" dot={{ r: 3, fill: "var(--color-benchmark)" }} activeDot={{ r: 4 }} />
+                                      </AreaChart>
+                                    )}
+                                  </ChartContainer>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ) : null}
                       </div>

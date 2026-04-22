@@ -7,6 +7,29 @@ export type TrainingPresentationSlide = {
   visualTone: string;
 };
 
+export type TrainingDeckVisual = {
+  id: string;
+  title: string;
+  caption: string;
+  imageUrl: string;
+  sourceDeck: string;
+  pageLabel: string;
+};
+
+export type TrainingInsightDatum = {
+  label: string;
+  value: number;
+  benchmark?: number;
+};
+
+export type TrainingInsightChart = {
+  id: string;
+  title: string;
+  description: string;
+  metricLabel: string;
+  data: TrainingInsightDatum[];
+};
+
 export type TrainingPresentationResource = {
   id: string;
   label: string;
@@ -42,6 +65,8 @@ export type TrainingPresentation = {
   heroTitle: string;
   heroSummary: string;
   evidenceLabel: string;
+  deckVisuals: TrainingDeckVisual[];
+  insightCharts: TrainingInsightChart[];
   slides: TrainingPresentationSlide[];
   practiceSlides: TrainingPresentationSlide[];
   applySlides: TrainingPresentationSlide[];
@@ -70,6 +95,48 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
     heroTitle: "Listening precision under friction",
     heroSummary: "This lesson reframes active listening as a visible service behavior: acknowledge emotion, isolate the operational issue, and confirm the next step without losing control of the interaction.",
     evidenceLabel: "Soft-skills deck translated into service-ready listening visuals",
+    deckVisuals: [
+      {
+        id: "listen-visual-1",
+        title: "Communication foundations overview",
+        caption: "The original communication slide is shown directly in-platform so the learner can read the deck’s structure, layout, and instructional emphasis without leaving the course.",
+        imageUrl: "/manus-storage/softskills-08_fd8d5235.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 8",
+      },
+      {
+        id: "listen-visual-2",
+        title: "Communication skills deep dive",
+        caption: "This slide’s icon-led capability board becomes a first-class lesson visual for active listening, articulation, empathy, and service readiness.",
+        imageUrl: "/manus-storage/softskills-14_e11945d2.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 14",
+      },
+    ],
+    insightCharts: [
+      {
+        id: "listen-chart-1",
+        title: "Listening behavior adoption",
+        description: "A visual view of how the lesson shifts the opening behavior from rushed explanation toward acknowledgment, ownership, and clear next-step control.",
+        metricLabel: "% of monitored interactions",
+        data: [
+          { label: "Acknowledge concern", value: 92, benchmark: 85 },
+          { label: "Confirm ownership", value: 84, benchmark: 80 },
+          { label: "State next step", value: 79, benchmark: 78 },
+        ],
+      },
+      {
+        id: "listen-chart-2",
+        title: "Customer calm recovery curve",
+        description: "The lesson emphasizes that emotional temperature drops when listening behavior happens before workflow explanation.",
+        metricLabel: "Stability score",
+        data: [
+          { label: "Opening", value: 38, benchmark: 45 },
+          { label: "After empathy", value: 64, benchmark: 60 },
+          { label: "After summary", value: 86, benchmark: 80 },
+        ],
+      },
+    ],
     slides: [
       {
         id: "listen-signal",
@@ -236,6 +303,48 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
     heroTitle: "Reassurance without overpromising",
     heroSummary: "This module turns reassurance language into a decision tool so the learner can sound confident, protect trust, and avoid making commitments the workflow cannot support.",
     evidenceLabel: "Language-confidence deck translated into reusable reassurance patterns",
+    deckVisuals: [
+      {
+        id: "reassure-visual-1",
+        title: "Empathy foundations",
+        caption: "The empathy overview slide is preserved as a direct lesson visual so the learner sees the original quadrant framing for understanding needs, anticipating emotion, personalizing the response, and staying professional.",
+        imageUrl: "/manus-storage/softskills-09_815688d7.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 9",
+      },
+      {
+        id: "reassure-visual-2",
+        title: "Empathy script rewrite activity",
+        caption: "The rewrite activity is embedded as a visual board to show how frustration cues become empathetic language and personalized response patterns.",
+        imageUrl: "/manus-storage/softskills-27_c4f51069.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 27",
+      },
+    ],
+    insightCharts: [
+      {
+        id: "reassure-chart-1",
+        title: "Trust-safe reassurance mix",
+        description: "The graph turns the deck’s language contrast into an in-platform signal of which reassurance moves build confidence without creating promise debt.",
+        metricLabel: "% of reviewed calls",
+        data: [
+          { label: "Ownership phrase", value: 88, benchmark: 82 },
+          { label: "Verified next step", value: 81, benchmark: 78 },
+          { label: "Outcome overpromise", value: 19, benchmark: 10 },
+        ],
+      },
+      {
+        id: "reassure-chart-2",
+        title: "Confidence versus promise risk",
+        description: "This view makes visible the lesson’s core tension: sounding stronger should not require sounding more certain than the workflow supports.",
+        metricLabel: "Score",
+        data: [
+          { label: "High-risk wording", value: 32, benchmark: 18 },
+          { label: "Process-based clarity", value: 84, benchmark: 80 },
+          { label: "Auditable close", value: 76, benchmark: 72 },
+        ],
+      },
+    ],
     slides: [
       {
         id: "reassure-patterns",
@@ -402,6 +511,48 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
     heroTitle: "De-escalation with professional recovery",
     heroSummary: "This scenario page converts the presentation into a visible recovery flow: stabilize emotion, narrow the issue, confirm the recovery path, and preserve confidence under pressure.",
     evidenceLabel: "Scenario content translated into a guided recovery storyboard",
+    deckVisuals: [
+      {
+        id: "deescalate-visual-1",
+        title: "Why patients become upset",
+        caption: "The original cause-analysis slide is embedded so the learner can study the recurring frustration drivers before rehearsing recovery language.",
+        imageUrl: "/manus-storage/softskills-30_0b757800.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 30",
+      },
+      {
+        id: "deescalate-visual-2",
+        title: "4-step de-escalation model",
+        caption: "The platform now carries the full four-step recovery framework into the lesson instead of reducing it to a short summary card.",
+        imageUrl: "/manus-storage/softskills-32_55dd4a02.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 32",
+      },
+    ],
+    insightCharts: [
+      {
+        id: "deescalate-chart-1",
+        title: "De-escalation recovery sequence",
+        description: "The chart mirrors the slide logic by showing where emotional heat should fall as the learner acknowledges, clarifies, and owns the next step.",
+        metricLabel: "Recovery score",
+        data: [
+          { label: "Stabilize", value: 71, benchmark: 68 },
+          { label: "Clarify", value: 79, benchmark: 74 },
+          { label: "Close", value: 87, benchmark: 82 },
+        ],
+      },
+      {
+        id: "deescalate-chart-2",
+        title: "Primary frustration drivers",
+        description: "This in-platform graph complements the cause-analysis slide by making the most common escalation triggers easy to compare without leaving the lesson.",
+        metricLabel: "Escalation frequency",
+        data: [
+          { label: "Ownership gaps", value: 41, benchmark: 35 },
+          { label: "Repeat contact", value: 37, benchmark: 30 },
+          { label: "Unclear next step", value: 33, benchmark: 28 },
+        ],
+      },
+    ],
     slides: [
       {
         id: "deescalate-open",
@@ -568,6 +719,48 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
     heroTitle: "Closings that protect confidence and workflow precision",
     heroSummary: "This checklist module turns closing behavior into a visible quality standard so learners can end interactions with clarity, ownership, and documented next-step confidence.",
     evidenceLabel: "Checklist content translated into an audit-ready closing sequence",
+    deckVisuals: [
+      {
+        id: "close-visual-1",
+        title: "Professionalism and branding",
+        caption: "The closing module now carries the professionalism-and-branding slide directly into the course to reinforce how the interaction close affects the larger customer impression.",
+        imageUrl: "/manus-storage/softskills-33_546a5078.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 33",
+      },
+      {
+        id: "close-visual-2",
+        title: "Digital professionalism standards",
+        caption: "This original standards slide is used as a lesson visual so the learner sees the detailed operational expectations that support a confident and compliant close.",
+        imageUrl: "/manus-storage/softskills-34_229ecb62.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 34",
+      },
+    ],
+    insightCharts: [
+      {
+        id: "close-chart-1",
+        title: "Closing quality signal",
+        description: "The graph turns the professionalism deck into a quick operational read on whether the close leaves clarity, ownership, and documentation strength behind it.",
+        metricLabel: "% of interactions",
+        data: [
+          { label: "Outcome recap", value: 83, benchmark: 80 },
+          { label: "Next-step clarity", value: 78, benchmark: 76 },
+          { label: "Ownership statement", value: 74, benchmark: 72 },
+        ],
+      },
+      {
+        id: "close-chart-2",
+        title: "Audit-ready closing impact",
+        description: "This panel shows how stronger closing discipline improves both customer confidence and downstream review readiness.",
+        metricLabel: "Score",
+        data: [
+          { label: "Customer recall", value: 86, benchmark: 80 },
+          { label: "QA traceability", value: 82, benchmark: 78 },
+          { label: "Repeat-contact risk", value: 21, benchmark: 15 },
+        ],
+      },
+    ],
     slides: [
       {
         id: "close-summary",
@@ -739,10 +932,237 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
     return mapped;
   }
 
+  const moduleKeywords = `${module.title} ${module.skillFocus} ${journeyTitle} ${competencyGap}`.toLowerCase();
+  const isPerformanceLeadershipFamily =
+    moduleKeywords.includes("performance") ||
+    moduleKeywords.includes("calibration") ||
+    moduleKeywords.includes("movable middle") ||
+    moduleKeywords.includes("pip") ||
+    moduleKeywords.includes("improvement plan") ||
+    moduleKeywords.includes("discipline") ||
+    moduleKeywords.includes("high performer");
+  const isLeadershipFamily =
+    moduleKeywords.includes("data") ||
+    moduleKeywords.includes("kpi") ||
+    moduleKeywords.includes("insight") ||
+    moduleKeywords.includes("trend") ||
+    moduleKeywords.includes("dashboard") ||
+    moduleKeywords.includes("action planning") ||
+    (moduleKeywords.includes("leadership") && !isPerformanceLeadershipFamily);
+  const isWorkflowFamily =
+    moduleKeywords.includes("qa") ||
+    moduleKeywords.includes("quality") ||
+    moduleKeywords.includes("workflow") ||
+    moduleKeywords.includes("verification") ||
+    moduleKeywords.includes("adherence") ||
+    moduleKeywords.includes("documentation") ||
+    moduleKeywords.includes("score");
+  const isEngagementFamily =
+    moduleKeywords.includes("engagement") ||
+    moduleKeywords.includes("recognition") ||
+    moduleKeywords.includes("gamification") ||
+    moduleKeywords.includes("reward") ||
+    moduleKeywords.includes("motivation") ||
+    moduleKeywords.includes("remote team") ||
+    moduleKeywords.includes("culture");
+
+  const fallbackDeckVisuals: TrainingDeckVisual[] = isPerformanceLeadershipFamily
+    ? [
+        {
+          id: `${module.id}-performance-visual-1`,
+          title: "Bucketing activity",
+          caption: "This performance-leadership frame brings calibration and performance segmentation into the lesson as a structured activity instead of a text-only explanation.",
+          imageUrl: "/manus-storage/performance-leadership-08_61606933.png",
+          sourceDeck: "Utilizing Performance to Maximize Performance",
+          pageLabel: "Slide 8",
+        },
+        {
+          id: `${module.id}-performance-visual-2`,
+          title: "Engaging and developing high performers",
+          caption: "The platform uses this development frame to show how performance leadership includes stretch assignment planning, mentorship, and retention strategy rather than only correction.",
+          imageUrl: "/manus-storage/performance-leadership-15_3215473c.png",
+          sourceDeck: "Utilizing Performance to Maximize Performance",
+          pageLabel: "Slide 15",
+        },
+      ]
+    : isLeadershipFamily
+      ? [
+          {
+            id: `${module.id}-leadership-visual-1`,
+            title: "How to read KPI reports",
+            caption: "This leadership deck frame brings KPI trend reading, target comparison, and outlier detection directly into the lesson so leaders can study the original visual logic in-platform.",
+            imageUrl: "/manus-storage/leadership-data-08_d8fd351a.png",
+            sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
+            pageLabel: "Slide 8",
+          },
+          {
+            id: `${module.id}-leadership-visual-2`,
+            title: "From insight to action",
+            caption: "The lesson uses this original action-planning frame to turn analysis into a coached next move instead of leaving KPI interpretation as passive review.",
+            imageUrl: "/manus-storage/leadership-data-15_c9ba127f.png",
+            sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
+            pageLabel: "Slide 15",
+          },
+        ]
+      : isWorkflowFamily
+      ? [
+          {
+            id: `${module.id}-qa-visual-1`,
+            title: "Quality scoring categories",
+            caption: "This QA framework visual turns score weighting into an in-platform lesson asset so learners and managers can interpret what matters most without opening the deck separately.",
+            imageUrl: "/manus-storage/qa-09_72f7b2b0.png",
+            sourceDeck: "Quality Assurance Essentials",
+            pageLabel: "Slide 9",
+          },
+          {
+            id: `${module.id}-qa-visual-2`,
+            title: "High-scoring behavior board",
+            caption: "The board-style slide is preserved as a lesson visual so teams can compare high-scoring workflow habits and calibration cues directly inside the platform.",
+            imageUrl: "/manus-storage/qa-17_b0a99fe7.png",
+            sourceDeck: "Quality Assurance Essentials",
+            pageLabel: "Slide 17",
+          },
+        ]
+      : isEngagementFamily
+      ? [
+          {
+            id: `${module.id}-engagement-visual-1`,
+            title: "Gamification mistakes to avoid",
+            caption: "This frame helps leaders design engagement loops carefully by surfacing the risks of overcomplication, unfairness, burnout, and stale reward structures directly inside the lesson.",
+            imageUrl: "/manus-storage/gamification-08_78b0164d.png",
+            sourceDeck: "Gamification for Remote Teams",
+            pageLabel: "Slide 8",
+          },
+          {
+            id: `${module.id}-engagement-visual-2`,
+            title: "Recognition cadence operating rhythm",
+            caption: "The course uses this timeline visual to show how daily, weekly, monthly, and quarterly recognition moments can become an intentional operating rhythm instead of an ad hoc morale tactic.",
+            imageUrl: "/manus-storage/gamification-15_b67831b0.png",
+            sourceDeck: "Gamification for Remote Teams",
+            pageLabel: "Slide 15",
+          },
+        ]
+      : [];
+  const fallbackInsightCharts: TrainingInsightChart[] = isPerformanceLeadershipFamily
+    ? [
+        {
+          id: `${module.id}-chart-1`,
+          title: "Performance bucket distribution",
+          description: `A performance-leadership chart showing how ${module.skillFocus.toLowerCase()} can be used to segment coaching effort across high performers, the movable middle, and urgent-support populations.`,
+          metricLabel: "% of population",
+          data: [
+            { label: "High performers", value: 22, benchmark: 20 },
+            { label: "Movable middle", value: 56, benchmark: 58 },
+            { label: "Urgent support", value: 22, benchmark: 18 },
+          ],
+        },
+        {
+          id: `${module.id}-chart-2`,
+          title: "Coaching leverage by performance group",
+          description: "This chart reframes the deck's leadership guidance into an in-platform view of where development effort, recognition, and intervention create the most organizational lift.",
+          metricLabel: "Leadership impact score",
+          data: [
+            { label: "Recognition and stretch", value: 82, benchmark: 78 },
+            { label: "Targeted coaching", value: 89, benchmark: 84 },
+            { label: "Structured correction", value: 67, benchmark: 70 },
+          ],
+        },
+      ]
+    : isLeadershipFamily
+      ? [
+          {
+            id: `${module.id}-chart-1`,
+            title: "KPI interpretation readiness",
+            description: `A leadership-ready in-platform graph showing how ${module.skillFocus.toLowerCase()} should translate into trend reading, target comparison, and outlier detection.`,
+            metricLabel: "Readiness score",
+            data: [
+              { label: "Trend reading", value: 78, benchmark: 72 },
+              { label: "Target comparison", value: 84, benchmark: 80 },
+              { label: "Outlier detection", value: 69, benchmark: 66 },
+            ],
+          },
+          {
+            id: `${module.id}-chart-2`,
+            title: "Insight-to-action conversion",
+            description: "This panel mirrors the leadership deck by showing whether observations are being converted into specific team actions fast enough to influence performance.",
+            metricLabel: "% of reviewed patterns",
+            data: [
+              { label: "Observed", value: 91, benchmark: 85 },
+              { label: "Explained", value: 76, benchmark: 74 },
+              { label: "Actioned", value: 63, benchmark: 68 },
+            ],
+          },
+        ]
+      : isWorkflowFamily
+      ? [
+          {
+            id: `${module.id}-chart-1`,
+            title: "Workflow scoring emphasis",
+            description: `A deck-aligned view of how ${module.skillFocus.toLowerCase()} should influence weighted quality outcomes and audit reliability.`,
+            metricLabel: "Weighted score",
+            data: [
+              { label: "Verification", value: 81, benchmark: 78 },
+              { label: "Documentation", value: 76, benchmark: 74 },
+              { label: "Workflow control", value: 84, benchmark: 80 },
+            ],
+          },
+          {
+            id: `${module.id}-chart-2`,
+            title: "Calibration consistency",
+            description: "This graph complements the QA lesson visuals by showing whether reviewers and coaches are identifying the same high-impact workflow behaviors consistently.",
+            metricLabel: "Agreement rate",
+            data: [
+              { label: "Reviewer alignment", value: 88, benchmark: 84 },
+              { label: "Coach alignment", value: 82, benchmark: 80 },
+              { label: "Auto-fail accuracy", value: 94, benchmark: 92 },
+            ],
+          },
+        ]
+      : isEngagementFamily
+      ? [
+          {
+            id: `${module.id}-chart-1`,
+            title: "Recognition rhythm coverage",
+            description: `A deck-backed engagement view showing whether ${module.skillFocus.toLowerCase()} is reinforced across daily, weekly, monthly, and quarterly rhythms instead of being left to isolated morale events.`,
+            metricLabel: "Coverage score",
+            data: [
+              { label: "Daily moments", value: 72, benchmark: 68 },
+              { label: "Weekly rituals", value: 81, benchmark: 76 },
+              { label: "Monthly spotlight", value: 77, benchmark: 74 },
+            ],
+          },
+          {
+            id: `${module.id}-chart-2`,
+            title: "Motivation design balance",
+            description: "This graph pairs with the gamification caution slide by showing whether challenge design is balancing energy, fairness, and refresh cadence strongly enough to stay healthy over time.",
+            metricLabel: "Design score",
+            data: [
+              { label: "Fairness", value: 84, benchmark: 80 },
+              { label: "Burnout risk", value: 26, benchmark: 20 },
+              { label: "Program refresh", value: 69, benchmark: 72 },
+            ],
+          },
+        ]
+      : [
+          {
+            id: `${module.id}-chart-1`,
+            title: `${module.skillFocus} transfer signal`,
+            description: `A lightweight in-platform graph showing how ${module.skillFocus.toLowerCase()} should appear in observable workflow behavior.`,
+            metricLabel: "Behavior score",
+            data: [
+              { label: "Awareness", value: 62, benchmark: 60 },
+              { label: "Execution", value: 74, benchmark: 70 },
+              { label: "Evidence", value: 69, benchmark: 66 },
+            ],
+          },
+        ];
+
   return {
     heroTitle: module.title,
     heroSummary: `This ${module.format.toLowerCase()} is presented as a guided lesson inside ${journeyTitle}, with the focus placed on ${module.skillFocus.toLowerCase()} and the broader competency gap of ${competencyGap.toLowerCase()}.`,
-    evidenceLabel: "Fallback presentation view",
+    evidenceLabel: fallbackDeckVisuals.length > 0 ? "Deck-derived fallback presentation view" : "Fallback presentation view",
+    deckVisuals: fallbackDeckVisuals,
+    insightCharts: fallbackInsightCharts,
     slides: [
       {
         id: `${module.id}-slide-1`,

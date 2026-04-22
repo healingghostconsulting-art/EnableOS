@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getTrainingPresentation } from "../shared/trainingContent";
 
 describe("getTrainingPresentation", () => {
-  it("returns step-by-step lesson pages and a gated application activity for the core service-foundations module", () => {
+  it("returns step-by-step lesson pages, embedded deck visuals, and native lesson charts for the core service-foundations module", () => {
     const presentation = getTrainingPresentation(
       {
         id: "mod-sf-1",
@@ -16,6 +16,16 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Listening precision under friction");
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-08");
+    expect(presentation.deckVisuals[1]?.pageLabel).toBe("Slide 14");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Listening behavior adoption");
+    expect(presentation.insightCharts[0]?.data[0]).toEqual(
+      expect.objectContaining({ label: "Acknowledge concern", value: 92, benchmark: 85 }),
+    );
+    expect(presentation.insightCharts[1]?.title).toBe("Customer calm recovery curve");
+    expect(presentation.insightCharts[1]?.data[2]?.label).toBe("After summary");
     expect(presentation.slides.length).toBeGreaterThanOrEqual(3);
     expect(presentation.practiceSlides.length).toBeGreaterThanOrEqual(2);
     expect(presentation.applySlides.length).toBeGreaterThanOrEqual(1);
@@ -31,11 +41,164 @@ describe("getTrainingPresentation", () => {
     expect(presentation.resourceActions.length).toBeGreaterThan(2);
   });
 
-  it("builds a fallback lesson with gated application content when a module does not have a dedicated presentation mapping", () => {
+  it("returns mapped reassurance content with embedded empathy visuals and trust-safe charts", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "mod-sf-2",
+        title: "Reassurance without overpromising",
+        format: "Microlearning",
+        durationMinutes: 10,
+        skillFocus: "Trust-safe reassurance",
+      },
+      "Service Foundations: Communication, Empathy, and Call Confidence",
+      "Confidence language and escalation clarity",
+    );
+
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-09");
+    expect(presentation.deckVisuals[1]?.title).toBe("Empathy script rewrite activity");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Trust-safe reassurance mix");
+    expect(presentation.insightCharts[0]?.data[2]).toEqual(
+      expect.objectContaining({ label: "Outcome overpromise", value: 19, benchmark: 10 }),
+    );
+    expect(presentation.applicationActivity.questions[1]?.correctOptionId).toBe("reassure-q2-a");
+    expect(presentation.resourceActions[1]?.label).toBe("Audit tie-in");
+  });
+
+  it("returns mapped de-escalation content with embedded recovery visuals and escalation charts", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "mod-sf-3",
+        title: "De-escalation with professional recovery",
+        format: "Scenario",
+        durationMinutes: 12,
+        skillFocus: "Recovery sequencing",
+      },
+      "Service Foundations: Communication, Empathy, and Call Confidence",
+      "Escalation recovery and professionalism",
+    );
+
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.title).toBe("Why patients become upset");
+    expect(presentation.deckVisuals[1]?.imageUrl).toContain("softskills-32");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.metricLabel).toBe("Recovery score");
+    expect(presentation.insightCharts[1]?.data[0]).toEqual(
+      expect.objectContaining({ label: "Ownership gaps", value: 41, benchmark: 35 }),
+    );
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("deescalate-q1-b");
+    expect(presentation.applicationActivity.questions[1]?.correctOptionId).toBe("deescalate-q2-b");
+    expect(presentation.resourceActions[0]?.label).toBe("Recovery storyboard");
+  });
+
+  it("builds a fallback workflow lesson with QA visuals and weighted scoring charts when the module points to quality operations", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-workflow-module",
+        title: "Workflow verification essentials",
+        format: "Playbook",
+        durationMinutes: 12,
+        skillFocus: "Quality workflow control",
+      },
+      "Workflow Precision",
+      "Verification consistency and documentation accuracy",
+    );
+
+    expect(presentation.heroTitle).toBe("Workflow verification essentials");
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("qa-09");
+    expect(presentation.deckVisuals[1]?.title).toBe("High-scoring behavior board");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Workflow scoring emphasis");
+    expect(presentation.insightCharts[1]?.metricLabel).toBe("Agreement rate");
+    expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-workflow-module-q1-a");
+  });
+
+  it("builds a fallback leadership lesson with KPI visuals and insight-to-action charts when the module points to data-led leadership", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-leadership-module",
+        title: "Leadership KPI literacy",
+        format: "Workshop",
+        durationMinutes: 15,
+        skillFocus: "KPI interpretation",
+      },
+      "Data-Led Leadership",
+      "Trend interpretation and action planning",
+    );
+
+    expect(presentation.heroTitle).toBe("Leadership KPI literacy");
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("leadership-data-08");
+    expect(presentation.deckVisuals[1]?.title).toBe("From insight to action");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("KPI interpretation readiness");
+    expect(presentation.insightCharts[1]?.data[2]).toEqual(
+      expect.objectContaining({ label: "Actioned", value: 63, benchmark: 68 }),
+    );
+    expect(presentation.practiceSlides[0]?.title).toContain("kpi interpretation");
+    expect(presentation.applicationActivity.questions[1]?.correctOptionId).toBe("custom-leadership-module-q2-a");
+  });
+
+  it("builds a fallback performance-leadership lesson with calibration visuals and coaching leverage charts when the module points to performance management", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-performance-module",
+        title: "Performance calibration workshop",
+        format: "Workshop",
+        durationMinutes: 18,
+        skillFocus: "Calibration and coaching leverage",
+      },
+      "Performance Leadership",
+      "Movable middle coaching and structured improvement plans",
+    );
+
+    expect(presentation.heroTitle).toBe("Performance calibration workshop");
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("performance-leadership-08");
+    expect(presentation.deckVisuals[1]?.title).toBe("Engaging and developing high performers");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Performance bucket distribution");
+    expect(presentation.insightCharts[0]?.data[1]).toEqual(
+      expect.objectContaining({ label: "Movable middle", value: 56, benchmark: 58 }),
+    );
+    expect(presentation.insightCharts[1]?.title).toBe("Coaching leverage by performance group");
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-performance-module-q1-a");
+  });
+
+  it("builds an engagement fallback lesson with gamification visuals and recognition-rhythm charts when the module points to engagement systems", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-engagement-module",
+        title: "Recognition rhythm design",
+        format: "Workshop",
+        durationMinutes: 14,
+        skillFocus: "Engagement cadence",
+      },
+      "Engagement & Recognition",
+      "Recognition consistency and motivation design",
+    );
+
+    expect(presentation.heroTitle).toBe("Recognition rhythm design");
+    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("gamification-08");
+    expect(presentation.deckVisuals[1]?.title).toBe("Recognition cadence operating rhythm");
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Recognition rhythm coverage");
+    expect(presentation.insightCharts[1]?.data[1]).toEqual(
+      expect.objectContaining({ label: "Burnout risk", value: 26, benchmark: 20 }),
+    );
+    expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-engagement-module-q1-a");
+  });
+
+  it("builds a generic fallback lesson with gated application content when a module has no specialized deck match", () => {
     const presentation = getTrainingPresentation(
       {
         id: "custom-module",
-        title: "Workflow ownership fundamentals",
+        title: "Coaching conversation fundamentals",
         format: "Playbook",
         durationMinutes: 12,
         skillFocus: "Ownership language",
@@ -44,7 +207,10 @@ describe("getTrainingPresentation", () => {
       "Behavior consistency",
     );
 
-    expect(presentation.heroTitle).toBe("Workflow ownership fundamentals");
+    expect(presentation.heroTitle).toBe("Coaching conversation fundamentals");
+    expect(presentation.deckVisuals).toEqual([]);
+    expect(presentation.insightCharts).toHaveLength(1);
+    expect(presentation.insightCharts[0]?.metricLabel).toBe("Behavior score");
     expect(presentation.slides[0]?.title).toBe("Ownership language");
     expect(presentation.practiceSlides[0]?.title).toContain("ownership language");
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");

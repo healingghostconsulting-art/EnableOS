@@ -64,3 +64,82 @@ The browser validation was continued into the gated Apply step. After choosing *
 Within the Apply step, selecting the correct response options for both visible questions enabled the **Grade activity** control. This confirms the graded checkpoint now behaves like an actual assessment interaction rather than a read-only content block, and the learner cannot complete the section until required answers are provided.
 
 Grading the Apply activity produced a visible **Passed** result with **Score: 2/2**, and the course immediately unlocked the next step. Advancing from that state took the learner into **Reflect**, confirming that stage 3 now works as a true pass/fail gate before progression is allowed.
+
+Deck visual inspection notes for in-platform training redesign:
+- The soft-skills deck already contains presentation-ready full-slide visuals rather than only text bullets.
+- Slide 1 is a strong title/hero layout with a large photo, bold course title, and branded footer treatment that could become an in-platform lesson hero frame.
+- Slide 8 uses a four-quadrant visual structure for communication concepts, which is exactly the kind of embedded framework graphic that should be rendered directly inside the lesson instead of rewritten as plain text.
+- Conclusion: the upgraded platform should preserve whole-slide visual frames and key deck layouts, not just summarize them into cards.
+
+Additional deck visual findings for training redesign:
+- A later empathy slide presents a three-column rewrite activity with large colored circles and a bottom takeaway banner; this suggests the platform should support embedded activity boards and highlighted takeaway strips, not just cards and paragraphs.
+- The de-escalation section includes a direct "4-Step De-escalation Model" slide with high-contrast typography on a dark background, which can become a first-class in-app framework visual or guided process graphic inside the Apply and Practice stages.
+- Conclusion: the next training iteration should preserve whole-slide frameworks, activity boards, and process visuals as native lesson media rather than converting them into summarized prose alone.
+
+Mapped slide findings for direct lesson embedding:
+- The communication deep-dive section includes an icon-led capability board that would work well as an in-platform slide frame or overview visual inside the listening module.
+- The de-escalation sequence includes a cause-analysis slide explaining why patients become upset, using repeated circular visual anchors plus a full-width takeaway bar; this should inform a more polished framework-and-insight layout in the course UI.
+- Conclusion: the platform should support both full-slide image rendering and selective native recreations of the strongest frameworks, especially when the slide contains repeated visual motifs and a strong bottom summary strip.
+
+Embedded deck-visual validation update: the training route now renders real slide imagery directly inside the lesson and the gallery interaction successfully switches the featured frame from Slide 8 to Slide 14 within the same in-platform course view. This confirms that learners can follow actual presentation visuals without downloading the original deck.
+
+Additional visual-course validation: the refreshed training route now shows the deck-aligned visual reference directly inside the active lesson page, and advancing to Page 2 updates the in-context visual from Slide 8 to Slide 14. This confirms the course is moving closer to a true slide-by-slide in-platform training experience rather than a separate gallery plus summary text.
+
+Cross-module visual validation: the de-escalation module also now displays embedded source-deck visuals in-platform, including the cause-analysis and four-step recovery slides. This confirms the richer media treatment is not limited to the first listening lesson and is beginning to scale across the broader course path.
+
+## Native graph integration validation
+
+A fresh browser pass on `/training` confirmed that the lesson now includes two native in-platform graphs directly below the active lesson frame. The first listening module shows a **Listening behavior adoption** bar chart and a **Customer calm recovery curve** area chart alongside the embedded slide imagery, which materially improves the in-platform storytelling and reduces dependence on the original deck file.
+
+The chart treatment is already useful, but it still reads as a supporting analytics block rather than a fully unified slide-native narrative surface. This should be refined further in the next pass so the graphs feel more tightly integrated with the lesson page layout and module-specific evidence flow.
+
+## QA deck visual findings
+
+- QA Slide 9 presents a strong **9 Categories** scoring framework with clear percentage weights for greeting, verification, hold and silence, call flow, reassurance, information delivery, transfers, professionalism, and closing.
+- This is a high-value in-platform visual candidate because it translates cleanly into either an embedded slide frame or a native weighted-scoring graphic inside workflow-precision or quality-coaching lessons.
+- The layout is cleaner and more board-like than the current text-heavy training surfaces, so it should influence the next UI refinement pass for lesson visuals and graph framing.
+
+The latest training review confirms that the in-platform lesson now keeps real deck imagery, native graphs, and deeper transfer resources on the same screen. The active listening module shows the embedded slide gallery, a contextual deck-aligned lesson visual, two native charts, page-by-page lesson framing, and the richer resource-action section together without forcing a deck download.
+
+The QA deck adds two strong visual patterns for the next refinement pass. One is the weighted nine-category scoring framework, which can become a native quality-score lesson panel or embedded slide inside Workflow Precision modules. The other is the “What a High-Scoring Call Looks Like” standards board, which translates well into an in-platform behavioral scorecard because it clearly groups confident, controlled, accurate, empathetic, and efficient call behaviors into one presentation-ready visual.
+
+The leadership data deck adds two strong in-platform training patterns for the next refinement pass. The KPI-literacy slide provides a clean three-part visual for reading reports through trend analysis, target comparison, and outlier detection. The later “From Insight to Action” slide is equally valuable because it converts data review into a repeatable action-planning framework that can become a native leadership lesson panel or graded managerial exercise inside the platform.
+
+Browser validation confirms the richer lesson treatment is not limited to the first module. The second module loads with its own embedded empathy deck visuals and lesson framing, showing that the in-platform slide treatment now carries across multiple course modules rather than acting as a one-off visual layer on active listening.
+
+Browser validation after the chart-component refactor confirms that the active training lesson still renders cleanly with embedded deck imagery, deck-aligned in-page visuals, native lesson graphs, and the step-by-step course controls intact. The first module remains visually stable after the reusable chart-layer upgrade, preserving the more unified in-platform presentation treatment.
+
+Leadership deck review identified two strong next in-platform visual candidates. Slide 8 provides a clean KPI-literacy frame built around trend reading, target comparison, and outlier detection, making it a strong fit for native leadership lesson visuals and graph interpretation prompts. Slide 15 provides a simple but effective insight-to-action activity frame that can be translated into manager and executive training checkpoints focused on trend review and action planning inside the platform.
+
+
+## Additional cross-module visual validation
+
+A fresh refresh of `/training` confirmed the first module still renders embedded slide imagery, native lesson graphs, page-by-page lesson framing, and deep resource-transfer actions together in a stable layout. After switching to the second module, the lesson surface updated correctly to the empathy-oriented deck treatment, showing different embedded slide references and different language framing rather than reusing the listening-module media.
+
+This confirms that the richer in-platform visual system is beginning to behave like a reusable lesson framework across modules, not just a one-off enhancement for the opening lesson.
+
+
+## Chart-component refactor validation
+
+A fresh browser refresh on `/training` after the chart-infrastructure refactor confirmed that the active lesson still renders embedded slide imagery, contextual deck references, and the native lesson graphs together without regression. The lesson charts remained visible beneath the active lesson page, and the surrounding lesson framing, progress controls, and transfer resources continued to render in the same course flow.
+
+This confirms that the graph layer is now moving onto a more reusable presentation footing while preserving the current in-platform lesson experience.
+
+
+## Cross-family visual model check
+
+After the fallback-family expansion and refreshed training review, the active course still rendered the embedded slide gallery, contextual lesson visual, and native lesson graphs together in the first module without layout breakage. The lesson-page framing, stage controls, and deep resource actions remained intact, which confirms that the broader deck-backed fallback logic did not destabilize the current in-platform course surface.
+
+
+## Lesson-layout polish check
+
+After tightening the lesson-page layout, the active training view still rendered the contextual slide, bullet cards, and native lesson graphs together cleanly. The narrower visual column and two-column behavior bullets reduced crowding, which makes the in-page instructional content easier to scan while keeping the real deck frame visible inside the lesson.
+
+- Performance Leadership deck inspection: slide 8 contains a strong bucketing activity visual with structured agent comparison cards that can be translated into an in-platform calibration exercise for manager and leadership lessons.
+The performance-leadership deck adds two especially useful in-platform patterns. One is a bucketing activity frame that can become a manager-side calibration exercise. The other is a high-performer development frame that supports a more aspirational leadership lesson around stretch assignments, mentorship, and advancement planning.
+The active training lesson continues to render cleanly after the latest refinement pass. The current view shows embedded deck visuals, native lesson graphs, and a more readable lesson-page layout with clearer separation between the instructional bullets and the contextual slide reference.
+The refreshed training layout reads more comfortably in-browser. The contextual slide reference now has more breathing room beside the lesson narrative, and the chart region feels less cramped while preserving the embedded in-platform deck treatment.
+The gamification deck contributes a useful caution frame for future platform expansion. Slide 8 is not a graph-heavy visual, but it does provide a strong structured message around overcomplication, reward inflation, fairness, burnout, and program refresh, which could become an in-platform leadership guidance panel for engagement design.
+The gamification deck also includes a stronger platform-ready visual on slide 15: a simple daily-weekly-monthly-quarterly cadence line for embedding recognition and engagement loops into operating rhythms. This is a better candidate than the earlier caution slide for future in-platform lesson visuals because it already behaves like a reusable framework graphic.
+Refreshed training view after the latest cross-family fallback expansion still renders cleanly. The active listening lesson shows the in-platform slide gallery, contextual slide image inside the lesson page, dual native charts, and the widened two-column reading layout without visible regression. The first module remains visually denser than the original baseline but is materially more complete and presentation-like than the earlier scaffold.
+Refreshed the active training lesson after the latest layout polish. The widened lesson-page frame, progress indicator, larger contextual slide image, and roomier chart panels all render cleanly in the browser. The first lesson now reads more comfortably than the earlier cramped version while still keeping the embedded deck visual and native graph treatment visible in-platform.
