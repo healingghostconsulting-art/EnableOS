@@ -38,7 +38,7 @@ import {
   Users2,
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
@@ -381,12 +381,28 @@ export function TrainingExperienceView() {
   const tenants = landing.data?.tenants ?? [];
   const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
   const [tenantId, setTenantId] = useState(initialTenantId);
+  useLocation();
+  const queryParams = useMemo(() => {
+    if (typeof window === "undefined") {
+      return new URLSearchParams();
+    }
+    return new URLSearchParams(window.location.search);
+  }, []);
+  const requestedTenantId = queryParams.get("tenantId");
+  const requestedAssetId = queryParams.get("assetId");
+  const requestedAssetTitle = queryParams.get("assetTitle");
   const learner = trpc.demo.learner.useQuery({ tenantId });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
   const [reflection, setReflection] = useState("");
+
+  useEffect(() => {
+    if (requestedTenantId && requestedTenantId !== tenantId) {
+      setTenantId(requestedTenantId);
+    }
+  }, [requestedTenantId, tenantId]);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -411,7 +427,10 @@ export function TrainingExperienceView() {
   const modules = learner.data?.activeJourney.modules ?? [];
   const selectedModule = modules[moduleIndex] ?? null;
   const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
-  const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${learner.data?.activeJourney.competencyGap ?? ""}`
+  const launchedAsset = journeyResources.find((asset: any) => asset.id === requestedAssetId)
+    ?? journeyResources.find((asset: any) => asset.title === requestedAssetTitle)
+    ?? null;
+  const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${learner.data?.activeJourney.competencyGap ?? ""} ${launchedAsset?.title ?? ""} ${launchedAsset?.tags?.join(" ") ?? ""}`
     .toLowerCase()
     .split(/\s+/)
     .filter((keyword) => keyword.length > 4);
@@ -419,7 +438,9 @@ export function TrainingExperienceView() {
     const haystack = `${asset.title} ${asset.summary} ${asset.tags.join(" ")}`.toLowerCase();
     return moduleKeywords.some((keyword) => haystack.includes(keyword));
   });
-  const supportingAssets = (matchedResources.length > 0 ? matchedResources : journeyResources).slice(0, 2);
+  const supportingAssets = [launchedAsset, ...(matchedResources.length > 0 ? matchedResources : journeyResources)]
+    .filter((asset, index, collection): asset is NonNullable<typeof asset> => Boolean(asset) && collection.findIndex((candidate) => candidate?.id === asset?.id) === index)
+    .slice(0, 3);
 
   const stages = selectedModule
     ? [
@@ -508,6 +529,22 @@ export function TrainingExperienceView() {
         {learner.isLoading || landing.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-6">
+            {launchedAsset ? (
+              <PremiumCard>
+                <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
+                  </div>
+                  <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
+                    <p className="font-medium text-white">Source label</p>
+                    <p className="mt-1">{launchedAsset.sourceLabel}</p>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <MetricCard label="Modules in path" value={String(modules.length)} supporting={learner.data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
@@ -615,7 +652,7 @@ export function TrainingExperienceView() {
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Live-work transfer</p>
-                          <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span> and use the mapped resources below to reinforce the behavior in context.</p>
+                          <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span>{launchedAsset ? <> while grounding the rehearsal in <span className="font-medium text-white">{launchedAsset.title}</span></> : null} and use the mapped resources below to reinforce the behavior in context.</p>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                           {supportingAssets.map((asset: any) => (
@@ -719,6 +756,8 @@ export function ContentLibraryView() {
   const [sourceLabel, setSourceLabel] = useState("Client enablement team");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
 
   const library = trpc.demo.library.useQuery({ tenantId, role: roleFilter });
   const uploadMutation = trpc.demo.previewUploadContent.useMutation({
@@ -779,6 +818,18 @@ export function ContentLibraryView() {
     });
   }, [assetView, library.data, searchQuery, trackFilter]);
 
+  const selectedAsset = useMemo(
+    () => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null,
+    [assets, selectedAssetId],
+  );
+
+  function handleStartTraining(asset?: any) {
+    const params = new URLSearchParams({ tenantId });
+    if (asset?.id) params.set("assetId", asset.id);
+    if (asset?.title) params.set("assetTitle", asset.title);
+    setLocation(`/training?${params.toString()}`);
+  }
+
   async function readFileAsBase64(file: File) {
     return await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -830,6 +881,9 @@ export function ContentLibraryView() {
         actions={
           <>
             {tenantPicker}
+            <Button type="button" onClick={() => handleStartTraining(selectedAsset ?? undefined)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+              Start training
+            </Button>
             <Link href="/">
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                 Back to overview
@@ -933,6 +987,65 @@ export function ContentLibraryView() {
               </CardHeader>
             </PremiumCard>
 
+            {selectedAsset ? (
+              <PremiumCard>
+                <CardHeader className="space-y-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <CardTitle className="text-white">Selected asset workflow handoff</CardTitle>
+                      <CardDescription className="text-slate-400">Use the library to inspect an asset, then jump directly into the guided training experience with that content in mind.</CardDescription>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="outline" onClick={() => setLocation("/learner")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                        Open learner journey
+                      </Button>
+                      <Button type="button" onClick={() => handleStartTraining(selectedAsset)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                        Start training from this asset
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
+                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
+                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-semibold text-white">{selectedAsset.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{selectedAsset.summary}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAsset.tags.map((tag: string) => (
+                        <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs text-slate-300">#{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training use</p>
+                      <p className="mt-2 text-white">This asset can be framed as lesson context, practice language, or reflection evidence inside the training simulator.</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Source label</p>
+                      <p className="mt-2 text-white">{selectedAsset.sourceLabel}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300 sm:col-span-2">
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Role relevance</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedAsset.linkedRoles.map((linked: string) => (
+                          <Badge key={`selected-role-${selectedAsset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-slate-950/60 text-slate-200">
+                            {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+
             <Tabs value={assetView} onValueChange={(value) => setAssetView(value as "all" | "chcg" | "imported")} className="space-y-6">
               <TabsList className="grid w-full grid-cols-3 rounded-3xl border border-white/10 bg-white/6 p-1">
                 <TabsTrigger value="all" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Blended library</TabsTrigger>
@@ -943,7 +1056,7 @@ export function ContentLibraryView() {
                   <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
 
                   {assets.map((asset: any) => (
-                    <PremiumCard key={asset.id} className="h-full">
+                    <PremiumCard key={asset.id} className={`h-full transition-all ${selectedAsset?.id === asset.id ? "ring-1 ring-white/30" : ""}`}>
                       <CardHeader className="space-y-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{asset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
@@ -972,12 +1085,21 @@ export function ContentLibraryView() {
                           <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
                           <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
                         </div>
-                        {asset.fileUrl ? (
-                          <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium text-cyan-200 transition-colors hover:text-cyan-100">
-                            Open stored asset
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </a>
-                        ) : null}
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="button" variant="outline" onClick={() => setSelectedAssetId(asset.id)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                            {selectedAsset?.id === asset.id ? "Selected for training" : "Preview in workflow"}
+                          </Button>
+                          <Button type="button" onClick={() => handleStartTraining(asset)} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">
+                            Start training
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                          {asset.fileUrl ? (
+                            <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
+                              Open stored asset
+                              <ChevronRight className="ml-1 h-4 w-4" />
+                            </a>
+                          ) : null}
+                        </div>
                       </CardContent>
                     </PremiumCard>
                   ))}
