@@ -38,7 +38,7 @@ describe("demo router", () => {
     expect(landing.featuredMetrics.length).toBeGreaterThanOrEqual(4);
     expect(landing.tenants[0]).toMatchObject({
       id: "atlas-operations",
-      name: "Atlas Service Group",
+      name: "Enterprise Operations Workspace",
     });
   });
 
@@ -57,7 +57,7 @@ describe("demo router", () => {
     expect(executive.methodologyMappings.length).toBeGreaterThan(0);
     expect(executive.workflowLibraryMix.documentationResources).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ sourceKind: "client_upload", title: "Atlas launch readiness brief" }),
+        expect.objectContaining({ sourceKind: "client_upload", title: "Operational launch readiness brief" }),
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
     );
@@ -108,7 +108,7 @@ describe("demo router", () => {
     expect(learner.nextCoachingSession).toEqual(expect.objectContaining({ title: expect.any(String) }));
     expect(learner.workflowLibraryMix.journeyResources).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ title: "Atlas launch readiness brief", sourceKind: "client_upload" }),
+        expect.objectContaining({ title: "Operational launch readiness brief", sourceKind: "client_upload" }),
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
     );
@@ -136,7 +136,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-manager",
         role: "user",
-        name: "Atlas Manager",
+        name: "Enterprise Manager",
       }),
     );
 
@@ -150,7 +150,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-manager",
         role: "user",
-        name: "Atlas Manager",
+        name: "Enterprise Manager",
       }),
     );
 
@@ -185,7 +185,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-manager",
         role: "user",
-        name: "Atlas Manager",
+        name: "Enterprise Manager",
       }),
     );
 
@@ -207,7 +207,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-manager",
         role: "user",
-        name: "Atlas Manager",
+        name: "Enterprise Manager",
       }),
     );
 
@@ -236,19 +236,19 @@ describe("demo router", () => {
     const updated = await caller.demo.updateBranding({
       tenantId: "atlas-operations",
       accent: "#123ABC",
-      logoMark: "AO",
-      preferredLabel: "Atlas EnableOS Workspace",
+      logoMark: "EW",
+      preferredLabel: "EnableOS Workspace",
       heroStatement: "A CHCG performance workspace for structured coaching, workflow precision, and measurable readiness movement.",
     });
 
     expect(updated).toMatchObject({
       accent: "#123ABC",
-      logoMark: "AO",
-      preferredLabel: "Atlas EnableOS Workspace",
+      logoMark: "EW",
+      preferredLabel: "EnableOS Workspace",
     });
 
     const admin = await caller.demo.admin({ tenantId: "atlas-operations" });
-    expect(admin.branding.preferredLabel).toBe("Atlas EnableOS Workspace");
+    expect(admin.branding.preferredLabel).toBe("EnableOS Workspace");
   });
 
   it("allows secure client-admin branding updates inside the assigned tenant", async () => {
@@ -256,7 +256,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-admin",
         role: "user",
-        name: "Atlas Client Admin",
+        name: "Enterprise Client Admin",
       }),
     );
 
@@ -264,11 +264,11 @@ describe("demo router", () => {
       tenantId: "atlas-operations",
       accent: "#1D4ED8",
       logoMark: "AE",
-      preferredLabel: "Atlas Enablement Workspace",
+      preferredLabel: "Enablement Workspace",
       heroStatement: "A tenant-scoped CHCG workspace configured through secure client-admin access.",
     });
 
-    expect(updated.preferredLabel).toBe("Atlas Enablement Workspace");
+    expect(updated.preferredLabel).toBe("Enablement Workspace");
   });
 
   it("denies secure client-admin branding updates outside the assigned tenant", async () => {
@@ -276,7 +276,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-admin",
         role: "user",
-        name: "Atlas Client Admin",
+        name: "Enterprise Client Admin",
       }),
     );
 
@@ -296,7 +296,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-manager",
         role: "user",
-        name: "Atlas Manager",
+        name: "Enterprise Manager",
       }),
     );
 
@@ -304,8 +304,8 @@ describe("demo router", () => {
       caller.demo.updateBranding({
         tenantId: "atlas-operations",
         accent: "#2F6FED",
-        logoMark: "AS",
-        preferredLabel: "Atlas Service Group EnableOS",
+        logoMark: "EW",
+        preferredLabel: "Operations EnableOS Workspace",
         heroStatement: "CHCG-powered enablement intelligence for service teams that need stronger execution, cleaner coaching, and clearer ROI.",
       }),
     ).rejects.toBeInstanceOf(TRPCError);
@@ -316,13 +316,13 @@ describe("demo router", () => {
 
     await caller.demo.previewUploadContent({
       tenantId: "atlas-operations",
-      title: "Atlas workflow launch guide",
+      title: "Workflow launch guide",
       summary: "A tenant-scoped guide for launch governance, workflow reinforcement, and manager communication.",
       category: "Launch enablement",
       format: "Guide",
       linkedRoles: ["manager"],
       tags: ["launch", "workflow"],
-      sourceLabel: "Atlas enablement office",
+      sourceLabel: "Enablement office",
     });
 
     const atlasLibrary = await caller.demo.library({ tenantId: "atlas-operations", role: "all" });
@@ -332,9 +332,9 @@ describe("demo router", () => {
       expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Core Deck" })]),
     );
     expect(atlasLibrary.importedAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Atlas workflow launch guide", tenantId: "atlas-operations" })]),
+      expect.arrayContaining([expect.objectContaining({ title: "Workflow launch guide", tenantId: "atlas-operations" })]),
     );
-    expect(lighthouseLibrary.importedAssets.some((asset) => asset.title === "Atlas workflow launch guide")).toBe(false);
+    expect(lighthouseLibrary.importedAssets.some((asset) => asset.title === "Workflow launch guide")).toBe(false);
   });
 
   it("creates tenant-scoped client content and surfaces it in secure library access", async () => {
@@ -342,19 +342,19 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-admin",
         role: "user",
-        name: "Atlas Client Admin",
+        name: "Enterprise Client Admin",
       }),
     );
 
     const created = await caller.demo.secureUploadContent({
       tenantId: "atlas-operations",
-      title: "Atlas scorecard adoption checklist",
+      title: "Scorecard adoption checklist",
       summary: "A checklist for scorecard launch, manager calibration, and evidence capture in quarterly reviews.",
       category: "Governance",
       format: "Checklist",
       linkedRoles: ["client_admin", "manager"],
       tags: ["scorecard", "governance", "reviews"],
-      sourceLabel: "Atlas PMO",
+      sourceLabel: "Program office",
     });
 
     expect(created.sourceKind).toBe("client_upload");
@@ -362,7 +362,7 @@ describe("demo router", () => {
 
     const scopedLibrary = await caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "client_admin" });
     expect(scopedLibrary.importedAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Atlas scorecard adoption checklist" })]),
+      expect.arrayContaining([expect.objectContaining({ title: "Scorecard adoption checklist" })]),
     );
   });
 
@@ -371,7 +371,7 @@ describe("demo router", () => {
       createContext({
         openId: "atlas-admin",
         role: "user",
-        name: "Atlas Client Admin",
+        name: "Enterprise Client Admin",
       }),
     );
 
@@ -384,7 +384,7 @@ describe("demo router", () => {
         format: "Document",
         linkedRoles: ["client_admin"],
         tags: ["invalid"],
-        sourceLabel: "Atlas PMO",
+        sourceLabel: "Program office",
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });

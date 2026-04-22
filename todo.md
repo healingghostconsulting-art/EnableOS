@@ -39,3 +39,5 @@
 - [x] Add an interactive training experience that formats CHCG and tenant content into guided, step-based learning modules with progress, practice, and reflection moments.
 - [x] Integrate the interactive training experience into the learner-facing product flow so users can launch it from the existing enablement journey and library context.
 - [x] Add tests and browser validation covering the interactive training experience and its mapped content structure.
+- [x] Replace demo client names in the interactive training experience and related demo views with presentation-ready neutral or CHCG-approved placeholder naming.
+- [x] Validate that the updated training walkthrough and connected UI surfaces no longer rely on demo client naming.

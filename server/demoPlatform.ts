@@ -227,16 +227,16 @@ export type DemoAccessGrant = {
 const tenants: DemoTenant[] = [
   {
     id: "atlas-operations",
-    name: "Atlas Service Group",
+    name: "Enterprise Operations Workspace",
     industry: "Enterprise shared services",
     accent: "#2F6FED",
-    logoMark: "AS",
+    logoMark: "EW",
     description: "A distributed service organization using CHCG methodology to connect coaching discipline, workflow precision, and measurable performance movement.",
     heroStatement: "CHCG-powered enablement intelligence for service teams that need stronger execution, cleaner coaching, and clearer ROI.",
   },
   {
     id: "lighthouse-finance",
-    name: "Lighthouse Financial Operations",
+    name: "Regulated Operations Workspace",
     industry: "Regulated customer operations",
     accent: "#0E7490",
     logoMark: "LF",
@@ -835,7 +835,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
   {
     id: "library-atlas-launch-readiness",
     tenantId: "atlas-operations",
-    title: "Atlas launch readiness brief",
+    title: "Operational launch readiness brief",
     summary: "A tenant-provided operational brief covering launch checkpoints, workflow reinforcement, and manager review expectations for new process rollouts.",
     category: "Launch readiness",
     sourceKind: "client_upload",
@@ -844,13 +844,13 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
     tags: ["launch", "readiness", "workflow", "documentation"],
     linkedJourneyIds: ["journey-service-foundations", "journey-workflow-precision"],
     linkedInterventionRuleIds: ["rule-qa-precision", "rule-aht-call-control"],
-    sourceLabel: "Atlas operations enablement",
+    sourceLabel: "Operations enablement office",
     createdAt: "2026-04-20T18:51:00Z",
   },
   {
     id: "library-lighthouse-compliance-brief",
     tenantId: "lighthouse-finance",
-    title: "Lighthouse compliance conversation guide",
+    title: "Compliance conversation guide",
     summary: "A tenant-provided guide aligning frontline coaching, quality review language, and documented evidence expectations for regulated interactions.",
     category: "Compliance enablement",
     sourceKind: "client_upload",
@@ -859,7 +859,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
     tags: ["compliance", "qa", "documentation", "coaching"],
     linkedJourneyIds: ["journey-service-foundations"],
     linkedInterventionRuleIds: ["rule-qa-variance"],
-    sourceLabel: "Lighthouse enablement office",
+    sourceLabel: "Compliance enablement office",
     createdAt: "2026-04-20T18:52:00Z",
   },
   {
@@ -999,10 +999,10 @@ const reviewLogs: ReviewLog[] = [
 ];
 
 const accessGrants: DemoAccessGrant[] = [
-  { openId: "atlas-exec", tenantId: "atlas-operations", role: "executive", name: "Atlas Executive" },
-  { openId: "atlas-manager", tenantId: "atlas-operations", role: "manager", name: "Atlas Manager" },
-  { openId: "atlas-learner", tenantId: "atlas-operations", role: "learner", name: "Atlas Learner" },
-  { openId: "atlas-admin", tenantId: "atlas-operations", role: "client_admin", name: "Atlas Client Admin" },
+  { openId: "atlas-exec", tenantId: "atlas-operations", role: "executive", name: "Enterprise Executive" },
+  { openId: "atlas-manager", tenantId: "atlas-operations", role: "manager", name: "Enterprise Manager" },
+  { openId: "atlas-learner", tenantId: "atlas-operations", role: "learner", name: "Enterprise Learner" },
+  { openId: "atlas-admin", tenantId: "atlas-operations", role: "client_admin", name: "Enterprise Client Admin" },
   { openId: "platform-admin", tenantId: "atlas-operations", role: "platform_admin", name: "Platform Admin" },
 ];
 
