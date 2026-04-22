@@ -965,6 +965,18 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
     moduleKeywords.includes("motivation") ||
     moduleKeywords.includes("remote team") ||
     moduleKeywords.includes("culture");
+  const usePerformanceBiasVisual = moduleKeywords.includes("bias") || moduleKeywords.includes("archetype") || moduleKeywords.includes("segmentation");
+  const useLeadershipWorkshopVisual =
+    moduleKeywords.includes("false conclusions") ||
+    moduleKeywords.includes("root cause") ||
+    moduleKeywords.includes("trend validation") ||
+    moduleKeywords.includes("dashboard reviews");
+  const useWorkflowCoachingVisual = moduleKeywords.includes("coaching") || moduleKeywords.includes("listening") || moduleKeywords.includes("behavior");
+  const useEngagementProgramVisual =
+    moduleKeywords.includes("points") ||
+    moduleKeywords.includes("badges") ||
+    moduleKeywords.includes("meaningful recognition") ||
+    moduleKeywords.includes("pilot");
 
   const fallbackDeckVisuals: TrainingDeckVisual[] = isPerformanceLeadershipFamily
     ? [
@@ -978,11 +990,13 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         },
         {
           id: `${module.id}-performance-visual-2`,
-          title: "Engaging and developing high performers",
-          caption: "The platform uses this development frame to show how performance leadership includes stretch assignment planning, mentorship, and retention strategy rather than only correction.",
-          imageUrl: "/manus-storage/performance-leadership-15_3215473c.png",
+          title: usePerformanceBiasVisual ? "Avoiding mislabeling and bias" : "Engaging and developing high performers",
+          caption: usePerformanceBiasVisual
+            ? "This bias-check visual gives calibration modules a more explicit fairness frame so leaders can compare evidence, documentation quality, and labeling discipline before deciding on next actions."
+            : "The platform uses this development frame to show how performance leadership includes stretch assignment planning, mentorship, and retention strategy rather than only correction.",
+          imageUrl: usePerformanceBiasVisual ? "/manus-storage/performance-leadership-09_edfbb1ea.png" : "/manus-storage/performance-leadership-15_3215473c.png",
           sourceDeck: "Utilizing Performance to Maximize Performance",
-          pageLabel: "Slide 15",
+          pageLabel: usePerformanceBiasVisual ? "Slide 9" : "Slide 15",
         },
       ]
     : isLeadershipFamily
@@ -995,14 +1009,17 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
             pageLabel: "Slide 8",
           },
-          {
-            id: `${module.id}-leadership-visual-2`,
-            title: "From insight to action",
-            caption: "The lesson uses this original action-planning frame to turn analysis into a coached next move instead of leaving KPI interpretation as passive review.",
-            imageUrl: "/manus-storage/leadership-data-15_c9ba127f.png",
-            sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
-            pageLabel: "Slide 15",
-          },
+        {
+          id: `${module.id}-leadership-visual-2`,
+          title: useLeadershipWorkshopVisual ? "Interpreting KPI activity" : "From insight to action",
+          caption: useLeadershipWorkshopVisual
+            ? "This workshop-style KPI activity helps leadership modules feel more hands-on by showing how trend reading, concern detection, and next-step planning can be practiced in-platform."
+            : "The lesson uses this original action-planning frame to turn analysis into a coached next move instead of leaving KPI interpretation as passive review.",
+          imageUrl: useLeadershipWorkshopVisual ? "/manus-storage/leadership-data-09_f158ab35.png" : "/manus-storage/leadership-data-15_c9ba127f.png",
+          sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
+          pageLabel: useLeadershipWorkshopVisual ? "Slide 9" : "Slide 15",
+        },
+
         ]
       : isWorkflowFamily
       ? [
@@ -1014,14 +1031,17 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             sourceDeck: "Quality Assurance Essentials",
             pageLabel: "Slide 9",
           },
-          {
-            id: `${module.id}-qa-visual-2`,
-            title: "High-scoring behavior board",
-            caption: "The board-style slide is preserved as a lesson visual so teams can compare high-scoring workflow habits and calibration cues directly inside the platform.",
-            imageUrl: "/manus-storage/qa-17_b0a99fe7.png",
-            sourceDeck: "Quality Assurance Essentials",
-            pageLabel: "Slide 17",
-          },
+        {
+          id: `${module.id}-qa-visual-2`,
+          title: useWorkflowCoachingVisual ? "Active listening coaching model" : "High-scoring behavior board",
+          caption: useWorkflowCoachingVisual
+            ? "This coaching-oriented QA visual helps workflow lessons show exactly what observable listening behavior looks like, making review conversations more behavior-specific and less abstract."
+            : "The board-style slide is preserved as a lesson visual so teams can compare high-scoring workflow habits and calibration cues directly inside the platform.",
+          imageUrl: useWorkflowCoachingVisual ? "/manus-storage/qa-11_a61e56b8.png" : "/manus-storage/qa-17_b0a99fe7.png",
+          sourceDeck: "Quality Assurance Essentials",
+          pageLabel: useWorkflowCoachingVisual ? "Slide 11" : "Slide 17",
+        },
+
         ]
       : isEngagementFamily
       ? [
@@ -1033,14 +1053,17 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             sourceDeck: "Gamification for Remote Teams",
             pageLabel: "Slide 8",
           },
-          {
-            id: `${module.id}-engagement-visual-2`,
-            title: "Recognition cadence operating rhythm",
-            caption: "The course uses this timeline visual to show how daily, weekly, monthly, and quarterly recognition moments can become an intentional operating rhythm instead of an ad hoc morale tactic.",
-            imageUrl: "/manus-storage/gamification-15_b67831b0.png",
-            sourceDeck: "Gamification for Remote Teams",
-            pageLabel: "Slide 15",
-          },
+        {
+          id: `${module.id}-engagement-visual-2`,
+          title: useEngagementProgramVisual ? "Gamification program design" : "Recognition cadence operating rhythm",
+          caption: useEngagementProgramVisual
+            ? "This step-by-step program-design slide makes engagement lessons more concrete by showing how purpose, rules, metrics, rewards, pilot feedback, and iteration fit together."
+            : "The course uses this timeline visual to show how daily, weekly, monthly, and quarterly recognition moments can become an intentional operating rhythm instead of an ad hoc morale tactic.",
+          imageUrl: useEngagementProgramVisual ? "/manus-storage/gamification-09_013f4839.png" : "/manus-storage/gamification-15_b67831b0.png",
+          sourceDeck: "Gamification for Remote Teams",
+          pageLabel: useEngagementProgramVisual ? "Slide 9" : "Slide 15",
+        },
+
         ]
       : [];
   const fallbackInsightCharts: TrainingInsightChart[] = isPerformanceLeadershipFamily
@@ -1157,10 +1180,59 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           },
         ];
 
+  const fallbackHeroSummary = isPerformanceLeadershipFamily
+    ? `This ${module.format.toLowerCase()} turns ${module.skillFocus.toLowerCase()} into a calibration and coaching lesson inside ${journeyTitle}, helping leaders compare segments, protect fairness, and choose the next development move with more evidence.`
+    : isLeadershipFamily
+      ? `This ${module.format.toLowerCase()} reframes ${module.skillFocus.toLowerCase()} as a decision-making lesson inside ${journeyTitle}, connecting KPI interpretation, pattern recognition, and action planning to the broader competency gap of ${competencyGap.toLowerCase()}.`
+      : isWorkflowFamily
+        ? `This ${module.format.toLowerCase()} presents ${module.skillFocus.toLowerCase()} as a workflow-control lesson inside ${journeyTitle}, combining QA structure, observable behaviors, and documentation discipline so the learner can transfer the lesson into scored work.`
+        : isEngagementFamily
+          ? `This ${module.format.toLowerCase()} brings ${module.skillFocus.toLowerCase()} into ${journeyTitle} as an operating-rhythm lesson, showing how recognition design, motivation balance, and measurable reinforcement support the wider competency gap of ${competencyGap.toLowerCase()}.`
+          : `This ${module.format.toLowerCase()} is presented as a guided lesson inside ${journeyTitle}, with the focus placed on ${module.skillFocus.toLowerCase()} and the broader competency gap of ${competencyGap.toLowerCase()}.`;
+  const fallbackEvidenceLabel = isPerformanceLeadershipFamily
+    ? "Performance-leadership deck translated into calibration, fairness, and development views"
+    : isLeadershipFamily
+      ? "Leadership-data deck translated into KPI interpretation and action-planning views"
+      : isWorkflowFamily
+        ? "QA deck translated into workflow-control and coaching-ready lesson views"
+        : isEngagementFamily
+          ? "Engagement-design deck translated into recognition and motivation system views"
+          : fallbackDeckVisuals.length > 0
+            ? "Deck-derived fallback presentation view"
+            : "Fallback presentation view";
+  const fallbackResourceActions = isPerformanceLeadershipFamily
+    ? [
+        { id: `${module.id}-resource-1`, label: "Calibration recap", detail: "Summarize the segment logic, fairness check, and next coaching move for the current performance group." },
+        { id: `${module.id}-resource-2`, label: "Manager checkpoint", detail: "Use the lesson in the next coaching review and document which evidence supported the decision." },
+        { id: `${module.id}-resource-3`, label: "Bias guardrail", detail: "Review the documentation signals that help leaders avoid labeling errors before escalating action." },
+      ]
+    : isLeadershipFamily
+      ? [
+          { id: `${module.id}-resource-1`, label: "KPI review worksheet", detail: "Capture the pattern, explain the likely cause, and note the action that should follow the data review." },
+          { id: `${module.id}-resource-2`, label: "Executive follow-up", detail: "Use the lesson in the next business review to connect observations, causes, and ownership." },
+          { id: `${module.id}-resource-3`, label: "Trend-reading prompt", detail: "Flag which metric relationship deserves another pass before a decision is finalized." },
+        ]
+      : isWorkflowFamily
+        ? [
+            { id: `${module.id}-resource-1`, label: "Workflow recap", detail: "Summarize the workflow behavior, score sensitivity, and review expectation for the lesson." },
+            { id: `${module.id}-resource-2`, label: "QA coaching note", detail: "Bring the lesson into the next QA or calibration conversation with one observable example." },
+            { id: `${module.id}-resource-3`, label: "Evidence capture", detail: "Record which behavior, documentation cue, or listening signal should improve after the lesson." },
+          ]
+        : isEngagementFamily
+          ? [
+              { id: `${module.id}-resource-1`, label: "Recognition recap", detail: "Summarize the motivation loop, operating rhythm, and design rule reinforced in the lesson." },
+              { id: `${module.id}-resource-2`, label: "Leader follow-up", detail: "Use the lesson in the next team check-in to test whether the recognition design is fair and sustainable." },
+              { id: `${module.id}-resource-3`, label: "Iteration cue", detail: "Identify which reward, metric, or ritual should be refreshed before the next engagement cycle." },
+            ]
+          : [
+              { id: `${module.id}-resource-1`, label: "Lesson recap", detail: "Summarize the behavior, workflow use case, and coaching expectation." },
+              { id: `${module.id}-resource-2`, label: "Manager follow-up", detail: "Use the lesson in the next coaching or review checkpoint." },
+            ];
+
   return {
     heroTitle: module.title,
-    heroSummary: `This ${module.format.toLowerCase()} is presented as a guided lesson inside ${journeyTitle}, with the focus placed on ${module.skillFocus.toLowerCase()} and the broader competency gap of ${competencyGap.toLowerCase()}.`,
-    evidenceLabel: fallbackDeckVisuals.length > 0 ? "Deck-derived fallback presentation view" : "Fallback presentation view",
+    heroSummary: fallbackHeroSummary,
+    evidenceLabel: fallbackEvidenceLabel,
     deckVisuals: fallbackDeckVisuals,
     insightCharts: fallbackInsightCharts,
     slides: [
@@ -1293,9 +1365,6 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         },
       ],
     },
-    resourceActions: [
-      { id: `${module.id}-resource-1`, label: "Lesson recap", detail: "Summarize the behavior, workflow use case, and coaching expectation." },
-      { id: `${module.id}-resource-2`, label: "Manager follow-up", detail: "Use the lesson in the next coaching or review checkpoint." },
-    ],
+    resourceActions: fallbackResourceActions,
   };
 }

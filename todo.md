@@ -60,3 +60,11 @@
 - [x] Add a more persistent LMS-style course navigation rail with module status, next-up framing, and clearer sequential progression cues in the training experience.
 - [x] Introduce benchmark-inspired learner-engagement surfaces such as achievement/status treatment, coach context, and guided continuation panels in the training page.
 - [x] Upgrade the training overview and discovery surfaces so they feel closer to a modern enterprise LMS dashboard with clearer recommendations and learning-path context.
+- [x] Expand the visual treatment across every training module so each lesson includes richer in-platform graphics, diagrams, visual cues, and instructional media instead of relying on a limited set of highlighted visuals.
+- [x] Audit every training module for missing visual storytelling opportunities and add module-specific evidence graphics, stage visuals, and embedded learning artifacts where the current experience still feels text-heavy.
+- [x] Add module-specific visual/storytelling assets or richer shared-content definitions for the remaining training modules and fallback module families beyond the initial reusable player enhancements.
+- [x] Validate the expanded visual treatment across additional module types and fallback families, then document the broader browser review before checkpointing.
+- [x] Exercise additional fallback-family training modules in the live experience and confirm each shows the intended tailored visuals rather than only the default learner module.
+- [x] Append explicit browser-validation notes documenting the broader fallback-family review for the expanded visual treatment.
+- [ ] Save a checkpoint after the fallback-family visual expansion validation is complete.
+- [x] Add a live training preview path or selector so additional module families can be exercised directly in-app instead of validating only the default learner module.

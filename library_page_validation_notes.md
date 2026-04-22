@@ -159,3 +159,11 @@ A fresh browser pass after the latest media-fit adjustments confirmed that the t
 After reconstructing the LMS competitor benchmark, the training route was upgraded with a more platform-like continuation layer influenced by modern enterprise learning products. The page now opens with a **Continue learning** overview, clearer journey momentum, visible recommendation framing, a coach-checkpoint card, and a more persistent learning-path navigator that keeps current, next, and completed modules legible while the learner remains inside the course.
 
 A live browser pass confirmed that these new benchmark-inspired surfaces render inside `/training` without breaking the richer slide-stage experience below. The first implementation pass was then tightened to reduce crowding inside the continuation card, and the revised layout now reads more cleanly while preserving the stronger LMS cues around progression, recommendations, and coach context.
+
+## Training family preview selector validation
+
+A fresh browser pass on `/training` confirmed that the page now exposes a dedicated **Training family preview** panel above the course-player hero. The panel shows five visible states — the live learner journey plus workflow precision, data-led leadership, performance leadership, and engagement systems — which gives the product a direct in-app way to inspect the richer fallback-family visual mappings instead of validating only the default learner module.
+
+The broader fallback-family review has now been exercised directly in-app. Switching to **Workflow precision** changed the live course-player module to **Turning QA findings into behavior coaching** and surfaced workflow-family slide references including **Quality scoring categories** and **Active listening coaching model**, confirming the QA/coaching visual mapping is no longer limited to the default learner module.
+
+Switching again to **Data-led leadership** updated the same training shell to **Trend validation across teams and time periods** and surfaced leadership-family slide references including **How to read KPI reports** and **Interpreting KPI activity**. This confirms that at least two additional fallback families now render distinct, module-specific visuals inside the live course player rather than reusing the service-foundations presentation set.

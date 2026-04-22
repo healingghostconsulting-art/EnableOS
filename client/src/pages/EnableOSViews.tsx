@@ -433,6 +433,20 @@ export function TrainingExperienceView() {
     setSelectedDeckVisualIndex(0);
   }, [moduleIndex]);
 
+  const [previewScenarioId, setPreviewScenarioId] = useState("active");
+
+  useEffect(() => {
+    setModuleIndex(0);
+    setStageIndex(0);
+    setLessonPageIndex(0);
+    setConfidence(null);
+    setPracticeChoice(null);
+    setReflection("");
+    setApplicationAnswers({});
+    setApplicationSubmitted(false);
+    setSelectedDeckVisualIndex(0);
+  }, [previewScenarioId]);
+
   useEffect(() => {
     setLessonPageIndex(0);
     setApplicationAnswers({});
@@ -444,13 +458,109 @@ export function TrainingExperienceView() {
     [tenantId, tenants],
   );
 
-  const modules = learner.data?.activeJourney.modules ?? [];
+  const liveJourney = learner.data?.activeJourney ?? null;
+  const previewScenarios = useMemo(
+    () => [
+      {
+        id: "active",
+        label: "Live learner path",
+        eyebrow: "Learner journey",
+        description: "Use the current learner sequence with real completion rates and the native service-foundations flow.",
+        journeyTitle: liveJourney?.title ?? "Enablement journey",
+        competencyGap: liveJourney?.competencyGap ?? "Behavior consistency",
+        modules: liveJourney?.modules ?? [],
+        coachingTitle: learner.data?.nextCoachingSession.title ?? "your next coaching session",
+      },
+      {
+        id: "workflow",
+        label: "Workflow precision",
+        eyebrow: "Manager family preview",
+        description: "Preview the QA and workflow family so the expanded coaching-ready visual mapping can be reviewed directly in the course player.",
+        journeyTitle: "Workflow Precision and QA-Driven Coaching",
+        competencyGap: "Verification consistency and documentation accuracy",
+        modules: [
+          {
+            id: "preview-workflow-module",
+            title: "Turning QA findings into behavior coaching",
+            format: "Microlearning",
+            durationMinutes: 7,
+            skillFocus: "Behavior-based coaching",
+            completionRate: 89,
+          },
+        ],
+        coachingTitle: "Manager calibration follow-up",
+      },
+      {
+        id: "leadership",
+        label: "Data-led leadership",
+        eyebrow: "Executive family preview",
+        description: "Review the KPI-reading and workshop-style leadership visuals that now support executive decision-quality modules.",
+        journeyTitle: "Data-Led Leadership and Readiness Governance",
+        competencyGap: "Intervention-to-outcome visibility",
+        modules: [
+          {
+            id: "preview-leadership-module",
+            title: "Trend validation across teams and time periods",
+            format: "Playbook",
+            durationMinutes: 9,
+            skillFocus: "Decision quality",
+            completionRate: 74,
+          },
+        ],
+        coachingTitle: "Executive signal review",
+      },
+      {
+        id: "performance",
+        label: "Performance leadership",
+        eyebrow: "Manager leadership preview",
+        description: "Inspect the calibration, segmentation, and fairness visuals that now enrich performance-management training modules.",
+        journeyTitle: "Performance Leadership: Calibration, Coaching, and Accountability",
+        competencyGap: "Performance segmentation without bias",
+        modules: [
+          {
+            id: "preview-performance-module",
+            title: "High, emerging, and at-risk performance archetypes",
+            format: "Playbook",
+            durationMinutes: 9,
+            skillFocus: "Pattern recognition",
+            completionRate: 81,
+          },
+        ],
+        coachingTitle: "Performance archetype review",
+      },
+      {
+        id: "engagement",
+        label: "Engagement systems",
+        eyebrow: "Recognition family preview",
+        description: "Validate the program-design and recognition-rhythm visuals now mapped into engagement-system lessons.",
+        journeyTitle: "Engagement Systems and Recognition Design",
+        competencyGap: "Recognition rhythm for hybrid teams",
+        modules: [
+          {
+            id: "preview-engagement-module",
+            title: "Points, badges, and meaningful recognition",
+            format: "Playbook",
+            durationMinutes: 9,
+            skillFocus: "Recognition strategy",
+            completionRate: 84,
+          },
+        ],
+        coachingTitle: "Recognition design checkpoint",
+      },
+    ],
+    [liveJourney, learner.data?.nextCoachingSession.title],
+  );
+  const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
+  const modules = activePreview?.modules ?? [];
   const selectedModule = modules[moduleIndex] ?? null;
+  const effectiveJourneyTitle = activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
+  const effectiveCompetencyGap = activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
+  const effectiveCoachingTitle = activePreview?.coachingTitle ?? learner.data?.nextCoachingSession.title ?? "your next coaching session";
   const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
   const launchedAsset = journeyResources.find((asset: any) => asset.id === requestedAssetId)
     ?? journeyResources.find((asset: any) => asset.title === requestedAssetTitle)
     ?? null;
-  const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${learner.data?.activeJourney.competencyGap ?? ""} ${launchedAsset?.title ?? ""} ${launchedAsset?.tags?.join(" ") ?? ""}`
+  const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${effectiveCompetencyGap} ${launchedAsset?.title ?? ""} ${launchedAsset?.tags?.join(" ") ?? ""}`
     .toLowerCase()
     .split(/\s+/)
     .filter((keyword) => keyword.length > 4);
@@ -462,7 +572,7 @@ export function TrainingExperienceView() {
     .filter((asset, index, collection): asset is NonNullable<typeof asset> => Boolean(asset) && collection.findIndex((candidate) => candidate?.id === asset?.id) === index)
     .slice(0, 3);
   const presentation = selectedModule
-    ? getTrainingPresentation(selectedModule, learner.data?.activeJourney.title ?? "Enablement journey", learner.data?.activeJourney.competencyGap ?? "Behavior consistency")
+    ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)
     : null;
   const deckVisuals = presentation?.deckVisuals ?? [];
   const insightCharts = presentation?.insightCharts ?? [];
@@ -482,7 +592,7 @@ export function TrainingExperienceView() {
           id: "brief",
           label: "Brief",
           title: "Frame the learning objective",
-          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a guided practice sequence inside ${learner.data?.activeJourney.title}.`,
+          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a guided practice sequence inside ${effectiveJourneyTitle}.`,
         },
         {
           id: "practice",
@@ -500,7 +610,7 @@ export function TrainingExperienceView() {
           id: "reflect",
           label: "Reflect",
           title: "Capture the behavior change",
-          body: `Write the action you want to demonstrate before ${learner.data?.nextCoachingSession.title ?? "your next coaching session"}.`,
+          body: `Write the action you want to demonstrate before ${effectiveCoachingTitle}.`,
         },
       ]
     : [];
@@ -514,8 +624,20 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
-  const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
+  const lessonVisualSequence = currentLessonPage
+    ? currentLessonPage.bullets.slice(0, 3).map((bullet, index) => ({
+        id: `${currentLessonPage.id}-sequence-${index}`,
+        stepLabel: `${currentLessonPage.visualTone} ${index + 1}`,
+        title: bullet.split(" ").slice(0, 5).join(" "),
+        detail: bullet,
+      }))
+    : [];
+  const lessonSignalCards = (activeChart?.data ?? []).slice(0, 3);
+  const lessonVisualGallery = deckVisuals
+    .filter((visual, index, collection) => collection.findIndex((candidate) => candidate.id === visual.id) === index)
+    .slice(0, 3);
+  const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   const applicationQuestions = presentation?.applicationActivity.questions ?? [];
   const applicationAnsweredCount = applicationQuestions.filter((question) => applicationAnswers[question.id]).length;
@@ -607,6 +729,33 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
+            <PremiumCard>
+              <CardContent className="flex flex-col gap-4 px-6 py-5">
+                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                  <div className="max-w-3xl">
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training family preview</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">Review every module family directly in the course player</h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">Use these preview states to inspect the richer workflow, leadership, performance, and engagement visuals in the same training shell instead of validating only the default learner path.</p>
+                  </div>
+                  <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-5">
+                  {previewScenarios.map((scenario) => (
+                    <button
+                      key={scenario.id}
+                      type="button"
+                      onClick={() => setPreviewScenarioId(scenario.id)}
+                      className={`rounded-[1.5rem] border p-4 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                    >
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{scenario.eyebrow}</p>
+                      <p className="mt-2 text-sm font-medium text-white">{scenario.label}</p>
+                      <p className="mt-2 text-xs leading-6 text-slate-300">{scenario.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </PremiumCard>
+
             <PremiumCard className="overflow-hidden">
               <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
                 <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
@@ -670,7 +819,8 @@ export function TrainingExperienceView() {
                       <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-100"><Users2 className="h-5 w-5" /></div>
                       <div>
                         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach checkpoint</p>
-                        <p className="mt-1 text-lg font-medium text-white">{learner.data.nextCoachingSession.title}</p>
+                          <p className="mt-1 text-lg font-medium text-white">{effectiveCoachingTitle}</p>
+
                       </div>
                     </div>
                     <p className="mt-4 text-sm leading-7 text-slate-200">{coachPromptPreview}</p>
@@ -703,7 +853,7 @@ export function TrainingExperienceView() {
             </PremiumCard>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Modules in path" value={String(modules.length)} supporting={learner.data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
+              <MetricCard label="Modules in path" value={String(modules.length)} supporting={effectiveJourneyTitle} icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
               <MetricCard label="Interactive progress" value={`${overallProgress}%`} supporting={`Stage ${stageIndex + 1} of ${stages.length}`} icon={<Sparkles className="h-4 w-4" />} />
               <MetricCard label="Mapped assets" value={String(supportingAssets.length)} supporting="CHCG and tenant materials blended into this lesson" icon={<Layers3 className="h-4 w-4" />} />
@@ -936,6 +1086,29 @@ export function TrainingExperienceView() {
                                 </div>
                                 <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
+                                {lessonVisualSequence.length ? (
+                                  <div className="mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                      <div>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Visual storyboard</p>
+                                        <p className="mt-2 text-sm text-slate-200">Each lesson page now turns the content into a visual sequence so every training step feels more like a guided in-product module.</p>
+                                      </div>
+                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
+                                    </div>
+                                    <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                                      {lessonVisualSequence.map((item, index) => (
+                                        <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                                          <div className="flex items-center justify-between gap-3">
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
+                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
+                                          </div>
+                                          <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
+                                          <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : null}
                                 <div className="mt-6 grid gap-4">
                                   {currentLessonPage.bullets.map((bullet) => (
                                     <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
@@ -946,6 +1119,18 @@ export function TrainingExperienceView() {
                                     </div>
                                   ))}
                                 </div>
+                                {lessonSignalCards.length ? (
+                                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                                    {lessonSignalCards.map((signal) => (
+                                      <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-[1.35rem] border border-white/10 bg-white/6 px-4 py-4">
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Signal marker</p>
+                                        <p className="mt-2 text-lg font-semibold text-white">{signal.value}</p>
+                                        <p className="mt-1 text-sm text-slate-300">{signal.label}</p>
+                                        <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cyan-100/75">Benchmark {signal.benchmark ?? "—"}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : null}
                               </div>
                               {contextualDeckVisual ? (
                                 <div className="space-y-4 xl:sticky xl:top-8">
@@ -962,6 +1147,27 @@ export function TrainingExperienceView() {
                                     <p className="text-sm font-medium text-white">{contextualDeckVisual.title}</p>
                                     <p className="mt-2 text-sm leading-6 text-slate-300">{contextualDeckVisual.caption}</p>
                                   </div>
+                                  {lessonVisualGallery.length ? (
+                                    <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Module visual gallery</p>
+                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length} visuals</Badge>
+                                      </div>
+                                      <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                                        {lessonVisualGallery.map((visual) => (
+                                          <div key={visual.id} className="overflow-hidden rounded-[1.2rem] border border-white/10 bg-slate-950/60">
+                                            <div className="flex aspect-[16/10] items-center justify-center bg-slate-950/85 px-3 py-3">
+                                              <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center" />
+                                            </div>
+                                            <div className="border-t border-white/10 px-3 py-3">
+                                              <p className="text-sm font-medium text-white">{visual.pageLabel}</p>
+                                              <p className="mt-1 text-xs leading-5 text-slate-400">{visual.title}</p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
                                 </div>
                               ) : null}
                             </div>
