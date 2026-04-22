@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getTrainingPresentation } from "../shared/trainingContent";
 
 describe("getTrainingPresentation", () => {
-  it("returns rich visual lesson content for the core service-foundations module", () => {
+  it("returns step-by-step lesson pages and a gated application activity for the core service-foundations module", () => {
     const presentation = getTrainingPresentation(
       {
         id: "mod-sf-1",
@@ -17,6 +17,11 @@ describe("getTrainingPresentation", () => {
 
     expect(presentation.heroTitle).toBe("Listening precision under friction");
     expect(presentation.slides.length).toBeGreaterThanOrEqual(3);
+    expect(presentation.practiceSlides.length).toBeGreaterThanOrEqual(2);
+    expect(presentation.applySlides.length).toBeGreaterThanOrEqual(1);
+    expect(presentation.applicationActivity.passingScore).toBe(2);
+    expect(presentation.applicationActivity.questions).toHaveLength(2);
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("listen-q1-b");
     expect(presentation.practiceScenario.successSignals).toEqual(
       expect.arrayContaining([
         "The concern is restated accurately.",
@@ -26,7 +31,7 @@ describe("getTrainingPresentation", () => {
     expect(presentation.resourceActions.length).toBeGreaterThan(2);
   });
 
-  it("builds a fallback lesson when a module does not have a dedicated presentation mapping", () => {
+  it("builds a fallback lesson with gated application content when a module does not have a dedicated presentation mapping", () => {
     const presentation = getTrainingPresentation(
       {
         id: "custom-module",
@@ -41,7 +46,11 @@ describe("getTrainingPresentation", () => {
 
     expect(presentation.heroTitle).toBe("Workflow ownership fundamentals");
     expect(presentation.slides[0]?.title).toBe("Ownership language");
+    expect(presentation.practiceSlides[0]?.title).toContain("ownership language");
+    expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
     expect(presentation.practiceScenario.title).toBe("Applied workflow rehearsal");
+    expect(presentation.applicationActivity.questions).toHaveLength(2);
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-module-q1-a");
     expect(presentation.coachPrompts[0]).toContain("behavior");
   });
 });

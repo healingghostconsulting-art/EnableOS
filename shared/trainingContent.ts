@@ -13,11 +13,38 @@ export type TrainingPresentationResource = {
   detail: string;
 };
 
+export type TrainingApplicationOption = {
+  id: string;
+  label: string;
+  rationale: string;
+};
+
+export type TrainingApplicationQuestion = {
+  id: string;
+  prompt: string;
+  options: TrainingApplicationOption[];
+  correctOptionId: string;
+  successFeedback: string;
+  failureFeedback: string;
+};
+
+export type TrainingApplicationActivity = {
+  title: string;
+  objective: string;
+  instructions: string;
+  passingScore: number;
+  passMessage: string;
+  failMessage: string;
+  questions: TrainingApplicationQuestion[];
+};
+
 export type TrainingPresentation = {
   heroTitle: string;
   heroSummary: string;
   evidenceLabel: string;
   slides: TrainingPresentationSlide[];
+  practiceSlides: TrainingPresentationSlide[];
+  applySlides: TrainingPresentationSlide[];
   coachPrompts: string[];
   reflectionPrompts: string[];
   practiceScenario: {
@@ -26,6 +53,7 @@ export type TrainingPresentation = {
     learnerTask: string;
     successSignals: string[];
   };
+  applicationActivity: TrainingApplicationActivity;
   resourceActions: TrainingPresentationResource[];
 };
 
@@ -80,6 +108,46 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         visualTone: "Risk pattern",
       },
     ],
+    practiceSlides: [
+      {
+        id: "listen-practice-1",
+        eyebrow: "Scenario walkthrough",
+        title: "Read the emotional signal before you answer",
+        narrative: "The customer’s first sentence usually tells you both the emotional state and the operational risk. Good listeners separate those two signals before responding.",
+        bullets: [
+          "Emotion signal: the customer believes they are repeating themselves.",
+          "Operational signal: ownership is unclear.",
+          "Coaching move: answer the emotion first, then define ownership.",
+        ],
+        visualTone: "Scenario decode",
+      },
+      {
+        id: "listen-practice-2",
+        eyebrow: "Modeled response",
+        title: "A strong opening sounds calm, specific, and owned",
+        narrative: "The presentation content is converted into a modeled opening pattern the learner can study before choosing a rehearsal path.",
+        bullets: [
+          "I hear why this feels frustrating, and I’m going to own the next step with you.",
+          "Let me confirm exactly what has happened so I can move this forward correctly.",
+          "Once I verify that piece, I’ll give you the clearest next action before we end this call.",
+        ],
+        visualTone: "Modeled language",
+      },
+    ],
+    applySlides: [
+      {
+        id: "listen-apply-1",
+        eyebrow: "Application checkpoint",
+        title: "Choose the response that proves listening before problem-solving",
+        narrative: "The learner now has to apply the slide content. Advancement should depend on choosing language that reflects acknowledgement, ownership, and a controlled next step.",
+        bullets: [
+          "A correct response validates the concern before explaining policy.",
+          "A correct response signals ownership without overpromising.",
+          "A correct response makes the next step concrete.",
+        ],
+        visualTone: "Assessment frame",
+      },
+    ],
     coachPrompts: [
       "Where in the opening did the learner acknowledge emotion versus only process?",
       "Which phrase kept ownership clear without sounding defensive or scripted?",
@@ -98,6 +166,64 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         "The concern is restated accurately.",
         "The next action is concrete and time-bound.",
         "The tone is calm without sounding robotic.",
+      ],
+    },
+    applicationActivity: {
+      title: "Application check: listening under pressure",
+      objective: "Demonstrate that you can choose the response pattern that reflects the presentation’s listening model in a live customer moment.",
+      instructions: "Answer both questions correctly to pass this checkpoint and unlock the reflection step.",
+      passingScore: 2,
+      passMessage: "Passed. You selected response language that reflects acknowledgment, ownership, and a clear next step.",
+      failMessage: "Not yet passed. Review the lesson frames, then retry until your choices consistently reflect CHCG listening behaviors.",
+      questions: [
+        {
+          id: "listen-q1",
+          prompt: "Which opening best shows strong listening in the first 30 seconds?",
+          options: [
+            {
+              id: "listen-q1-a",
+              label: "Explain the policy immediately so the customer hears the rules first.",
+              rationale: "This skips acknowledgement and usually increases friction.",
+            },
+            {
+              id: "listen-q1-b",
+              label: "Acknowledge the frustration, confirm ownership, and define the next verified action.",
+              rationale: "This follows the lesson model of empathy, ownership, and controlled action.",
+            },
+            {
+              id: "listen-q1-c",
+              label: "Promise the outcome will be fixed today before checking the workflow.",
+              rationale: "This creates promise risk before the facts are stable.",
+            },
+          ],
+          correctOptionId: "listen-q1-b",
+          successFeedback: "Correct. The strongest response validates the concern and keeps the interaction structured.",
+          failureFeedback: "This option misses the lesson pattern. The correct response acknowledges emotion before moving into the next verified step.",
+        },
+        {
+          id: "listen-q2",
+          prompt: "What is the clearest sign that the learner is applying the CHCG listening model?",
+          options: [
+            {
+              id: "listen-q2-a",
+              label: "They stack multiple explanations so the customer hears every detail at once.",
+              rationale: "Overexplaining early is one of the risk patterns the lesson warns against.",
+            },
+            {
+              id: "listen-q2-b",
+              label: "They summarize the concern in the customer’s language and redirect to the verified action.",
+              rationale: "This reflects the Hand back move in the model.",
+            },
+            {
+              id: "listen-q2-c",
+              label: "They close the call quickly once the tone becomes calmer.",
+              rationale: "This ends the interaction before the next-step summary is secure.",
+            },
+          ],
+          correctOptionId: "listen-q2-b",
+          successFeedback: "Correct. The summary-plus-next-action move proves the learner understood and retained control.",
+          failureFeedback: "Not quite. The model requires a clear summary in the customer’s language before redirecting to the verified next step.",
+        },
       ],
     },
     resourceActions: [
@@ -148,6 +274,46 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         visualTone: "Escalation logic",
       },
     ],
+    practiceSlides: [
+      {
+        id: "reassure-practice-1",
+        eyebrow: "Scenario decode",
+        title: "Spot the hidden promise risk before you answer",
+        narrative: "The learner studies a tense moment where customer anxiety creates pressure to sound more certain than the workflow allows.",
+        bullets: [
+          "Anxiety increases the temptation to overpromise.",
+          "The correct move is to sound confident about ownership, not outcome certainty.",
+          "Trust grows when the next action is clear and auditable.",
+        ],
+        visualTone: "Risk decode",
+      },
+      {
+        id: "reassure-practice-2",
+        eyebrow: "Response builder",
+        title: "Build reassurance from what is verified",
+        narrative: "The deck content is turned into a reusable response-builder pattern so the learner can rehearse a safer confidence script.",
+        bullets: [
+          "State what is confirmed now.",
+          "State what you are doing next.",
+          "State when the customer will hear from you again.",
+        ],
+        visualTone: "Response builder",
+      },
+    ],
+    applySlides: [
+      {
+        id: "reassure-apply-1",
+        eyebrow: "Application checkpoint",
+        title: "Pass the language-confidence gate",
+        narrative: "The learner must now prove they can choose reassurance language that protects trust without creating promise debt.",
+        bullets: [
+          "Correct responses are specific and process-based.",
+          "Incorrect responses sound comforting but overcommit the workflow.",
+          "Advancement requires choosing trust-building accuracy over vague optimism.",
+        ],
+        visualTone: "Assessment frame",
+      },
+    ],
     coachPrompts: [
       "Which reassurance phrase felt strong because it was specific, not vague?",
       "Where did the learner imply certainty that the process could not guarantee?",
@@ -166,6 +332,64 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         "The learner avoids false certainty.",
         "Ownership remains explicit.",
         "The next action is explained clearly enough for audit follow-up.",
+      ],
+    },
+    applicationActivity: {
+      title: "Application check: reassurance accuracy",
+      objective: "Show that you can identify language that feels confident while still staying grounded in the real workflow.",
+      instructions: "Answer both questions correctly to continue into reflection.",
+      passingScore: 2,
+      passMessage: "Passed. Your choices showed confidence without overpromising outcomes the workflow cannot guarantee.",
+      failMessage: "Not yet passed. Revisit the contrast frames and retry until your language choices stay specific, transparent, and auditable.",
+      questions: [
+        {
+          id: "reassure-q1",
+          prompt: "Which reassurance statement best protects trust during uncertainty?",
+          options: [
+            {
+              id: "reassure-q1-a",
+              label: "This will definitely be fixed by the end of the day.",
+              rationale: "This promises an outcome that may not be verified.",
+            },
+            {
+              id: "reassure-q1-b",
+              label: "I’m staying with this, and here is the next confirmed step I can walk you through right now.",
+              rationale: "This signals ownership and process clarity without false certainty.",
+            },
+            {
+              id: "reassure-q1-c",
+              label: "Hopefully the other team gets back to us soon.",
+              rationale: "This weakens confidence and leaves ownership unclear.",
+            },
+          ],
+          correctOptionId: "reassure-q1-b",
+          successFeedback: "Correct. The right answer is confident because it is specific about ownership and next action.",
+          failureFeedback: "This does not reflect the lesson. Effective reassurance is anchored to what is verified and what happens next.",
+        },
+        {
+          id: "reassure-q2",
+          prompt: "What makes a reassurance response coachable and audit-ready?",
+          options: [
+            {
+              id: "reassure-q2-a",
+              label: "It gives the customer a process-based next step that can be documented later.",
+              rationale: "This is the lesson’s transfer principle.",
+            },
+            {
+              id: "reassure-q2-b",
+              label: "It sounds highly optimistic even when the details are unresolved.",
+              rationale: "Optimism without proof creates promise debt.",
+            },
+            {
+              id: "reassure-q2-c",
+              label: "It avoids specifics so the learner cannot be held to the language later.",
+              rationale: "Avoiding specifics undermines trust and auditability.",
+            },
+          ],
+          correctOptionId: "reassure-q2-a",
+          successFeedback: "Correct. Audit-ready reassurance leaves a clear process trail and an observable next step.",
+          failureFeedback: "Not quite. The lesson emphasizes reassurance that is specific enough to coach, document, and verify later.",
+        },
       ],
     },
     resourceActions: [
@@ -216,6 +440,46 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         visualTone: "Resolution close",
       },
     ],
+    practiceSlides: [
+      {
+        id: "deescalate-practice-1",
+        eyebrow: "Pressure test",
+        title: "Read the moment where emotional heat can rise or fall",
+        narrative: "The learner sees where the recovery arc can either stabilize or intensify depending on the opening phrase they choose.",
+        bullets: [
+          "Fast facts alone will not lower the temperature.",
+          "A stabilizing phrase creates room for process clarity.",
+          "Tone and structure matter as much as the content itself.",
+        ],
+        visualTone: "Pressure map",
+      },
+      {
+        id: "deescalate-practice-2",
+        eyebrow: "Recovery storyboard",
+        title: "Turn the process into something the customer can follow",
+        narrative: "The presentation’s recovery logic is transformed into a storyboard the learner can rehearse step by step.",
+        bullets: [
+          "Name what happened.",
+          "State what is being checked now.",
+          "Close with the owned next move.",
+        ],
+        visualTone: "Storyboard",
+      },
+    ],
+    applySlides: [
+      {
+        id: "deescalate-apply-1",
+        eyebrow: "Application checkpoint",
+        title: "Prove you can keep recovery calm and legible",
+        narrative: "The assessment asks the learner to choose recovery moves that reduce heat and increase clarity, mirroring the deck’s recovery storyboard.",
+        bullets: [
+          "Correct answers stabilize emotion before explanation.",
+          "Correct answers make the process legible.",
+          "Correct answers end with owned next steps.",
+        ],
+        visualTone: "Assessment frame",
+      },
+    ],
     coachPrompts: [
       "At what point did the learner regain control of the interaction?",
       "How clearly did the learner explain the recovery sequence?",
@@ -234,6 +498,64 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         "The learner reduces emotional heat quickly.",
         "The process is understandable.",
         "The resolution close sounds owned and specific.",
+      ],
+    },
+    applicationActivity: {
+      title: "Application check: recovery logic",
+      objective: "Demonstrate that you can choose the sequence that turns an escalated interaction into a controlled recovery flow.",
+      instructions: "Choose the best answer for both questions to pass the checkpoint.",
+      passingScore: 2,
+      passMessage: "Passed. Your choices reflect the recovery sequence taught in the lesson storyboard.",
+      failMessage: "Not yet passed. Review the recovery storyboard and retry until your responses reduce emotional heat while preserving clarity.",
+      questions: [
+        {
+          id: "deescalate-q1",
+          prompt: "What should the learner do first in an escalated recovery moment?",
+          options: [
+            {
+              id: "deescalate-q1-a",
+              label: "Jump straight into policy language so the customer hears rules quickly.",
+              rationale: "This usually sounds dismissive and increases friction.",
+            },
+            {
+              id: "deescalate-q1-b",
+              label: "Acknowledge the frustration and use a stabilizing phrase before gathering detail.",
+              rationale: "This is the correct recovery opening from the lesson.",
+            },
+            {
+              id: "deescalate-q1-c",
+              label: "Promise a resolution before verifying what happened.",
+              rationale: "This creates risk and weakens recovery credibility.",
+            },
+          ],
+          correctOptionId: "deescalate-q1-b",
+          successFeedback: "Correct. Recovery begins by lowering emotional heat and establishing control.",
+          failureFeedback: "This does not match the recovery storyboard. The learner must stabilize first, then move into process visibility.",
+        },
+        {
+          id: "deescalate-q2",
+          prompt: "Which response most clearly makes the process legible to the customer?",
+          options: [
+            {
+              id: "deescalate-q2-a",
+              label: "I need to look into this more, but I don’t have an update yet.",
+              rationale: "This is vague and does not map the recovery path.",
+            },
+            {
+              id: "deescalate-q2-b",
+              label: "Here is what has happened, what I’m verifying now, and what you can expect next.",
+              rationale: "This follows the lesson’s middle section exactly.",
+            },
+            {
+              id: "deescalate-q2-c",
+              label: "Let’s just wait and see what the system shows later.",
+              rationale: "This removes ownership and clarity.",
+            },
+          ],
+          correctOptionId: "deescalate-q2-b",
+          successFeedback: "Correct. Legibility comes from mapping the process in a simple, owned sequence.",
+          failureFeedback: "Not yet. The lesson teaches that recovery becomes calmer when the customer can follow the process clearly.",
+        },
       ],
     },
     resourceActions: [
@@ -284,6 +606,46 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         visualTone: "Outcome link",
       },
     ],
+    practiceSlides: [
+      {
+        id: "close-practice-1",
+        eyebrow: "Checklist rehearsal",
+        title: "See the close as a repeatable sequence, not an improvised goodbye",
+        narrative: "The learner studies the closing sequence as a visible three-part pattern that should sound natural but still produce evidence.",
+        bullets: [
+          "Completed action.",
+          "Next monitored step.",
+          "Ownership statement.",
+        ],
+        visualTone: "Sequence rehearsal",
+      },
+      {
+        id: "close-practice-2",
+        eyebrow: "Audit bridge",
+        title: "What a reviewer should be able to hear in the final 20 seconds",
+        narrative: "The presentation guidance is turned into a review lens so the learner sees what makes a close both customer-ready and audit-ready.",
+        bullets: [
+          "The customer can repeat the next step back.",
+          "The documentation trail will be clear.",
+          "The final ownership statement is concise and confident.",
+        ],
+        visualTone: "Review lens",
+      },
+    ],
+    applySlides: [
+      {
+        id: "close-apply-1",
+        eyebrow: "Application checkpoint",
+        title: "Prove your close is both customer-ready and audit-ready",
+        narrative: "The learner must now choose the closing behavior that protects clarity, confidence, and documentation quality.",
+        bullets: [
+          "Correct answers include outcome, next step, and ownership.",
+          "Incorrect answers sound polite but incomplete.",
+          "Advancement requires a close that a reviewer could verify later.",
+        ],
+        visualTone: "Assessment frame",
+      },
+    ],
     coachPrompts: [
       "Did the close include outcome, next step, and ownership?",
       "What part of the close created the clearest audit trail?",
@@ -302,6 +664,64 @@ const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
         "The close is concise but complete.",
         "The next step is explicit.",
         "The interaction notes would be easy for a reviewer to validate.",
+      ],
+    },
+    applicationActivity: {
+      title: "Application check: closing discipline",
+      objective: "Show that you can identify a close that protects customer confidence while still producing a clean review trail.",
+      instructions: "Pass both questions to move into the final reflection step.",
+      passingScore: 2,
+      passMessage: "Passed. Your choices reflect a closing sequence that is concise, owned, and review-ready.",
+      failMessage: "Not yet passed. Review the closing architecture and retry until your choices align with the lesson standard.",
+      questions: [
+        {
+          id: "close-q1",
+          prompt: "Which ending best reflects the three-part close taught in the lesson?",
+          options: [
+            {
+              id: "close-q1-a",
+              label: "Thanks for calling. Have a great day.",
+              rationale: "This is polite but incomplete and not audit-ready.",
+            },
+            {
+              id: "close-q1-b",
+              label: "I’ve documented the action we completed, the next update will happen tomorrow, and I’ll remain the owner for follow-up.",
+              rationale: "This includes completed action, next step, and ownership.",
+            },
+            {
+              id: "close-q1-c",
+              label: "We should be fine from here, so let’s go ahead and end the call.",
+              rationale: "This is vague and leaves the next step unclear.",
+            },
+          ],
+          correctOptionId: "close-q1-b",
+          successFeedback: "Correct. The right close is concise but still complete enough for the customer and reviewer.",
+          failureFeedback: "This does not match the lesson sequence. A strong close must include completed action, next step, and ownership.",
+        },
+        {
+          id: "close-q2",
+          prompt: "Why does the lesson treat closing as a documentation bridge?",
+          options: [
+            {
+              id: "close-q2-a",
+              label: "Because the final recap should create a clean record for QA, coaching, and follow-up.",
+              rationale: "This is the lesson’s documentation-transfer principle.",
+            },
+            {
+              id: "close-q2-b",
+              label: "Because a long explanation always improves customer trust at the end.",
+              rationale: "Length does not guarantee clarity or trust.",
+            },
+            {
+              id: "close-q2-c",
+              label: "Because reviewers do not need a clear next step if the tone is friendly.",
+              rationale: "Friendliness cannot replace a usable record.",
+            },
+          ],
+          correctOptionId: "close-q2-a",
+          successFeedback: "Correct. The closing should make the next step easier for both the customer and the reviewer to understand later.",
+          failureFeedback: "Not yet. The lesson stresses that closing language should create a clear documentation trail, not just a polite ending.",
+        },
       ],
     },
     resourceActions: [
@@ -349,6 +769,34 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         visualTone: "Application frame",
       },
     ],
+    practiceSlides: [
+      {
+        id: `${module.id}-practice-1`,
+        eyebrow: "Guided practice",
+        title: `Rehearse ${module.skillFocus.toLowerCase()} in sequence`,
+        narrative: `The learner studies the key moves for ${module.skillFocus.toLowerCase()} before choosing a rehearsal mode.`,
+        bullets: [
+          "Notice the signal in the workflow moment.",
+          "Choose language that reflects CHCG expectations.",
+          "Prepare one observable behavior for the next coaching checkpoint.",
+        ],
+        visualTone: "Practice frame",
+      },
+    ],
+    applySlides: [
+      {
+        id: `${module.id}-apply-1`,
+        eyebrow: "Application checkpoint",
+        title: "Pass the transfer gate",
+        narrative: "The learner must now prove they can apply the lesson content in a realistic work choice before moving forward.",
+        bullets: [
+          "Choose the answer that reflects the lesson behavior.",
+          "Advance only after the behavior pattern is demonstrated correctly.",
+          "Use failure feedback as a cue to review and retry.",
+        ],
+        visualTone: "Assessment frame",
+      },
+    ],
     coachPrompts: [
       "What behavior should the learner demonstrate next?",
       "What evidence will prove the lesson transferred into work?",
@@ -365,6 +813,64 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         "The behavior is visible.",
         "The workflow stays controlled.",
         "The next step can be documented clearly.",
+      ],
+    },
+    applicationActivity: {
+      title: "Application check",
+      objective: `Demonstrate that you can apply ${module.skillFocus.toLowerCase()} in a work-ready decision before advancing.`,
+      instructions: "Pass both questions to unlock the final reflection step.",
+      passingScore: 2,
+      passMessage: "Passed. Your choices show that the lesson has transferred into a work-ready behavior pattern.",
+      failMessage: "Not yet passed. Review the lesson pages, then retry until you can consistently choose the work-ready response.",
+      questions: [
+        {
+          id: `${module.id}-q1`,
+          prompt: `Which option best applies ${module.skillFocus.toLowerCase()} in a realistic workflow moment?`,
+          options: [
+            {
+              id: `${module.id}-q1-a`,
+              label: "Choose the response that makes the behavior visible and coachable.",
+              rationale: "This option matches the lesson goal.",
+            },
+            {
+              id: `${module.id}-q1-b`,
+              label: "Choose the response that sounds fast but leaves the next step unclear.",
+              rationale: "This weakens transfer and evidence.",
+            },
+            {
+              id: `${module.id}-q1-c`,
+              label: "Choose the response that overpromises certainty before the workflow is verified.",
+              rationale: "This introduces risk and breaks the behavior model.",
+            },
+          ],
+          correctOptionId: `${module.id}-q1-a`,
+          successFeedback: "Correct. The best answer makes the behavior visible in a way a coach or reviewer can observe.",
+          failureFeedback: "This does not yet reflect the lesson. The correct answer is the one that creates a visible, coachable, work-ready behavior.",
+        },
+        {
+          id: `${module.id}-q2`,
+          prompt: "What proves the lesson transferred successfully into work?",
+          options: [
+            {
+              id: `${module.id}-q2-a`,
+              label: "The learner can link the behavior to a clear next step and a recordable proof point.",
+              rationale: "This is the transfer standard used across the training.",
+            },
+            {
+              id: `${module.id}-q2-b`,
+              label: "The learner sounds confident even if the action is not documented.",
+              rationale: "Confidence without evidence is not enough.",
+            },
+            {
+              id: `${module.id}-q2-c`,
+              label: "The learner completes the module without changing the workflow behavior.",
+              rationale: "Completion alone does not prove transfer.",
+            },
+          ],
+          correctOptionId: `${module.id}-q2-a`,
+          successFeedback: "Correct. Transfer is proven when the behavior shows up in the workflow and can be evidenced later.",
+          failureFeedback: "Not yet. The lesson expects a behavior that is both visible in work and easy to document or coach later.",
+        },
       ],
     },
     resourceActions: [

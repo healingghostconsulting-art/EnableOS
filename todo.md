@@ -46,3 +46,8 @@
 - [x] Rework the training experience so the majority of presentation content appears as visual lesson material rather than only lightweight step scaffolding.
 - [x] Add deeper instructional content, examples, and supporting resources inside each training module so users can learn from substantive material while clicking through the lesson.
 - [x] Add browser validation and automated coverage for the richer visual training experience once the lesson content expansion is complete.
+- [x] Convert the training into a true step-by-step course flow that more closely follows presentation progression instead of a lightweight stage shell.
+- [x] Add interactive application activities in the Apply step that learners must complete successfully before they can advance to the next section.
+- [x] Implement explicit pass/fail logic, retry guidance, and progression gating for application activities inside each lesson.
+- [x] Expand slide-derived lesson pages so each module uses substantially more of the underlying presentation content as intuitive visual instruction.
+- [x] Add automated coverage and browser validation for gated application activities and the step-by-step course progression.

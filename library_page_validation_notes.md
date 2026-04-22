@@ -48,3 +48,19 @@ The `/training` route now renders substantially deeper presentation-style materi
 The richer structure remains interactive. After selecting a confidence baseline, the lesson still allows progression, and the lower **Deep resources and transfer actions** section now shows more substantive manager, learner, and documentation follow-through guidance tied to the active module.
 
 A follow-up browser pass confirmed that the richer visual lesson still progresses correctly into the **Practice** stage. The page now shows a concrete scenario card titled **Escalated service recovery call**, a defined learner task, and three visible success signals before the rehearsal-mode buttons, which materially deepens the lesson content beyond a simple next-step shell.
+
+## Step-by-step course validation
+
+The `/training` route now exposes visible lesson-page navigation inside the active stage. A browser pass confirmed the page count initially rendered as **Page 1 of 3** and then updated to **Page 2 of 3** after using **Next page**, while the visible content changed from the opening listening-signal frame to the CHCG listening-model breakdown. This confirms the course is now moving slide by slide through presentation-derived content instead of only presenting a static module summary.
+
+The same pass also confirmed that the stage remains gated while earlier lesson pages are still incomplete. The confidence controls were visible, but the page explicitly indicated that the learner must continue through the remaining lesson pages before the step unlocks, matching the intended sequential course behavior.
+
+The training was then advanced to **Page 3 of 3** within the Brief step. After selecting **Confidence 3** on that final lesson page, the **Next step** control appeared in the viewport, confirming that the brief stage now unlocks only after both the page sequence and the required learner input are completed.
+
+After completing the Brief requirements, the course advanced into **Practice** and the progress indicator moved to **Stage 2 of 4** with **13%** interactive progress. The Practice stage also retained the new lesson-page structure: the browser showed **Page 2** content with modeled language, and the rehearsal choices remained gated until the learner reviewed the required practice pages.
+
+The browser validation was continued into the gated Apply step. After choosing **Manager-led rehearsal** in Practice and advancing, the course entered **Stage 3** and rendered a visible **Gated application activity** with a required passing score of **2/2**. The Apply step now presents graded multiple-choice questions instead of only a passive resource panel, which aligns with the requested pass/fail checkpoint before reflection can unlock.
+
+Within the Apply step, selecting the correct response options for both visible questions enabled the **Grade activity** control. This confirms the graded checkpoint now behaves like an actual assessment interaction rather than a read-only content block, and the learner cannot complete the section until required answers are provided.
+
+Grading the Apply activity produced a visible **Passed** result with **Score: 2/2**, and the course immediately unlocked the next step. Advancing from that state took the learner into **Reflect**, confirming that stage 3 now works as a true pass/fail gate before progression is allowed.
