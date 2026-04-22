@@ -469,6 +469,12 @@ export function TrainingExperienceView() {
   const featuredDeckVisual = deckVisuals[Math.min(selectedDeckVisualIndex, Math.max(deckVisuals.length - 1, 0))] ?? null;
   const contextualDeckVisual = deckVisuals[Math.min(lessonPageIndex, Math.max(deckVisuals.length - 1, 0))] ?? featuredDeckVisual;
   const moduleFamilyLabel = featuredDeckVisual?.sourceDeck ?? presentation?.evidenceLabel ?? selectedModule?.format ?? "CHCG learning module";
+  const completedModuleCount = modules.filter((module: any) => module.completionRate >= 80).length;
+  const nextRecommendedModule = modules[moduleIndex + 1] ?? null;
+  const coachPromptPreview = presentation?.coachPrompts[Math.min(stageIndex, Math.max((presentation?.coachPrompts.length ?? 1) - 1, 0))]
+    ?? `Prepare to review how ${selectedModule?.skillFocus?.toLowerCase() ?? "the current skill"} transfers into the next live workflow moment.`;
+  const reflectionPromptPreview = presentation?.reflectionPrompts[Math.min(stageIndex, Math.max((presentation?.reflectionPrompts.length ?? 1) - 1, 0))]
+    ?? `Capture the next observable behavior that should change after this lesson.`;
 
   const stages = selectedModule
     ? [
@@ -601,6 +607,101 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
+            <PremiumCard className="overflow-hidden">
+              <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+                <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Continue learning</Badge>
+                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModule.format}</Badge>
+                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
+                  </div>
+                  <div className="mt-5 max-w-3xl">
+                    <p className="text-sm uppercase tracking-[0.26em] text-cyan-100/70">Current learning path</p>
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">{selectedModule.title}</h2>
+                    <p className="mt-3 text-sm leading-7 text-slate-200">{presentation?.heroSummary ?? `Continue progressing through ${selectedModule.title} so the learner can connect course content, workflow evidence, and coaching action without leaving the platform.`}</p>
+                  </div>
+                  <div className="mt-6 space-y-4">
+                    <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-slate-950/50 p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Journey momentum</p>
+                          <p className="mt-2 text-2xl font-semibold text-white">{overallProgress}% complete</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Current checkpoint</p>
+                          <p className="mt-2 text-sm font-medium text-white">{currentStage?.label}</p>
+                        </div>
+                      </div>
+                      <Progress value={overallProgress} className="h-2.5 bg-white/8" />
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Modules completed</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{completedModuleCount}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current page</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Mapped assets</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{supportingAssets.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next unlock</p>
+                        <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                        <p className="mt-2 text-sm font-medium text-white">{nextRecommendedModule?.title ?? "Complete the current module to unlock the next guided lesson."}</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Certification signal</p>
+                        <p className="mt-2 text-sm font-medium text-white">{atJourneyEnd ? "Final reflection is available once your current entry is complete." : "Progress is being tracked toward the next coaching-ready milestone."}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-4">
+                  <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-100"><Users2 className="h-5 w-5" /></div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach checkpoint</p>
+                        <p className="mt-1 text-lg font-medium text-white">{learner.data.nextCoachingSession.title}</p>
+                      </div>
+                    </div>
+                    <p className="mt-4 text-sm leading-7 text-slate-200">{coachPromptPreview}</p>
+                    <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
+                      {reflectionPromptPreview}
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl border border-white/10 bg-white/8 p-3 text-slate-100"><Bell className="h-5 w-5" /></div>
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learner signals</p>
+                          <p className="mt-1 text-sm font-medium text-white">A recommendation-style LMS summary keeps the next action visible.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl border border-white/10 bg-white/8 p-3 text-slate-100"><Sparkles className="h-5 w-5" /></div>
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Achievement layer</p>
+                          <p className="mt-1 text-sm font-medium text-white">{completedModuleCount}/{modules.length} modules are already above an 80% completion threshold.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </PremiumCard>
+
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <MetricCard label="Modules in path" value={String(modules.length)} supporting={learner.data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
@@ -708,34 +809,54 @@ export function TrainingExperienceView() {
             ) : null}
 
             <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-              <PremiumCard>
+              <PremiumCard className="xl:sticky xl:top-6">
                 <CardHeader>
-                  <CardTitle className="text-white">Training path outline</CardTitle>
-                  <CardDescription className="text-slate-400">Each module is reformatted into a repeatable coaching-ready lesson structure.</CardDescription>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-white">Learning path navigator</CardTitle>
+                      <CardDescription className="text-slate-400">A more persistent LMS-style rail keeps the journey sequence, completion status, and next recommendation visible while the learner moves through the module.</CardDescription>
+                    </div>
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                     <p className="text-sm text-slate-400">Competency gap</p>
                     <p className="mt-2 text-xl font-semibold text-white">{learner.data.activeJourney.competencyGap}</p>
                     <Progress value={learner.data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                        <p className="mt-2 text-sm font-medium text-white">{nextRecommendedModule?.title ?? "Stay focused on the current module until the final reflection is complete."}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current checkpoint</p>
+                        <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
+                      </div>
+                    </div>
                   </div>
                   {modules.map((module: any, index: number) => (
                     <button
                       key={module.id}
                       type="button"
                       onClick={() => setModuleIndex(index)}
-                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${index === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${index === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
+                            {index === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
+                            {index < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
+                            {index === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
+                          </div>
                           <h3 className="mt-2 text-lg font-medium text-white">{module.title}</h3>
                           <p className="mt-2 text-sm text-slate-300">{module.skillFocus}</p>
                         </div>
                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
                       </div>
                       <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                        <span>Completion</span>
+                        <span>{index === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
                         <span>{module.completionRate}%</span>
                       </div>
                       <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
@@ -2204,6 +2325,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
 }
 
 function LearnerPanel({ data }: { data: any }) {
+  const learnerModules = data.activeJourney.modules;
+  const primaryLearnerModule = learnerModules[0] ?? null;
+  const nextLearnerModule = learnerModules[1] ?? null;
+  const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -2212,6 +2338,66 @@ function LearnerPanel({ data }: { data: any }) {
         <MetricCard label="Assigned interventions" value={`${data.assignedInterventions.length}`} supporting="Skill-gap actions linked to manager workflows" icon={<Target className="h-4 w-4" />} />
         <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
       </div>
+      <PremiumCard className="overflow-hidden">
+        <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
+          <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.1),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Continue learning</Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{primaryLearnerModule?.format ?? "Learning path"}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{data.activeJourney.progress}% path progress</Badge>
+            </div>
+            <div className="mt-5 max-w-3xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-cyan-100/75">Recommended path</p>
+              <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-200">{primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Modules completed</p>
+                <p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                <p className="mt-2 text-sm font-medium text-white">{nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach milestone</p>
+                <p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/training">
+                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                  Resume guided training
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/library">
+                <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                  Browse mapped resources
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learning signals</p>
+              <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
+              <p className="mt-3 text-sm leading-7 text-slate-300">The learner workspace now mirrors modern LMS discovery patterns by surfacing a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Achievement layer</p>
+                <p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p>
+              </div>
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Recommendation framing</p>
+                <p className="mt-2 text-sm font-medium text-white">Use the training route for the immersive lesson player and the learner workspace for high-level progress, continuation, and next-step discovery.</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </PremiumCard>
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="space-y-6">
           <PremiumCard>
@@ -2244,11 +2430,16 @@ function LearnerPanel({ data }: { data: any }) {
                 </Link>
               </div>
               <div className="space-y-3">
-                {data.activeJourney.modules.map((module: any) => (
+                {data.activeJourney.modules.map((module: any, index: number) => (
                   <div key={module.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{module.format}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{module.format}</p>
+                          {index === 0 ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Recommended</Badge> : null}
+                          {index === 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
+                          {module.completionRate >= 80 ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Strong progress</Badge> : null}
+                        </div>
                         <h4 className="mt-2 text-lg font-medium text-white">{module.title}</h4>
                         <p className="mt-2 text-sm text-slate-300">Skill focus: {module.skillFocus}</p>
                       </div>
@@ -2256,7 +2447,7 @@ function LearnerPanel({ data }: { data: any }) {
                     </div>
                     <div className="mt-4">
                       <div className="mb-2 flex items-center justify-between text-sm text-slate-400">
-                        <span>Completion</span>
+                        <span>{index === 0 ? "Recommended path" : "Completion"}</span>
                         <span>{module.completionRate}%</span>
                       </div>
                       <Progress value={module.completionRate} className="h-2 bg-white/8" />

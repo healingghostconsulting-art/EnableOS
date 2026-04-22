@@ -56,3 +56,7 @@
 - [x] Refine the training UI to feel more polished, intuitive, and presentation-ready across navigation, layout, visual hierarchy, and content framing.
 - [x] Add browser validation and automated coverage for the richer visual lesson assets and refined training interface.
 - [x] Refine the training graphics and media framing so slide visuals, charts, and course-player media fit cleanly within the page without awkward cropping, overflow, or cramped composition.
+- [x] Review the LMS competitor analysis for this project and translate the strongest interface, navigation, learning-flow, and engagement patterns into concrete EnableOS product refinements.
+- [x] Add a more persistent LMS-style course navigation rail with module status, next-up framing, and clearer sequential progression cues in the training experience.
+- [x] Introduce benchmark-inspired learner-engagement surfaces such as achievement/status treatment, coach context, and guided continuation panels in the training page.
+- [x] Upgrade the training overview and discovery surfaces so they feel closer to a modern enterprise LMS dashboard with clearer recommendations and learning-path context.

@@ -153,3 +153,9 @@ This validation confirms that the current training route feels materially closer
 ## Graphic-fit refinement validation
 
 A fresh browser pass after the latest media-fit adjustments confirmed that the training graphics now sit more cleanly inside the page. The top slide stage has more room, the primary slide image is centered inside a dedicated aspect-ratio frame, the filmstrip thumbnails preserve more of each source slide instead of cropping aggressively, and the contextual lesson visual now follows the same centered framing pattern. The route remained stable while these fit refinements were applied, and the richer in-platform training treatment still rendered correctly after the update.
+
+## LMS benchmark adaptation validation
+
+After reconstructing the LMS competitor benchmark, the training route was upgraded with a more platform-like continuation layer influenced by modern enterprise learning products. The page now opens with a **Continue learning** overview, clearer journey momentum, visible recommendation framing, a coach-checkpoint card, and a more persistent learning-path navigator that keeps current, next, and completed modules legible while the learner remains inside the course.
+
+A live browser pass confirmed that these new benchmark-inspired surfaces render inside `/training` without breaking the richer slide-stage experience below. The first implementation pass was then tightened to reduce crowding inside the continuation card, and the revised layout now reads more cleanly while preserving the stronger LMS cues around progression, recommendations, and coach context.
