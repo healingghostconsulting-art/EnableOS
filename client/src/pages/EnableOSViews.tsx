@@ -38,6 +38,7 @@ import {
   Users2,
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
+import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { Link, useLocation } from "wouter";
 
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
@@ -441,6 +442,9 @@ export function TrainingExperienceView() {
   const supportingAssets = [launchedAsset, ...(matchedResources.length > 0 ? matchedResources : journeyResources)]
     .filter((asset, index, collection): asset is NonNullable<typeof asset> => Boolean(asset) && collection.findIndex((candidate) => candidate?.id === asset?.id) === index)
     .slice(0, 3);
+  const presentation = selectedModule
+    ? getTrainingPresentation(selectedModule, learner.data?.activeJourney.title ?? "Enablement journey", learner.data?.activeJourney.competencyGap ?? "Behavior consistency")
+    : null;
 
   const stages = selectedModule
     ? [
@@ -611,40 +615,92 @@ export function TrainingExperienceView() {
                     </div>
 
                     {currentStage?.id === "brief" ? (
-                      <div className="space-y-4 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                        <p className="text-sm leading-6 text-slate-300">Set a quick confidence baseline before you start the lesson.</p>
-                        <div className="flex flex-wrap gap-3">
-                          {[1, 2, 3, 4, 5].map((value) => (
-                            <Button
-                              key={value}
-                              type="button"
-                              variant="outline"
-                              onClick={() => setConfidence(value)}
-                              className={`rounded-full border-white/12 ${confidence === value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/12 hover:text-white"}`}
-                            >
-                              Confidence {value}
-                            </Button>
+                      <div className="space-y-5">
+                        <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div className="max-w-2xl">
+                              <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Presentation overview</p>
+                              <h3 className="mt-2 text-xl font-semibold text-white">{presentation?.heroTitle}</h3>
+                              <p className="mt-3 text-sm leading-6 text-slate-200">{presentation?.heroSummary}</p>
+                            </div>
+                            <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-slate-300">
+                              <p className="font-medium text-white">Evidence label</p>
+                              <p className="mt-1">{presentation?.evidenceLabel}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid gap-4 xl:grid-cols-3">
+                          {presentation?.slides.map((slide, index) => (
+                            <div key={slide.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
+                              <div className="flex items-center justify-between gap-3">
+                                <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{slide.eyebrow}</Badge>
+                                <span className="text-xs uppercase tracking-[0.22em] text-slate-500">Frame {index + 1}</span>
+                              </div>
+                              <h4 className="mt-4 text-lg font-medium text-white">{slide.title}</h4>
+                              <p className="mt-3 text-sm leading-6 text-slate-300">{slide.narrative}</p>
+                              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.2em] text-slate-400">{slide.visualTone}</div>
+                              <div className="mt-4 space-y-3">
+                                {slide.bullets.map((bullet) => (
+                                  <div key={bullet} className="flex items-start gap-3 text-sm leading-6 text-slate-300">
+                                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
+                                    <span>{bullet}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           ))}
+                        </div>
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm leading-6 text-slate-300">Set a quick confidence baseline before you start the lesson.</p>
+                          <div className="mt-4 flex flex-wrap gap-3">
+                            {[1, 2, 3, 4, 5].map((value) => (
+                              <Button
+                                key={value}
+                                type="button"
+                                variant="outline"
+                                onClick={() => setConfidence(value)}
+                                className={`rounded-full border-white/12 ${confidence === value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/12 hover:text-white"}`}
+                              >
+                                Confidence {value}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     ) : null}
 
                     {currentStage?.id === "practice" ? (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {[
-                          { id: "coach_first", title: "Manager-led rehearsal", body: "Practice the behavior with guided feedback before taking it into production work." },
-                          { id: "peer_shadow", title: "Shadow and self-correct", body: "Observe a strong example, then mirror the behavior and capture one adjustment." },
-                        ].map((option) => (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => setPracticeChoice(option.id as "coach_first" | "peer_shadow")}
-                            className={`rounded-[1.6rem] border p-5 text-left transition ${practiceChoice === option.id ? "border-emerald-400/40 bg-emerald-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
-                          >
-                            <p className="text-lg font-medium text-white">{option.title}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">{option.body}</p>
-                          </button>
-                        ))}
+                      <div className="space-y-4">
+                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Practice scenario</p>
+                          <h4 className="mt-2 text-lg font-medium text-white">{presentation?.practiceScenario.title}</h4>
+                          <p className="mt-3 text-sm leading-6 text-slate-300">{presentation?.practiceScenario.situation}</p>
+                          <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                            <p className="text-sm font-medium text-white">Learner task</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-200">{presentation?.practiceScenario.learnerTask}</p>
+                          </div>
+                          <div className="mt-4 grid gap-3 md:grid-cols-3">
+                            {presentation?.practiceScenario.successSignals.map((signal) => (
+                              <div key={signal} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">{signal}</div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {[
+                            { id: "coach_first", title: "Manager-led rehearsal", body: "Practice the behavior with guided feedback before taking it into production work." },
+                            { id: "peer_shadow", title: "Shadow and self-correct", body: "Observe a strong example, then mirror the behavior and capture one adjustment." },
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => setPracticeChoice(option.id as "coach_first" | "peer_shadow")}
+                              className={`rounded-[1.6rem] border p-5 text-left transition ${practiceChoice === option.id ? "border-emerald-400/40 bg-emerald-400/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                            >
+                              <p className="text-lg font-medium text-white">{option.title}</p>
+                              <p className="mt-2 text-sm leading-6 text-slate-300">{option.body}</p>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ) : null}
 
@@ -671,15 +727,41 @@ export function TrainingExperienceView() {
                     ) : null}
 
                     {currentStage?.id === "reflect" ? (
-                      <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                        <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
-                        <textarea
-                          value={reflection}
-                          onChange={(event) => setReflection(event.target.value)}
-                          rows={5}
-                          className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
-                          placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
-                        />
+                      <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach prompts</p>
+                            <div className="mt-4 space-y-3">
+                              {presentation?.coachPrompts.map((prompt) => (
+                                <div key={prompt} className="flex items-start gap-3 text-sm leading-6 text-slate-300">
+                                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-emerald-300" />
+                                  <span>{prompt}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Reflection prompts</p>
+                            <div className="mt-4 space-y-3">
+                              {presentation?.reflectionPrompts.map((prompt) => (
+                                <div key={prompt} className="flex items-start gap-3 text-sm leading-6 text-slate-300">
+                                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
+                                  <span>{prompt}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                          <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
+                          <textarea
+                            value={reflection}
+                            onChange={(event) => setReflection(event.target.value)}
+                            rows={5}
+                            className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
+                            placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
+                          />
+                        </div>
                       </div>
                     ) : null}
 
@@ -711,21 +793,32 @@ export function TrainingExperienceView() {
 
                 <PremiumCard>
                   <CardHeader>
-                    <CardTitle className="text-white">Formatted content model</CardTitle>
-                    <CardDescription className="text-slate-400">The same source material is transformed into a repeatable lesson arc that can support coaching, documentation, and workflow execution.</CardDescription>
+                    <CardTitle className="text-white">Deep resources and transfer actions</CardTitle>
+                    <CardDescription className="text-slate-400">The training now carries more of the underlying presentation substance into visible resources, coaching moves, and evidence-ready next actions.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                      <p className="text-sm font-medium text-white">CHCG structure</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                  <CardContent className="space-y-5">
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-sm font-medium text-white">CHCG structure</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                      </div>
+                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-sm font-medium text-white">Tenant context</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides scenario language, launch specifics, and operational cues that localize the lesson.</p>
+                      </div>
+                      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-sm font-medium text-white">Observable output</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                      </div>
                     </div>
-                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                      <p className="text-sm font-medium text-white">Tenant context</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides the scenario language, launch specifics, or compliance cues that localize the lesson.</p>
-                    </div>
-                    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                      <p className="text-sm font-medium text-white">Observable output</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {presentation?.resourceActions.map((resource) => (
+                        <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Resource action</p>
+                          <h4 className="mt-2 text-lg font-medium text-white">{resource.label}</h4>
+                          <p className="mt-3 text-sm leading-6 text-slate-300">{resource.detail}</p>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </PremiumCard>

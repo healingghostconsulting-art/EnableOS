@@ -43,3 +43,6 @@
 - [x] Validate that the updated training walkthrough and connected UI surfaces no longer rely on demo client naming.
 - [x] Fix the Content Library so users can interact with assets and launch or enter a training flow directly from the library surface.
 - [x] Validate the repaired library interaction flow in the browser, including a working path from library browsing into training.
+- [x] Rework the training experience so the majority of presentation content appears as visual lesson material rather than only lightweight step scaffolding.
+- [x] Add deeper instructional content, examples, and supporting resources inside each training module so users can learn from substantive material while clicking through the lesson.
+- [x] Add browser validation and automated coverage for the richer visual training experience once the lesson content expansion is complete.

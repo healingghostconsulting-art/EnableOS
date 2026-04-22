@@ -40,3 +40,11 @@ The connected learner and library surfaces were also browser-validated after the
 
 A fresh browser pass on `/library` confirmed that the page is no longer browse-only. The library now renders a header-level **Start training** action, a **Selected asset workflow handoff** panel, per-asset **Preview in workflow** buttons, and per-asset **Start training** buttons. Clicking the handoff CTA successfully navigated from `/library` to `/training?tenantId=atlas-operations&assetId=library-atlas-launch-readiness&assetTitle=Operational+launch+readiness+brief`, confirming a working path from library browsing into the interactive training experience.
 The asset-launched training route was re-tested after query handling was tightened. The training screen now shows a visible **Library launch context** banner naming **Operational launch readiness brief**, displays its source label, and increases mapped assets from 1 to 2, confirming the selected library asset is now incorporated into the lesson context instead of only appearing in the URL.
+
+## Richer visual training validation
+
+The `/training` route now renders substantially deeper presentation-style material inside the lesson itself. The **Brief** stage surfaces a presentation overview, an evidence label, and three visual lesson frames with narrative copy and concrete bullet content, making the experience feel closer to a content-rich deck than a minimal training shell.
+
+The richer structure remains interactive. After selecting a confidence baseline, the lesson still allows progression, and the lower **Deep resources and transfer actions** section now shows more substantive manager, learner, and documentation follow-through guidance tied to the active module.
+
+A follow-up browser pass confirmed that the richer visual lesson still progresses correctly into the **Practice** stage. The page now shows a concrete scenario card titled **Escalated service recovery call**, a defined learner task, and three visible success signals before the rehearsal-mode buttons, which materially deepens the lesson content beyond a simple next-step shell.
