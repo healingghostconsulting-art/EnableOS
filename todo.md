@@ -80,3 +80,5 @@
 - [x] Restore the training module names to match the original user-provided titles and presentation framing rather than the current renamed shorthand labels.
 - [x] Expand every training module to include substantially more of the original PowerPoint content, visuals, and framing so the in-platform lesson more faithfully reflects the source decks.
 - [x] Validate the revised answer matching, restored module naming, and expanded deck-content coverage in-browser and with automated tests before the next checkpoint.
+- [x] Audit the training experience for repeated image reuse and replace duplicated visuals with distinct source-deck images wherever available.
+- [x] Validate in the browser that each module path now shows a more distinct image set without unnecessary repeats before saving the next checkpoint.
