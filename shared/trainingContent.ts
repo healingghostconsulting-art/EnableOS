@@ -318,7 +318,7 @@ function enrichPresentation(module: ModuleLike, presentation: Omit<TrainingPrese
 
 const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">> = {
   "mod-sf-1": {
-    heroTitle: "Listening precision under friction",
+    heroTitle: "Active listening in high-friction interactions",
     heroSummary: "This lesson reframes active listening as a visible service behavior: acknowledge emotion, isolate the operational issue, and confirm the next step without losing control of the interaction.",
     evidenceLabel: "Soft-skills deck translated into service-ready listening visuals",
     deckVisuals: [
@@ -337,6 +337,14 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         imageUrl: "/manus-storage/softskills-14_e11945d2.png",
         sourceDeck: "Soft Skills & Patient Service Foundations",
         pageLabel: "Slide 14",
+      },
+      {
+        id: "listen-visual-3",
+        title: "Empathy foundations for the opening response",
+        caption: "An additional empathy slide is now embedded beside the listening visuals so the learner can connect acknowledgment language, personalization, and professional presence to the opening call sequence.",
+        imageUrl: "/manus-storage/softskills-09_815688d7.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 9",
       },
     ],
     insightCharts: [
@@ -399,6 +407,18 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           "Do not end the call without a concise recap the customer can repeat back.",
         ],
         visualTone: "Risk pattern",
+      },
+      {
+        id: "listen-deck-bridge",
+        eyebrow: "PowerPoint bridge",
+        title: "What the original communication deck wants the learner to notice",
+        narrative: "This extra lesson page keeps more of the presentation framing visible by translating the communication deck into an explicit read-before-you-respond checklist.",
+        bullets: [
+          "Start with acknowledgment before explanation.",
+          "Personalize the summary so the customer hears their own concern reflected back.",
+          "Move into the next verified action only after ownership is clear.",
+        ],
+        visualTone: "Deck translation",
       },
     ],
     practiceSlides: [
@@ -526,7 +546,7 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
     ],
   },
   "mod-sf-2": {
-    heroTitle: "Reassurance without overpromising",
+    heroTitle: "Confident reassurance without overpromising",
     heroSummary: "This module turns reassurance language into a decision tool so the learner can sound confident, protect trust, and avoid making commitments the workflow cannot support.",
     evidenceLabel: "Language-confidence deck translated into reusable reassurance patterns",
     deckVisuals: [
@@ -545,6 +565,14 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         imageUrl: "/manus-storage/softskills-27_c4f51069.png",
         sourceDeck: "Soft Skills & Patient Service Foundations",
         pageLabel: "Slide 27",
+      },
+      {
+        id: "reassure-visual-3",
+        title: "Communication patterns that reinforce confidence",
+        caption: "This extra presentation frame gives the reassurance module another direct deck reference so learners can see how phrasing, professionalism, and communication structure reinforce trust when outcomes are still unresolved.",
+        imageUrl: "/manus-storage/softskills-14_e11945d2.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 14",
       },
     ],
     insightCharts: [
@@ -607,6 +635,18 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           "Close with a documented next step the manager can audit later.",
         ],
         visualTone: "Escalation logic",
+      },
+      {
+        id: "reassure-deck-bridge",
+        eyebrow: "PowerPoint bridge",
+        title: "How the empathy deck reframes reassurance language",
+        narrative: "This additional lesson page keeps more of the source deck visible by showing how reassurance should sound personalized, specific, and professional at the same time.",
+        bullets: [
+          "Use language that sounds steady without sounding absolute.",
+          "Tie reassurance to what has been verified and what will happen next.",
+          "Personalize the response so trust grows without creating promise debt.",
+        ],
+        visualTone: "Deck translation",
       },
     ],
     practiceSlides: [
@@ -734,7 +774,7 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
     ],
   },
   "mod-sf-3": {
-    heroTitle: "De-escalation with professional recovery",
+    heroTitle: "De-escalation and professional recovery",
     heroSummary: "This scenario page converts the presentation into a visible recovery flow: stabilize emotion, narrow the issue, confirm the recovery path, and preserve confidence under pressure.",
     evidenceLabel: "Scenario content translated into a guided recovery storyboard",
     deckVisuals: [
@@ -753,6 +793,14 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         imageUrl: "/manus-storage/softskills-32_55dd4a02.png",
         sourceDeck: "Soft Skills & Patient Service Foundations",
         pageLabel: "Slide 32",
+      },
+      {
+        id: "deescalate-visual-3",
+        title: "Empathy rewrite cues for recovery moments",
+        caption: "A third deck image is now surfaced in the recovery lesson so learners can compare escalation-calm language with the supporting empathy rewrite framework inside the same module.",
+        imageUrl: "/manus-storage/softskills-27_c4f51069.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 27",
       },
     ],
     insightCharts: [
@@ -815,6 +863,18 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           "Leave the customer with a sentence they can repeat back confidently.",
         ],
         visualTone: "Resolution close",
+      },
+      {
+        id: "deescalate-deck-bridge",
+        eyebrow: "PowerPoint bridge",
+        title: "How the original recovery deck sequences the conversation",
+        narrative: "This added lesson page brings more of the source PowerPoint into the module by turning the four-step deck model into a visible sequencing guide for the learner.",
+        bullets: [
+          "Stabilize the emotion before solving the workflow issue.",
+          "Clarify the real blocker in simple language.",
+          "Name the next step in a way the customer can repeat back.",
+        ],
+        visualTone: "Deck translation",
       },
     ],
     practiceSlides: [
@@ -942,7 +1002,7 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
     ],
   },
   "mod-sf-4": {
-    heroTitle: "Closings that protect confidence and workflow precision",
+    heroTitle: "High-scoring closings and next-step confirmation",
     heroSummary: "This checklist module turns closing behavior into a visible quality standard so learners can end interactions with clarity, ownership, and documented next-step confidence.",
     evidenceLabel: "Checklist content translated into an audit-ready closing sequence",
     deckVisuals: [
@@ -961,6 +1021,14 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         imageUrl: "/manus-storage/softskills-34_229ecb62.png",
         sourceDeck: "Soft Skills & Patient Service Foundations",
         pageLabel: "Slide 34",
+      },
+      {
+        id: "close-visual-3",
+        title: "Communication standards that strengthen the final handoff",
+        caption: "The closing lesson now adds another deck-derived communication board so the final handoff feels tied to the larger professionalism and service-language framework rather than a single checklist slide.",
+        imageUrl: "/manus-storage/softskills-14_e11945d2.png",
+        sourceDeck: "Soft Skills & Patient Service Foundations",
+        pageLabel: "Slide 14",
       },
     ],
     insightCharts: [
@@ -1023,6 +1091,18 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           "The learner reinforces confidence through concise control.",
         ],
         visualTone: "Outcome link",
+      },
+      {
+        id: "close-deck-bridge",
+        eyebrow: "PowerPoint bridge",
+        title: "What the professionalism deck adds to the close",
+        narrative: "This extra page keeps more of the presentation content in the training by showing how branding, professionalism, and documentation discipline converge in the final interaction handoff.",
+        bullets: [
+          "Close with a recap that protects the brand promise.",
+          "Make the next step explicit enough for documentation and review.",
+          "Use one ownership sentence that keeps responsibility visible after the call ends.",
+        ],
+        visualTone: "Deck translation",
       },
     ],
     practiceSlides: [
@@ -1224,6 +1304,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           sourceDeck: "Utilizing Performance to Maximize Performance",
           pageLabel: usePerformanceBiasVisual ? "Slide 9" : "Slide 15",
         },
+        {
+          id: `${module.id}-performance-visual-3`,
+          title: "Performance conversation framing",
+          caption: "A third performance deck frame is now surfaced so the module carries more of the original workshop logic into the lesson and makes calibration, development, and documentation feel like one connected system.",
+          imageUrl: "/manus-storage/performance-leadership-15_3215473c.png",
+          sourceDeck: "Utilizing Performance to Maximize Performance",
+          pageLabel: "Slide 15",
+        },
       ]
     : isLeadershipFamily
       ? [
@@ -1244,6 +1332,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           imageUrl: useLeadershipWorkshopVisual ? "/manus-storage/leadership-data-09_f158ab35.png" : "/manus-storage/leadership-data-15_c9ba127f.png",
           sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
           pageLabel: useLeadershipWorkshopVisual ? "Slide 9" : "Slide 15",
+        },
+        {
+          id: `${module.id}-leadership-visual-3`,
+          title: "Decision narrative from the source deck",
+          caption: "A third leadership slide is now embedded so executives can study more of the original KPI-to-action framing inside the lesson instead of seeing only a narrow extract.",
+          imageUrl: "/manus-storage/leadership-data-15_c9ba127f.png",
+          sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
+          pageLabel: "Slide 15",
         },
 
         ]
@@ -1267,6 +1363,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           sourceDeck: "Quality Assurance Essentials",
           pageLabel: useWorkflowCoachingVisual ? "Slide 11" : "Slide 17",
         },
+        {
+          id: `${module.id}-qa-visual-3`,
+          title: "QA transfer evidence board",
+          caption: "A third QA deck frame is now kept in-platform so workflow lessons preserve more of the original score-weighting and evidence-transfer logic from the PowerPoint material.",
+          imageUrl: "/manus-storage/qa-17_b0a99fe7.png",
+          sourceDeck: "Quality Assurance Essentials",
+          pageLabel: "Slide 17",
+        },
 
         ]
       : isEngagementFamily
@@ -1288,6 +1392,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           imageUrl: useEngagementProgramVisual ? "/manus-storage/gamification-09_013f4839.png" : "/manus-storage/gamification-15_b67831b0.png",
           sourceDeck: "Gamification for Remote Teams",
           pageLabel: useEngagementProgramVisual ? "Slide 9" : "Slide 15",
+        },
+        {
+          id: `${module.id}-engagement-visual-3`,
+          title: "Recognition system rollout frame",
+          caption: "A third gamification slide is now embedded so the engagement modules preserve more of the original rollout, cadence, and sustainability guidance from the presentation.",
+          imageUrl: "/manus-storage/gamification-15_b67831b0.png",
+          sourceDeck: "Gamification for Remote Teams",
+          pageLabel: "Slide 15",
         },
 
         ]
@@ -1476,6 +1588,18 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
       },
       {
         id: `${module.id}-slide-2`,
+        eyebrow: "PowerPoint framing",
+        title: "Read the deck like an operating model",
+        narrative: "The source presentation is now carried deeper into the lesson so the learner studies the original framing, not only a short summary.",
+        bullets: [
+          "Identify what the source deck is emphasizing visually.",
+          "Translate that framing into a work-ready behavior cue.",
+          "Use the deck language to reinforce coaching and review consistency.",
+        ],
+        visualTone: "Deck bridge",
+      },
+      {
+        id: `${module.id}-slide-3`,
         eyebrow: "Application",
         title: "Use the content in real work",
         narrative: "The module is connected to interventions, coaching, and workflow reinforcement so the learner sees where the lesson should appear on the job.",
@@ -1500,6 +1624,18 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         ],
         visualTone: "Practice frame",
       },
+      {
+        id: `${module.id}-practice-2`,
+        eyebrow: "Deck rehearsal",
+        title: "Translate the slide into live behavior",
+        narrative: "A second practice page keeps more of the PowerPoint logic active by asking the learner to connect the deck frame to a real coaching or workflow moment.",
+        bullets: [
+          "Name which slide cue matters most in the scenario.",
+          "Choose the phrase or action that makes the cue visible.",
+          "Prepare the evidence a reviewer or coach should hear afterward.",
+        ],
+        visualTone: "Deck rehearsal",
+      },
     ],
     applySlides: [
       {
@@ -1513,6 +1649,18 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           "Use failure feedback as a cue to review and retry.",
         ],
         visualTone: "Assessment frame",
+      },
+      {
+        id: `${module.id}-apply-2`,
+        eyebrow: "Transfer evidence",
+        title: "Show how the lesson would be seen on the job",
+        narrative: "The application section now keeps more instructional framing visible by clarifying what proof, documentation, or coaching evidence should exist after transfer.",
+        bullets: [
+          "Name the observable behavior the module should create.",
+          "Tie the lesson to documentation or review evidence.",
+          "Confirm what the next coaching checkpoint should validate.",
+        ],
+        visualTone: "Transfer evidence",
       },
     ],
     coachPrompts: [

@@ -207,6 +207,121 @@ function normalizeAssessmentInput(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+const ASSESSMENT_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "to",
+  "of",
+  "for",
+  "with",
+  "in",
+  "on",
+  "at",
+  "by",
+  "is",
+  "are",
+  "be",
+  "that",
+  "this",
+  "it",
+  "your",
+  "you",
+  "their",
+  "they",
+  "them",
+  "will",
+  "can",
+  "into",
+  "from",
+  "before",
+  "after",
+  "next",
+  "one",
+  "use",
+  "show",
+]);
+
+function canonicalizeAssessmentToken(token: string) {
+  const normalized = token
+    .replace(/ing$|ed$|ly$|es$|s$/g, "")
+    .replace(/^re/, "")
+    .trim();
+
+  const synonymMap: Record<string, string> = {
+    concern: "issue",
+    issue: "issue",
+    problem: "issue",
+    customer: "customer",
+    patient: "customer",
+    member: "customer",
+    client: "customer",
+    own: "ownership",
+    owner: "ownership",
+    ownership: "ownership",
+    accountable: "ownership",
+    reassure: "reassurance",
+    reassurance: "reassurance",
+    confident: "confidence",
+    confidence: "confidence",
+    calm: "stability",
+    stable: "stability",
+    stability: "stability",
+    action: "action",
+    step: "action",
+    followup: "action",
+    follow: "action",
+    summary: "summarize",
+    summarize: "summarize",
+    restate: "summarize",
+    clarify: "clarify",
+    clear: "clarify",
+    clarity: "clarify",
+    verify: "verify",
+    verified: "verify",
+    verification: "verify",
+    document: "document",
+    documentation: "document",
+    audit: "document",
+  };
+
+  return synonymMap[normalized] ?? normalized;
+}
+
+function tokenizeAssessmentPhrase(value: string) {
+  return normalizeAssessmentInput(value)
+    .split(" ")
+    .map(canonicalizeAssessmentToken)
+    .filter((token) => token.length > 2 && !ASSESSMENT_STOP_WORDS.has(token));
+}
+
+function shortAnswerMatchesCandidate(answer: string, candidate: string) {
+  const normalizedAnswer = normalizeAssessmentInput(answer);
+  const normalizedCandidate = normalizeAssessmentInput(candidate);
+
+  if (!normalizedAnswer || !normalizedCandidate) {
+    return false;
+  }
+
+  if (normalizedAnswer.includes(normalizedCandidate) || normalizedCandidate.includes(normalizedAnswer)) {
+    return true;
+  }
+
+  const answerTokens = Array.from(new Set(tokenizeAssessmentPhrase(answer)));
+  const candidateTokens = Array.from(new Set(tokenizeAssessmentPhrase(candidate)));
+
+  if (!answerTokens.length || !candidateTokens.length) {
+    return false;
+  }
+
+  const overlapCount = candidateTokens.filter((token) => answerTokens.includes(token)).length;
+  const overlapRatio = overlapCount / candidateTokens.length;
+
+  return overlapCount >= Math.min(2, candidateTokens.length) && overlapRatio >= 0.6;
+}
+
 function hasAssessmentAnswer(question: any, answers: Record<string, string>) {
   return (answers[question.id] ?? "").trim().length > 0;
 }
@@ -217,8 +332,7 @@ function isAssessmentQuestionCorrect(question: any, answer?: string) {
   }
 
   if (question.type === "short_answer") {
-    const normalizedAnswer = normalizeAssessmentInput(answer);
-    return (question.acceptedAnswers ?? []).some((candidate: string) => normalizedAnswer.includes(normalizeAssessmentInput(candidate)));
+    return (question.acceptedAnswers ?? []).some((candidate: string) => shortAnswerMatchesCandidate(answer, candidate));
   }
 
   return answer === question.correctOptionId;

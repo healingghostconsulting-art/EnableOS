@@ -74,5 +74,9 @@
 - [x] Validate the new checkpoint and quiz gating flows in-browser and with automated tests before the next checkpoint is saved.
 - [x] Exercise the final Kahoot-style module quiz in the browser, confirm learners cannot complete a module below 80%, and document the observed pass/fail behavior.
 - [x] Append browser-validation notes covering practice, apply, reflect, and module completion gating through to a successful 80% final-quiz pass.
-- [ ] Save a checkpoint after the fully validated checkpoint-and-quiz gating flow is complete.
+- [x] Save a checkpoint after the fully validated checkpoint-and-quiz gating flow is complete.
 - [x] Exercise a failing final quiz attempt in the browser below the 80% threshold, verify the module cannot advance or complete, then re-pass it and document both fail and pass behaviors before checkpointing.
+- [x] Broaden short-answer grading so correct responses accept strong equivalent phrasing, close synonyms, and common wording variations instead of only narrow exact matches.
+- [x] Restore the training module names to match the original user-provided titles and presentation framing rather than the current renamed shorthand labels.
+- [x] Expand every training module to include substantially more of the original PowerPoint content, visuals, and framing so the in-platform lesson more faithfully reflects the source decks.
+- [x] Validate the revised answer matching, restored module naming, and expanded deck-content coverage in-browser and with automated tests before the next checkpoint.

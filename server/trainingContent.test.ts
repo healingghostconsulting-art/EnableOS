@@ -15,8 +15,8 @@ describe("getTrainingPresentation", () => {
       "Empathy language and call control consistency",
     );
 
-    expect(presentation.heroTitle).toBe("Listening precision under friction");
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.heroTitle).toBe("Active listening in high-friction interactions");
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-08");
     expect(presentation.deckVisuals[1]?.pageLabel).toBe("Slide 14");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -50,16 +50,16 @@ describe("getTrainingPresentation", () => {
     const presentation = getTrainingPresentation(
       {
         id: "mod-sf-2",
-        title: "Reassurance without overpromising",
-        format: "Microlearning",
-        durationMinutes: 10,
-        skillFocus: "Trust-safe reassurance",
+        title: "Confident reassurance without overpromising",
+        format: "Playbook",
+        durationMinutes: 11,
+        skillFocus: "Language confidence",
       },
       "Service Foundations: Communication, Empathy, and Call Confidence",
       "Confidence language and escalation clarity",
     );
 
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-09");
     expect(presentation.deckVisuals[1]?.title).toBe("Empathy script rewrite activity");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -75,16 +75,16 @@ describe("getTrainingPresentation", () => {
     const presentation = getTrainingPresentation(
       {
         id: "mod-sf-3",
-        title: "De-escalation with professional recovery",
+        title: "De-escalation and professional recovery",
         format: "Scenario",
-        durationMinutes: 12,
-        skillFocus: "Recovery sequencing",
+        durationMinutes: 10,
+        skillFocus: "Service recovery",
       },
       "Service Foundations: Communication, Empathy, and Call Confidence",
       "Escalation recovery and professionalism",
     );
 
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.title).toBe("Why patients become upset");
     expect(presentation.deckVisuals[1]?.imageUrl).toContain("softskills-32");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -111,7 +111,7 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Workflow verification essentials");
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("qa-09");
     expect(presentation.deckVisuals[1]?.title).toBe("High-scoring behavior board");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -139,7 +139,7 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Leadership KPI literacy");
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("leadership-data-08");
     expect(presentation.deckVisuals[1]?.title).toBe("From insight to action");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -165,7 +165,7 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Performance calibration workshop");
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("performance-leadership-08");
     expect(presentation.deckVisuals[1]?.title).toBe("Engaging and developing high performers");
     expect(presentation.insightCharts).toHaveLength(2);
@@ -191,7 +191,7 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Recognition rhythm design");
-    expect(presentation.deckVisuals).toHaveLength(2);
+    expect(presentation.deckVisuals).toHaveLength(3);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("gamification-08");
     expect(presentation.deckVisuals[1]?.title).toBe("Recognition cadence operating rhythm");
     expect(presentation.insightCharts).toHaveLength(2);
