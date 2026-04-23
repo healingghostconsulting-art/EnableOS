@@ -45,8 +45,11 @@ export type TrainingApplicationOption = {
 export type TrainingApplicationQuestion = {
   id: string;
   prompt: string;
-  options: TrainingApplicationOption[];
-  correctOptionId: string;
+  type?: "multiple_choice" | "short_answer";
+  options?: TrainingApplicationOption[];
+  correctOptionId?: string;
+  acceptedAnswers?: string[];
+  placeholder?: string;
   successFeedback: string;
   failureFeedback: string;
 };
@@ -59,6 +62,8 @@ export type TrainingApplicationActivity = {
   passMessage: string;
   failMessage: string;
   questions: TrainingApplicationQuestion[];
+  style?: "checkpoint" | "kahoot";
+  passingPercent?: number;
 };
 
 export type TrainingPresentation = {
@@ -78,7 +83,10 @@ export type TrainingPresentation = {
     learnerTask: string;
     successSignals: string[];
   };
+  briefCheckpoint: TrainingApplicationActivity;
+  practiceCheckpoint: TrainingApplicationActivity;
   applicationActivity: TrainingApplicationActivity;
+  finalQuiz: TrainingApplicationActivity;
   resourceActions: TrainingPresentationResource[];
 };
 
@@ -90,7 +98,225 @@ type ModuleLike = {
   skillFocus: string;
 };
 
-const trainingPresentationByModuleId: Record<string, TrainingPresentation> = {
+function trimAssessmentPhrase(value: string) {
+  return value
+    .replace(/[.]/g, "")
+    .split(/[,:;]/)[0]
+    .trim();
+}
+
+function createMultipleChoiceQuestion(
+  id: string,
+  prompt: string,
+  correctLabel: string,
+  distractors: string[],
+  successFeedback: string,
+  failureFeedback: string,
+): TrainingApplicationQuestion {
+  const options = [correctLabel, ...distractors.slice(0, 2)];
+
+  return {
+    id,
+    prompt,
+    type: "multiple_choice",
+    options: options.map((label, index) => ({
+      id: `${id}-${String.fromCharCode(97 + index)}`,
+      label,
+      rationale: index === 0 ? "This choice reflects the mapped lesson behavior and instructional emphasis." : "This distractor sounds plausible but misses the intended lesson pattern or evidence standard.",
+    })),
+    correctOptionId: `${id}-a`,
+    successFeedback,
+    failureFeedback,
+  };
+}
+
+function createShortAnswerQuestion(
+  id: string,
+  prompt: string,
+  acceptedAnswers: string[],
+  placeholder: string,
+  successFeedback: string,
+  failureFeedback: string,
+): TrainingApplicationQuestion {
+  return {
+    id,
+    prompt,
+    type: "short_answer",
+    acceptedAnswers: acceptedAnswers.map(trimAssessmentPhrase).filter(Boolean),
+    placeholder,
+    successFeedback,
+    failureFeedback,
+  };
+}
+
+function buildBriefCheckpoint(module: ModuleLike, presentation: Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">): TrainingApplicationActivity {
+  const introSlide = presentation.slides[0];
+  const followupSlide = presentation.slides[1] ?? introSlide;
+  const primaryBehavior = trimAssessmentPhrase(introSlide?.bullets[0] ?? module.skillFocus);
+  const supportingBehavior = trimAssessmentPhrase(introSlide?.bullets[1] ?? followupSlide?.title ?? module.skillFocus);
+
+  return {
+    title: `Checkpoint: ${introSlide?.title ?? "Lesson understanding"}`,
+    objective: `Confirm the learner understands the opening behavior model for ${module.title}.`,
+    instructions: "Pass both questions to unlock the rehearsal step. This replaces confidence-only progression with a graded lesson checkpoint.",
+    passingScore: 2,
+    passMessage: "Passed. You showed that the opening lesson content is understood well enough to move into guided rehearsal.",
+    failMessage: "Not yet passed. Review the brief pages and retry until you can identify the core behavior and explain it clearly.",
+    style: "checkpoint",
+    questions: [
+      createMultipleChoiceQuestion(
+        `${module.id}-brief-q1`,
+        `Which action best represents the opening lesson focus for ${module.skillFocus.toLowerCase()}?`,
+        primaryBehavior,
+        [
+          trimAssessmentPhrase(followupSlide?.bullets[0] ?? `Rely on speed instead of ${module.skillFocus.toLowerCase()}`),
+          `Move forward without making ${module.skillFocus.toLowerCase()} visible`,
+        ],
+        "Correct. That choice reflects the opening lesson behavior the learner is expected to recognize before moving on.",
+        "That is not the strongest answer yet. The correct option directly matches the key behavior emphasized in the brief pages.",
+      ),
+      createShortAnswerQuestion(
+        `${module.id}-brief-q2`,
+        `In a short phrase, name one behavior or cue the learner must carry out from the opening lesson pages.`,
+        [primaryBehavior, supportingBehavior, module.skillFocus],
+        `Example: ${primaryBehavior}`,
+        "Correct. Your answer names a behavior that is clearly reinforced in the opening lesson frames.",
+        `Use one of the core lesson cues such as "${primaryBehavior}" or another phrase directly tied to ${module.skillFocus.toLowerCase()}.`,
+      ),
+    ],
+  };
+}
+
+function buildPracticeCheckpoint(module: ModuleLike, presentation: Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">): TrainingApplicationActivity {
+  const practiceSlide = presentation.practiceSlides[0] ?? presentation.slides[0];
+  const scenarioSignal = trimAssessmentPhrase(presentation.practiceScenario.successSignals[0] ?? module.skillFocus);
+  const scenarioTask = trimAssessmentPhrase(presentation.practiceScenario.learnerTask);
+
+  return {
+    title: `Checkpoint: ${presentation.practiceScenario.title}`,
+    objective: `Verify the learner can interpret the practice scenario and identify what successful rehearsal should sound like for ${module.title}.`,
+    instructions: "Pass both questions to unlock the live-work application step.",
+    passingScore: 2,
+    passMessage: "Passed. You identified the rehearsal pattern strongly enough to move into the gated application activity.",
+    failMessage: "Not yet passed. Revisit the practice scenario and retry until your answers reflect the rehearsal pattern accurately.",
+    style: "checkpoint",
+    questions: [
+      createMultipleChoiceQuestion(
+        `${module.id}-practice-q1`,
+        `Which success signal matters most in the guided rehearsal for ${module.skillFocus.toLowerCase()}?`,
+        scenarioSignal,
+        [
+          trimAssessmentPhrase(practiceSlide?.bullets[0] ?? `Rely on speed over ${module.skillFocus.toLowerCase()}`),
+          "Finish the step quickly without leaving a clear proof point",
+        ],
+        "Correct. That response matches the success signal the learner is expected to demonstrate during rehearsal.",
+        "Not yet. The strongest answer aligns with the success signals shown in the scenario panel.",
+      ),
+      createShortAnswerQuestion(
+        `${module.id}-practice-q2`,
+        "What phrase or behavior should the learner demonstrate next in the rehearsal?",
+        [scenarioSignal, scenarioTask, module.skillFocus],
+        `Example: ${scenarioSignal}`,
+        "Correct. Your answer reflects the coached behavior the learner is meant to rehearse before application.",
+        `Anchor your answer in one of the practice signals, such as "${scenarioSignal}" or another phrase directly tied to the scenario task.`,
+      ),
+    ],
+  };
+}
+
+function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">): TrainingApplicationActivity {
+  const slideOne = presentation.slides[0];
+  const slideTwo = presentation.slides[1] ?? slideOne;
+  const practiceSlide = presentation.practiceSlides[0] ?? slideOne;
+  const chart = presentation.insightCharts[0];
+  const chartLabel = chart?.data[0]?.label ?? "Observable behavior";
+  const firstApplicationQuestion = presentation.applicationActivity.questions[0];
+  const secondApplicationQuestion = presentation.applicationActivity.questions[1] ?? firstApplicationQuestion;
+  const firstApplicationCorrectLabel = firstApplicationQuestion?.options?.find((option) => option.id === firstApplicationQuestion.correctOptionId)?.label ?? trimAssessmentPhrase(slideOne?.bullets[0] ?? module.skillFocus);
+  const secondApplicationCorrectLabel = secondApplicationQuestion?.options?.find((option) => option.id === secondApplicationQuestion.correctOptionId)?.label ?? trimAssessmentPhrase(slideTwo?.bullets[0] ?? module.skillFocus);
+  const questions = [
+    createMultipleChoiceQuestion(
+      `${module.id}-final-q1`,
+      `Which opening behavior anchors this module on ${module.skillFocus.toLowerCase()}?`,
+      trimAssessmentPhrase(slideOne?.bullets[0] ?? module.skillFocus),
+      [trimAssessmentPhrase(slideTwo?.bullets[0] ?? `Ignore ${module.skillFocus.toLowerCase()}`), "Advance without making the behavior observable"],
+      "Correct. You identified the opening behavior that the module reinforces from the start.",
+      "Not quite. Review the first lesson page and choose the behavior the module makes most visible.",
+    ),
+    createMultipleChoiceQuestion(
+      `${module.id}-final-q2`,
+      "Which lesson concept should transfer directly into rehearsal?",
+      trimAssessmentPhrase(practiceSlide?.bullets[0] ?? presentation.practiceScenario.successSignals[0] ?? module.skillFocus),
+      [trimAssessmentPhrase(slideTwo?.bullets[1] ?? "Rely on generic reassurance"), "Skip rehearsal and jump to completion"],
+      "Correct. That concept is explicitly carried from the lesson pages into rehearsal.",
+      "Not yet. The strongest answer comes directly from the practice sequence and success signals.",
+    ),
+    createMultipleChoiceQuestion(
+      `${module.id}-final-q3`,
+      `Which mapped evidence signal appears in this module's analytics view?`,
+      chartLabel,
+      ["Unverified optimism", "Completion without proof"],
+      "Correct. That evidence signal appears in the lesson analytics and reinforces what the learner should improve.",
+      "That answer does not match the mapped evidence signal shown in the lesson charts.",
+    ),
+    createMultipleChoiceQuestion(
+      `${module.id}-final-q4`,
+      firstApplicationQuestion?.prompt ?? `Which option best applies ${module.skillFocus.toLowerCase()} in live work?`,
+      firstApplicationCorrectLabel,
+      [
+        firstApplicationQuestion?.options?.find((option) => option.id !== firstApplicationQuestion.correctOptionId)?.label ?? "Choose the faster but less clear response",
+        firstApplicationQuestion?.options?.find((option) => option.id !== firstApplicationQuestion.correctOptionId && option.label !== (firstApplicationQuestion?.options?.find((candidate) => candidate.id !== firstApplicationQuestion.correctOptionId)?.label ?? ""))?.label ?? "Choose the response that weakens evidence",
+      ],
+      "Correct. You selected the work-ready answer already reinforced in the application checkpoint.",
+      "Not yet. Revisit the application activity and choose the answer that makes the behavior visible, coachable, and audit-ready.",
+    ),
+    createMultipleChoiceQuestion(
+      `${module.id}-final-q5`,
+      "What proves the learner has truly transferred the module into work?",
+      secondApplicationCorrectLabel,
+      [presentation.resourceActions[0]?.detail ?? "Finish the module without evidence", "Mark the lesson complete without showing the behavior"],
+      "Correct. That choice reflects the transfer standard the module expects before completion.",
+      "Not quite. The correct answer ties the module to an observable next step or recordable proof point.",
+    ),
+  ];
+
+  return {
+    title: `Final knowledge sprint: ${module.title}`,
+    objective: `Complete a Kahoot-style module quiz to prove retention of ${module.skillFocus.toLowerCase()} before the module can be completed.`,
+    instructions: "Score at least 80% to pass this end-of-module knowledge check.",
+    passingScore: Math.max(1, Math.ceil(questions.length * 0.8)),
+    passingPercent: 80,
+    passMessage: "Passed. You cleared the end-of-module quiz and proved the lesson knowledge strongly enough to complete the module.",
+    failMessage: "Not yet passed. Review the lesson pages and retry until you reach the required 80% score.",
+    style: "kahoot",
+    questions,
+  };
+}
+
+function enrichPresentation(module: ModuleLike, presentation: Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">): TrainingPresentation {
+  const normalizedApplicationQuestions = presentation.applicationActivity.questions.map((question) => ({
+    ...question,
+    type: question.type ?? "multiple_choice",
+  }));
+
+  const normalizedPresentation = {
+    ...presentation,
+    applicationActivity: {
+      ...presentation.applicationActivity,
+      style: presentation.applicationActivity.style ?? "checkpoint",
+      questions: normalizedApplicationQuestions,
+    },
+  };
+
+  return {
+    ...normalizedPresentation,
+    briefCheckpoint: buildBriefCheckpoint(module, normalizedPresentation),
+    practiceCheckpoint: buildPracticeCheckpoint(module, normalizedPresentation),
+    finalQuiz: buildFinalQuiz(module, normalizedPresentation),
+  };
+}
+
+const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">> = {
   "mod-sf-1": {
     heroTitle: "Listening precision under friction",
     heroSummary: "This lesson reframes active listening as a visible service behavior: acknowledge emotion, isolate the operational issue, and confirm the next step without losing control of the interaction.",
@@ -929,7 +1155,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
   const mapped = trainingPresentationByModuleId[module.id];
 
   if (mapped) {
-    return mapped;
+    return enrichPresentation(module, mapped);
   }
 
   const moduleKeywords = `${module.title} ${module.skillFocus} ${journeyTitle} ${competencyGap}`.toLowerCase();
@@ -1229,7 +1455,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
               { id: `${module.id}-resource-2`, label: "Manager follow-up", detail: "Use the lesson in the next coaching or review checkpoint." },
             ];
 
-  return {
+  return enrichPresentation(module, {
     heroTitle: module.title,
     heroSummary: fallbackHeroSummary,
     evidenceLabel: fallbackEvidenceLabel,
@@ -1366,5 +1592,5 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
       ],
     },
     resourceActions: fallbackResourceActions,
-  };
+  });
 }

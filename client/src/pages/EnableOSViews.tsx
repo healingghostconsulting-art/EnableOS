@@ -203,6 +203,197 @@ function Surface({ children }: { children: React.ReactNode }) {
   );
 }
 
+function normalizeAssessmentInput(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function hasAssessmentAnswer(question: any, answers: Record<string, string>) {
+  return (answers[question.id] ?? "").trim().length > 0;
+}
+
+function isAssessmentQuestionCorrect(question: any, answer?: string) {
+  if (!answer?.trim()) {
+    return false;
+  }
+
+  if (question.type === "short_answer") {
+    const normalizedAnswer = normalizeAssessmentInput(answer);
+    return (question.acceptedAnswers ?? []).some((candidate: string) => normalizedAnswer.includes(normalizeAssessmentInput(candidate)));
+  }
+
+  return answer === question.correctOptionId;
+}
+
+function AssessmentPanel({
+  eyebrow,
+  assessment,
+  answers,
+  submitted,
+  answeredCount,
+  score,
+  passed,
+  onAnswer,
+  onSubmit,
+  onRetry,
+  disabled,
+  accent = "cyan",
+}: {
+  eyebrow: string;
+  assessment: any;
+  answers: Record<string, string>;
+  submitted: boolean;
+  answeredCount: number;
+  score: number;
+  passed: boolean;
+  onAnswer: (questionId: string, value: string) => void;
+  onSubmit: () => void;
+  onRetry: () => void;
+  disabled?: boolean;
+  accent?: "cyan" | "emerald" | "amber";
+}) {
+  if (!assessment) {
+    return null;
+  }
+
+  const accentFrameClass = accent === "emerald"
+    ? "border-emerald-400/20 bg-emerald-400/10"
+    : accent === "amber"
+      ? "border-amber-400/20 bg-amber-400/10"
+      : "border-cyan-400/20 bg-cyan-400/10";
+  const accentTextClass = accent === "emerald"
+    ? "text-emerald-100/80"
+    : accent === "amber"
+      ? "text-amber-100/80"
+      : "text-cyan-100/80";
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
+        <h4 className="mt-2 text-lg font-medium text-white">{assessment.title}</h4>
+        <p className="mt-3 text-sm leading-6 text-slate-300">{assessment.objective}</p>
+        <div className={`mt-4 rounded-2xl border p-4 ${accentFrameClass}`}>
+          <p className="text-sm leading-6 text-slate-100">{assessment.instructions}</p>
+          <p className={`mt-2 text-sm ${accentTextClass}`}>
+            Passing score: {assessment.passingScore}/{assessment.questions.length}
+            {assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-4">
+        {assessment.questions.map((question: any, questionIndex: number) => {
+          const answerValue = answers[question.id] ?? "";
+          const questionCorrect = isAssessmentQuestionCorrect(question, answerValue);
+          const questionOptions = question.options ?? [];
+
+          return (
+            <div key={question.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+                  {assessment.style === "kahoot" ? `Quiz question ${questionIndex + 1}` : `Checkpoint question ${questionIndex + 1}`}
+                </p>
+                {submitted ? (
+                  questionCorrect ? (
+                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" /> Correct
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-300">
+                      <CircleAlert className="h-4 w-4" /> Retry needed
+                    </span>
+                  )
+                ) : null}
+              </div>
+              <h4 className="mt-3 text-lg font-medium text-white">{question.prompt}</h4>
+              {question.type === "short_answer" ? (
+                <div className="mt-4 space-y-3">
+                  <textarea
+                    value={answerValue}
+                    onChange={(event) => onAnswer(question.id, event.target.value)}
+                    rows={3}
+                    className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
+                    placeholder={question.placeholder ?? "Enter your answer"}
+                  />
+                  {submitted ? (
+                    <p className={`text-sm ${questionCorrect ? "text-emerald-300" : "text-rose-300"}`}>
+                      {questionCorrect ? question.successFeedback : question.failureFeedback}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  {questionOptions.map((option: any) => {
+                    const selected = answerValue === option.id;
+                    const isCorrect = option.id === question.correctOptionId;
+                    const stateClass = submitted && selected
+                      ? isCorrect
+                        ? "border-emerald-400/40 bg-emerald-400/10"
+                        : "border-rose-400/40 bg-rose-400/10"
+                      : selected
+                        ? "border-cyan-400/40 bg-cyan-400/10"
+                        : "border-white/10 bg-white/5 hover:bg-white/8";
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => onAnswer(question.id, option.id)}
+                        className={`rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
+                      >
+                        <p className="text-sm font-medium text-white">{option.label}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{option.rationale}</p>
+                        {submitted && selected ? (
+                          <p className={`mt-3 text-sm ${isCorrect ? "text-emerald-300" : "text-rose-300"}`}>
+                            {isCorrect ? question.successFeedback : question.failureFeedback}
+                          </p>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-white">Assessment status</p>
+            <p className="mt-1 text-sm text-slate-300">{answeredCount}/{assessment.questions.length} questions answered.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onRetry}
+              className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+            >
+              Retry
+            </Button>
+            <Button
+              type="button"
+              onClick={onSubmit}
+              disabled={answeredCount !== assessment.questions.length || disabled}
+              className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
+            >
+              {assessment.style === "kahoot" ? "Grade quiz" : "Grade checkpoint"}
+            </Button>
+          </div>
+        </div>
+        {submitted ? (
+          <div className={`mt-4 rounded-2xl border p-4 ${passed ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}>
+            <p className={`text-sm font-medium ${passed ? "text-emerald-200" : "text-rose-200"}`}>Score: {score}/{assessment.questions.length}</p>
+            <p className={`mt-2 text-sm leading-6 ${passed ? "text-emerald-100" : "text-rose-100"}`}>
+              {passed ? assessment.passMessage : assessment.failMessage}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function LandingView() {
   const landing = trpc.demo.landing.useQuery();
   const featuredTenants = landing.data?.tenants ?? [];
@@ -397,11 +588,16 @@ export function TrainingExperienceView() {
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
-  const [confidence, setConfidence] = useState<number | null>(null);
+  const [briefCheckpointAnswers, setBriefCheckpointAnswers] = useState<Record<string, string>>({});
+  const [briefCheckpointSubmitted, setBriefCheckpointSubmitted] = useState(false);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
+  const [practiceCheckpointAnswers, setPracticeCheckpointAnswers] = useState<Record<string, string>>({});
+  const [practiceCheckpointSubmitted, setPracticeCheckpointSubmitted] = useState(false);
   const [reflection, setReflection] = useState("");
   const [applicationAnswers, setApplicationAnswers] = useState<Record<string, string>>({});
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
+  const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
 
   useEffect(() => {
@@ -414,22 +610,32 @@ export function TrainingExperienceView() {
     setModuleIndex(0);
     setStageIndex(0);
     setLessonPageIndex(0);
-    setConfidence(null);
+    setBriefCheckpointAnswers({});
+    setBriefCheckpointSubmitted(false);
     setPracticeChoice(null);
+    setPracticeCheckpointAnswers({});
+    setPracticeCheckpointSubmitted(false);
     setReflection("");
     setApplicationAnswers({});
     setApplicationSubmitted(false);
+    setFinalQuizAnswers({});
+    setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
   }, [tenantId]);
 
   useEffect(() => {
     setStageIndex(0);
     setLessonPageIndex(0);
-    setConfidence(null);
+    setBriefCheckpointAnswers({});
+    setBriefCheckpointSubmitted(false);
     setPracticeChoice(null);
+    setPracticeCheckpointAnswers({});
+    setPracticeCheckpointSubmitted(false);
     setReflection("");
     setApplicationAnswers({});
     setApplicationSubmitted(false);
+    setFinalQuizAnswers({});
+    setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
   }, [moduleIndex]);
 
@@ -439,18 +645,25 @@ export function TrainingExperienceView() {
     setModuleIndex(0);
     setStageIndex(0);
     setLessonPageIndex(0);
-    setConfidence(null);
+    setBriefCheckpointAnswers({});
+    setBriefCheckpointSubmitted(false);
     setPracticeChoice(null);
+    setPracticeCheckpointAnswers({});
+    setPracticeCheckpointSubmitted(false);
     setReflection("");
     setApplicationAnswers({});
     setApplicationSubmitted(false);
+    setFinalQuizAnswers({});
+    setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
   }, [previewScenarioId]);
 
   useEffect(() => {
     setLessonPageIndex(0);
-    setApplicationAnswers({});
-    setApplicationSubmitted(false);
+    if (stages[stageIndex]?.id === "apply") {
+      setApplicationAnswers({});
+      setApplicationSubmitted(false);
+    }
   }, [stageIndex]);
 
   const tenantPicker = useMemo(
@@ -639,20 +852,32 @@ export function TrainingExperienceView() {
     .slice(0, 3);
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
+  const briefQuestions = presentation?.briefCheckpoint.questions ?? [];
+  const briefAnsweredCount = briefQuestions.filter((question) => hasAssessmentAnswer(question, briefCheckpointAnswers)).length;
+  const briefScore = briefQuestions.filter((question) => isAssessmentQuestionCorrect(question, briefCheckpointAnswers[question.id])).length;
+  const briefPassed = briefCheckpointSubmitted && briefScore >= (presentation?.briefCheckpoint.passingScore ?? Number.MAX_SAFE_INTEGER);
+  const practiceQuestions = presentation?.practiceCheckpoint.questions ?? [];
+  const practiceAnsweredCount = practiceQuestions.filter((question) => hasAssessmentAnswer(question, practiceCheckpointAnswers)).length;
+  const practiceScore = practiceQuestions.filter((question) => isAssessmentQuestionCorrect(question, practiceCheckpointAnswers[question.id])).length;
+  const practicePassed = practiceCheckpointSubmitted && practiceScore >= (presentation?.practiceCheckpoint.passingScore ?? Number.MAX_SAFE_INTEGER);
   const applicationQuestions = presentation?.applicationActivity.questions ?? [];
-  const applicationAnsweredCount = applicationQuestions.filter((question) => applicationAnswers[question.id]).length;
-  const applicationScore = applicationQuestions.filter((question) => applicationAnswers[question.id] === question.correctOptionId).length;
+  const applicationAnsweredCount = applicationQuestions.filter((question) => hasAssessmentAnswer(question, applicationAnswers)).length;
+  const applicationScore = applicationQuestions.filter((question) => isAssessmentQuestionCorrect(question, applicationAnswers[question.id])).length;
   const applicationPassed = applicationSubmitted && applicationScore >= (presentation?.applicationActivity.passingScore ?? Number.MAX_SAFE_INTEGER);
+  const finalQuizQuestions = presentation?.finalQuiz.questions ?? [];
+  const finalQuizAnsweredCount = finalQuizQuestions.filter((question) => hasAssessmentAnswer(question, finalQuizAnswers)).length;
+  const finalQuizScore = finalQuizQuestions.filter((question) => isAssessmentQuestionCorrect(question, finalQuizAnswers[question.id])).length;
+  const finalQuizPassed = finalQuizSubmitted && finalQuizScore >= (presentation?.finalQuiz.passingScore ?? Number.MAX_SAFE_INTEGER);
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
   const canAdvance = currentStage?.id === "brief"
-    ? confidence !== null && onLastLessonPage
+    ? briefPassed && onLastLessonPage
     : currentStage?.id === "practice"
-      ? practiceChoice !== null && onLastLessonPage
+      ? practiceChoice !== null && practicePassed && onLastLessonPage
       : currentStage?.id === "apply"
         ? applicationPassed && onLastLessonPage
         : currentStage?.id === "reflect"
-          ? reflection.trim().length >= 20
+          ? reflection.trim().length >= 20 && finalQuizPassed
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
 
@@ -682,6 +907,28 @@ export function TrainingExperienceView() {
     }
   };
 
+  const gradeBriefCheckpoint = () => {
+    if (briefAnsweredCount !== briefQuestions.length) {
+      return;
+    }
+    setBriefCheckpointSubmitted(true);
+  };
+
+  const retryBriefCheckpoint = () => {
+    setBriefCheckpointSubmitted(false);
+  };
+
+  const gradePracticeCheckpoint = () => {
+    if (practiceAnsweredCount !== practiceQuestions.length) {
+      return;
+    }
+    setPracticeCheckpointSubmitted(true);
+  };
+
+  const retryPracticeCheckpoint = () => {
+    setPracticeCheckpointSubmitted(false);
+  };
+
   const gradeApplication = () => {
     if (applicationAnsweredCount !== applicationQuestions.length) {
       return;
@@ -691,6 +938,17 @@ export function TrainingExperienceView() {
 
   const retryApplication = () => {
     setApplicationSubmitted(false);
+  };
+
+  const gradeFinalQuiz = () => {
+    if (finalQuizAnsweredCount !== finalQuizQuestions.length) {
+      return;
+    }
+    setFinalQuizSubmitted(true);
+  };
+
+  const retryFinalQuiz = () => {
+    setFinalQuizSubmitted(false);
   };
 
   return (
@@ -1275,23 +1533,24 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm leading-6 text-slate-300">Work through each presentation page, then set your confidence baseline before the rehearsal step unlocks.</p>
-                          <div className="mt-4 flex flex-wrap gap-3">
-                            {[1, 2, 3, 4, 5].map((value) => (
-                              <Button
-                                key={value}
-                                type="button"
-                                variant="outline"
-                                onClick={() => setConfidence(value)}
-                                className={`rounded-full border-white/12 ${confidence === value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/12 hover:text-white"}`}
-                              >
-                                Confidence {value}
-                              </Button>
-                            ))}
-                          </div>
-                          {!onLastLessonPage ? <p className="mt-4 text-sm text-amber-300">Continue to the remaining lesson pages before this step unlocks.</p> : null}
-                        </div>
+                        <AssessmentPanel
+                          eyebrow="Brief checkpoint"
+                          assessment={presentation?.briefCheckpoint}
+                          answers={briefCheckpointAnswers}
+                          submitted={briefCheckpointSubmitted}
+                          answeredCount={briefAnsweredCount}
+                          score={briefScore}
+                          passed={briefPassed}
+                          onAnswer={(questionId, value) => {
+                            setBriefCheckpointSubmitted(false);
+                            setBriefCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
+                          }}
+                          onSubmit={gradeBriefCheckpoint}
+                          onRetry={retryBriefCheckpoint}
+                          disabled={!onLastLessonPage}
+                          accent="cyan"
+                        />
+                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Continue through the remaining lesson pages before the brief checkpoint can be graded.</p> : null}
                       </div>
                     ) : null}
 
@@ -1327,110 +1586,48 @@ export function TrainingExperienceView() {
                             </button>
                           ))}
                         </div>
-                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Review each practice page before this step unlocks.</p> : null}
+                        <AssessmentPanel
+                          eyebrow="Practice checkpoint"
+                          assessment={presentation?.practiceCheckpoint}
+                          answers={practiceCheckpointAnswers}
+                          submitted={practiceCheckpointSubmitted}
+                          answeredCount={practiceAnsweredCount}
+                          score={practiceScore}
+                          passed={practicePassed}
+                          onAnswer={(questionId, value) => {
+                            setPracticeCheckpointSubmitted(false);
+                            setPracticeCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
+                          }}
+                          onSubmit={gradePracticeCheckpoint}
+                          onRetry={retryPracticeCheckpoint}
+                          disabled={!onLastLessonPage}
+                          accent="emerald"
+                        />
+                        {!practiceChoice ? <p className="text-sm text-amber-300">Choose a rehearsal mode before the next step can unlock.</p> : null}
+                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Review each practice page before the checkpoint can be graded.</p> : null}
                       </div>
                     ) : null}
 
                     {currentStage?.id === "apply" ? (
                       <div className="space-y-4">
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Gated application activity</p>
-                          <h4 className="mt-2 text-lg font-medium text-white">{presentation?.applicationActivity.title}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-300">{presentation?.applicationActivity.objective}</p>
-                          <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                            <p className="text-sm leading-6 text-slate-100">{presentation?.applicationActivity.instructions}</p>
-                            <p className="mt-2 text-sm text-cyan-100/80">Passing score: {presentation?.applicationActivity.passingScore}/{presentation?.applicationActivity.questions.length}</p>
-                          </div>
-                        </div>
-                        <div className="grid gap-4">
-                          {presentation?.applicationActivity.questions.map((question, questionIndex) => (
-                            <div key={question.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
-                              <div className="flex flex-wrap items-center justify-between gap-3">
-                                <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Application question {questionIndex + 1}</p>
-                                {applicationSubmitted ? (
-                                  applicationAnswers[question.id] === question.correctOptionId ? (
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
-                                      <CheckCircle2 className="h-4 w-4" /> Correct
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-300">
-                                      <CircleAlert className="h-4 w-4" /> Retry needed
-                                    </span>
-                                  )
-                                ) : null}
-                              </div>
-                              <h4 className="mt-3 text-lg font-medium text-white">{question.prompt}</h4>
-                              <div className="mt-4 grid gap-3">
-                                {question.options.map((option) => {
-                                  const selected = applicationAnswers[question.id] === option.id;
-                                  const isCorrect = option.id === question.correctOptionId;
-                                  const stateClass = applicationSubmitted && selected
-                                    ? isCorrect
-                                      ? "border-emerald-400/40 bg-emerald-400/10"
-                                      : "border-rose-400/40 bg-rose-400/10"
-                                    : selected
-                                      ? "border-cyan-400/40 bg-cyan-400/10"
-                                      : "border-white/10 bg-white/5 hover:bg-white/8";
-
-                                  return (
-                                    <button
-                                      key={option.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setApplicationSubmitted(false);
-                                        setApplicationAnswers((value) => ({ ...value, [question.id]: option.id }));
-                                      }}
-                                      className={`rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
-                                    >
-                                      <p className="text-sm font-medium text-white">{option.label}</p>
-                                      <p className="mt-2 text-sm leading-6 text-slate-300">{option.rationale}</p>
-                                      {applicationSubmitted && selected ? (
-                                        <p className={`mt-3 text-sm ${isCorrect ? "text-emerald-300" : "text-rose-300"}`}>
-                                          {isCorrect ? question.successFeedback : question.failureFeedback}
-                                        </p>
-                                      ) : null}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium text-white">Assessment status</p>
-                              <p className="mt-1 text-sm text-slate-300">{applicationAnsweredCount}/{applicationQuestions.length} questions answered.</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={retryApplication}
-                                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                              >
-                                Retry
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={gradeApplication}
-                                disabled={applicationAnsweredCount !== applicationQuestions.length || !onLastLessonPage}
-                                className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
-                              >
-                                Grade activity
-                              </Button>
-                            </div>
-                          </div>
-                          {applicationSubmitted ? (
-                            <div className={`mt-4 rounded-2xl border p-4 ${applicationPassed ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}>
-                              <p className={`text-sm font-medium ${applicationPassed ? "text-emerald-200" : "text-rose-200"}`}>Score: {applicationScore}/{applicationQuestions.length}</p>
-                              <p className={`mt-2 text-sm leading-6 ${applicationPassed ? "text-emerald-100" : "text-rose-100"}`}>
-                                {applicationPassed ? presentation?.applicationActivity.passMessage : presentation?.applicationActivity.failMessage}
-                              </p>
-                            </div>
-                          ) : null}
-                          {!onLastLessonPage ? <p className="mt-4 text-sm text-amber-300">Finish the lesson page in this step before grading the activity.</p> : null}
-                        </div>
+                        <AssessmentPanel
+                          eyebrow="Gated application activity"
+                          assessment={presentation?.applicationActivity}
+                          answers={applicationAnswers}
+                          submitted={applicationSubmitted}
+                          answeredCount={applicationAnsweredCount}
+                          score={applicationScore}
+                          passed={applicationPassed}
+                          onAnswer={(questionId, value) => {
+                            setApplicationSubmitted(false);
+                            setApplicationAnswers((current) => ({ ...current, [questionId]: value }));
+                          }}
+                          onSubmit={gradeApplication}
+                          onRetry={retryApplication}
+                          disabled={!onLastLessonPage}
+                          accent="cyan"
+                        />
+                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Finish the lesson page in this step before the application checkpoint can be graded.</p> : null}
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Live-work transfer</p>
                           <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span>{launchedAsset ? <> while grounding the rehearsal in <span className="font-medium text-white">{launchedAsset.title}</span></> : null} and use the mapped resources below to reinforce the behavior in context.</p>
@@ -1486,7 +1683,24 @@ export function TrainingExperienceView() {
                             className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
                             placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
                           />
+                          {reflection.trim().length < 20 ? <p className="text-sm text-amber-300">Add a more concrete behavior commitment before the module can be completed.</p> : null}
                         </div>
+                        <AssessmentPanel
+                          eyebrow="Kahoot-style final quiz"
+                          assessment={presentation?.finalQuiz}
+                          answers={finalQuizAnswers}
+                          submitted={finalQuizSubmitted}
+                          answeredCount={finalQuizAnsweredCount}
+                          score={finalQuizScore}
+                          passed={finalQuizPassed}
+                          onAnswer={(questionId, value) => {
+                            setFinalQuizSubmitted(false);
+                            setFinalQuizAnswers((current) => ({ ...current, [questionId]: value }));
+                          }}
+                          onSubmit={gradeFinalQuiz}
+                          onRetry={retryFinalQuiz}
+                          accent="amber"
+                        />
                       </div>
                     ) : null}
 

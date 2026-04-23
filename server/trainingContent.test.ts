@@ -29,9 +29,14 @@ describe("getTrainingPresentation", () => {
     expect(presentation.slides.length).toBeGreaterThanOrEqual(3);
     expect(presentation.practiceSlides.length).toBeGreaterThanOrEqual(2);
     expect(presentation.applySlides.length).toBeGreaterThanOrEqual(1);
+    expect(presentation.briefCheckpoint.questions).toHaveLength(2);
+    expect(presentation.practiceCheckpoint.questions).toHaveLength(2);
     expect(presentation.applicationActivity.passingScore).toBe(2);
     expect(presentation.applicationActivity.questions).toHaveLength(2);
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("listen-q1-b");
+    expect(presentation.finalQuiz.passingPercent).toBe(80);
+    expect(presentation.finalQuiz.passingScore).toBe(4);
+    expect(presentation.finalQuiz.questions).toHaveLength(5);
     expect(presentation.practiceScenario.successSignals).toEqual(
       expect.arrayContaining([
         "The concern is restated accurately.",
@@ -113,7 +118,11 @@ describe("getTrainingPresentation", () => {
     expect(presentation.insightCharts[0]?.title).toBe("Workflow scoring emphasis");
     expect(presentation.insightCharts[1]?.metricLabel).toBe("Agreement rate");
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
+    expect(presentation.briefCheckpoint.questions[1]?.type).toBe("short_answer");
+    expect(presentation.practiceCheckpoint.questions[0]?.type).toBe("multiple_choice");
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-workflow-module-q1-a");
+    expect(presentation.finalQuiz.style).toBe("kahoot");
+    expect(presentation.finalQuiz.passingScore).toBe(4);
   });
 
   it("builds a fallback leadership lesson with KPI visuals and insight-to-action charts when the module points to data-led leadership", () => {
@@ -215,8 +224,12 @@ describe("getTrainingPresentation", () => {
     expect(presentation.practiceSlides[0]?.title).toContain("ownership language");
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
     expect(presentation.practiceScenario.title).toBe("Applied workflow rehearsal");
+    expect(presentation.briefCheckpoint.questions[0]?.type).toBe("multiple_choice");
+    expect(presentation.practiceCheckpoint.questions[1]?.type).toBe("short_answer");
     expect(presentation.applicationActivity.questions).toHaveLength(2);
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-module-q1-a");
+    expect(presentation.finalQuiz.questions).toHaveLength(5);
+    expect(presentation.finalQuiz.passingPercent).toBe(80);
     expect(presentation.coachPrompts[0]).toContain("behavior");
   });
 });

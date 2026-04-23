@@ -66,5 +66,13 @@
 - [x] Validate the expanded visual treatment across additional module types and fallback families, then document the broader browser review before checkpointing.
 - [x] Exercise additional fallback-family training modules in the live experience and confirm each shows the intended tailored visuals rather than only the default learner module.
 - [x] Append explicit browser-validation notes documenting the broader fallback-family review for the expanded visual treatment.
-- [ ] Save a checkpoint after the fallback-family visual expansion validation is complete.
+- [x] Save a checkpoint after the fallback-family visual expansion validation is complete.
 - [x] Add a live training preview path or selector so additional module families can be exercised directly in-app instead of validating only the default learner module.
+- [x] Add required interactive checkpoints throughout every training module using multiple-choice and short-answer assessments that learners must pass to continue.
+- [x] Replace confidence-only progression with stronger graded checkpoint logic across lesson pages and stages where appropriate.
+- [x] Add a Kahoot-style end-of-module quiz for every training module and require at least 80% to pass before the module can be completed.
+- [x] Validate the new checkpoint and quiz gating flows in-browser and with automated tests before the next checkpoint is saved.
+- [x] Exercise the final Kahoot-style module quiz in the browser, confirm learners cannot complete a module below 80%, and document the observed pass/fail behavior.
+- [x] Append browser-validation notes covering practice, apply, reflect, and module completion gating through to a successful 80% final-quiz pass.
+- [ ] Save a checkpoint after the fully validated checkpoint-and-quiz gating flow is complete.
+- [x] Exercise a failing final quiz attempt in the browser below the 80% threshold, verify the module cannot advance or complete, then re-pass it and document both fail and pass behaviors before checkpointing.
