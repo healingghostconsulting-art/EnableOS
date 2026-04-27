@@ -1,0 +1,50 @@
+Starting Speech-to-Text conversion...
+Transcribing audio file: /home/ubuntu/upload/LettingGoRAWFINALUSETHIS.m4a, file size: 0.68 MB
+Transcription may take some time depending on file size and audio length...
+Transcription completed successfully!
+
+TRANSCRIPTION RESULT:
+Total Duration: 40.6 seconds
+Language: english
+Timestamped segments:
+[00:00.0 - 00:03.3]  We must learn to let go.
+[00:03.3 - 00:07.3]  We may not always be over a lesson unwritten, so here it is.
+[00:07.3 - 00:10.2]  What we hold tightly takes their toll.
+[00:10.2 - 00:13.8]  Until we forgive ourselves, not forget, we may never free our soul.
+[00:13.8 - 00:17.6]  Do we all hold something tightly that disrupts our peace?
+[00:17.6 - 00:21.2]  Could serenity come if those burdens were released?
+[00:21.2 - 00:25.9]  If we knew when to stay or when to walk away or how to leave the table with grace at the
+[00:25.9 - 00:26.9]  end of the day?
+[00:26.9 - 00:30.5]  There's a strange security and uncertainty when we sit with ourselves.
+[00:30.5 - 00:32.3]  It sparks opportunity.
+[00:32.3 - 00:33.3]  Time reshapes us.
+[00:33.3 - 00:34.3]  Change breaks us.
+[00:34.3 - 00:36.1]  Yet they make us whole.
+[00:36.1 - 00:38.7]  Let's remaster the art of how to let go.
+[00:38.7 - 00:39.7]  We were never in control.
+Complete transcription result saved to: /home/ubuntu/upload/LettingGoRAWFINALUSETHIS_transcription_20260427_120623.json
+Plain text transcription saved to: /home/ubuntu/upload/LettingGoRAWFINALUSETHIS_transcription_20260427_120623.txt
+[2J[H[3Jmanus-speech-to-text /home/ubuntu/upload/LettingGoRAWFINALUSETHIS.m4a
+Starting Speech-to-Text conversion...
+Transcribing audio file: /home/ubuntu/upload/LettingGoRAWFINALUSETHIS.m4a, file size: 0.68 MB
+Transcription may take some time depending on file size and audio length...
+
+Snippet of transcribed content:
+[00:00.0 - 00:03.3] We must learn to let go.
+[00:03.3 - 00:07.3] We may not always be over a lesson unwritten, so here it is.
+[00:07.3 - 00:10.2] What we hold tightly takes their toll.
+[00:10.2 - 00:13.8] Until we forgive ourselves, not forget, we may never free our soul.
+[00:13.8 - 00:17.6] Do we all hold something tightly that disrupts our peace?
+[00:17.6 - 00:21.2] Could serenity come if those burdens were released?
+[00:21.2 - 00:25.9] If we knew when to stay or when to walk away or how to leave the table with grace at the
+[00:25.9 - 00:26.9] end of the day?
+[00:26.9 - 00:30.5] There's a strange security and uncertainty when we sit with ourselves.
+[00:30.5 - 00:32.3] It sparks opportunity.
+[00:32.3 - 00:33.3] Time reshapes us.
+[00:33.3 - 00:34.3] Change breaks us.
+[00:34.3 - 00:36.1] Yet they make us whole.
+[00:36.1 - 00:38.7] Let's remaster the art of how to let go.
+[00:38.7 - 00:39.7] We were never in control.
+
+Completed transcription, JSON saved to /home/ubuntu/upload/LettingGoRAWFINALUSETHIS_transcription_20260427_120623.json
+Plain text transcription saved to /home/ubuntu/upload/LettingGoRAWFINALUSETHIS_transcription_20260427_120623.txt

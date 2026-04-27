@@ -72,6 +72,7 @@ describe("demo router", () => {
     expect(manager.interventions).toEqual(expect.arrayContaining([expect.objectContaining({ status: "in_progress" })]));
     expect(manager.documentationEntries.length).toBeGreaterThan(0);
     expect(manager.reviewLogs.length).toBeGreaterThan(0);
+    expect(manager.weeklyCoachingLogs.length).toBeGreaterThan(0);
     expect(manager.aiSuggestion.overrideAvailable).toBe(true);
     expect(manager.aiSuggestion.rationale.length).toBeGreaterThan(1);
     expect(manager.workflowLibraryMix.interventionResources).toEqual(
@@ -106,6 +107,7 @@ describe("demo router", () => {
       expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Playbook" })]),
     );
     expect(learner.nextCoachingSession).toEqual(expect.objectContaining({ title: expect.any(String) }));
+    expect(learner.weeklyCoachingLogs[0]).toEqual(expect.objectContaining({ coachEmail: expect.stringContaining('@') }));
     expect(learner.workflowLibraryMix.journeyResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ title: "Operational launch readiness brief", sourceKind: "client_upload" }),
@@ -128,6 +130,7 @@ describe("demo router", () => {
       ]),
     );
     expect(admin.tenantUsers.every((user) => user.tenantId === "atlas-operations")).toBe(true);
+    expect(admin.weeklyCoachingLogs.length).toBeGreaterThan(0);
     expect(admin.workflowLibraryMix.documentationResources.some((asset) => asset.sourceKind === "client_upload")).toBe(true);
   });
 
@@ -200,6 +203,99 @@ describe("demo router", () => {
     });
 
     expect(created.authorRole).toBe("manager");
+  });
+
+  it("creates a preview weekly coaching log with email-copy details and learner takeaways", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    const created = await caller.demo.previewCreateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      subjectUserId: "u-learn-1",
+      coachRole: "manager",
+      sessionDate: "2026-04-27",
+      attendance: "Present and on time.",
+      followUpFromPrevious: "The learner partially met the prior SMART goal and needs one more week of monitored reinforcement.",
+      coachingComments: "Reviewed verification, empathy, and concise closing language with clear examples from recent QA samples.",
+      smartGoalCommitment: "Use the approved closing structure on 90% of monitored calls by 2026-05-04 and review results on 2026-05-05.",
+      additionalSupport: "Coach will provide two annotated call samples and one live side-by-side review.",
+      managerOfSupervisorEmail: "executive-copy@enterpriseworkspace.demo",
+      agentTakeaways: "I need to slow down before the final summary so my next steps sound confident.",
+    });
+
+    expect(created.supervisorEmail).toContain('@');
+    expect(created.managerOfSupervisorEmail).toBe("executive-copy@enterpriseworkspace.demo");
+    expect(created.agentTakeaways).toContain("slow down");
+
+    const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
+    expect(learner.weeklyCoachingLogs[0]?.sessionDate).toBe("2026-04-27");
+    expect(learner.reviewLogs[0]?.weeklyCoachingLogId).toBe(learner.weeklyCoachingLogs[0]?.id);
+  });
+
+  it("allows leadership to create a secure weekly coaching log inside the assigned tenant", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-exec",
+        role: "user",
+        name: "Enterprise Executive",
+      }),
+    );
+
+    const created = await caller.demo.secureCreateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      subjectUserId: "u-learn-1",
+      coachRole: "manager",
+      sessionDate: "2026-04-28",
+      attendance: "Present and engaged.",
+      followUpFromPrevious: "Previous goal met on four of five monitored contacts.",
+      coachingComments: "Executive observed stronger confidence and aligned on the next escalation-handling behavior target.",
+      smartGoalCommitment: "Demonstrate the escalation reset language on every monitored escalation call this week and review on 2026-05-02.",
+      additionalSupport: "Provide one calibration review with the supervisor before the next audit.",
+    });
+
+    expect(created.coachRole).toBe("executive");
+    expect(created.coachEmail).toContain('@');
+  });
+
+  it("allows the learner role to add takeaways back to a weekly coaching log", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-learner",
+        role: "user",
+        name: "Enterprise Learner",
+      }),
+    );
+
+    const updated = await caller.demo.secureUpdateWeeklyCoachingTakeaways({
+      tenantId: "atlas-operations",
+      weeklyCoachingLogId: "weekly-log-1",
+      agentTakeaways: "I will keep my verification language consistent and use one clean summary before asking for confirmation.",
+    });
+
+    expect(updated.agentTakeaways).toContain("verification language");
+  });
+
+  it("denies secure weekly coaching log creation outside the granted tenant", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    await expect(
+      caller.demo.secureCreateWeeklyCoachingLog({
+        tenantId: "lighthouse-finance",
+        subjectUserId: "u-learn-1",
+        coachRole: "manager",
+        sessionDate: "2026-04-30",
+        attendance: "Present.",
+        followUpFromPrevious: "Cross-tenant log should not be allowed.",
+        coachingComments: "This should fail because the manager is not granted to the other tenant.",
+        smartGoalCommitment: "No next step should be stored.",
+        additionalSupport: "No support should be stored.",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("denies secure review logging outside the granted tenant", async () => {

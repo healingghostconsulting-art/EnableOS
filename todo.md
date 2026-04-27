@@ -82,3 +82,15 @@
 - [x] Validate the revised answer matching, restored module naming, and expanded deck-content coverage in-browser and with automated tests before the next checkpoint.
 - [x] Audit the training experience for repeated image reuse and replace duplicated visuals with distinct source-deck images wherever available.
 - [x] Validate in the browser that each module path now shows a more distinct image set without unnecessary repeats before saving the next checkpoint.
+- [x] Add a weekly coaching log workflow with the required fields: date, employee, coach, attendance, follow-up from previous coaching, coaching comments, smart goal coaching commitment, additional support, and agent take-aways.
+- [x] Allow the weekly coaching log to connect to the coached agent, the supervisor, and optionally the supervisor's manager email so copies can be shared appropriately.
+- [x] Ensure all roles above the agent or learner can view the agent's coaching log and add coaching input where permitted.
+- [x] Capture and display the coached employee's own response and take-aways as part of the coaching log record.
+- [x] Validate the weekly coaching-log workflow, access model, and sharing behavior in-browser and with automated tests before the next checkpoint.
+- [x] Add narrated playback controls for training sections so learners can listen to lesson content in the platform.
+- [x] Evaluate and implement the safest feasible path for using the user's voice for narration, using the uploaded recording at /home/ubuntu/upload/LettingGoRAWFINALUSETHIS.m4a as the voice-reference sample.
+- [x] Validate narrated section playback and voice behavior in the live experience before the next checkpoint.
+- [x] Advance the weekly coaching log and narrated training work together in the same product pass so coaching actions and audio guidance remain aligned across the learner and manager experience.
+- [x] Repair the EnableOSViews.tsx syntax error that is breaking Vite reload on /?from_webdev=1, then re-run type-checking before continuing the weekly coaching log and narration work.
+- [x] Re-diagnose and fix the recurring EnableOSViews.tsx Vite reload failure reported at 2026-04-27 16:00 America/Chicago after reapplying the weekly coaching UI changes.
+- [x] Exercise the training narration controls in the live browser by triggering lesson narration playback and the uploaded voice-reference sample, then document the observed behavior and state changes before checkpointing.

@@ -5,6 +5,7 @@ import { storagePut } from "../storage";
 import {
   createClientContent,
   createReviewLog,
+  createWeeklyCoachingLog,
   getAccessGrant,
   getAdminDashboard,
   getDemoBundle,
@@ -16,6 +17,7 @@ import {
   listMethodologyMappings,
   listTenants,
   updateTenantBranding,
+  updateWeeklyCoachingLogTakeaways,
   type DemoRole,
 } from "../demoPlatform";
 
@@ -39,6 +41,26 @@ const reviewLogInput = z.object({
   title: z.string().min(3).max(120),
   notes: z.string().min(10).max(1200),
   nextStep: z.string().min(5).max(240),
+});
+
+const weeklyCoachingLogInput = z.object({
+  tenantId: z.string(),
+  subjectUserId: z.string(),
+  coachRole: z.enum(["manager", "executive", "client_admin"]),
+  sessionDate: z.string().min(8).max(40),
+  attendance: z.string().min(5).max(240),
+  followUpFromPrevious: z.string().min(10).max(1200),
+  coachingComments: z.string().min(10).max(1600),
+  smartGoalCommitment: z.string().min(10).max(800),
+  additionalSupport: z.string().min(5).max(600),
+  managerOfSupervisorEmail: z.string().email().optional(),
+  agentTakeaways: z.string().max(800).optional(),
+});
+
+const weeklyCoachingTakeawaysInput = z.object({
+  tenantId: z.string(),
+  weeklyCoachingLogId: z.string(),
+  agentTakeaways: z.string().min(3).max(800),
 });
 
 const libraryInput = z.object({
@@ -78,6 +100,21 @@ function assertScopedAccess(openId: string | undefined, requestedTenantId: strin
   }
 
   return requestedTenantId ?? grant.tenantId;
+}
+
+function assertTenantMembership(openId: string | undefined, requestedTenantId: string | undefined) {
+  const grant = getAccessGrant(openId);
+
+  if (!grant) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "No tenant access grant is configured for this user." });
+  }
+
+  const tenantId = requestedTenantId ?? grant.tenantId;
+  if (grant.role !== "platform_admin" && grant.tenantId !== tenantId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Cross-tenant access is not allowed." });
+  }
+
+  return { grant, tenantId };
 }
 
 export const demoRouter = router({
@@ -183,5 +220,26 @@ export const demoRouter = router({
   secureCreateReviewLog: protectedProcedure.input(reviewLogInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));
     return createReviewLog({ ...input, tenantId });
+  }),
+  previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(({ input }) => createWeeklyCoachingLog(input)),
+  secureCreateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
+
+    if (!["manager", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can create weekly coaching logs." });
+    }
+
+    const coachRole = grant.role === "platform_admin" ? input.coachRole : grant.role;
+    return createWeeklyCoachingLog({ ...input, tenantId, coachRole: coachRole as "manager" | "executive" | "client_admin" });
+  }),
+  previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
+  secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
+
+    if (!["learner", "manager", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot update coaching takeaways." });
+    }
+
+    return updateWeeklyCoachingLogTakeaways({ ...input, tenantId });
   }),
 });

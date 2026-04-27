@@ -33,28 +33,14 @@ import {
   CircleAlert,
   Gauge,
   Layers3,
-  Mic,
-  PauseCircle,
-  PlayCircle,
   ShieldCheck,
   Sparkles,
   Target,
-  Volume2,
   Users2,
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { Link, useLocation } from "wouter";
-
-const VOICE_REFERENCE_SAMPLE_URL = "/manus-storage/LettingGoRAWFINALUSETHIS_b8a8ab1a.m4a";
-const VOICE_REFERENCE_SAMPLE_NAME = "LettingGoRAWFINALUSETHIS.m4a";
-const VOICE_REFERENCE_TRANSCRIPT_EXCERPT = "We must learn to let go. What we hold tightly takes their toll. Time reshapes us. Change breaks us. Yet they make us whole.";
-const VOICE_REFERENCE_PROFILE = {
-  durationLabel: "40.6 sec",
-  tone: "Reflective and steady",
-  pacing: "Measured cadence with calm pauses",
-  workflowNote: "Use the uploaded recording as the tonal reference, then preview lesson narration with in-browser speech for pacing and script review inside the demo.",
-};
 
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
@@ -727,9 +713,6 @@ export function TrainingExperienceView() {
   const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
   const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
-  const [narrationMode, setNarrationMode] = useState<"browser_preview" | "voice_reference">("browser_preview");
-  const [narrationRate, setNarrationRate] = useState("0.95");
-  const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
 
   useEffect(() => {
     if (requestedTenantId && requestedTenantId !== tenantId) {
@@ -752,7 +735,6 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
-    setNarrationStatus("idle");
   }, [tenantId]);
 
   useEffect(() => {
@@ -769,7 +751,6 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
-    setNarrationStatus("idle");
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
@@ -789,7 +770,6 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
-    setNarrationStatus("idle");
   }, [previewScenarioId]);
 
   useEffect(() => {
@@ -932,34 +912,6 @@ export function TrainingExperienceView() {
     ?? `Prepare to review how ${selectedModule?.skillFocus?.toLowerCase() ?? "the current skill"} transfers into the next live workflow moment.`;
   const reflectionPromptPreview = presentation?.reflectionPrompts[Math.min(stageIndex, Math.max((presentation?.reflectionPrompts.length ?? 1) - 1, 0))]
     ?? `Capture the next observable behavior that should change after this lesson.`;
-  const voiceReferenceHighlights = [
-    `Tone: ${VOICE_REFERENCE_PROFILE.tone}`,
-    `Pacing: ${VOICE_REFERENCE_PROFILE.pacing}`,
-    `Sample length: ${VOICE_REFERENCE_PROFILE.durationLabel}`,
-  ];
-
-  const stopNarration = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    setNarrationStatus("idle");
-  };
-
-  const playNarrationPreview = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setNarrationStatus("unsupported");
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(narrationScript);
-    utterance.rate = Number(narrationRate);
-    utterance.pitch = narrationMode === "voice_reference" ? 0.92 : 1;
-    utterance.onstart = () => setNarrationStatus("playing");
-    utterance.onend = () => setNarrationStatus("ended");
-    utterance.onerror = () => setNarrationStatus("unsupported");
-    window.speechSynthesis.speak(utterance);
-  };
 
   const stages = selectedModule
     ? [
@@ -999,9 +951,6 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
-  const narrationScript = currentLessonPage
-    ? `${currentLessonPage.title}. ${currentLessonPage.narrative} ${currentLessonPage.bullets.slice(0, 3).join(" ")}`
-    : presentation?.heroSummary ?? "Narration preview becomes available when a lesson page is active.";
   const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
   const lessonVisualSequence = currentLessonPage
     ? currentLessonPage.bullets.slice(0, 3).map((bullet, index) => ({
@@ -1509,102 +1458,6 @@ export function TrainingExperienceView() {
                                 </div>
                                 <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
-                                <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-                                  <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narrated lesson controls</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">Preview this lesson as spoken guidance</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">The uploaded voice sample acts as the tonal reference, while this in-browser preview lets reviewers test pacing against the lesson script before any produced narration is finalized.</p>
-                                      </div>
-                                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{narrationMode === "voice_reference" ? "Voice-reference mode" : "Browser preview mode"}</Badge>
-                                    </div>
-                                    <div className="mt-4 flex flex-wrap gap-3">
-                                      <Button
-                                        type="button"
-                                        variant={narrationMode === "browser_preview" ? "default" : "outline"}
-                                        className={narrationMode === "browser_preview" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
-                                        onClick={() => setNarrationMode("browser_preview")}
-                                      >
-                                        <Volume2 className="mr-2 h-4 w-4" />
-                                        Browser preview
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant={narrationMode === "voice_reference" ? "default" : "outline"}
-                                        className={narrationMode === "voice_reference" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
-                                        onClick={() => setNarrationMode("voice_reference")}
-                                      >
-                                        <Mic className="mr-2 h-4 w-4" />
-                                        Uploaded voice reference
-                                      </Button>
-                                    </div>
-                                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                                      {voiceReferenceHighlights.map((item) => (
-                                        <div key={item} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{item}</div>
-                                      ))}
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
-                                      <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div>
-                                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narration speed</p>
-                                          <p className="mt-1 text-sm text-slate-300">Adjust pacing to match the calm cadence suggested by the uploaded recording.</p>
-                                        </div>
-                                        <Select value={narrationRate} onValueChange={setNarrationRate}>
-                                          <SelectTrigger className="w-[170px] border-white/10 bg-slate-950/80 text-slate-100">
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="0.85">Slow · 0.85x</SelectItem>
-                                            <SelectItem value="0.95">Balanced · 0.95x</SelectItem>
-                                            <SelectItem value="1">Standard · 1.0x</SelectItem>
-                                            <SelectItem value="1.1">Energetic · 1.1x</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </div>
-                                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
-                                        <PlayCircle className="mr-2 h-4 w-4" />
-                                        Play lesson narration
-                                      </Button>
-                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
-                                        <PauseCircle className="mr-2 h-4 w-4" />
-                                        Stop preview
-                                      </Button>
-                                      <span className="text-sm text-slate-400">
-                                        {narrationStatus === "playing" ? "Narration preview is playing." : narrationStatus === "ended" ? "Narration preview finished." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Ready to preview this lesson as audio."}
-                                      </span>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson narration script</p>
-                                      <p className="mt-3 text-sm leading-7 text-slate-100">{narrationScript}</p>
-                                    </div>
-                                  </div>
-                                  <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Uploaded voice-reference workflow</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">Reference sample from the provided recording</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">This panel keeps the supplied recording inside the course review experience so stakeholders can compare lesson scripts to the reference tone before approving narrated content.</p>
-                                      </div>
-                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{VOICE_REFERENCE_SAMPLE_NAME}</Badge>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-4">
-                                      <audio controls preload="none" className="w-full">
-                                        <source src={VOICE_REFERENCE_SAMPLE_URL} type="audio/mp4" />
-                                      </audio>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transcript excerpt used for tone calibration</p>
-                                      <p className="mt-3 text-sm leading-7 text-slate-200">{VOICE_REFERENCE_TRANSCRIPT_EXCERPT}</p>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Workflow note</p>
-                                      <p className="mt-3 text-sm leading-6 text-slate-100">{VOICE_REFERENCE_PROFILE.workflowNote}</p>
-                                    </div>
-                                  </div>
-                                </div>
                                 {lessonVisualSequence.length ? (
                                   <div className="mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2818,7 +2671,7 @@ function WeeklyCoachingLogTimeline({
                 `Supervisor copy · ${log.supervisorEmail}`,
                 log.managerOfSupervisorEmail ? `Optional leadership copy · ${log.managerOfSupervisorEmail}` : null,
               ].filter(Boolean).map((recipient) => (
-                <Badge key={String(recipient)} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{recipient}</Badge>
+                <Badge key={recipient as string} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{recipient}</Badge>
               ))}
             </div>
             <div className="mt-4 rounded-2xl border border-white/8 bg-white/5 p-4">
@@ -2897,10 +2750,10 @@ function WorkflowLibraryPanel({
 function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const coachingSubject = data.weeklyCoachingLogs[0] ?? {
     subjectUserId: data.reviewLogs[0]?.subjectUserId ?? data.executive.id,
-    employeeName: data.executive.name,
-    employeeEmail: data.executive.email,
-    supervisorName: data.executive.name,
-    supervisorEmail: data.executive.email,
+    employeeName: "Current learner record",
+    employeeEmail: "learner@tenant.demo",
+    supervisorName: "Assigned supervisor",
+    supervisorEmail: "supervisor@tenant.demo",
     managerOfSupervisorEmail: data.executive.email,
   };
 
@@ -2981,7 +2834,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
             ))}
           </CardContent>
         </PremiumCard>
-        </div>
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
@@ -3161,40 +3013,40 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           <div className="space-y-4">
             {data.coachingSessions.map((session: any) => (
               <PremiumCard key={session.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{session.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">{session.notes}</CardDescription>
+                    </div>
+                    <StatusBadge value={session.status} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <CardTitle className="text-white">{session.title}</CardTitle>
-                    <CardDescription className="mt-2 text-slate-400">{session.notes}</CardDescription>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
+                    <div className="mt-2 space-y-2 text-sm text-slate-300">
+                      {session.actionPlan.map((step: any) => (
+                        <div key={step} className="flex items-start gap-2">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                          <span>{step}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <StatusBadge value={session.status} />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
-                  <div className="mt-2 space-y-2 text-sm text-slate-300">
-                    {session.actionPlan.map((step: any) => (
-                      <div key={step} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                        <span>{step}</span>
-                      </div>
-                    ))}
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
+                    <div className="mt-2 space-y-2">
+                      {session.auditTrail.map((entry: any) => (
+                        <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
+                          <p className="mt-1">{entry.detail}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
-                  <div className="mt-2 space-y-2">
-                    {session.auditTrail.map((entry: any) => (
-                      <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
-                        <p className="mt-1">{entry.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </PremiumCard>
+                </CardContent>
+              </PremiumCard>
             ))}
           </div>
           <div className="space-y-6">
