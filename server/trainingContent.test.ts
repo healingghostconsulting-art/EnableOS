@@ -21,10 +21,13 @@ describe("getTrainingPresentation", () => {
     expect(presentation.deckVisuals[1]?.pageLabel).toBe("Slide 14");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("Listening behavior adoption");
+    expect(presentation.insightCharts[0]?.chartType).toBe("comparison");
+    expect(presentation.insightCharts[0]?.insightNote).toContain("observable listening moves");
     expect(presentation.insightCharts[0]?.data[0]).toEqual(
       expect.objectContaining({ label: "Acknowledge concern", value: 92, benchmark: 85 }),
     );
     expect(presentation.insightCharts[1]?.title).toBe("Customer calm recovery curve");
+    expect(presentation.insightCharts[1]?.chartType).toBe("trend");
     expect(presentation.insightCharts[1]?.data[2]?.label).toBe("After summary");
     expect(presentation.slides.length).toBeGreaterThanOrEqual(3);
     expect(presentation.practiceSlides.length).toBeGreaterThanOrEqual(2);
@@ -111,12 +114,14 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Workflow verification essentials");
-    expect(presentation.deckVisuals).toHaveLength(3);
+    expect(presentation.deckVisuals).toHaveLength(4);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("qa-09");
     expect(presentation.deckVisuals[1]?.title).toBe("High-scoring behavior board");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("Workflow scoring emphasis");
+    expect(presentation.insightCharts[0]?.chartType).toBe("comparison");
     expect(presentation.insightCharts[1]?.metricLabel).toBe("Agreement rate");
+    expect(presentation.insightCharts[1]?.insightNote).toContain("coherent message");
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
     expect(presentation.briefCheckpoint.questions[1]?.type).toBe("short_answer");
     expect(presentation.practiceCheckpoint.questions[0]?.type).toBe("multiple_choice");
@@ -139,11 +144,13 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Leadership KPI literacy");
-    expect(presentation.deckVisuals).toHaveLength(3);
+    expect(presentation.deckVisuals).toHaveLength(4);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("leadership-data-08");
     expect(presentation.deckVisuals[1]?.title).toBe("From insight to action");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("KPI interpretation readiness");
+    expect(presentation.insightCharts[0]?.chartType).toBe("comparison");
+    expect(presentation.insightCharts[1]?.chartType).toBe("trend");
     expect(presentation.insightCharts[1]?.data[2]).toEqual(
       expect.objectContaining({ label: "Actioned", value: 63, benchmark: 68 }),
     );
@@ -165,11 +172,12 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Performance calibration workshop");
-    expect(presentation.deckVisuals).toHaveLength(3);
+    expect(presentation.deckVisuals).toHaveLength(4);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("performance-leadership-08");
     expect(presentation.deckVisuals[1]?.title).toBe("Engaging and developing high performers");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("Performance bucket distribution");
+    expect(presentation.insightCharts[0]?.chartType).toBe("comparison");
     expect(presentation.insightCharts[0]?.data[1]).toEqual(
       expect.objectContaining({ label: "Movable middle", value: 56, benchmark: 58 }),
     );
@@ -191,7 +199,7 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Recognition rhythm design");
-    expect(presentation.deckVisuals).toHaveLength(3);
+    expect(presentation.deckVisuals).toHaveLength(4);
     expect(presentation.deckVisuals[0]?.imageUrl).toContain("gamification-08");
     expect(presentation.deckVisuals[1]?.title).toBe("Recognition cadence operating rhythm");
     expect(presentation.insightCharts).toHaveLength(2);

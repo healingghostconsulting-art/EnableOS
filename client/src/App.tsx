@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -12,6 +12,7 @@ const workspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
   { icon: Gauge, label: "Executive", path: "/executive" },
   { icon: ShieldCheck, label: "Manager", path: "/manager" },
+  { icon: Users2, label: "Coach / Supervisor", path: "/coach" },
   { icon: BookOpen, label: "Learner", path: "/learner" },
   { icon: BookOpen, label: "Interactive Training", path: "/training" },
   { icon: Building2, label: "Client Admin", path: "/admin" },
@@ -49,6 +50,13 @@ function Router() {
         {() => (
           <WorkspaceShell roleLabel="Manager Workspace">
             <RoleWorkspace role="manager" />
+          </WorkspaceShell>
+        )}
+      </Route>
+      <Route path="/coach">
+        {() => (
+          <WorkspaceShell roleLabel="Coach / Supervisor Workspace">
+            <RoleWorkspace role="coach" />
           </WorkspaceShell>
         )}
       </Route>

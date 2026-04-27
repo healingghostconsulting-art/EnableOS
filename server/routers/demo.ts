@@ -8,6 +8,7 @@ import {
   createWeeklyCoachingLog,
   getAccessGrant,
   getAdminDashboard,
+  getCoachDashboard,
   getDemoBundle,
   getDemoLanding,
   getExecutiveDashboard,
@@ -36,7 +37,7 @@ const brandingInput = z.object({
 const reviewLogInput = z.object({
   tenantId: z.string(),
   subjectUserId: z.string(),
-  authorRole: z.enum(["manager", "executive", "client_admin"]),
+  authorRole: z.enum(["manager", "coach", "executive", "client_admin"]),
   reviewType: z.enum(["one_on_one", "quarterly_check_in", "annual_review"]),
   title: z.string().min(3).max(120),
   notes: z.string().min(10).max(1200),
@@ -46,7 +47,7 @@ const reviewLogInput = z.object({
 const weeklyCoachingLogInput = z.object({
   tenantId: z.string(),
   subjectUserId: z.string(),
-  coachRole: z.enum(["manager", "executive", "client_admin"]),
+  coachRole: z.enum(["manager", "coach", "executive", "client_admin"]),
   sessionDate: z.string().min(8).max(40),
   attendance: z.string().min(5).max(240),
   followUpFromPrevious: z.string().min(10).max(1200),
@@ -65,7 +66,7 @@ const weeklyCoachingTakeawaysInput = z.object({
 
 const libraryInput = z.object({
   tenantId: z.string().optional(),
-  role: z.enum(["executive", "manager", "learner", "client_admin", "all"]).optional(),
+  role: z.enum(["executive", "manager", "coach", "learner", "client_admin", "all"]).optional(),
 });
 
 const clientContentInput = z.object({
@@ -74,7 +75,7 @@ const clientContentInput = z.object({
   summary: z.string().min(10).max(500),
   category: z.string().min(3).max(80),
   format: z.enum(["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"]),
-  linkedRoles: z.array(z.enum(["executive", "manager", "learner", "client_admin", "all"]).or(z.literal("all"))).min(1).max(4),
+  linkedRoles: z.array(z.enum(["executive", "manager", "coach", "learner", "client_admin", "all"]).or(z.literal("all"))).min(1).max(5),
   tags: z.array(z.string().min(2).max(24)).max(8),
   sourceLabel: z.string().min(2).max(80),
   fileName: z.string().max(140).optional(),
@@ -124,6 +125,7 @@ export const demoRouter = router({
   bundle: publicProcedure.input(tenantInput).query(({ input }) => getDemoBundle(input.tenantId)),
   executive: publicProcedure.input(tenantInput).query(({ input }) => getExecutiveDashboard(input.tenantId)),
   manager: publicProcedure.input(tenantInput).query(({ input }) => getManagerDashboard(input.tenantId)),
+  coach: publicProcedure.input(tenantInput).query(({ input }) => getCoachDashboard(input.tenantId)),
   learner: publicProcedure.input(tenantInput).query(({ input }) => getLearnerDashboard(input.tenantId)),
   admin: publicProcedure.input(tenantInput).query(({ input }) => getAdminDashboard(input.tenantId)),
   library: publicProcedure.input(libraryInput).query(({ input }) => listContentLibrary(input.tenantId, input.role)),
@@ -134,6 +136,10 @@ export const demoRouter = router({
   secureManager: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "manager");
     return getManagerDashboard(tenantId);
+  }),
+  secureCoach: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "coach");
+    return getCoachDashboard(tenantId);
   }),
   secureLearner: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "learner");
@@ -225,18 +231,18 @@ export const demoRouter = router({
   secureCreateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
 
-    if (!["manager", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+    if (!["manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can create weekly coaching logs." });
     }
 
     const coachRole = grant.role === "platform_admin" ? input.coachRole : grant.role;
-    return createWeeklyCoachingLog({ ...input, tenantId, coachRole: coachRole as "manager" | "executive" | "client_admin" });
+    return createWeeklyCoachingLog({ ...input, tenantId, coachRole: coachRole as "manager" | "coach" | "executive" | "client_admin" });
   }),
   previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
   secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
 
-    if (!["learner", "manager", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+    if (!["learner", "manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot update coaching takeaways." });
     }
 

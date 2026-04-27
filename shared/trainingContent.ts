@@ -27,6 +27,8 @@ export type TrainingInsightChart = {
   title: string;
   description: string;
   metricLabel: string;
+  chartType?: "comparison" | "trend";
+  insightNote?: string;
   data: TrainingInsightDatum[];
 };
 
@@ -353,6 +355,8 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         title: "Listening behavior adoption",
         description: "A visual view of how the lesson shifts the opening behavior from rushed explanation toward acknowledgment, ownership, and clear next-step control.",
         metricLabel: "% of monitored interactions",
+        chartType: "comparison",
+        insightNote: "Use this comparison to coach the three observable listening moves that should show up before process explanation begins.",
         data: [
           { label: "Acknowledge concern", value: 92, benchmark: 85 },
           { label: "Confirm ownership", value: 84, benchmark: 80 },
@@ -364,6 +368,8 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         title: "Customer calm recovery curve",
         description: "The lesson emphasizes that emotional temperature drops when listening behavior happens before workflow explanation.",
         metricLabel: "Stability score",
+        chartType: "trend",
+        insightNote: "The slope should rise as empathy and summary behavior become more explicit, giving the coach a simple recovery story to reinforce.",
         data: [
           { label: "Opening", value: 38, benchmark: 45 },
           { label: "After empathy", value: 64, benchmark: 60 },
@@ -1312,6 +1318,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           sourceDeck: "Utilizing Performance to Maximize Performance",
           pageLabel: "Slide 10",
         },
+        {
+          id: `${module.id}-performance-visual-4`,
+          title: "Improvement-plan decision ladder",
+          caption: "A fourth leadership-performance visual extends the lesson with a clearer improvement ladder so supervisors can distinguish correction, coaching intensity, recognition, and development planning more explicitly.",
+          imageUrl: "/manus-storage/performance-leadership-14_686d8ef6.png",
+          sourceDeck: "Utilizing Performance to Maximize Performance",
+          pageLabel: "Slide 14",
+        },
       ]
     : isLeadershipFamily
       ? [
@@ -1340,6 +1354,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           imageUrl: "/manus-storage/leadership-data-17_e47d3a3d.png",
           sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
           pageLabel: "Slide 17",
+        },
+        {
+          id: `${module.id}-leadership-visual-4`,
+          title: "Question-led KPI review prompts",
+          caption: "A fourth KPI slide gives the lesson a stronger workshop feel by surfacing the guiding questions leaders should ask before moving from a metric reading to a team action plan.",
+          imageUrl: "/manus-storage/leadership-data-10_173605c2.png",
+          sourceDeck: "Leadership Module 1: Unlocking the Power of Data",
+          pageLabel: "Slide 10",
         },
 
         ]
@@ -1371,6 +1393,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           sourceDeck: "Quality Assurance Essentials",
           pageLabel: "Slide 10",
         },
+        {
+          id: `${module.id}-qa-visual-4`,
+          title: "Call-closing compliance sequence",
+          caption: "A fourth QA visual broadens the module with a closing-sequence reference so workflow lessons show both opening verification and end-of-call control instead of concentrating on one section of the conversation.",
+          imageUrl: "/manus-storage/qa-12_1bf3d661.png",
+          sourceDeck: "Quality Assurance Essentials",
+          pageLabel: "Slide 12",
+        },
 
         ]
       : isEngagementFamily
@@ -1401,28 +1431,42 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           sourceDeck: "Gamification for Remote Teams",
           pageLabel: "Slide 10",
         },
+        {
+          id: `${module.id}-engagement-visual-4`,
+          title: "Recognition loop design checklist",
+          caption: "A fourth engagement visual extends the module with a repeatable checklist so managers can review fairness, cadence, visibility, and reward sustainability before launching a motivation program.",
+          imageUrl: "/manus-storage/gamification-14_8cfa45db.png",
+          sourceDeck: "Gamification for Remote Teams",
+          pageLabel: "Slide 14",
+        },
 
         ]
       : [];
   const fallbackInsightCharts: TrainingInsightChart[] = isPerformanceLeadershipFamily
     ? [
-        {
-          id: `${module.id}-chart-1`,
-          title: "Performance bucket distribution",
-          description: `A performance-leadership chart showing how ${module.skillFocus.toLowerCase()} can be used to segment coaching effort across high performers, the movable middle, and urgent-support populations.`,
-          metricLabel: "% of population",
-          data: [
+          {
+            id: `${module.id}-chart-1`,
+            title: "Performance bucket distribution",
+            description: `A performance-leadership chart showing how ${module.skillFocus.toLowerCase()} can be used to segment coaching effort across high performers, the movable middle, and urgent-support populations.`,
+            metricLabel: "% of population",
+            chartType: "comparison",
+            insightNote: "This distribution should be read side by side with the benchmark so leaders avoid overreacting to one segment in isolation.",
+            data: [
+
             { label: "High performers", value: 22, benchmark: 20 },
             { label: "Movable middle", value: 56, benchmark: 58 },
             { label: "Urgent support", value: 22, benchmark: 18 },
           ],
         },
-        {
-          id: `${module.id}-chart-2`,
-          title: "Coaching leverage by performance group",
-          description: "This chart reframes the deck's leadership guidance into an in-platform view of where development effort, recognition, and intervention create the most organizational lift.",
-          metricLabel: "Leadership impact score",
-          data: [
+          {
+            id: `${module.id}-chart-2`,
+            title: "Coaching leverage by performance group",
+            description: "This chart reframes the deck's leadership guidance into an in-platform view of where development effort, recognition, and intervention create the most organizational lift.",
+            metricLabel: "Leadership impact score",
+            chartType: "comparison",
+            insightNote: "Higher leverage signals where a coach or leader should invest attention first, rather than treating every group identically.",
+            data: [
+
             { label: "Recognition and stretch", value: 82, benchmark: 78 },
             { label: "Targeted coaching", value: 89, benchmark: 84 },
             { label: "Structured correction", value: 67, benchmark: 70 },
@@ -1436,6 +1480,8 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "KPI interpretation readiness",
             description: `A leadership-ready in-platform graph showing how ${module.skillFocus.toLowerCase()} should translate into trend reading, target comparison, and outlier detection.`,
             metricLabel: "Readiness score",
+            chartType: "comparison",
+            insightNote: "This comparison keeps the leadership lesson grounded in the three analytical behaviors the deck expects leaders to perform consistently.",
             data: [
               { label: "Trend reading", value: 78, benchmark: 72 },
               { label: "Target comparison", value: 84, benchmark: 80 },
@@ -1447,6 +1493,8 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "Insight-to-action conversion",
             description: "This panel mirrors the leadership deck by showing whether observations are being converted into specific team actions fast enough to influence performance.",
             metricLabel: "% of reviewed patterns",
+            chartType: "trend",
+            insightNote: "The sequence should tighten from observed to actioned, making it obvious where decision flow is stalling.",
             data: [
               { label: "Observed", value: 91, benchmark: 85 },
               { label: "Explained", value: 76, benchmark: 74 },
@@ -1461,6 +1509,8 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "Workflow scoring emphasis",
             description: `A deck-aligned view of how ${module.skillFocus.toLowerCase()} should influence weighted quality outcomes and audit reliability.`,
             metricLabel: "Weighted score",
+            chartType: "comparison",
+            insightNote: "This comparison clarifies which workflow moments carry the greatest audit weight, helping coaches prioritize the highest-impact corrections.",
             data: [
               { label: "Verification", value: 81, benchmark: 78 },
               { label: "Documentation", value: 76, benchmark: 74 },
@@ -1472,6 +1522,8 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "Calibration consistency",
             description: "This graph complements the QA lesson visuals by showing whether reviewers and coaches are identifying the same high-impact workflow behaviors consistently.",
             metricLabel: "Agreement rate",
+            chartType: "comparison",
+            insightNote: "Agreement should remain tight across reviewers and coaches so the learner receives one coherent message rather than conflicting feedback.",
             data: [
               { label: "Reviewer alignment", value: 88, benchmark: 84 },
               { label: "Coach alignment", value: 82, benchmark: 80 },

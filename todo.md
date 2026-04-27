@@ -94,3 +94,13 @@
 - [x] Repair the EnableOSViews.tsx syntax error that is breaking Vite reload on /?from_webdev=1, then re-run type-checking before continuing the weekly coaching log and narration work.
 - [x] Re-diagnose and fix the recurring EnableOSViews.tsx Vite reload failure reported at 2026-04-27 16:00 America/Chicago after reapplying the weekly coaching UI changes.
 - [x] Exercise the training narration controls in the live browser by triggering lesson narration playback and the uploaded voice-reference sample, then document the observed behavior and state changes before checkpointing.
+- [x] Add a dedicated coach or supervisor LMS layer with role-appropriate navigation, training oversight, coaching context, and access between learner and manager experiences.
+- [x] Audit and correct the inaccurate training graphics, including the lesson graphs currently showing incorrect or misleading visual output.
+- [x] Increase the amount and quality of slide-derived visuals across the training platform so lessons rely less on thin or repeated graphics.
+- [x] Redesign the training lesson experience so slide content behaves more like an interactive Moodle-style course player instead of mostly static picture-based slides.
+- [x] Validate the new coach role, corrected graphics, and interactive training-slide behavior in-browser and with automated tests before the next checkpoint.
+- [x] Add or expand automated tests covering the new coach role dashboard, coach-scoped router behavior, and coach access path before the next checkpoint.
+- [x] Add explicit regression coverage for the interactive slide-player content shape and rendering contract beyond chart metadata.
+- [x] Expand slide-derived visuals across additional modules or fallback families so the visual increase is broader than carousel reframing alone, then revalidate the training browser experience.
+- [x] Add explicit regression tests for the interactive slide-player UI contract, such as slide-selection or player-facing rendering assertions, then rerun the test suite.
+- [x] Revalidate the training browser experience after the final fallback-family visual expansion and confirm the added visuals appear correctly in-app.

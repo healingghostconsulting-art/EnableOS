@@ -485,3 +485,39 @@ describe("demo router", () => {
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });
+
+  it("returns coach workspace data with coaching oversight, transfer context, and role-scoped library resources", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    const coach = await caller.demo.coach({ tenantId: "atlas-operations" });
+
+    expect(coach.coach.role).toBe("coach");
+    expect(coach.directLearner.role).toBe("learner");
+    expect(coach.escalationPartner.role).toBe("manager");
+    expect(coach.activeJourney.role).toBe("coach");
+    expect(coach.weeklyCoachingLogs.length).toBeGreaterThan(0);
+    expect(coach.workflowLibraryMix.documentationResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceKind: "client_upload" }),
+        expect.objectContaining({ sourceKind: "chcg" }),
+      ]),
+    );
+  });
+
+  it("allows secure coach access inside the assigned tenant and blocks cross-tenant coach access", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-coach",
+        role: "user",
+        name: "Enterprise Coach Supervisor",
+      }),
+    );
+
+    const coach = await caller.demo.secureCoach({ tenantId: "atlas-operations" });
+    expect(coach.tenant.id).toBe("atlas-operations");
+    expect(coach.coach.name).toBe("Renee Lawson");
+
+    await expect(caller.demo.secureCoach({ tenantId: "lighthouse-finance" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });

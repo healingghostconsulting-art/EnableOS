@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,6 +45,7 @@ import {
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
+import { getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { Link, useLocation } from "wouter";
 
 const VOICE_REFERENCE_SAMPLE_URL = "/manus-storage/LettingGoRAWFINALUSETHIS_b8a8ab1a.m4a";
@@ -66,8 +68,14 @@ const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string
   manager: {
     title: "Manager intervention workspace",
     route: "/manager",
-    eyebrow: "Manager / Supervisor",
-    subtitle: "Review active signals, orchestrate coaching, and close workflow and service-quality gaps faster.",
+    eyebrow: "Manager",
+    subtitle: "Review active signals, orchestrate interventions, and govern readiness movement across teams.",
+  },
+  coach: {
+    title: "Coach or supervisor workspace",
+    route: "/coach",
+    eyebrow: "Coach / Supervisor",
+    subtitle: "Run weekly coaching, monitor learner transfer, and connect lesson evidence to live performance follow-through.",
   },
   learner: {
     title: "Learner enablement journey",
@@ -659,6 +667,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
   const queryMap: Record<DemoRole, any> = {
     executive: trpc.demo.executive.useQuery({ tenantId }),
     manager: trpc.demo.manager.useQuery({ tenantId }),
+    coach: trpc.demo.coach.useQuery({ tenantId }),
     learner: trpc.demo.learner.useQuery({ tenantId }),
     client_admin: trpc.demo.admin.useQuery({ tenantId }),
   };
@@ -690,6 +699,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         {query.isLoading || landing.isLoading ? <LoadingState /> : null}
         {!query.isLoading && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && role === "coach" && query.data ? <CoachPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
       </SectionShell>
@@ -838,6 +848,25 @@ export function TrainingExperienceView() {
         coachingTitle: "Manager calibration follow-up",
       },
       {
+        id: "coach-supervision",
+        label: "Coach supervision",
+        eyebrow: "Coach family preview",
+        description: "Inspect the weekly coaching and learner-transfer sequence from the dedicated coach or supervisor role before the learner returns to live work.",
+        journeyTitle: "Coach Supervision: Weekly Coaching and Skill Transfer",
+        competencyGap: "Consistent field coaching with observable follow-through",
+        modules: [
+          {
+            id: "preview-workflow-module",
+            title: "Turning QA findings into behavior coaching",
+            format: "Microlearning",
+            durationMinutes: 7,
+            skillFocus: "Behavior-based coaching",
+            completionRate: 87,
+          },
+        ],
+        coachingTitle: "Coach checkpoint and transfer review",
+      },
+      {
         id: "leadership",
         label: "Data-led leadership",
         eyebrow: "Executive family preview",
@@ -923,8 +952,9 @@ export function TrainingExperienceView() {
     : null;
   const deckVisuals = presentation?.deckVisuals ?? [];
   const insightCharts = presentation?.insightCharts ?? [];
-  const featuredDeckVisual = deckVisuals[Math.min(selectedDeckVisualIndex, Math.max(deckVisuals.length - 1, 0))] ?? null;
-  const contextualDeckVisual = deckVisuals[Math.min(lessonPageIndex, Math.max(deckVisuals.length - 1, 0))] ?? featuredDeckVisual;
+  const slideCanvas = getSlideCanvasVisuals(deckVisuals, selectedDeckVisualIndex);
+  const featuredDeckVisual = slideCanvas.activeVisual;
+  const contextualDeckVisual = getSlideCanvasVisuals(deckVisuals, lessonPageIndex).activeVisual ?? featuredDeckVisual;
   const moduleFamilyLabel = featuredDeckVisual?.sourceDeck ?? presentation?.evidenceLabel ?? selectedModule?.format ?? "CHCG learning module";
   const completedModuleCount = modules.filter((module: any) => module.completionRate >= 80).length;
   const nextRecommendedModule = modules[moduleIndex + 1] ?? null;
@@ -1654,27 +1684,51 @@ export function TrainingExperienceView() {
                               {contextualDeckVisual ? (
                                 <div className="space-y-4 xl:sticky xl:top-8">
                                   <div className="flex items-center justify-between gap-3">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Deck-aligned visual reference</p>
-                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{contextualDeckVisual.pageLabel}</Badge>
-                                  </div>
-                                  <div className="overflow-hidden rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] shadow-[0_28px_80px_rgba(15,23,42,0.42)]">
-                                    <div className="flex aspect-[16/10] items-center justify-center bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
-                                      <img src={contextualDeckVisual.imageUrl} alt={contextualDeckVisual.title} className="max-h-full w-full object-contain object-center" />
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
+                                      <p className="mt-2 text-sm text-slate-300">Review the lesson as a sequenced course gallery instead of a single static slide image.</p>
                                     </div>
+                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length || 1} guided visuals</Badge>
                                   </div>
-                                  <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/60 p-4">
-                                    <p className="text-sm font-medium text-white">{contextualDeckVisual.title}</p>
-                                    <p className="mt-2 text-sm leading-6 text-slate-300">{contextualDeckVisual.caption}</p>
+                                  <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] px-4 py-5 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:px-6">
+                                    <Carousel opts={{ loop: false }} className="mx-10">
+                                      <CarouselContent>
+                                        {(lessonVisualGallery.length ? lessonVisualGallery : [contextualDeckVisual]).map((visual) => (
+                                          <CarouselItem key={visual.id}>
+                                            <div className="space-y-4">
+                                              <div className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80">
+                                                <div className="flex aspect-[16/10] items-center justify-center px-4 py-4 sm:px-5 sm:py-5">
+                                                  <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center" />
+                                                </div>
+                                              </div>
+                                              <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+                                                <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
+                                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide reference</p>
+                                                  <p className="mt-2 text-sm font-medium text-white">{visual.pageLabel}</p>
+                                                  <p className="mt-1 text-xs leading-5 text-slate-400">{visual.sourceDeck}</p>
+                                                </div>
+                                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                                  <p className="text-sm font-medium text-white">{visual.title}</p>
+                                                  <p className="mt-2 text-sm leading-6 text-slate-300">{visual.caption}</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </CarouselItem>
+                                        ))}
+                                      </CarouselContent>
+                                      <CarouselPrevious className="left-0 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
+                                      <CarouselNext className="right-0 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
+                                    </Carousel>
                                   </div>
                                   {lessonVisualGallery.length ? (
                                     <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
                                       <div className="flex items-center justify-between gap-3">
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Module visual gallery</p>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Module visual navigator</p>
                                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length} visuals</Badge>
                                       </div>
                                       <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                                        {lessonVisualGallery.map((visual) => (
-                                          <div key={visual.id} className="overflow-hidden rounded-[1.2rem] border border-white/10 bg-slate-950/60">
+                                        {lessonVisualGallery.map((visual, index) => (
+                                          <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${selectedDeckVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
                                             <div className="flex aspect-[16/10] items-center justify-center bg-slate-950/85 px-3 py-3">
                                               <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center" />
                                             </div>
@@ -1682,7 +1736,7 @@ export function TrainingExperienceView() {
                                               <p className="text-sm font-medium text-white">{visual.pageLabel}</p>
                                               <p className="mt-1 text-xs leading-5 text-slate-400">{visual.title}</p>
                                             </div>
-                                          </div>
+                                          </button>
                                         ))}
                                       </div>
                                     </div>
@@ -1703,8 +1757,9 @@ export function TrainingExperienceView() {
                               <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} in-platform evidence views</Badge>
                             </div>
                             <div className="grid gap-5 2xl:grid-cols-2">
-                              {insightCharts.map((chart, index) => {
+                              {insightCharts.map((chart) => {
                                 const latestPoint = chart.data[chart.data.length - 1];
+                                const chartType = chart.chartType ?? (chart.data.every((point: any) => !point.benchmark) ? "trend" : "comparison");
                                 return (
                                   <div key={chart.id} className="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1715,7 +1770,8 @@ export function TrainingExperienceView() {
                                       </div>
                                       <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{chart.metricLabel}</Badge>
                                     </div>
-                                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+
                                       <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-3">
                                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest mapped point</p>
                                         <p className="mt-2 text-lg font-semibold text-white">{latestPoint?.value ?? "—"}</p>
@@ -1727,49 +1783,55 @@ export function TrainingExperienceView() {
                                         <p className="mt-1 text-sm text-cyan-100/80">Reference target in the same frame</p>
                                       </div>
                                     </div>
-                                    <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-slate-950/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                                      <ChartContainer
-                                        className="h-60"
-                                        config={{
-                                          value: { label: chart.metricLabel, color: "#67e8f9" },
-                                          benchmark: { label: "Benchmark", color: "#e2e8f0" },
-                                        }}
-                                      >
-                                        {index % 2 === 0 ? (
-                                          <BarChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                                            <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
-                                            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={48} />
-                                            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                            <ChartTooltip
-                                              content={<ChartTooltipContent indicator="dashed" />}
-                                              cursor={{ fill: "rgba(148,163,184,0.08)" }}
-                                            />
-                                            <ChartLegend content={<ChartLegendContent />} />
-                                            <Bar dataKey="value" fill="var(--color-value)" radius={[10, 10, 0, 0]} />
-                                            <Bar dataKey="benchmark" fill="var(--color-benchmark)" radius={[10, 10, 0, 0]} />
-                                          </BarChart>
-                                        ) : (
-                                          <AreaChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                                            <defs>
-                                              <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.45} />
-                                                <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.03} />
-                                              </linearGradient>
-                                            </defs>
-                                            <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
-                                            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                                            <ChartTooltip
-                                              content={<ChartTooltipContent indicator="dashed" />}
-                                              cursor={{ stroke: "rgba(56,189,248,0.25)", strokeWidth: 1 }}
-                                            />
-                                            <ChartLegend content={<ChartLegendContent />} />
-                                            <Area type="monotone" dataKey="value" stroke="var(--color-value)" fill={`url(#gradient-${chart.id})`} strokeWidth={3} />
-                                            <Line type="monotone" dataKey="benchmark" stroke="var(--color-benchmark)" strokeDasharray="4 4" dot={{ r: 3, fill: "var(--color-benchmark)" }} activeDot={{ r: 4 }} />
-                                          </AreaChart>
-                                        )}
-                                      </ChartContainer>
-                                    </div>
+                                      <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-slate-950/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                        <ChartContainer
+                                          className="h-60"
+                                          config={{
+                                            value: { label: chart.metricLabel, color: "#67e8f9" },
+                                            benchmark: { label: "Benchmark", color: "#e2e8f0" },
+                                          }}
+                                        >
+                                          {chartType === "comparison" ? (
+                                            <BarChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                              <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={48} />
+                                              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                              <ChartTooltip
+                                                content={<ChartTooltipContent indicator="dashed" />}
+                                                cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                                              />
+                                              <ChartLegend content={<ChartLegendContent />} />
+                                              <Bar dataKey="value" fill="var(--color-value)" radius={[10, 10, 0, 0]} />
+                                              <Bar dataKey="benchmark" fill="var(--color-benchmark)" radius={[10, 10, 0, 0]} />
+                                            </BarChart>
+                                          ) : (
+                                            <AreaChart data={chart.data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                                              <defs>
+                                                <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
+                                                  <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.45} />
+                                                  <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.03} />
+                                                </linearGradient>
+                                              </defs>
+                                              <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.14)" />
+                                              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                                              <ChartTooltip
+                                                content={<ChartTooltipContent indicator="dashed" />}
+                                                cursor={{ stroke: "rgba(56,189,248,0.25)", strokeWidth: 1 }}
+                                              />
+                                              <ChartLegend content={<ChartLegendContent />} />
+                                              <Area type="monotone" dataKey="value" stroke="var(--color-value)" fill={`url(#gradient-${chart.id})`} strokeWidth={3} />
+                                              <Line type="monotone" dataKey="benchmark" stroke="var(--color-benchmark)" strokeDasharray="4 4" dot={{ r: 3, fill: "var(--color-benchmark)" }} activeDot={{ r: 4 }} />
+                                            </AreaChart>
+                                          )}
+                                        </ChartContainer>
+                                      </div>
+                                      {chart.insightNote ? (
+                                        <div className="mt-4 rounded-[1.25rem] border border-cyan-400/15 bg-cyan-400/10 px-4 py-3 text-sm leading-6 text-cyan-50">
+                                          {chart.insightNote}
+                                        </div>
+                                      ) : null}
+
                                   </div>
                                 );
                               })}
@@ -2252,7 +2314,7 @@ export function ContentLibraryView() {
                     </label>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
+                    {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
                       <Button
                         key={option.value}
                         type="button"
@@ -2467,6 +2529,7 @@ export function ContentLibraryView() {
                           <SelectContent>
                             <SelectItem value="executive">Executive</SelectItem>
                             <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="coach">Coach / Supervisor</SelectItem>
                             <SelectItem value="learner">Learner</SelectItem>
                             <SelectItem value="client_admin">Client admin</SelectItem>
                             <SelectItem value="all">All roles</SelectItem>
@@ -2563,7 +2626,7 @@ function ReviewLogComposer({
 }: {
   tenantId: string;
   subjectUserId: string;
-  authorRole: "manager" | "executive" | "client_admin";
+  authorRole: "manager" | "coach" | "executive" | "client_admin";
   onCreated?: () => void;
   title: string;
 }) {
@@ -2642,7 +2705,7 @@ function WeeklyCoachingLogComposer({
 }: {
   tenantId: string;
   subjectUserId: string;
-  coachRole: "manager" | "executive" | "client_admin";
+  coachRole: "manager" | "coach" | "executive" | "client_admin";
   title: string;
   employeeName: string;
   employeeEmail: string;
@@ -3050,6 +3113,189 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           </PremiumCard>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+  const leadModule = data.activeJourney?.modules?.[0] ?? null;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} />
+        <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} />
+        <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} />
+        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <ChartFrame title="Coach-visible signal trend" description="Frontline coaching should connect active performance signals to the next observed behavior, not just course completion.">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
+              <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+              <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} />
+              <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+              <Line type="monotone" dataKey="value" stroke="#67e8f9" strokeWidth={3} dot={{ r: 4, fill: "#67e8f9" }} />
+              <Line type="monotone" dataKey="target" stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartFrame>
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">Coach supervision lane</CardTitle>
+            <CardDescription className="text-slate-400">A dedicated coach workspace sits between learner delivery and manager governance so weekly coaching, observed behaviors, and escalation context stay visible.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Current coach pathway</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">{data.activeJourney.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{data.activeJourney.competencyGap}</p>
+            </div>
+            {leadModule ? (
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Next coach-focused module</p>
+                <p className="mt-2 text-lg font-medium text-white">{leadModule.title}</p>
+                <p className="mt-2 text-sm text-slate-300">{leadModule.skillFocus} · {leadModule.durationMinutes} min · {leadModule.completionRate}% completion</p>
+              </div>
+            ) : null}
+            <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Escalation partner</p>
+              <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
+              <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
+            </div>
+          </CardContent>
+        </PremiumCard>
+      </div>
+      <Tabs defaultValue="coaching" className="space-y-4">
+        <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
+          <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
+          <TabsTrigger value="transfer" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
+          <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+          <TabsTrigger value="alerts" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
+        </TabsList>
+        <TabsContent value="coaching" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="space-y-4">
+            {data.coachingSessions.map((session: any) => (
+              <PremiumCard key={session.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{session.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">{session.notes}</CardDescription>
+                    </div>
+                    <StatusBadge value={session.status} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
+                    <div className="mt-2 space-y-2 text-sm text-slate-300">
+                      {session.actionPlan.map((step: any) => (
+                        <div key={step} className="flex items-start gap-2">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                          <span>{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ))}
+          </div>
+          <div className="space-y-6">
+            <WeeklyCoachingLogComposer
+              tenantId={data.tenant.id}
+              subjectUserId={data.directLearner.id}
+              coachRole="coach"
+              title="Capture a weekly coaching log from the coach workspace"
+              employeeName={data.directLearner.name}
+              employeeEmail={data.directLearner.email}
+              coachName={data.coach.name}
+              coachEmail={data.coach.email}
+              supervisorName={data.escalationPartner.name}
+              supervisorEmail={data.escalationPartner.email}
+              managerOfSupervisorEmail={data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail}
+              onCreated={onUpdated}
+            />
+            <WeeklyCoachingLogTimeline
+              title="Coach-visible weekly coaching history"
+              description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record."
+              tenantId={data.tenant.id}
+              logs={data.weeklyCoachingLogs}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="transfer" className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Training-transfer focus</CardTitle>
+              <CardDescription className="text-slate-400">The coach lane bridges course completion to observed behavior, so lessons, QA signals, and next coaching moves stay in one working view.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {data.activeJourney.modules.map((module: any) => (
+                <div key={module.id} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-lg font-medium text-white">{module.title}</p>
+                      <p className="mt-1 text-sm text-slate-300">{module.skillFocus} · {module.durationMinutes} min · {module.format}</p>
+                    </div>
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{module.completionRate}% complete</Badge>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+          <WorkflowLibraryPanel
+            title="Coach-ready content mix"
+            description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning."
+            resources={data.workflowLibraryMix.documentationResources}
+          />
+        </TabsContent>
+        <TabsContent value="documentation" className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Coach documentation feed</CardTitle>
+              <CardDescription className="text-slate-400">Observed behavior, weekly coaching records, and review notes remain connected so the coach does not lose context between sessions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DocumentationFeed entries={data.documentationEntries} />
+            </CardContent>
+          </PremiumCard>
+          <div className="space-y-6">
+            <ReviewLogComposer
+              tenantId={data.tenant.id}
+              subjectUserId={data.directLearner.id}
+              authorRole="coach"
+              title="Write a coach follow-up or observational review"
+              onCreated={onUpdated}
+            />
+            <WorkflowLibraryPanel
+              title="Coach observation resources"
+              description="Use methodology references and tenant materials to keep observation notes aligned with the lesson evidence and coaching standard."
+              resources={data.workflowLibraryMix.interventionResources}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="alerts" className="grid gap-4 md:grid-cols-2">
+          {data.notifications.map((item: any) => (
+            <PremiumCard key={item.id}>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-white">{item.title}</CardTitle>
+                    <CardDescription className="mt-2 text-slate-400">{new Date(item.createdAt).toLocaleString()}</CardDescription>
+                  </div>
+                  <StatusBadge value={item.priority} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-6 text-slate-300">{item.detail}</p>
+              </CardContent>
+            </PremiumCard>
+          ))}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

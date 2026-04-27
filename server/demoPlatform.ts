@@ -1,4 +1,4 @@
-export type DemoRole = "executive" | "manager" | "learner" | "client_admin";
+export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
 export type DemoTenant = {
   id: string;
@@ -61,7 +61,7 @@ export type LearningModule = {
 export type LearningJourney = {
   id: string;
   tenantId: string;
-  role: Extract<DemoRole, "manager" | "learner" | "executive">;
+  role: Extract<DemoRole, "manager" | "coach" | "learner" | "executive">;
   title: string;
   progress: number;
   competencyGap: string;
@@ -153,7 +153,7 @@ export type ReviewLog = {
   tenantId: string;
   subjectUserId: string;
   authorUserId: string;
-  authorRole: "manager" | "executive" | "client_admin";
+  authorRole: "manager" | "coach" | "executive" | "client_admin";
   reviewType: "one_on_one" | "quarterly_check_in" | "annual_review";
   title: string;
   notes: string;
@@ -165,7 +165,7 @@ export type ReviewLog = {
 export type CreateReviewLogInput = {
   tenantId: string;
   subjectUserId: string;
-  authorRole: "manager" | "executive" | "client_admin";
+  authorRole: "manager" | "coach" | "executive" | "client_admin";
   reviewType: "one_on_one" | "quarterly_check_in" | "annual_review";
   title: string;
   notes: string;
@@ -178,7 +178,7 @@ export type WeeklyCoachingLog = {
   tenantId: string;
   subjectUserId: string;
   coachUserId: string;
-  coachRole: "manager" | "executive" | "client_admin";
+  coachRole: "manager" | "coach" | "executive" | "client_admin";
   coachName: string;
   coachEmail: string;
   employeeName: string;
@@ -202,7 +202,7 @@ export type WeeklyCoachingLog = {
 export type CreateWeeklyCoachingLogInput = {
   tenantId: string;
   subjectUserId: string;
-  coachRole: "manager" | "executive" | "client_admin";
+  coachRole: "manager" | "coach" | "executive" | "client_admin";
   sessionDate: string;
   attendance: string;
   followUpFromPrevious: string;
@@ -306,14 +306,17 @@ const tenants: DemoTenant[] = [
 const users: DemoUser[] = [
   { id: "u-exec-1", tenantId: "atlas-operations", name: "Alicia Warren", email: "alicia.warren@enterpriseworkspace.demo", title: "VP, Workforce Performance", role: "executive", team: "Enterprise", avatarFallback: "AW", readinessScore: 84 },
   { id: "u-mgr-1", tenantId: "atlas-operations", name: "Marcus Bell", email: "marcus.bell@enterpriseworkspace.demo", title: "Performance Enablement Manager", role: "manager", team: "Core Service Delivery", avatarFallback: "MB", readinessScore: 78 },
+  { id: "u-coach-1", tenantId: "atlas-operations", name: "Renee Lawson", email: "renee.lawson@enterpriseworkspace.demo", title: "Frontline Coach Supervisor", role: "coach", team: "Core Service Delivery", avatarFallback: "RL", readinessScore: 79 },
   { id: "u-learn-1", tenantId: "atlas-operations", name: "Nina Patel", email: "nina.patel@enterpriseworkspace.demo", title: "Senior Service Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "NP", readinessScore: 72 },
   { id: "u-admin-1", tenantId: "atlas-operations", name: "Jared Kim", email: "jared.kim@enterpriseworkspace.demo", title: "Client Admin", role: "client_admin", team: "Enablement Governance", avatarFallback: "JK", readinessScore: 90 },
   { id: "u-exec-2", tenantId: "lighthouse-finance", name: "Leah Porter", email: "leah.porter@regulatedworkspace.demo", title: "Chief Service Officer", role: "executive", team: "Enterprise", avatarFallback: "LP", readinessScore: 86 },
   { id: "u-mgr-2", tenantId: "lighthouse-finance", name: "Darius Cole", email: "darius.cole@regulatedworkspace.demo", title: "Quality and Coaching Supervisor", role: "manager", team: "Resolution Operations", avatarFallback: "DC", readinessScore: 80 },
+  { id: "u-coach-2", tenantId: "lighthouse-finance", name: "Monica Ellis", email: "monica.ellis@regulatedworkspace.demo", title: "Coaching Supervisor", role: "coach", team: "Resolution Operations", avatarFallback: "ME", readinessScore: 78 },
   { id: "u-learn-2", tenantId: "lighthouse-finance", name: "Emily Ross", email: "emily.ross@regulatedworkspace.demo", title: "Client Support Specialist", role: "learner", team: "Resolution Operations", avatarFallback: "ER", readinessScore: 74 },
   { id: "u-admin-2", tenantId: "lighthouse-finance", name: "Tanya Brooks", email: "tanya.brooks@regulatedworkspace.demo", title: "Client Admin", role: "client_admin", team: "Operational Governance", avatarFallback: "TB", readinessScore: 91 },
   { id: "u-exec-3", tenantId: "horizon-commerce", name: "Devon Hayes", email: "devon.hayes@horizoncommerce.demo", title: "VP, Experience Operations", role: "executive", team: "Enterprise", avatarFallback: "DH", readinessScore: 81 },
   { id: "u-mgr-3", tenantId: "horizon-commerce", name: "Sofia Nguyen", email: "sofia.nguyen@horizoncommerce.demo", title: "Omnichannel Team Leader", role: "manager", team: "Digital Care", avatarFallback: "SN", readinessScore: 76 },
+  { id: "u-coach-3", tenantId: "horizon-commerce", name: "Caleb Morris", email: "caleb.morris@horizoncommerce.demo", title: "Customer Care Coach", role: "coach", team: "Digital Care", avatarFallback: "CM", readinessScore: 77 },
   { id: "u-learn-3", tenantId: "horizon-commerce", name: "Jordan Blake", email: "jordan.blake@horizoncommerce.demo", title: "Support Associate", role: "learner", team: "Digital Care", avatarFallback: "JB", readinessScore: 70 },
   { id: "u-admin-3", tenantId: "horizon-commerce", name: "Priya Shah", email: "priya.shah@horizoncommerce.demo", title: "Client Admin", role: "client_admin", team: "Experience Systems", avatarFallback: "PS", readinessScore: 88 },
 ];
@@ -347,6 +350,18 @@ const journeys: LearningJourney[] = [
     ],
   },
   {
+    id: "journey-coach-practice-atlas",
+    tenantId: "atlas-operations",
+    role: "coach",
+    title: "Coach Supervision: Weekly Coaching and Skill Transfer",
+    progress: 77,
+    competencyGap: "Consistent field coaching with observable follow-through",
+    modules: [
+      { id: "preview-workflow-module", title: "Turning QA findings into behavior coaching", format: "Microlearning", durationMinutes: 7, skillFocus: "Behavior-based coaching", completionRate: 89 },
+      { id: "mod-sf-1", title: "Active listening in high-friction interactions", format: "Microlearning", durationMinutes: 6, skillFocus: "Active listening", completionRate: 84 },
+    ],
+  },
+  {
     id: "journey-data-led-leadership",
     tenantId: "atlas-operations",
     role: "executive",
@@ -370,6 +385,18 @@ const journeys: LearningJourney[] = [
       { id: "mod-lfs-1", title: "Professional clarity under compliance pressure", format: "Microlearning", durationMinutes: 9, skillFocus: "Composure", completionRate: 71 },
       { id: "mod-lfs-2", title: "Verification discipline and secure handoffs", format: "Checklist", durationMinutes: 7, skillFocus: "Accuracy", completionRate: 79 },
       { id: "mod-lfs-3", title: "Reassurance phrases that build trust", format: "Playbook", durationMinutes: 10, skillFocus: "Trust-building", completionRate: 67 },
+    ],
+  },
+  {
+    id: "journey-coach-practice-lf",
+    tenantId: "lighthouse-finance",
+    role: "coach",
+    title: "Coach Supervision: Recovery Coaching and Compliance Reinforcement",
+    progress: 75,
+    competencyGap: "Recovery coaching consistency under compliance pressure",
+    modules: [
+      { id: "mod-sf-3", title: "De-escalation and professional recovery", format: "Scenario", durationMinutes: 8, skillFocus: "Recovery coaching", completionRate: 82 },
+      { id: "preview-workflow-module", title: "Turning QA findings into behavior coaching", format: "Microlearning", durationMinutes: 7, skillFocus: "Behavior-based coaching", completionRate: 86 },
     ],
   },
   {
@@ -408,6 +435,18 @@ const journeys: LearningJourney[] = [
       { id: "mod-hcs-1", title: "Human service language in fast channels", format: "Microlearning", durationMinutes: 7, skillFocus: "Tone control", completionRate: 70 },
       { id: "mod-hcs-2", title: "Warm transfers and clean next steps", format: "Checklist", durationMinutes: 6, skillFocus: "Transfer discipline", completionRate: 65 },
       { id: "mod-hcs-3", title: "Closing the loop with confidence", format: "Scenario", durationMinutes: 9, skillFocus: "Issue ownership", completionRate: 61 },
+    ],
+  },
+  {
+    id: "journey-coach-practice-hc",
+    tenantId: "horizon-commerce",
+    role: "coach",
+    title: "Coach Supervision: Digital-Care Coaching Readiness",
+    progress: 74,
+    competencyGap: "Visible coaching follow-through across digital channels",
+    modules: [
+      { id: "mod-sf-2", title: "Confident reassurance without overpromising", format: "Microlearning", durationMinutes: 6, skillFocus: "Reassurance coaching", completionRate: 80 },
+      { id: "preview-performance-module", title: "High, emerging, and at-risk performance archetypes", format: "Playbook", durationMinutes: 9, skillFocus: "Pattern recognition", completionRate: 78 },
     ],
   },
   {
@@ -1079,6 +1118,7 @@ const weeklyCoachingLogs: WeeklyCoachingLog[] = [
 const accessGrants: DemoAccessGrant[] = [
   { openId: "atlas-exec", tenantId: "atlas-operations", role: "executive", name: "Enterprise Executive" },
   { openId: "atlas-manager", tenantId: "atlas-operations", role: "manager", name: "Enterprise Manager" },
+  { openId: "atlas-coach", tenantId: "atlas-operations", role: "coach", name: "Enterprise Coach Supervisor" },
   { openId: "atlas-learner", tenantId: "atlas-operations", role: "learner", name: "Enterprise Learner" },
   { openId: "atlas-admin", tenantId: "atlas-operations", role: "client_admin", name: "Enterprise Client Admin" },
   { openId: "platform-admin", tenantId: "atlas-operations", role: "platform_admin", name: "Platform Admin" },
@@ -1112,14 +1152,18 @@ function getTenantCoachingSessions(tenantId: string) {
   return coachingSessions.filter((session) => session.tenantId === tenantId);
 }
 
-function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" | "learner" | "executive">) {
+function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" | "coach" | "learner" | "executive">) {
   return journeys.find((journey) => journey.tenantId === tenantId && journey.role === role) ?? journeys.find((journey) => journey.role === role) ?? journeys[0]!;
 }
 
 function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
   return contentLibraryAssets.filter((asset) => {
     const tenantScoped = asset.tenantId === "all" || asset.tenantId === tenantId;
-    const roleScoped = !role || role === "all" || asset.linkedRoles.includes("all") || asset.linkedRoles.includes(role);
+    const roleScoped = !role
+      || role === "all"
+      || asset.linkedRoles.includes("all")
+      || asset.linkedRoles.includes(role)
+      || (role === "coach" && asset.linkedRoles.includes("manager"));
     return tenantScoped && roleScoped;
   });
 }
@@ -1512,6 +1556,36 @@ export function getManagerDashboard(tenantId?: string) {
   };
 }
 
+export function getCoachDashboard(tenantId?: string) {
+  const tenant = getTenant(tenantId);
+  const coach = getUser("coach", tenant.id);
+  const learner = getUser("learner", tenant.id);
+  const manager = getUser("manager", tenant.id);
+  const branding = getTenantBranding(tenant.id);
+  const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "coach");
+  const coachingSessions = getTenantCoachingSessions(tenant.id).filter((session) => session.learnerUserId === learner.id);
+  const openSignals = getTenantSignals(tenant.id).slice(0, 3);
+  const weeklyLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
+
+  return {
+    tenant,
+    branding,
+    coach,
+    directLearner: learner,
+    escalationPartner: manager,
+    activeJourney: getTenantJourneys(tenant.id, "coach"),
+    openSignals,
+    coachingSessions,
+    weeklyCoachingLogs: weeklyLogs,
+    reviewLogs: getReviewLogs(tenant.id, learner.id),
+    documentationEntries: getDocumentationEntries(tenant.id, learner.id),
+    methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
+    methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "coach" || item.audience === "manager" || item.audience === "all")).slice(0, 4),
+    workflowLibraryMix,
+  };
+}
+
 export function getLearnerDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const learner = getUser("learner", tenant.id);
@@ -1568,6 +1642,7 @@ export function getDemoBundle(tenantId?: string) {
     landing: getDemoLanding(),
     executive: getExecutiveDashboard(tenant.id),
     manager: getManagerDashboard(tenant.id),
+    coach: getCoachDashboard(tenant.id),
     learner: getLearnerDashboard(tenant.id),
     admin: getAdminDashboard(tenant.id),
   };
