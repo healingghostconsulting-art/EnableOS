@@ -241,8 +241,8 @@ export const demoRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can create weekly coaching logs." });
     }
 
-    const coachRole = grant.role === "platform_admin" ? input.coachRole : grant.role;
-    return createWeeklyCoachingLog({ ...input, tenantId, coachRole: coachRole as "manager" | "coach" | "executive" | "client_admin" });
+    const coachRole = (grant.role === "platform_admin" ? input.coachRole : grant.role) as "manager" | "coach" | "executive" | "client_admin";
+    return createWeeklyCoachingLog({ ...input, tenantId, coachRole });
   }),
   previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
   secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {

@@ -115,3 +115,5 @@
 - [x] Fix the training-player layout so lesson visuals are not clipped or cut off inside the interactive course canvas.
 - [x] Restore or reposition the training narration controls so learners can clearly find and use narrated playback.
 - [x] Revalidate the repaired training player in the live browser after the layout and narration-control fixes.
+- [x] Conduct a structured user-testing pass across public entry, authenticated access, role workspaces, training, coaching, and content-library flows, then document prioritized bugs and improvement opportunities.
+- [x] Research the current top telephony and contact-center platforms and assess how CHCG EnableOS could be packaged as a plugin, marketplace app, or integration for each one.

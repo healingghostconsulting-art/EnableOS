@@ -1,0 +1,21 @@
+# User Testing Findings — Round 1
+
+The first testing pass covered the public homepage, the interactive training experience, and the content library.
+
+In the **training experience**, the narration controls are now visible and discoverable near the lesson page content, which is an improvement over the prior hidden placement. The slide area is more usable because the lesson now exposes direct links to open the full-size slide in a separate tab. However, the current training view still feels dense above the fold, with many summary cards, preview toggles, and control clusters before the learner reaches the core lesson task. This creates a risk that first-time learners may spend time orienting themselves rather than progressing through the lesson.
+
+In the **content library**, the client-scoped framing is clear and the former cross-client selector is no longer exposed. The library also does a good job distinguishing CHCG assets from tenant imports. A likely usability issue remains in the action model: many cards present both **Preview in workflow** and **Start training**, while the page header also includes **Start training**. This may make it unclear which action begins a module, which action preserves context, and whether the header action refers to the selected asset or a generic route.
+
+On the **homepage**, the secure client-access message is visible and the entry path is clearer than before. A remaining improvement opportunity is that the page still presents multiple secure workspace buttons early in the experience, which may be confusing for a new buyer or learner who may not know whether they should enter executive, manager, coach, learner, or client-admin space.
+
+The second testing pass covered the **coach workspace** and **client-admin control plane**.
+
+In the **coach workspace**, the added role layer is understandable and the weekly coaching log is visible in context. A likely improvement opportunity is that the page places a large amount of strategic context, metrics, trend content, escalation context, and form content on one long screen. For a frontline coach trying to complete a weekly log quickly, the current layout may feel more like a dashboard than an action-first workspace. The most important action on the page is data entry, but it is pushed well below summary content.
+
+In the **client-admin view**, the product communicates tenant isolation and white-label control well. However, there is still no obvious client-admin workflow for managing which trainings are licensed, available, or assigned to specific users. Because the recent product changes introduced client-specific access and purchased-training logic, the absence of a visible license-management surface may create a gap between the access model and what a client administrator expects to control directly.
+
+A second client-admin usability issue is that documentation, branding, weekly coaching, library governance, and roster review are all combined into one long control plane. This is information-rich, but it likely increases scanning cost and may make it difficult for client admins to understand which areas are configuration, which are governance, and which are operational content authoring.
+
+The **learner workspace** is visually strong and the next action is clearer than in earlier versions. The primary call to action to resume training is visible, and the platform now better separates discovery from the immersive course player. Even so, the learner page still shows several similar action labels close together, including **Resume guided training**, **Browse mapped resources**, **Launch interactive training**, and **Open mapped resources**. For a first-time learner, these labels may feel overlapping rather than clearly distinct, especially when two actions appear to refer to training and two appear to refer to resources.
+
+A further learner-side improvement opportunity is that the page communicates progress, coaching context, and recommendation framing well, but the difference between a required next step and an optional recommendation could be stronger. The workspace would likely benefit from a more explicit single primary action, with secondary links visually demoted.
