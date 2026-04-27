@@ -25,6 +25,7 @@ function WorkspaceShell({ children, roleLabel }: { children: React.ReactNode; ro
       menuItems={workspaceMenu}
       title="CHCG EnableOS"
       subtitle="Enterprise enablement and coaching intelligence"
+      requireAuth
       demoProfile={{
         name: "CHCG Demo Workspace",
         roleLabel,

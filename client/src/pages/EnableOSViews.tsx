@@ -532,6 +532,8 @@ function AssessmentPanel({
 
 export function LandingView() {
   const landing = trpc.demo.landing.useQuery();
+  const viewer = trpc.auth.me.useQuery();
+  const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
   const featuredTenants = landing.data?.tenants ?? [];
 
   return (
@@ -553,15 +555,34 @@ export function LandingView() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                {Object.values(roleMeta).map((item: any) => (
-                  <Link key={item.route} href={item.route}>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/learner">
                     <Button className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                      Explore {item.eyebrow}
+                      {viewer.data ? "Open my client training access" : "Sign in for client access"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                ))}
+                  <Link href="/training">
+                    <Button variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white">
+                      Preview secure training flow
+                    </Button>
+                  </Link>
+                </div>
+                <p className="max-w-3xl text-sm leading-6 text-slate-300">
+                  {viewerAccess.data
+                    ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                    : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {Object.values(roleMeta).map((item: any) => (
+                    <Link key={item.route} href={item.route}>
+                      <Button variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white">
+                        Secure {item.eyebrow} workspace
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {landing.data?.featuredMetrics.map((item: any) => (
@@ -654,28 +675,21 @@ export function LandingView() {
 }
 
 export function RoleWorkspace({ role }: { role: DemoRole }) {
-  const landing = trpc.demo.landing.useQuery();
-  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
-  const [tenantId, setTenantId] = useState(initialTenantId);
-
-  const tenants = landing.data?.tenants ?? [];
-  const tenantPicker = useMemo(
-    () => <TenantPicker tenants={tenants} tenantId={tenantId} setTenantId={setTenantId} />,
-    [tenantId, tenants],
-  );
-
+  const access = trpc.demo.viewerAccess.useQuery();
+  const tenantId = access.data?.tenant.id;
   const queryMap: Record<DemoRole, any> = {
-    executive: trpc.demo.executive.useQuery({ tenantId }),
-    manager: trpc.demo.manager.useQuery({ tenantId }),
-    coach: trpc.demo.coach.useQuery({ tenantId }),
-    learner: trpc.demo.learner.useQuery({ tenantId }),
-    client_admin: trpc.demo.admin.useQuery({ tenantId }),
+    executive: trpc.demo.secureExecutive.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
+    manager: trpc.demo.secureManager.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
+    coach: trpc.demo.secureCoach.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
+    learner: trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
+    client_admin: trpc.demo.secureAdmin.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
   };
 
   const query = queryMap[role];
   const meta = roleMeta[role];
+  const canAccessRequestedRole = access.data ? access.data.permittedRoles.includes(role) : false;
   const refreshWorkspace = () => {
-    void landing.refetch();
+    void access.refetch();
     void query.refetch();
   };
 
@@ -687,7 +701,11 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         description={meta.subtitle}
         actions={
           <>
-            {tenantPicker}
+            {access.data ? (
+              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+                {access.data.tenant.name}
+              </Badge>
+            ) : null}
             <Link href="/">
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                 Back to overview
@@ -696,22 +714,36 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           </>
         }
       >
-        {query.isLoading || landing.isLoading ? <LoadingState /> : null}
-        {!query.isLoading && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && role === "coach" && query.data ? <CoachPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {access.isLoading || query.isLoading ? <LoadingState /> : null}
+        {!access.isLoading && !access.data ? (
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
+              <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific workspaces and purchased training access.</CardDescription>
+            </CardHeader>
+          </PremiumCard>
+        ) : null}
+        {!access.isLoading && access.data && !canAccessRequestedRole ? (
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">This workspace is outside your current entitlement.</CardTitle>
+              <CardDescription className="text-slate-300">Your signed-in account is limited to the client and role access assigned to {access.data.tenant.name}. Use the routes your role has been granted or sign in with a different client account.</CardDescription>
+            </CardHeader>
+          </PremiumCard>
+        ) : null}
+        {!query.isLoading && canAccessRequestedRole && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && canAccessRequestedRole && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && canAccessRequestedRole && role === "coach" && query.data ? <CoachPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && canAccessRequestedRole && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && canAccessRequestedRole && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
       </SectionShell>
     </Surface>
   );
 }
 
 export function TrainingExperienceView() {
-  const landing = trpc.demo.landing.useQuery();
-  const tenants = landing.data?.tenants ?? [];
-  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
-  const [tenantId, setTenantId] = useState(initialTenantId);
+  const access = trpc.demo.viewerAccess.useQuery();
+  const tenantId = access.data?.tenant.id;
   const [location] = useLocation();
   const queryParams = useMemo(() => {
     if (typeof window === "undefined") {
@@ -719,10 +751,9 @@ export function TrainingExperienceView() {
     }
     return new URLSearchParams(window.location.search);
   }, [location]);
-  const requestedTenantId = queryParams.get("tenantId");
   const requestedAssetId = queryParams.get("assetId");
   const requestedAssetTitle = queryParams.get("assetTitle");
-  const learner = trpc.demo.learner.useQuery({ tenantId });
+  const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
@@ -740,12 +771,6 @@ export function TrainingExperienceView() {
   const [narrationMode, setNarrationMode] = useState<"browser_preview" | "voice_reference">("browser_preview");
   const [narrationRate, setNarrationRate] = useState("0.95");
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
-
-  useEffect(() => {
-    if (requestedTenantId && requestedTenantId !== tenantId) {
-      setTenantId(requestedTenantId);
-    }
-  }, [requestedTenantId, tenantId]);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -809,11 +834,6 @@ export function TrainingExperienceView() {
       setApplicationSubmitted(false);
     }
   }, [stageIndex]);
-
-  const tenantPicker = useMemo(
-    () => <TenantPicker tenants={tenants} tenantId={tenantId} setTenantId={setTenantId} />,
-    [tenantId, tenants],
-  );
 
   const liveJourney = learner.data?.activeJourney ?? null;
   const previewScenarios = useMemo(
@@ -1154,7 +1174,11 @@ export function TrainingExperienceView() {
         description="This view shows how CHCG and tenant-specific content are reformatted into a guided learning sequence with briefing, practice, live-work application, and reflection moments."
         actions={
           <>
-            {tenantPicker}
+            {access.data ? (
+              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+                {access.data.tenant.name}
+              </Badge>
+            ) : null}
             <Link href="/learner">
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                 Back to learner
@@ -1163,7 +1187,7 @@ export function TrainingExperienceView() {
           </>
         }
       >
-        {learner.isLoading || landing.isLoading ? <LoadingState /> : null}
+        {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-6">
             {launchedAsset ? (
@@ -2109,10 +2133,8 @@ export function TrainingExperienceView() {
 }
 
 export function ContentLibraryView() {
-  const landing = trpc.demo.landing.useQuery();
-  const tenants = landing.data?.tenants ?? [];
-  const initialTenantId = landing.data?.tenants?.[0]?.id ?? "atlas-operations";
-  const [tenantId, setTenantId] = useState(initialTenantId);
+  const access = trpc.demo.viewerAccess.useQuery();
+  const tenantId = access.data?.tenant.id;
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
@@ -2129,8 +2151,8 @@ export function ContentLibraryView() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
-  const library = trpc.demo.library.useQuery({ tenantId, role: roleFilter });
-  const uploadMutation = trpc.demo.previewUploadContent.useMutation({
+  const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
+  const uploadMutation = trpc.demo.secureUploadContent.useMutation({
     onSuccess: async (created) => {
       setUploadNotice(`${created.title} is now visible in the tenant library.`);
       setTitle("");
@@ -2147,11 +2169,6 @@ export function ContentLibraryView() {
       setUploadNotice(error.message);
     },
   });
-
-  const tenantPicker = useMemo(
-    () => <TenantPicker tenants={tenants} tenantId={tenantId} setTenantId={setTenantId} />,
-    [tenantId, tenants],
-  );
 
   const trackKeywords: Record<string, string[]> = {
     all: [],
@@ -2194,10 +2211,10 @@ export function ContentLibraryView() {
   );
 
   function handleStartTraining(asset?: any) {
-    const params = new URLSearchParams({ tenantId });
+    const params = new URLSearchParams();
     if (asset?.id) params.set("assetId", asset.id);
     if (asset?.title) params.set("assetTitle", asset.title);
-    setLocation(`/training?${params.toString()}`);
+    setLocation(params.toString() ? `/training?${params.toString()}` : "/training");
   }
 
   async function readFileAsBase64(file: File) {
@@ -2250,7 +2267,11 @@ export function ContentLibraryView() {
         description="Browse the CHCG core library by learning track, then blend in client-provided materials with clear source labeling, role alignment, and tenant-safe visibility."
         actions={
           <>
-            {tenantPicker}
+            {access.data ? (
+              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+                {access.data.tenant.name}
+              </Badge>
+            ) : null}
             <Button type="button" onClick={() => handleStartTraining(selectedAsset ?? undefined)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
               Start training
             </Button>
@@ -2262,7 +2283,7 @@ export function ContentLibraryView() {
           </>
         }
       >
-        {library.isLoading || landing.isLoading ? <LoadingState /> : null}
+        {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
           <div className="space-y-8">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

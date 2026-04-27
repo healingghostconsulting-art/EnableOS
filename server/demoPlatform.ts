@@ -273,6 +273,18 @@ export type DemoAccessGrant = {
   name: string;
 };
 
+export type DemoViewerAccess = {
+  grant: DemoAccessGrant;
+  tenant: Pick<DemoTenant, "id" | "name" | "industry">;
+  permittedRoles: DemoRole[];
+  canSwitchTenant: boolean;
+};
+
+export type TenantTrainingEntitlement = {
+  licensedJourneyIds: string[];
+  licensedAssetIds: string[];
+};
+
 const tenants: DemoTenant[] = [
   {
     id: "atlas-operations",
@@ -1124,6 +1136,62 @@ const accessGrants: DemoAccessGrant[] = [
   { openId: "platform-admin", tenantId: "atlas-operations", role: "platform_admin", name: "Platform Admin" },
 ];
 
+const tenantTrainingEntitlements = new Map<string, TenantTrainingEntitlement>([
+  [
+    "atlas-operations",
+    {
+      licensedJourneyIds: [
+        "journey-service-foundations",
+        "journey-workflow-precision",
+        "journey-coach-practice-atlas",
+        "journey-data-led-leadership",
+      ],
+      licensedAssetIds: [
+        "library-service-foundations-core",
+        "library-qa-essentials",
+        "library-workflow-field-kit",
+        "library-data-led-leadership",
+        "library-performance-governance",
+        "library-engagement-recognition",
+        "library-atlas-launch-readiness",
+      ],
+    },
+  ],
+  [
+    "lighthouse-finance",
+    {
+      licensedJourneyIds: [
+        "journey-service-foundations-lf",
+        "journey-coach-practice-lf",
+        "journey-performance-leadership-lf",
+        "journey-data-led-leadership-lf",
+      ],
+      licensedAssetIds: [
+        "library-service-foundations-core",
+        "library-qa-essentials",
+        "library-performance-governance",
+        "library-lighthouse-compliance-brief",
+      ],
+    },
+  ],
+  [
+    "horizon-commerce",
+    {
+      licensedJourneyIds: [
+        "journey-service-foundations-hc",
+        "journey-coach-practice-hc",
+        "journey-engagement-systems-hc",
+        "journey-exec-culture-hc",
+      ],
+      licensedAssetIds: [
+        "library-service-foundations-core",
+        "library-workflow-field-kit",
+        "library-engagement-recognition",
+      ],
+    },
+  ],
+]);
+
 const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 
 function getTenant(tenantId?: string) {
@@ -1152,8 +1220,44 @@ function getTenantCoachingSessions(tenantId: string) {
   return coachingSessions.filter((session) => session.tenantId === tenantId);
 }
 
+function getTenantTrainingEntitlement(tenantId: string): TenantTrainingEntitlement {
+  const seeded = tenantTrainingEntitlements.get(tenantId);
+  if (seeded) {
+    return seeded;
+  }
+
+  return {
+    licensedJourneyIds: journeys.filter((journey) => journey.tenantId === tenantId).map((journey) => journey.id),
+    licensedAssetIds: contentLibraryAssets
+      .filter((asset) => asset.tenantId === "all" || asset.tenantId === tenantId)
+      .map((asset) => asset.id),
+  };
+}
+
+function grantTenantTrainingEntitlement(tenantId: string, assetId: string) {
+  const existing = getTenantTrainingEntitlement(tenantId);
+  tenantTrainingEntitlements.set(tenantId, {
+    licensedJourneyIds: existing.licensedJourneyIds,
+    licensedAssetIds: Array.from(new Set([...existing.licensedAssetIds, assetId])),
+  });
+}
+
+function isAssetLicensedForTenant(asset: ContentLibraryAsset, tenantId: string) {
+  const entitlement = getTenantTrainingEntitlement(tenantId);
+  return entitlement.licensedAssetIds.includes(asset.id)
+    || asset.linkedJourneyIds.some((journeyId) => entitlement.licensedJourneyIds.includes(journeyId));
+}
+
 function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" | "coach" | "learner" | "executive">) {
-  return journeys.find((journey) => journey.tenantId === tenantId && journey.role === role) ?? journeys.find((journey) => journey.role === role) ?? journeys[0]!;
+  const entitlement = getTenantTrainingEntitlement(tenantId);
+  return (
+    journeys.find(
+      (journey) => journey.tenantId === tenantId && journey.role === role && entitlement.licensedJourneyIds.includes(journey.id),
+    )
+    ?? journeys.find((journey) => journey.tenantId === tenantId && journey.role === role)
+    ?? journeys.find((journey) => journey.role === role)
+    ?? journeys[0]!
+  );
 }
 
 function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
@@ -1164,7 +1268,8 @@ function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
       || asset.linkedRoles.includes("all")
       || asset.linkedRoles.includes(role)
       || (role === "coach" && asset.linkedRoles.includes("manager"));
-    return tenantScoped && roleScoped;
+    const entitled = isAssetLicensedForTenant(asset, tenantId);
+    return tenantScoped && roleScoped && entitled;
   });
 }
 
@@ -1284,6 +1389,7 @@ export function createClientContent(input: CreateClientContentInput) {
   };
 
   contentLibraryAssets.unshift(created);
+  grantTenantTrainingEntitlement(input.tenantId, created.id);
   notifications.unshift({
     id: `note-library-${notifications.length + 1}`,
     tenantId: input.tenantId,
@@ -1305,9 +1411,48 @@ export function listMethodologyMappings() {
   return methodologyMappings;
 }
 
-export function getAccessGrant(openId?: string | null) {
-  if (!openId) return null;
-  return accessGrants.find((grant) => grant.openId === openId) ?? null;
+export function getAccessGrant(openId?: string | null, appRole?: string | null) {
+  if (openId) {
+    const explicitGrant = accessGrants.find((grant) => grant.openId === openId) ?? null;
+    if (explicitGrant) {
+      return explicitGrant;
+    }
+  }
+
+  if (appRole === "admin") {
+    return {
+      openId: openId ?? "platform-admin",
+      tenantId: tenants[0]!.id,
+      role: "platform_admin",
+      name: "Platform Admin",
+    } satisfies DemoAccessGrant;
+  }
+
+  return null;
+}
+
+export function getViewerAccess(openId?: string | null, appRole?: string | null): DemoViewerAccess | null {
+  const grant = getAccessGrant(openId, appRole);
+
+  if (!grant) {
+    return null;
+  }
+
+  const tenant = getTenant(grant.tenantId);
+  const permittedRoles: DemoRole[] = grant.role === "platform_admin" || grant.role === "client_admin"
+    ? ["executive", "manager", "coach", "learner", "client_admin"]
+    : [grant.role];
+
+  return {
+    grant,
+    tenant: {
+      id: tenant.id,
+      name: tenant.name,
+      industry: tenant.industry,
+    },
+    permittedRoles,
+    canSwitchTenant: grant.role === "platform_admin",
+  };
 }
 
 export function getTenantBranding(tenantId?: string): TenantBranding {

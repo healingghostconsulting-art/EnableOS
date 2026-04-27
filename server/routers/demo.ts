@@ -14,6 +14,7 @@ import {
   getExecutiveDashboard,
   getLearnerDashboard,
   getManagerDashboard,
+  getViewerAccess,
   listContentLibrary,
   listMethodologyMappings,
   listTenants,
@@ -83,8 +84,8 @@ const clientContentInput = z.object({
   dataBase64: z.string().max(10_000_000).optional(),
 });
 
-function assertScopedAccess(openId: string | undefined, requestedTenantId: string | undefined, requiredRole: DemoRole) {
-  const grant = getAccessGrant(openId);
+function assertScopedAccess(openId: string | undefined, appRole: string | undefined, requestedTenantId: string | undefined, requiredRole: DemoRole) {
+  const grant = getAccessGrant(openId, appRole);
 
   if (!grant) {
     throw new TRPCError({ code: "FORBIDDEN", message: "No tenant access grant is configured for this user." });
@@ -103,8 +104,8 @@ function assertScopedAccess(openId: string | undefined, requestedTenantId: strin
   return requestedTenantId ?? grant.tenantId;
 }
 
-function assertTenantMembership(openId: string | undefined, requestedTenantId: string | undefined) {
-  const grant = getAccessGrant(openId);
+function assertTenantMembership(openId: string | undefined, appRole: string | undefined, requestedTenantId: string | undefined) {
+  const grant = getAccessGrant(openId, appRole);
 
   if (!grant) {
     throw new TRPCError({ code: "FORBIDDEN", message: "No tenant access grant is configured for this user." });
@@ -122,6 +123,7 @@ export const demoRouter = router({
   landing: publicProcedure.query(() => getDemoLanding()),
   tenants: publicProcedure.query(() => listTenants()),
   methodologyMappings: publicProcedure.query(() => listMethodologyMappings()),
+  viewerAccess: protectedProcedure.query(({ ctx }) => getViewerAccess(ctx.user.openId, ctx.user.role)),
   bundle: publicProcedure.input(tenantInput).query(({ input }) => getDemoBundle(input.tenantId)),
   executive: publicProcedure.input(tenantInput).query(({ input }) => getExecutiveDashboard(input.tenantId)),
   manager: publicProcedure.input(tenantInput).query(({ input }) => getManagerDashboard(input.tenantId)),
@@ -130,27 +132,31 @@ export const demoRouter = router({
   admin: publicProcedure.input(tenantInput).query(({ input }) => getAdminDashboard(input.tenantId)),
   library: publicProcedure.input(libraryInput).query(({ input }) => listContentLibrary(input.tenantId, input.role)),
   secureExecutive: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "executive");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "executive");
     return getExecutiveDashboard(tenantId);
   }),
   secureManager: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "manager");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "manager");
     return getManagerDashboard(tenantId);
   }),
   secureCoach: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "coach");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "coach");
     return getCoachDashboard(tenantId);
   }),
   secureLearner: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "learner");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "learner");
+    return getLearnerDashboard(tenantId);
+  }),
+  secureTraining: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
+    const { tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
     return getLearnerDashboard(tenantId);
   }),
   secureAdmin: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "client_admin");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return getAdminDashboard(tenantId);
   }),
   secureLibrary: protectedProcedure.input(libraryInput).query(({ ctx, input }) => {
-    const grant = getAccessGrant(ctx.user.openId);
+    const grant = getAccessGrant(ctx.user.openId, ctx.user.role);
 
     if (!grant) {
       throw new TRPCError({ code: "FORBIDDEN", message: "No tenant access grant is configured for this user." });
@@ -190,7 +196,7 @@ export const demoRouter = router({
     });
   }),
   secureUploadContent: protectedProcedure.input(clientContentInput).mutation(async ({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "client_admin");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     let fileUrl: string | undefined;
 
     if (input.dataBase64 && input.fileName && input.mimeType) {
@@ -218,18 +224,18 @@ export const demoRouter = router({
   }),
   previewUpdateBranding: publicProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
   secureUpdateBranding: protectedProcedure.input(brandingInput).mutation(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, "client_admin");
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return updateTenantBranding({ ...input, tenantId });
   }),
   updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
   previewCreateReviewLog: publicProcedure.input(reviewLogInput).mutation(({ input }) => createReviewLog(input)),
   secureCreateReviewLog: protectedProcedure.input(reviewLogInput).mutation(({ ctx, input }) => {
-    const tenantId = assertScopedAccess(ctx.user.openId, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));
     return createReviewLog({ ...input, tenantId });
   }),
   previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(({ input }) => createWeeklyCoachingLog(input)),
   secureCreateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogInput).mutation(({ ctx, input }) => {
-    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
 
     if (!["manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can create weekly coaching logs." });
@@ -240,7 +246,7 @@ export const demoRouter = router({
   }),
   previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
   secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {
-    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, input.tenantId);
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
 
     if (!["learner", "manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot update coaching takeaways." });
@@ -248,4 +254,5 @@ export const demoRouter = router({
 
     return updateWeeklyCoachingLogTakeaways({ ...input, tenantId });
   }),
+
 });

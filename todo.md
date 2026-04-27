@@ -104,3 +104,11 @@
 - [x] Expand slide-derived visuals across additional modules or fallback families so the visual increase is broader than carousel reframing alone, then revalidate the training browser experience.
 - [x] Add explicit regression tests for the interactive slide-player UI contract, such as slide-selection or player-facing rendering assertions, then rerun the test suite.
 - [x] Revalidate the training browser experience after the final fallback-family visual expansion and confirm the added visuals appear correctly in-app.
+- [x] Restart the development server after the reported outage and verify that the CHCG EnableOS Demo responds normally again.
+- [x] Replace the exposed cross-client training selector with a login-gated experience so users only see their own client-specific trainings after authentication.
+- [x] Add entitlement-aware access rules so learners can only access trainings their client owns or has purchased.
+- [x] Update the homepage or demo entry flow so public visitors can view the demo shell but must sign in before entering protected client training spaces.
+- [x] Validate the authenticated client-training access behavior with automated tests and live browser checks before the next checkpoint.
+- [x] Implement explicit training-entitlement or purchase-scoped filtering so users only see and launch trainings their client is licensed for, not all tenant-scoped content.
+- [x] Add automated tests for viewer access plus protected training and library routes, including no-grant and wrong-tenant cases.
+- [x] Live-validate that the public homepage stays open while protected workspace, training, and library routes stay gated behind authenticated client access.

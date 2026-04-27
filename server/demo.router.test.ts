@@ -521,3 +521,80 @@ describe("demo router", () => {
       code: "FORBIDDEN",
     });
   });
+
+it("returns viewer access for a signed-in tenant member with role-scoped permissions", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "atlas-manager",
+      role: "user",
+      name: "Enterprise Manager",
+    }),
+  );
+
+  const access = await caller.demo.viewerAccess();
+
+  expect(access.tenant.id).toBe("atlas-operations");
+  expect(access.grant.role).toBe("manager");
+  expect(access.permittedRoles).toEqual(["manager"]);
+});
+
+it("filters secure library assets to the trainings licensed for the selected client workspace", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "platform-admin",
+      role: "admin",
+      name: "Platform Admin",
+    }),
+  );
+
+  const horizonLibrary = await caller.demo.secureLibrary({ tenantId: "horizon-commerce", role: "all" });
+
+  expect(horizonLibrary.chcgAssets).toEqual(
+    expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Core Deck" })]),
+  );
+  expect(horizonLibrary.chcgAssets.some((asset) => asset.title === "QA Essentials and Score Confidence")).toBe(false);
+});
+
+it("denies protected training and library access when the signed-in user has no configured client grant", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "ungranted-user",
+      role: "user",
+      name: "Ungranted Access Tester",
+    }),
+  );
+
+  await expect(caller.demo.viewerAccess()).resolves.toBeNull();
+  await expect(caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "all" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+  await expect(caller.demo.secureTraining({ tenantId: "atlas-operations" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+});
+
+it("denies secure training access outside the signed-in viewer's client workspace", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "atlas-learner",
+      role: "user",
+      name: "Enterprise Learner",
+    }),
+  );
+
+  await expect(caller.demo.secureTraining({ tenantId: "lighthouse-finance" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+});
+
+it("denies secure library access outside the signed-in viewer's client workspace", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "atlas-manager",
+      role: "user",
+      name: "Enterprise Manager",
+    }),
+  );
+
+  await expect(caller.demo.secureLibrary({ tenantId: "lighthouse-finance", role: "all" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+});
