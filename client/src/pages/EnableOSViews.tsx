@@ -1555,7 +1555,7 @@ export function TrainingExperienceView() {
                         </div>
                         {currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8">
-                            <div className="grid gap-8 xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] xl:items-start">
+                            <div className="space-y-8">
                               <div>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
@@ -1563,6 +1563,36 @@ export function TrainingExperienceView() {
                                 </div>
                                 <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
+                                <div className="mt-6 rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Narration quick controls</p>
+                                      <p className="mt-2 text-sm text-slate-100">Use narrated playback directly from the top of each lesson page.</p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
+                                        <PlayCircle className="mr-2 h-4 w-4" />
+                                        Play narration
+                                      </Button>
+                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
+                                        <PauseCircle className="mr-2 h-4 w-4" />
+                                        Stop
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant={narrationMode === "voice_reference" ? "default" : "outline"}
+                                        className={narrationMode === "voice_reference" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
+                                        onClick={() => setNarrationMode(narrationMode === "voice_reference" ? "browser_preview" : "voice_reference")}
+                                      >
+                                        <Mic className="mr-2 h-4 w-4" />
+                                        {narrationMode === "voice_reference" ? "Voice reference on" : "Use voice reference"}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <p className="mt-3 text-sm text-slate-200">
+                                    {narrationStatus === "playing" ? "Narration preview is playing." : narrationStatus === "ended" ? "Narration preview finished." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Narration is ready to preview from this lesson page."}
+                                  </p>
+                                </div>
                                 <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
                                   <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1706,7 +1736,7 @@ export function TrainingExperienceView() {
                                 ) : null}
                               </div>
                               {contextualDeckVisual ? (
-                                <div className="space-y-4 xl:sticky xl:top-8">
+                                <div className="space-y-4">
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
@@ -1715,14 +1745,16 @@ export function TrainingExperienceView() {
                                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length || 1} guided visuals</Badge>
                                   </div>
                                   <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] px-4 py-5 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:px-6">
-                                    <Carousel opts={{ loop: false }} className="mx-10">
+                                    <Carousel opts={{ loop: false }} className="w-full px-3 sm:px-5 md:px-8">
                                       <CarouselContent>
                                         {(lessonVisualGallery.length ? lessonVisualGallery : [contextualDeckVisual]).map((visual) => (
                                           <CarouselItem key={visual.id}>
                                             <div className="space-y-4">
                                               <div className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80">
-                                                <div className="flex aspect-[16/10] items-center justify-center px-4 py-4 sm:px-5 sm:py-5">
-                                                  <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center" />
+                                                <div className="overflow-x-auto overflow-y-hidden rounded-[1.35rem] border border-white/6 bg-black/30">
+                                                  <div className="flex min-h-[18rem] min-w-full items-center justify-center px-4 py-4 sm:min-h-[24rem] sm:px-6 sm:py-6 lg:min-h-[30rem]">
+                                                    <img src={visual.imageUrl} alt={visual.title} className="h-auto min-w-[980px] max-w-none rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]" />
+                                                  </div>
                                                 </div>
                                               </div>
                                               <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
@@ -1734,14 +1766,16 @@ export function TrainingExperienceView() {
                                                 <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
                                                   <p className="text-sm font-medium text-white">{visual.title}</p>
                                                   <p className="mt-2 text-sm leading-6 text-slate-300">{visual.caption}</p>
+                                                  <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Scroll inside the slide frame to inspect the full visual when the original deck export uses a widescreen layout.</p>
+                                                  <a href={visual.imageUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-cyan-200 underline-offset-4 transition hover:text-white hover:underline">Open the full-size slide in a new tab</a>
                                                 </div>
                                               </div>
                                             </div>
                                           </CarouselItem>
                                         ))}
                                       </CarouselContent>
-                                      <CarouselPrevious className="left-0 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
-                                      <CarouselNext className="right-0 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
+                                      <CarouselPrevious className="left-2 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
+                                      <CarouselNext className="right-2 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
                                     </Carousel>
                                   </div>
                                   {lessonVisualGallery.length ? (
@@ -1753,8 +1787,8 @@ export function TrainingExperienceView() {
                                       <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
                                         {lessonVisualGallery.map((visual, index) => (
                                           <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${selectedDeckVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
-                                            <div className="flex aspect-[16/10] items-center justify-center bg-slate-950/85 px-3 py-3">
-                                              <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center" />
+                                            <div className="flex min-h-[10rem] items-center justify-center overflow-hidden bg-slate-950/85 px-3 py-3">
+                                              <img src={visual.imageUrl} alt={visual.title} className="max-h-40 rounded-lg object-contain object-center" />
                                             </div>
                                             <div className="border-t border-white/10 px-3 py-3">
                                               <p className="text-sm font-medium text-white">{visual.pageLabel}</p>

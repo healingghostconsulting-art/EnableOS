@@ -112,3 +112,6 @@
 - [x] Implement explicit training-entitlement or purchase-scoped filtering so users only see and launch trainings their client is licensed for, not all tenant-scoped content.
 - [x] Add automated tests for viewer access plus protected training and library routes, including no-grant and wrong-tenant cases.
 - [x] Live-validate that the public homepage stays open while protected workspace, training, and library routes stay gated behind authenticated client access.
+- [x] Fix the training-player layout so lesson visuals are not clipped or cut off inside the interactive course canvas.
+- [x] Restore or reposition the training narration controls so learners can clearly find and use narrated playback.
+- [x] Revalidate the repaired training player in the live browser after the layout and narration-control fixes.
