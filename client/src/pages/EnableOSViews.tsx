@@ -2714,6 +2714,314 @@ function DocumentationFeed({ entries }: { entries: any[] }) {
   );
 }
 
+export function ChcgAdminView() {
+  const access = trpc.demo.viewerAccess.useQuery();
+  const [selectedTenantId, setSelectedTenantId] = useState<string | undefined>(undefined);
+  const organizationAdminEnabled = access.data?.grant.role === "platform_admin";
+  const dashboard = trpc.demo.secureChcgAdmin.useQuery(
+    { tenantId: selectedTenantId },
+    { enabled: organizationAdminEnabled },
+  );
+  const createTenant = trpc.demo.secureCreateChcgTenant.useMutation({
+    onSuccess: async (created) => {
+      setSelectedTenantId(created.id);
+      await dashboard.refetch();
+    },
+  });
+  const updateTrainingAccess = trpc.demo.secureUpdateTenantTrainingAccess.useMutation({
+    onSuccess: async () => {
+      await dashboard.refetch();
+    },
+  });
+  const updatePlatformSettings = trpc.demo.secureUpdateChcgPlatformSettings.useMutation({
+    onSuccess: async () => {
+      await dashboard.refetch();
+    },
+  });
+
+  const [clientName, setClientName] = useState("");
+  const [industry, setIndustry] = useState("Contact center operations");
+  const [accent, setAccent] = useState("#2563EB");
+  const [logoMark, setLogoMark] = useState("CHC");
+  const [description, setDescription] = useState("A CHCG-managed client workspace prepared for branded enablement, role-based governance, and training activation.");
+  const [heroStatement, setHeroStatement] = useState("CHCG-managed enablement intelligence for teams that need controlled rollout, governed content access, and measurable readiness improvement.");
+  const [licensedJourneyIds, setLicensedJourneyIds] = useState<string[]>([]);
+  const [licensedAssetIds, setLicensedAssetIds] = useState<string[]>([]);
+  const [provisioningMode, setProvisioningMode] = useState<"Guided" | "Self-serve review">("Guided");
+  const [defaultLibraryPolicy, setDefaultLibraryPolicy] = useState<"CHCG core plus licensed tenant uploads" | "Tenant-curated with CHCG overlays">("CHCG core plus licensed tenant uploads");
+  const [trainingUnlockPolicy, setTrainingUnlockPolicy] = useState<"Manual CHCG approval" | "Client-admin request with CHCG confirmation">("Manual CHCG approval");
+  const [governanceNote, setGovernanceNote] = useState("CHCG governs tenant activation, training availability, and white-label standards from one organization-level control plane.");
+
+  useEffect(() => {
+    if (!selectedTenantId && access.data?.tenant.id) {
+      setSelectedTenantId(access.data.tenant.id);
+    }
+  }, [access.data?.tenant.id, selectedTenantId]);
+
+  useEffect(() => {
+    if (!dashboard.data) {
+      return;
+    }
+
+    setSelectedTenantId(dashboard.data.selectedTenant.tenant.id);
+    setLicensedJourneyIds(dashboard.data.selectedTenant.entitlement.licensedJourneyIds);
+    setLicensedAssetIds(dashboard.data.selectedTenant.entitlement.licensedAssetIds);
+    setProvisioningMode(dashboard.data.platformSettings.provisioningMode);
+    setDefaultLibraryPolicy(dashboard.data.platformSettings.defaultLibraryPolicy);
+    setTrainingUnlockPolicy(dashboard.data.platformSettings.trainingUnlockPolicy);
+    setGovernanceNote(dashboard.data.platformSettings.governanceNote);
+  }, [dashboard.data]);
+
+  function toggleSelection(id: string, values: string[], setValues: (next: string[]) => void) {
+    setValues(values.includes(id) ? values.filter((value) => value !== id) : [...values, id]);
+  }
+
+  if (access.isLoading || (organizationAdminEnabled && dashboard.isLoading)) {
+    return <LoadingState />;
+  }
+
+  if (!organizationAdminEnabled) {
+    return (
+      <Surface>
+        <SectionShell
+          eyebrow="CHCG Admin"
+          title="Organization-level controls"
+          description="This workspace is reserved for CHCG organization administrators who can govern clients, training access, and platform policy across the full demo environment."
+        >
+          <PremiumCard>
+            <CardContent className="py-12 text-center text-slate-300">
+              Your current access does not include CHCG organization administration. Sign in with an organization-admin account to manage clients and platform controls.
+            </CardContent>
+          </PremiumCard>
+        </SectionShell>
+      </Surface>
+    );
+  }
+
+  if (!dashboard.data) {
+    return <LoadingState />;
+  }
+
+  const selectedTenant = dashboard.data.selectedTenant;
+
+  return (
+    <Surface>
+      <SectionShell
+        eyebrow="CHCG Admin"
+        title="Organization control plane"
+        description="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy from one admin surface."
+      >
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {dashboard.data.metrics.map((metric: any) => (
+              <MetricCard key={metric.label} label={metric.label} value={metric.value} supporting={metric.supporting} icon={<ShieldCheck className="h-4 w-4" />} />
+            ))}
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
+            <div className="space-y-6">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Create client workspace</CardTitle>
+                  <CardDescription className="text-slate-400">Provision a new client under CHCG control with its own branding baseline and admin roster.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                      <span>Client name</span>
+                      <input value={clientName} onChange={(event) => setClientName(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300">
+                      <span>Industry</span>
+                      <input value={industry} onChange={(event) => setIndustry(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300">
+                      <span>Accent</span>
+                      <input value={accent} onChange={(event) => setAccent(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300">
+                      <span>Logo mark</span>
+                      <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                      <span>Description</span>
+                      <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                      <span>Hero statement</span>
+                      <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      disabled={createTenant.isPending || clientName.trim().length < 3}
+                      onClick={() => createTenant.mutate({ name: clientName, industry, accent, logoMark, description, heroStatement })}
+                    >
+                      {createTenant.isPending ? "Creating..." : "Add client workspace"}
+                    </Button>
+                    {createTenant.isSuccess ? <span className="text-sm text-emerald-300">Client workspace added and ready for licensing.</span> : null}
+                  </div>
+                </CardContent>
+              </PremiumCard>
+
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">CHCG platform policy</CardTitle>
+                  <CardDescription className="text-slate-400">Control how provisioning, library governance, and training unlocks are managed across all clients.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2 text-sm text-slate-300">
+                      <span>Provisioning mode</span>
+                      <Select value={provisioningMode} onValueChange={(value) => setProvisioningMode(value as "Guided" | "Self-serve review")}>
+                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Guided">Guided</SelectItem>
+                          <SelectItem value="Self-serve review">Self-serve review</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300">
+                      <span>Training unlock policy</span>
+                      <Select value={trainingUnlockPolicy} onValueChange={(value) => setTrainingUnlockPolicy(value as "Manual CHCG approval" | "Client-admin request with CHCG confirmation")}>
+                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Manual CHCG approval">Manual CHCG approval</SelectItem>
+                          <SelectItem value="Client-admin request with CHCG confirmation">Client-admin request with CHCG confirmation</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                      <span>Default library policy</span>
+                      <Select value={defaultLibraryPolicy} onValueChange={(value) => setDefaultLibraryPolicy(value as "CHCG core plus licensed tenant uploads" | "Tenant-curated with CHCG overlays")}>
+                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CHCG core plus licensed tenant uploads">CHCG core plus licensed tenant uploads</SelectItem>
+                          <SelectItem value="Tenant-curated with CHCG overlays">Tenant-curated with CHCG overlays</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </label>
+                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                      <span>Governance note</span>
+                      <textarea value={governanceNote} onChange={(event) => setGovernanceNote(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      disabled={updatePlatformSettings.isPending}
+                      onClick={() => updatePlatformSettings.mutate({ provisioningMode, defaultLibraryPolicy, trainingUnlockPolicy, governanceNote })}
+                    >
+                      {updatePlatformSettings.isPending ? "Saving..." : "Apply platform policy"}
+                    </Button>
+                    {updatePlatformSettings.isSuccess ? <span className="text-sm text-emerald-300">Platform policy updated.</span> : null}
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            </div>
+
+            <div className="space-y-6">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Client portfolio control</CardTitle>
+                  <CardDescription className="text-slate-400">Switch between tenants, review readiness for rollout, and decide which training resources are unlocked.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <TenantPicker tenants={dashboard.data.tenants} tenantId={selectedTenant.tenant.id} setTenantId={setSelectedTenantId} />
+                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{selectedTenant.users.length} users provisioned</Badge>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <MetricCard label="Selected client" value={selectedTenant.tenant.name} supporting={selectedTenant.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
+                    <MetricCard label="Licensed journeys" value={`${licensedJourneyIds.length}`} supporting="Journeys currently unlocked for this client." icon={<BookOpen className="h-4 w-4" />} />
+                    <MetricCard label="Licensed assets" value={`${licensedAssetIds.length}`} supporting="Library assets available to this client." icon={<Layers3 className="h-4 w-4" />} />
+                    <MetricCard label="Brand label" value={selectedTenant.branding.preferredLabel} supporting={selectedTenant.branding.accent} icon={<Sparkles className="h-4 w-4" />} />
+                  </div>
+                </CardContent>
+              </PremiumCard>
+
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Training journey unlocks</CardTitle>
+                  <CardDescription className="text-slate-400">Enable or withhold journey-based learning experiences for the selected client workspace.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {selectedTenant.availableJourneys.map((journey: any) => {
+                      const enabled = licensedJourneyIds.includes(journey.id);
+                      return (
+                        <div key={journey.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium text-white">{journey.title}</p>
+                              <p className="mt-2 text-sm text-slate-400 capitalize">Primary audience · {journey.role.replaceAll("_", " ")}</p>
+                            </div>
+                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" onClick={() => toggleSelection(journey.id, licensedJourneyIds, setLicensedJourneyIds)}>
+                              {enabled ? "Unlocked" : "Locked"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </PremiumCard>
+
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Library and training asset unlocks</CardTitle>
+                  <CardDescription className="text-slate-400">Choose which CHCG or tenant-specific assets should be visible inside the selected client experience.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {selectedTenant.availableAssets.map((asset: any) => {
+                      const enabled = licensedAssetIds.includes(asset.id);
+                      return (
+                        <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium text-white">{asset.title}</p>
+                              <p className="mt-2 text-sm text-slate-400">{asset.category} · {asset.sourceKind === "chcg" ? "CHCG core" : "Client content"}</p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {asset.linkedRoles.map((linked: string) => (
+                                  <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-slate-950/60 text-slate-200">
+                                    {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" onClick={() => toggleSelection(asset.id, licensedAssetIds, setLicensedAssetIds)}>
+                              {enabled ? "Unlocked" : "Locked"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      disabled={updateTrainingAccess.isPending}
+                      onClick={() => updateTrainingAccess.mutate({ tenantId: selectedTenant.tenant.id, licensedJourneyIds, licensedAssetIds })}
+                    >
+                      {updateTrainingAccess.isPending ? "Saving access..." : "Apply client training access"}
+                    </Button>
+                    {updateTrainingAccess.isSuccess ? <span className="text-sm text-emerald-300">Training access updated for {selectedTenant.tenant.name}.</span> : null}
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            </div>
+          </div>
+        </div>
+      </SectionShell>
+    </Surface>
+  );
+}
+
 function ReviewLogComposer({
   tenantId,
   subjectUserId,

@@ -598,3 +598,70 @@ it("denies secure library access outside the signed-in viewer's client workspace
     code: "FORBIDDEN",
   });
 });
+
+it("returns CHCG Admin data for an organization-level admin", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "platform-admin",
+      role: "admin",
+      name: "Platform Admin",
+    }),
+  );
+
+  const controlPlane = await caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" });
+
+  expect(controlPlane.organization.title).toContain("CHCG");
+  expect(controlPlane.tenants.length).toBeGreaterThanOrEqual(3);
+  expect(controlPlane.selectedTenant.availableJourneys.length).toBeGreaterThan(0);
+  expect(controlPlane.selectedTenant.availableAssets.length).toBeGreaterThan(0);
+});
+
+it("allows CHCG Admin to create a new client workspace and configure training access", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "platform-admin",
+      role: "admin",
+      name: "Platform Admin",
+    }),
+  );
+
+  const created = await caller.demo.secureCreateChcgTenant({
+    name: "Summit Health Network",
+    industry: "Healthcare operations",
+    accent: "#0F766E",
+    logoMark: "SHN",
+    description: "A regulated client workspace for healthcare service and coaching operations.",
+    heroStatement: "CHCG-managed enablement for healthcare teams that require governed access and role-specific training activation.",
+  });
+
+  expect(created.id).toBe("summit-health-network");
+
+  const updatedEntitlement = await caller.demo.secureUpdateTenantTrainingAccess({
+    tenantId: created.id,
+    licensedJourneyIds: ["journey-service-foundations-hc"],
+    licensedAssetIds: ["library-service-foundations-core", "library-workflow-field-kit"],
+  });
+
+  expect(updatedEntitlement.licensedJourneyIds).toContain("journey-service-foundations-hc");
+  expect(updatedEntitlement.licensedAssetIds).toEqual(
+    expect.arrayContaining(["library-service-foundations-core", "library-workflow-field-kit"]),
+  );
+
+  const controlPlane = await caller.demo.secureChcgAdmin({ tenantId: created.id });
+  expect(controlPlane.selectedTenant.users.some((user) => user.role === "client_admin")).toBe(true);
+  expect(controlPlane.selectedTenant.entitlement.licensedJourneyIds).toContain("journey-service-foundations-hc");
+});
+
+it("denies CHCG Admin controls to non-admin users", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "atlas-admin",
+      role: "user",
+      name: "Enterprise Client Admin",
+    }),
+  );
+
+  await expect(caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+});

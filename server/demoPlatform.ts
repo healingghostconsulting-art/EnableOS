@@ -285,6 +285,28 @@ export type TenantTrainingEntitlement = {
   licensedAssetIds: string[];
 };
 
+export type ChcgPlatformSettings = {
+  provisioningMode: "Guided" | "Self-serve review";
+  defaultLibraryPolicy: "CHCG core plus licensed tenant uploads" | "Tenant-curated with CHCG overlays";
+  trainingUnlockPolicy: "Manual CHCG approval" | "Client-admin request with CHCG confirmation";
+  governanceNote: string;
+};
+
+type CreateChcgTenantInput = {
+  name: string;
+  industry: string;
+  accent: string;
+  logoMark: string;
+  description: string;
+  heroStatement: string;
+};
+
+type UpdateTenantTrainingAccessInput = {
+  tenantId: string;
+  licensedJourneyIds: string[];
+  licensedAssetIds: string[];
+};
+
 const tenants: DemoTenant[] = [
   {
     id: "atlas-operations",
@@ -1194,6 +1216,13 @@ const tenantTrainingEntitlements = new Map<string, TenantTrainingEntitlement>([
 
 const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 
+const chcgPlatformSettings: ChcgPlatformSettings = {
+  provisioningMode: "Guided",
+  defaultLibraryPolicy: "CHCG core plus licensed tenant uploads",
+  trainingUnlockPolicy: "Manual CHCG approval",
+  governanceNote: "CHCG governs tenant activation, training availability, and white-label standards from one organization-level control plane.",
+};
+
 function getTenant(tenantId?: string) {
   return tenants.find((tenant) => tenant.id === tenantId) ?? tenants[0]!;
 }
@@ -1478,6 +1507,146 @@ export function updateTenantBranding(input: BrandingUpdateInput) {
   });
 
   return getTenantBranding(tenant.id);
+}
+
+function toTenantId(name: string) {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function toLogoMark(name: string) {
+  return name
+    .split(/\s+/)
+    .map((part) => part.charAt(0))
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
+}
+
+export function getChcgAdminDashboard(requestedTenantId?: string) {
+  const selectedTenant = getTenant(requestedTenantId);
+  const selectedEntitlement = getTenantTrainingEntitlement(selectedTenant.id);
+  const selectedJourneys = journeys.filter((journey) => journey.tenantId === selectedTenant.id);
+  const selectedAssets = contentLibraryAssets.filter((asset) => asset.tenantId === "all" || asset.tenantId === selectedTenant.id);
+
+  return {
+    organization: {
+      title: "CHCG Organization Control Plane",
+      subtitle: "Manage tenant onboarding, training unlocks, and organization-wide governance from a single workspace.",
+    },
+    metrics: [
+      { label: "Client workspaces", value: String(tenants.length), supporting: "Active tenant environments currently governed by CHCG." },
+      { label: "Licensed journeys", value: String(tenants.reduce((sum, tenant) => sum + getTenantTrainingEntitlement(tenant.id).licensedJourneyIds.length, 0)), supporting: "Journey-level training unlocks currently granted across clients." },
+      { label: "Licensed assets", value: String(tenants.reduce((sum, tenant) => sum + getTenantTrainingEntitlement(tenant.id).licensedAssetIds.length, 0)), supporting: "Library assets currently available under CHCG approval." },
+      { label: "Platform policy", value: chcgPlatformSettings.trainingUnlockPolicy, supporting: "Current organization-level training approval model." },
+    ],
+    platformSettings: { ...chcgPlatformSettings },
+    tenants: tenants.map((tenant) => {
+      const entitlement = getTenantTrainingEntitlement(tenant.id);
+      const tenantUsers = users.filter((user) => user.tenantId === tenant.id);
+      return {
+        ...tenant,
+        branding: getTenantBranding(tenant.id),
+        userCount: tenantUsers.length,
+        licensedJourneyCount: entitlement.licensedJourneyIds.length,
+        licensedAssetCount: entitlement.licensedAssetIds.length,
+        workspaceStatus: tenantUsers.length > 0 ? "Active" : "Provisioning",
+      };
+    }),
+    selectedTenant: {
+      tenant: selectedTenant,
+      branding: getTenantBranding(selectedTenant.id),
+      users: users.filter((user) => user.tenantId === selectedTenant.id),
+      entitlement: selectedEntitlement,
+      availableJourneys: selectedJourneys.map((journey) => ({
+        id: journey.id,
+        title: journey.title,
+        role: journey.role,
+        licensed: selectedEntitlement.licensedJourneyIds.includes(journey.id),
+      })),
+      availableAssets: selectedAssets.map((asset) => ({
+        id: asset.id,
+        title: asset.title,
+        category: asset.category,
+        sourceKind: asset.sourceKind,
+        linkedRoles: asset.linkedRoles,
+        licensed: selectedEntitlement.licensedAssetIds.includes(asset.id),
+      })),
+    },
+  };
+}
+
+export function createChcgTenant(input: CreateChcgTenantInput) {
+  const tenantId = toTenantId(input.name);
+  if (!tenantId || tenants.some((tenant) => tenant.id === tenantId)) {
+    throw new Error("A client workspace with this name already exists. Choose a more specific client name.");
+  }
+
+  const logoMark = input.logoMark.trim().slice(0, 3).toUpperCase() || toLogoMark(input.name);
+  const created: DemoTenant = {
+    id: tenantId,
+    name: input.name,
+    industry: input.industry,
+    accent: input.accent,
+    logoMark,
+    description: input.description,
+    heroStatement: input.heroStatement,
+  };
+
+  tenants.push(created);
+  brandingOverrides.set(created.id, {
+    accent: input.accent,
+    logoMark,
+    preferredLabel: `${input.name} EnableOS`,
+    heroStatement: input.heroStatement,
+  });
+  tenantTrainingEntitlements.set(created.id, {
+    licensedJourneyIds: [],
+    licensedAssetIds: [],
+  });
+
+  const emailDomain = `${tenantId}.demo`;
+  const userSuffix = users.filter((user) => user.tenantId === created.id).length + 1;
+  users.push(
+    { id: `u-exec-${tenantId}-${userSuffix}`, tenantId: created.id, name: `${input.name} Executive Lead`, email: `executive@${emailDomain}`, title: "Executive Sponsor", role: "executive", team: "Enterprise Leadership", avatarFallback: "EL", readinessScore: 80 },
+    { id: `u-mgr-${tenantId}-${userSuffix}`, tenantId: created.id, name: `${input.name} Enablement Manager`, email: `manager@${emailDomain}`, title: "Enablement Manager", role: "manager", team: "Operations", avatarFallback: "EM", readinessScore: 78 },
+    { id: `u-coach-${tenantId}-${userSuffix}`, tenantId: created.id, name: `${input.name} Coaching Lead`, email: `coach@${emailDomain}`, title: "Coaching Lead", role: "coach", team: "Operations", avatarFallback: "CL", readinessScore: 79 },
+    { id: `u-learn-${tenantId}-${userSuffix}`, tenantId: created.id, name: `${input.name} Frontline Learner`, email: `learner@${emailDomain}`, title: "Frontline Specialist", role: "learner", team: "Operations", avatarFallback: "FL", readinessScore: 74 },
+    { id: `u-admin-${tenantId}-${userSuffix}`, tenantId: created.id, name: `${input.name} Client Admin`, email: `admin@${emailDomain}`, title: "Client Admin", role: "client_admin", team: "Governance", avatarFallback: "CA", readinessScore: 88 },
+  );
+
+  notifications.unshift({
+    id: `note-platform-${notifications.length + 1}`,
+    tenantId: created.id,
+    audience: "client_admin",
+    title: "Workspace created by CHCG",
+    detail: `${created.name} was added to the CHCG control plane and is ready for branding and training-access configuration.`,
+    priority: "info",
+    createdAt: new Date().toISOString(),
+  });
+
+  return created;
+}
+
+export function updateTenantTrainingAccess(input: UpdateTenantTrainingAccessInput) {
+  const tenant = getTenant(input.tenantId);
+  const licensedJourneyIds = Array.from(new Set(input.licensedJourneyIds));
+  const licensedAssetIds = Array.from(new Set(input.licensedAssetIds));
+
+  tenantTrainingEntitlements.set(tenant.id, {
+    licensedJourneyIds,
+    licensedAssetIds,
+  });
+
+  return getTenantTrainingEntitlement(tenant.id);
+}
+
+export function updateChcgPlatformSettings(input: ChcgPlatformSettings) {
+  chcgPlatformSettings.provisioningMode = input.provisioningMode;
+  chcgPlatformSettings.defaultLibraryPolicy = input.defaultLibraryPolicy;
+  chcgPlatformSettings.trainingUnlockPolicy = input.trainingUnlockPolicy;
+  chcgPlatformSettings.governanceNote = input.governanceNote;
+
+  return { ...chcgPlatformSettings };
 }
 
 function getDocumentationEntries(tenantId: string, subjectUserId?: string) {

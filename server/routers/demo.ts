@@ -3,11 +3,13 @@ import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
 import {
+  createChcgTenant,
   createClientContent,
   createReviewLog,
   createWeeklyCoachingLog,
   getAccessGrant,
   getAdminDashboard,
+  getChcgAdminDashboard,
   getCoachDashboard,
   getDemoBundle,
   getDemoLanding,
@@ -18,13 +20,37 @@ import {
   listContentLibrary,
   listMethodologyMappings,
   listTenants,
+  updateChcgPlatformSettings,
   updateTenantBranding,
+  updateTenantTrainingAccess,
   updateWeeklyCoachingLogTakeaways,
   type DemoRole,
 } from "../demoPlatform";
 
 const tenantInput = z.object({
   tenantId: z.string().optional(),
+});
+
+const chcgTenantInput = z.object({
+  name: z.string().min(3).max(80),
+  industry: z.string().min(3).max(80),
+  accent: z.string().regex(/^#([0-9A-Fa-f]{6})$/),
+  logoMark: z.string().min(1).max(3),
+  description: z.string().min(12).max(180),
+  heroStatement: z.string().min(12).max(180),
+});
+
+const trainingAccessInput = z.object({
+  tenantId: z.string(),
+  licensedJourneyIds: z.array(z.string()).max(24),
+  licensedAssetIds: z.array(z.string()).max(64),
+});
+
+const chcgPlatformSettingsInput = z.object({
+  provisioningMode: z.enum(["Guided", "Self-serve review"]),
+  defaultLibraryPolicy: z.enum(["CHCG core plus licensed tenant uploads", "Tenant-curated with CHCG overlays"]),
+  trainingUnlockPolicy: z.enum(["Manual CHCG approval", "Client-admin request with CHCG confirmation"]),
+  governanceNote: z.string().min(12).max(280),
 });
 
 const brandingInput = z.object({
@@ -155,6 +181,7 @@ export const demoRouter = router({
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return getAdminDashboard(tenantId);
   }),
+  secureChcgAdmin: adminProcedure.input(tenantInput).query(({ input }) => getChcgAdminDashboard(input.tenantId)),
   secureLibrary: protectedProcedure.input(libraryInput).query(({ ctx, input }) => {
     const grant = getAccessGrant(ctx.user.openId, ctx.user.role);
 
@@ -228,6 +255,9 @@ export const demoRouter = router({
     return updateTenantBranding({ ...input, tenantId });
   }),
   updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
+  secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
+  secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),
+  secureUpdateChcgPlatformSettings: adminProcedure.input(chcgPlatformSettingsInput).mutation(({ input }) => updateChcgPlatformSettings(input)),
   previewCreateReviewLog: publicProcedure.input(reviewLogInput).mutation(({ input }) => createReviewLog(input)),
   secureCreateReviewLog: protectedProcedure.input(reviewLogInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));

@@ -6,9 +6,10 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { trpc } from "./lib/trpc";
+import { ChcgAdminView, ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
-const workspaceMenu: DashboardMenuItem[] = [
+const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
   { icon: Gauge, label: "Executive", path: "/executive" },
   { icon: ShieldCheck, label: "Manager", path: "/manager" },
@@ -20,9 +21,14 @@ const workspaceMenu: DashboardMenuItem[] = [
 ];
 
 function WorkspaceShell({ children, roleLabel }: { children: React.ReactNode; roleLabel: string }) {
+  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
+  const menuItems = access.data?.grant.role === "platform_admin"
+    ? [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Admin", path: "/chcg-admin" }]
+    : baseWorkspaceMenu;
+
   return (
     <DashboardLayout
-      menuItems={workspaceMenu}
+      menuItems={menuItems}
       title="CHCG EnableOS"
       subtitle="Enterprise enablement and coaching intelligence"
       requireAuth
@@ -72,6 +78,13 @@ function Router() {
         {() => (
           <WorkspaceShell roleLabel="Client Admin Console">
             <RoleWorkspace role="client_admin" />
+          </WorkspaceShell>
+        )}
+      </Route>
+      <Route path="/chcg-admin">
+        {() => (
+          <WorkspaceShell roleLabel="CHCG Admin Control Plane">
+            <ChcgAdminView />
           </WorkspaceShell>
         )}
       </Route>

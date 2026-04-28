@@ -120,3 +120,4 @@
 - [x] Fix training narration so playback speaks the current lesson content instead of only replaying the uploaded voice-reference recording.
 - [x] Add a persistent mini audio bar across the training experience so lesson narration controls remain available throughout the lesson flow.
 - [x] Refine the content library sorting so assets are organized by target demographic, making audience intent the primary default structure.
+- [x] Build a dedicated CHCG Admin page so CHCG can add and manage clients, unlock training access, and control organization-level site governance across the platform.
