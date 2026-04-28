@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
+import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { Link, useLocation } from "wouter";
 
@@ -2257,6 +2258,11 @@ export function ContentLibraryView() {
     });
   }, [assetView, library.data, searchQuery, trackFilter]);
 
+  const groupedAssets = useMemo(
+    () => groupAssetsByTargetDemographic(assets),
+    [assets],
+  );
+
   const selectedAsset = useMemo(
     () => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null,
     [assets, selectedAssetId],
@@ -2496,57 +2502,75 @@ export function ContentLibraryView() {
                 <TabsTrigger value="imported" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Client imports</TabsTrigger>
               </TabsList>
               <TabsContent value={assetView} className="mt-0 space-y-6">
-                  <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-
-                  {assets.map((asset: any) => (
-                    <PremiumCard key={asset.id} className={`h-full transition-all ${selectedAsset?.id === asset.id ? "ring-1 ring-white/30" : ""}`}>
-                      <CardHeader className="space-y-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{asset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.category}</Badge>
-                        </div>
-                        <div className="space-y-2">
-                          <CardTitle className="text-xl text-white">{asset.title}</CardTitle>
-                          <CardDescription className="text-sm leading-6 text-slate-300">{asset.summary}</CardDescription>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-2">
-                          {asset.linkedRoles.map((linked: string) => (
-                            <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">
-                              {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-slate-300">
-                          {asset.tags.map((tag: string) => (
-                            <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1">#{tag}</span>
-                          ))}
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
-                          <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
-                          <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button type="button" variant="outline" onClick={() => setSelectedAssetId(asset.id)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                            {selectedAsset?.id === asset.id ? "Selected for training" : "Preview in workflow"}
-                          </Button>
-                          <Button type="button" onClick={() => handleStartTraining(asset)} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">
-                            Start training
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                          {asset.fileUrl ? (
-                            <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
-                              Open stored asset
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </a>
-                          ) : null}
-                        </div>
-                      </CardContent>
-                    </PremiumCard>
-                  ))}
-                </div>
+                {groupedAssets.length > 0 ? (
+                  <div className="space-y-6">
+                    {groupedAssets.map((group) => (
+                      <PremiumCard key={group.id} className="overflow-hidden border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(15,23,42,0.82))]">
+                        <CardHeader className="space-y-3 border-b border-white/8 bg-white/[0.03]">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <CardTitle className="text-white">{group.title}</CardTitle>
+                              <CardDescription className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{group.description}</CardDescription>
+                            </div>
+                            <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length} asset{group.assets.length === 1 ? "" : "s"}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="px-6 py-6">
+                          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                            {group.assets.map((asset: any) => (
+                              <PremiumCard key={asset.id} className={`h-full transition-all ${selectedAsset?.id === asset.id ? "ring-1 ring-white/30" : ""}`}>
+                                <CardHeader className="space-y-4">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{asset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
+                                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
+                                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.category}</Badge>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <CardTitle className="text-xl text-white">{asset.title}</CardTitle>
+                                    <CardDescription className="text-sm leading-6 text-slate-300">{asset.summary}</CardDescription>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div className="flex flex-wrap gap-2">
+                                    {asset.linkedRoles.map((linked: string) => (
+                                      <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">
+                                        {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                                    {asset.tags.map((tag: string) => (
+                                      <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1">#{tag}</span>
+                                    ))}
+                                  </div>
+                                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
+                                    <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
+                                    <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button type="button" variant="outline" onClick={() => setSelectedAssetId(asset.id)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                                      {selectedAsset?.id === asset.id ? "Selected for training" : "Preview in workflow"}
+                                    </Button>
+                                    <Button type="button" onClick={() => handleStartTraining(asset)} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">
+                                      Start training
+                                      <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                    {asset.fileUrl ? (
+                                      <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
+                                        Open stored asset
+                                        <ChevronRight className="ml-1 h-4 w-4" />
+                                      </a>
+                                    ) : null}
+                                  </div>
+                                </CardContent>
+                              </PremiumCard>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </PremiumCard>
+                    ))}
+                  </div>
+                ) : null}
                 {assets.length === 0 ? (
                   <PremiumCard>
                     <CardContent className="py-12 text-center text-slate-300">

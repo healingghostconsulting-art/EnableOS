@@ -119,3 +119,4 @@
 - [x] Research the current top telephony and contact-center platforms and assess how CHCG EnableOS could be packaged as a plugin, marketplace app, or integration for each one.
 - [x] Fix training narration so playback speaks the current lesson content instead of only replaying the uploaded voice-reference recording.
 - [x] Add a persistent mini audio bar across the training experience so lesson narration controls remain available throughout the lesson flow.
+- [x] Refine the content library sorting so assets are organized by target demographic, making audience intent the primary default structure.
