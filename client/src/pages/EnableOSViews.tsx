@@ -1055,6 +1055,15 @@ export function TrainingExperienceView() {
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
+  const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setNarrationStatus("idle");
+  }, [narrationScript]);
+
   const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
   const lessonVisualSequence = currentLessonPage
     ? currentLessonPage.bullets.slice(0, 3).map((bullet, index) => ({
@@ -1556,6 +1565,46 @@ export function TrainingExperienceView() {
                             </Button>
                           </div>
                         </div>
+                        <div className="sticky bottom-4 z-20 mt-6 rounded-[1.5rem] border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.18),rgba(15,23,42,0.94))] px-4 py-4 shadow-[0_20px_60px_rgba(8,15,35,0.35)] backdrop-blur-xl">
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="min-w-0 space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Mini audio bar</Badge>
+                                <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label ?? "Lesson"}</Badge>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-white">{miniAudioBarTitle}</p>
+                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-300">{narrationScript}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-3 lg:items-end">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
+                                  <PlayCircle className="mr-2 h-4 w-4" />
+                                  Play audio
+                                </Button>
+                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
+                                  <PauseCircle className="mr-2 h-4 w-4" />
+                                  Stop
+                                </Button>
+                                <Select value={narrationRate} onValueChange={setNarrationRate}>
+                                  <SelectTrigger className="w-[160px] rounded-full border-white/12 bg-slate-950/80 text-slate-100">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="0.85">Slow · 0.85x</SelectItem>
+                                    <SelectItem value="0.95">Balanced · 0.95x</SelectItem>
+                                    <SelectItem value="1">Standard · 1.0x</SelectItem>
+                                    <SelectItem value="1.1">Energetic · 1.1x</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <p className="text-xs text-slate-300 lg:text-right">
+                                {narrationStatus === "playing" ? "Reading the current lesson script aloud." : narrationStatus === "ended" ? "Finished reading the current lesson script." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Persistent narration controls stay available while you move through the lesson."}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                         {currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8">
                             <div className="space-y-8">
@@ -1569,23 +1618,13 @@ export function TrainingExperienceView() {
                                 <div className="mt-6 rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Narration quick controls</p>
-                                      <p className="mt-2 text-sm text-slate-100">Play spoken narration of the current lesson content directly from the top of each lesson page.</p>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Narration access</p>
+                                      <p className="mt-2 text-sm text-slate-100">Use the persistent mini audio bar to keep lesson narration controls available as you move through every page and stage.</p>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
-                                        <PlayCircle className="mr-2 h-4 w-4" />
-                                        Play lesson audio
-                                      </Button>
-                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
-                                        <PauseCircle className="mr-2 h-4 w-4" />
-                                        Stop
-                                      </Button>
-                                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Speaks current lesson script</Badge>
-                                    </div>
+                                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Speaks current lesson script</Badge>
                                   </div>
                                   <p className="mt-3 text-sm text-slate-200">
-                                    {narrationStatus === "playing" ? "Lesson narration is reading the current lesson content." : narrationStatus === "ended" ? "Lesson narration finished reading the current lesson content." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Lesson narration is ready to read the content shown on this page."}
+                                    {narrationStatus === "playing" ? "The mini audio bar is currently reading the active lesson content." : narrationStatus === "ended" ? "The mini audio bar finished reading the active lesson content." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "The mini audio bar is ready to read the content shown on this page."}
                                   </p>
                                 </div>
                                 <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
