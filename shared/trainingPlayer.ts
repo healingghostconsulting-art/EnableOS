@@ -1,4 +1,4 @@
-import type { TrainingDeckVisual } from "./trainingContent";
+import type { TrainingDeckVisual, TrainingPresentation, TrainingPresentationSlide } from "./trainingContent";
 
 export function clampSlideSelection(selectedIndex: number, visualCount: number) {
   if (visualCount <= 0) {
@@ -32,4 +32,16 @@ export function getSlideCanvasVisuals(deckVisuals: TrainingDeckVisual[], selecte
     activeVisual: deckVisuals[activeIndex] ?? null,
     visuals: deckVisuals,
   };
+}
+
+export function buildLessonNarrationScript(
+  currentLessonPage: TrainingPresentationSlide | null,
+  presentation: TrainingPresentation | null,
+) {
+  if (currentLessonPage) {
+    const bulletNarration = currentLessonPage.bullets.slice(0, 3).join(" ");
+    return `${currentLessonPage.title}. ${currentLessonPage.narrative} ${bulletNarration}`.trim();
+  }
+
+  return presentation?.heroSummary ?? "Narration becomes available when a lesson page is active.";
 }

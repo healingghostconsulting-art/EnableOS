@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getTrainingPresentation } from "../shared/trainingContent";
-import { clampSlideSelection, getSlideCanvasVisuals } from "../shared/trainingPlayer";
+import { buildLessonNarrationScript, clampSlideSelection, getSlideCanvasVisuals } from "../shared/trainingPlayer";
 
 describe("training player helpers", () => {
   it("clamps out-of-range slide selections to a safe interactive-canvas index", () => {
@@ -57,5 +57,26 @@ describe("training player helpers", () => {
         title: "Gamification mistakes to avoid",
       }),
     );
+  });
+
+  it("builds narration from the active lesson page content instead of any external voice sample", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const narrationScript = buildLessonNarrationScript(presentation.slides[0], presentation);
+
+    expect(narrationScript).toContain(presentation.slides[0].title);
+    expect(narrationScript).toContain(presentation.slides[0].narrative);
+    expect(narrationScript).toContain(presentation.slides[0].bullets[0]);
+    expect(narrationScript).not.toContain("We must learn to let go");
   });
 });

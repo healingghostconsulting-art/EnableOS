@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
-import { getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
+import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { Link, useLocation } from "wouter";
 
 const VOICE_REFERENCE_SAMPLE_URL = "/manus-storage/LettingGoRAWFINALUSETHIS_b8a8ab1a.m4a";
@@ -768,7 +768,6 @@ export function TrainingExperienceView() {
   const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
   const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
-  const [narrationMode, setNarrationMode] = useState<"browser_preview" | "voice_reference">("browser_preview");
   const [narrationRate, setNarrationRate] = useState("0.95");
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
 
@@ -1003,8 +1002,14 @@ export function TrainingExperienceView() {
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(narrationScript);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("en")) ?? voices[0];
     utterance.rate = Number(narrationRate);
-    utterance.pitch = narrationMode === "voice_reference" ? 0.92 : 1;
+    utterance.pitch = 1;
+    utterance.lang = preferredVoice?.lang ?? "en-US";
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
     utterance.onstart = () => setNarrationStatus("playing");
     utterance.onend = () => setNarrationStatus("ended");
     utterance.onerror = () => setNarrationStatus("unsupported");
@@ -1049,9 +1054,7 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
-  const narrationScript = currentLessonPage
-    ? `${currentLessonPage.title}. ${currentLessonPage.narrative} ${currentLessonPage.bullets.slice(0, 3).join(" ")}`
-    : presentation?.heroSummary ?? "Narration preview becomes available when a lesson page is active.";
+  const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
   const lessonVisualSequence = currentLessonPage
     ? currentLessonPage.bullets.slice(0, 3).map((bullet, index) => ({
@@ -1567,30 +1570,22 @@ export function TrainingExperienceView() {
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Narration quick controls</p>
-                                      <p className="mt-2 text-sm text-slate-100">Use narrated playback directly from the top of each lesson page.</p>
+                                      <p className="mt-2 text-sm text-slate-100">Play spoken narration of the current lesson content directly from the top of each lesson page.</p>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3">
                                       <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
                                         <PlayCircle className="mr-2 h-4 w-4" />
-                                        Play narration
+                                        Play lesson audio
                                       </Button>
                                       <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
                                         <PauseCircle className="mr-2 h-4 w-4" />
                                         Stop
                                       </Button>
-                                      <Button
-                                        type="button"
-                                        variant={narrationMode === "voice_reference" ? "default" : "outline"}
-                                        className={narrationMode === "voice_reference" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
-                                        onClick={() => setNarrationMode(narrationMode === "voice_reference" ? "browser_preview" : "voice_reference")}
-                                      >
-                                        <Mic className="mr-2 h-4 w-4" />
-                                        {narrationMode === "voice_reference" ? "Voice reference on" : "Use voice reference"}
-                                      </Button>
+                                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Speaks current lesson script</Badge>
                                     </div>
                                   </div>
                                   <p className="mt-3 text-sm text-slate-200">
-                                    {narrationStatus === "playing" ? "Narration preview is playing." : narrationStatus === "ended" ? "Narration preview finished." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Narration is ready to preview from this lesson page."}
+                                    {narrationStatus === "playing" ? "Lesson narration is reading the current lesson content." : narrationStatus === "ended" ? "Lesson narration finished reading the current lesson content." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Lesson narration is ready to read the content shown on this page."}
                                   </p>
                                 </div>
                                 <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
@@ -1598,30 +1593,14 @@ export function TrainingExperienceView() {
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div>
                                         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narrated lesson controls</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">Preview this lesson as spoken guidance</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">The uploaded voice sample acts as the tonal reference, while this in-browser preview lets reviewers test pacing against the lesson script before any produced narration is finalized.</p>
+                                        <h4 className="mt-2 text-lg font-medium text-white">Read this lesson aloud as spoken guidance</h4>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">This player reads the lesson script shown below. The uploaded recording remains available separately as a tone reference only and is not the narrated lesson itself.</p>
                                       </div>
-                                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{narrationMode === "voice_reference" ? "Voice-reference mode" : "Browser preview mode"}</Badge>
+                                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Content narration</Badge>
                                     </div>
                                     <div className="mt-4 flex flex-wrap gap-3">
-                                      <Button
-                                        type="button"
-                                        variant={narrationMode === "browser_preview" ? "default" : "outline"}
-                                        className={narrationMode === "browser_preview" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
-                                        onClick={() => setNarrationMode("browser_preview")}
-                                      >
-                                        <Volume2 className="mr-2 h-4 w-4" />
-                                        Browser preview
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant={narrationMode === "voice_reference" ? "default" : "outline"}
-                                        className={narrationMode === "voice_reference" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}
-                                        onClick={() => setNarrationMode("voice_reference")}
-                                      >
-                                        <Mic className="mr-2 h-4 w-4" />
-                                        Uploaded voice reference
-                                      </Button>
+                                      <Badge className="rounded-full border-white/10 bg-white/6 text-slate-200"><Volume2 className="mr-2 h-4 w-4" /> Browser speech preview</Badge>
+                                      <Badge className="rounded-full border-white/10 bg-white/6 text-slate-200"><Mic className="mr-2 h-4 w-4" /> Uses lesson script below</Badge>
                                     </div>
                                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                                       {voiceReferenceHighlights.map((item) => (
@@ -1657,7 +1636,7 @@ export function TrainingExperienceView() {
                                         Stop preview
                                       </Button>
                                       <span className="text-sm text-slate-400">
-                                        {narrationStatus === "playing" ? "Narration preview is playing." : narrationStatus === "ended" ? "Narration preview finished." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Ready to preview this lesson as audio."}
+                                        {narrationStatus === "playing" ? "Reading the current lesson script aloud." : narrationStatus === "ended" ? "Finished reading the current lesson script." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Ready to read the current lesson script as audio."}
                                       </span>
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
@@ -1669,8 +1648,8 @@ export function TrainingExperienceView() {
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div>
                                         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Uploaded voice-reference workflow</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">Reference sample from the provided recording</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">This panel keeps the supplied recording inside the course review experience so stakeholders can compare lesson scripts to the reference tone before approving narrated content.</p>
+                                        <h4 className="mt-2 text-lg font-medium text-white">Tone-reference sample from the provided recording</h4>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">This recording is preserved only as a voice and pacing reference. It does not contain the active lesson narration and should not be used in place of the content-reading controls.</p>
                                       </div>
                                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{VOICE_REFERENCE_SAMPLE_NAME}</Badge>
                                     </div>
@@ -1680,7 +1659,7 @@ export function TrainingExperienceView() {
                                       </audio>
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transcript excerpt used for tone calibration</p>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transcript excerpt used for tone calibration only</p>
                                       <p className="mt-3 text-sm leading-7 text-slate-200">{VOICE_REFERENCE_TRANSCRIPT_EXCERPT}</p>
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
