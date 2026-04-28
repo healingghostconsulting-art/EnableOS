@@ -9,6 +9,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Area,
   AreaChart,
@@ -49,6 +51,7 @@ import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
 import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
+import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
 const VOICE_REFERENCE_SAMPLE_URL = "/manus-storage/LettingGoRAWFINALUSETHIS_b8a8ab1a.m4a";
@@ -392,6 +395,7 @@ function AssessmentPanel({
   onRetry,
   disabled,
   accent = "cyan",
+  compact = false,
 }: {
   eyebrow: string;
   assessment: any;
@@ -405,6 +409,7 @@ function AssessmentPanel({
   onRetry: () => void;
   disabled?: boolean;
   accent?: "cyan" | "emerald" | "amber";
+  compact?: boolean;
 }) {
   if (!assessment) {
     return null;
@@ -422,8 +427,8 @@ function AssessmentPanel({
       : "text-cyan-100/80";
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+    <div className={compact ? "space-y-3" : "space-y-4"}>
+      <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
         <h4 className="mt-2 text-lg font-medium text-white">{assessment.title}</h4>
         <p className="mt-3 text-sm leading-6 text-slate-300">{assessment.objective}</p>
@@ -442,7 +447,7 @@ function AssessmentPanel({
           const questionOptions = question.options ?? [];
 
           return (
-            <div key={question.id} className="rounded-[1.6rem] border border-white/10 bg-slate-950/60 p-5">
+            <div key={question.id} className={`rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
                   {assessment.style === "kahoot" ? `Quiz question ${questionIndex + 1}` : `Checkpoint question ${questionIndex + 1}`}
@@ -462,11 +467,11 @@ function AssessmentPanel({
               <h4 className="mt-3 text-lg font-medium text-white">{question.prompt}</h4>
               {question.type === "short_answer" ? (
                 <div className="mt-4 space-y-3">
-                  <textarea
+                  <Textarea
                     value={answerValue}
                     onChange={(event) => onAnswer(question.id, event.target.value)}
-                    rows={3}
-                    className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
+                    rows={compact ? 2 : 3}
+                    className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
                     placeholder={question.placeholder ?? "Enter your answer"}
                   />
                   {submitted ? (
@@ -511,7 +516,7 @@ function AssessmentPanel({
           );
         })}
       </div>
-      <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+      <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-white">Assessment status</p>
@@ -874,6 +879,8 @@ export function TrainingExperienceView() {
   const [narrationRate, setNarrationRate] = useState("0.95");
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
   const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
+  const [activeQuizTriggerId, setActiveQuizTriggerId] = useState<string | null>(null);
+  const [dismissedQuizTriggerIds, setDismissedQuizTriggerIds] = useState<string[]>([]);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -891,6 +898,8 @@ export function TrainingExperienceView() {
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
     setNarrationStatus("idle");
+    setActiveQuizTriggerId(null);
+    setDismissedQuizTriggerIds([]);
   }, [tenantId]);
 
   useEffect(() => {
@@ -908,6 +917,8 @@ export function TrainingExperienceView() {
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
     setNarrationStatus("idle");
+    setActiveQuizTriggerId(null);
+    setDismissedQuizTriggerIds([]);
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
@@ -928,6 +939,8 @@ export function TrainingExperienceView() {
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
     setNarrationStatus("idle");
+    setActiveQuizTriggerId(null);
+    setDismissedQuizTriggerIds([]);
   }, [previewScenarioId]);
 
   useEffect(() => {
@@ -942,6 +955,7 @@ export function TrainingExperienceView() {
       setApplicationAnswers({});
       setApplicationSubmitted(false);
     }
+    setActiveQuizTriggerId(null);
   }, [stageIndex]);
 
   const liveJourney = learner.data?.activeJourney ?? null;
@@ -1103,6 +1117,12 @@ export function TrainingExperienceView() {
   const presentation = selectedModule
     ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)
     : null;
+  const guidedPlan = buildGuidedTrainingPlan({
+    journeyTitle: effectiveJourneyTitle,
+    moduleTitle: selectedModule?.title ?? "Guided module",
+    skillFocus: selectedModule?.skillFocus ?? "Behavior change",
+    presentation,
+  });
   const deckVisuals = presentation?.deckVisuals ?? [];
   const insightCharts = presentation?.insightCharts ?? [];
   const slideCanvas = getSlideCanvasVisuals(deckVisuals, selectedDeckVisualIndex);
@@ -1229,6 +1249,58 @@ export function TrainingExperienceView() {
   const finalQuizAnsweredCount = finalQuizQuestions.filter((question) => hasAssessmentAnswer(question, finalQuizAnswers)).length;
   const finalQuizScore = finalQuizQuestions.filter((question) => isAssessmentQuestionCorrect(question, finalQuizAnswers[question.id])).length;
   const finalQuizPassed = finalQuizSubmitted && finalQuizScore >= (presentation?.finalQuiz.passingScore ?? Number.MAX_SAFE_INTEGER);
+  const activeQuizTrigger = guidedPlan.quizTriggers.find((trigger) => (
+    trigger.stageId === currentStage?.id && trigger.pageIndex === lessonPageIndex
+  )) ?? null;
+  const quizTriggerDismissed = activeQuizTrigger ? dismissedQuizTriggerIds.includes(activeQuizTrigger.id) : false;
+  const activeModalQuizTrigger = activeQuizTriggerId
+    ? guidedPlan.quizTriggers.find((trigger) => trigger.id === activeQuizTriggerId) ?? null
+    : null;
+  const activeModalAssessment = activeModalQuizTrigger?.assessmentKey === "briefCheckpoint"
+    ? presentation?.briefCheckpoint
+    : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint"
+      ? presentation?.practiceCheckpoint
+      : activeModalQuizTrigger?.assessmentKey === "applicationActivity"
+        ? presentation?.applicationActivity
+        : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
+          ? presentation?.finalQuiz
+          : null;
+  const activeModalAnswers = activeModalQuizTrigger?.assessmentKey === "briefCheckpoint"
+    ? briefCheckpointAnswers
+    : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint"
+      ? practiceCheckpointAnswers
+      : activeModalQuizTrigger?.assessmentKey === "applicationActivity"
+        ? applicationAnswers
+        : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
+          ? finalQuizAnswers
+          : {};
+  const activeModalAnsweredCount = activeModalQuizTrigger?.assessmentKey === "briefCheckpoint"
+    ? briefAnsweredCount
+    : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint"
+      ? practiceAnsweredCount
+      : activeModalQuizTrigger?.assessmentKey === "applicationActivity"
+        ? applicationAnsweredCount
+        : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
+          ? finalQuizAnsweredCount
+          : 0;
+  const activeModalScore = activeModalQuizTrigger?.assessmentKey === "briefCheckpoint"
+    ? briefScore
+    : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint"
+      ? practiceScore
+      : activeModalQuizTrigger?.assessmentKey === "applicationActivity"
+        ? applicationScore
+        : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
+          ? finalQuizScore
+          : 0;
+  const activeModalPassed = activeModalQuizTrigger?.assessmentKey === "briefCheckpoint"
+    ? briefPassed
+    : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint"
+      ? practicePassed
+      : activeModalQuizTrigger?.assessmentKey === "applicationActivity"
+        ? applicationPassed
+        : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
+          ? finalQuizPassed
+          : false;
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
   const canAdvance = currentStage?.id === "brief"
@@ -1241,6 +1313,30 @@ export function TrainingExperienceView() {
           ? reflection.trim().length >= 20 && finalQuizPassed
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
+
+  useEffect(() => {
+    if (!activeQuizTrigger || quizTriggerDismissed || activeQuizTriggerId) {
+      return;
+    }
+
+    if (activeQuizTrigger.stageId === "brief" && activeQuizTrigger.assessmentKey === "briefCheckpoint" && briefPassed) {
+      return;
+    }
+
+    if (activeQuizTrigger.stageId === "practice" && activeQuizTrigger.assessmentKey === "practiceCheckpoint" && practicePassed) {
+      return;
+    }
+
+    if (activeQuizTrigger.stageId === "apply" && activeQuizTrigger.assessmentKey === "applicationActivity" && applicationPassed) {
+      return;
+    }
+
+    if (activeQuizTrigger.stageId === "reflect" && activeQuizTrigger.assessmentKey === "finalQuiz" && finalQuizPassed) {
+      return;
+    }
+
+    setActiveQuizTriggerId(activeQuizTrigger.id);
+  }, [activeQuizTrigger, activeQuizTriggerId, applicationPassed, briefPassed, finalQuizPassed, practicePassed, quizTriggerDismissed]);
 
   const advanceStage = () => {
     if (!selectedModule || !canAdvance) {
@@ -1310,6 +1406,93 @@ export function TrainingExperienceView() {
 
   const retryFinalQuiz = () => {
     setFinalQuizSubmitted(false);
+  };
+
+  const handleModalAnswer = (questionId: string, value: string) => {
+    if (!activeModalQuizTrigger) {
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "briefCheckpoint") {
+      setBriefCheckpointSubmitted(false);
+      setBriefCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "practiceCheckpoint") {
+      setPracticeCheckpointSubmitted(false);
+      setPracticeCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "applicationActivity") {
+      setApplicationSubmitted(false);
+      setApplicationAnswers((current) => ({ ...current, [questionId]: value }));
+      return;
+    }
+
+    setFinalQuizSubmitted(false);
+    setFinalQuizAnswers((current) => ({ ...current, [questionId]: value }));
+  };
+
+  const handleModalSubmit = () => {
+    if (!activeModalQuizTrigger) {
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "briefCheckpoint") {
+      gradeBriefCheckpoint();
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "practiceCheckpoint") {
+      gradePracticeCheckpoint();
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "applicationActivity") {
+      gradeApplication();
+      return;
+    }
+
+    gradeFinalQuiz();
+  };
+
+  const handleModalRetry = () => {
+    if (!activeModalQuizTrigger) {
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "briefCheckpoint") {
+      retryBriefCheckpoint();
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "practiceCheckpoint") {
+      retryPracticeCheckpoint();
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "applicationActivity") {
+      retryApplication();
+      return;
+    }
+
+    retryFinalQuiz();
+  };
+
+  const dismissActiveQuizTrigger = () => {
+    if (!activeModalQuizTrigger) {
+      setActiveQuizTriggerId(null);
+      return;
+    }
+
+    if (!activeModalPassed) {
+      return;
+    }
+
+    setDismissedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
+    setActiveQuizTriggerId(null);
   };
 
   return (
@@ -1417,7 +1600,7 @@ export function TrainingExperienceView() {
                         </div>
                       </div>
                       <Progress value={overallProgress} className="h-2.5 bg-white/8" />
-                      <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                           <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Modules completed</p>
                           <p className="mt-2 text-xl font-semibold text-white">{completedModuleCount}</p>
@@ -1427,15 +1610,30 @@ export function TrainingExperienceView() {
                           <p className="mt-2 text-xl font-semibold text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</p>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Mapped assets</p>
-                          <p className="mt-2 text-xl font-semibold text-white">{supportingAssets.length}</p>
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Guided runtime</p>
+                          <p className="mt-2 text-lg font-semibold text-white">{guidedPlan.targetDurationLabel}</p>
+                          <p className="mt-1 text-xs text-slate-400">{guidedPlan.family === "leadership" ? "Leadership workshop depth" : "Learner pathway depth"}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Guided slides</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{guidedPlan.slideCount}</p>
+                          <p className="mt-1 text-xs text-slate-400">Brief, practice, and transfer sequence</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Quiz moments</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{guidedPlan.quizTriggers.length}</p>
+                          <p className="mt-1 text-xs text-slate-400">Interleaved comprehension gates</p>
                         </div>
                       </div>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next unlock</p>
-                        <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
+                        <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : currentStage?.title}</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-400">{activeQuizTrigger ? activeQuizTrigger.modalPrompt : "Advance through the narrated lesson pages to unlock the next guided checkpoint."}</p>
+                        <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">
+                          {activeQuizTrigger ? `Opens on page ${activeQuizTrigger.pageIndex + 1} of ${activeQuizTrigger.pageCount}` : currentStagePages.length > 0 ? `Current stage spans ${currentStagePages.length} guided pages` : "Stage pacing will appear when the lesson loads"}
+                        </p>
                       </div>
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
@@ -1444,6 +1642,23 @@ export function TrainingExperienceView() {
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Certification signal</p>
                         <p className="mt-2 text-sm font-medium text-white">{atJourneyEnd ? "Final reflection is available once your current entry is complete." : "Progress is being tracked toward the next coaching-ready milestone."}</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-400">Each passed modal checkpoint strengthens completion confidence before the module closes.</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 sm:col-span-2 xl:col-span-2">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Presentation-quality pacing</p>
+                        <p className="mt-2 text-sm font-medium text-white">{guidedPlan.pacingLabel}</p>
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          {guidedPlan.stageDurations.map((stagePlan) => (
+                            <div key={stagePlan.stageId} className={`rounded-[1.1rem] border px-3 py-3 ${stagePlan.stageId === currentStage?.id ? "border-cyan-300/30 bg-cyan-300/10" : "border-white/10 bg-slate-950/35"}`}>
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{stagePlan.label}</p>
+                              <p className="mt-2 text-sm font-medium text-white">{stagePlan.durationLabel}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Narration mode</p>
+                        <p className="mt-2 text-sm font-medium text-white">Voice guidance stays aligned to the active guided page instead of acting as a separate audio-only track.</p>
                       </div>
                     </div>
                   </div>
@@ -1617,6 +1832,7 @@ export function TrainingExperienceView() {
                       <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current checkpoint</p>
                         <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
+                        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-100/80">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibration loading"}</p>
                       </div>
                     </div>
                   </div>
@@ -1667,12 +1883,16 @@ export function TrainingExperienceView() {
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="grid gap-3 md:grid-cols-4">
-                      {stages.map((stage, index) => (
-                        <div key={stage.id} className={`rounded-2xl border px-3 py-3 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
-                          <p className="font-medium">{stage.label}</p>
-                          <p className="mt-1 text-xs text-slate-400">Step {index + 1}</p>
-                        </div>
-                      ))}
+                      {stages.map((stage, index) => {
+                        const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
+                        return (
+                          <div key={stage.id} className={`rounded-2xl border px-3 py-3 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                            <p className="font-medium">{stage.label}</p>
+                            <p className="mt-1 text-xs text-slate-400">Step {index + 1}</p>
+                            {stagePlan ? <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-100/80">{stagePlan.durationLabel}</p> : null}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {currentStagePages.length > 0 ? (
@@ -1686,12 +1906,19 @@ export function TrainingExperienceView() {
                             <div>
                               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
                               <p className="mt-1 text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
+                              <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-cyan-100/80">
+                                {guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Stage runtime calibrating"}
+                              </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-4">
                               <div className="h-2 w-56 overflow-hidden rounded-full bg-white/8">
                                 <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${lessonPageProgress}%` }} />
                               </div>
                               <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{lessonPageProgress}% section complete</p>
+                              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                                {Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} guided pages remaining
+                              </p>
+                              {activeQuizTrigger ? <p className="text-xs uppercase tracking-[0.2em] text-amber-100/80">Upcoming checkpoint: {activeQuizTrigger.label}</p> : null}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1721,6 +1948,7 @@ export function TrainingExperienceView() {
                               <div className="flex flex-wrap items-center gap-2">
                                 <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Mini audio bar</Badge>
                                 <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label ?? "Lesson"}</Badge>
+                                {activeQuizTrigger ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/10 text-amber-100">Next gate · {activeQuizTrigger.label}</Badge> : null}
                               </div>
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-medium text-white">{miniAudioBarTitle}</p>
@@ -2082,24 +2310,14 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        <AssessmentPanel
-                          eyebrow="Brief checkpoint"
-                          assessment={presentation?.briefCheckpoint}
-                          answers={briefCheckpointAnswers}
-                          submitted={briefCheckpointSubmitted}
-                          answeredCount={briefAnsweredCount}
-                          score={briefScore}
-                          passed={briefPassed}
-                          onAnswer={(questionId, value) => {
-                            setBriefCheckpointSubmitted(false);
-                            setBriefCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
-                          }}
-                          onSubmit={gradeBriefCheckpoint}
-                          onRetry={retryBriefCheckpoint}
-                          disabled={!onLastLessonPage}
-                          accent="cyan"
-                        />
-                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Continue through the remaining lesson pages before the brief checkpoint can be graded.</p> : null}
+                        <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Checkpoint pacing</p>
+                            <Badge className={`rounded-full ${briefPassed ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{briefPassed ? "Knowledge gate passed" : "Knowledge gate pending"}</Badge>
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Knowledge checks now open as pop-up quiz gates while the learner moves through the guided lesson. Continue through the narrated pages to trigger the next comprehension checkpoint.</p>
+                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Continue through the remaining lesson pages to reach the next gated quiz moment.</p> : null}
+                        </div>
                       </div>
                     ) : null}
 
@@ -2135,48 +2353,28 @@ export function TrainingExperienceView() {
                             </button>
                           ))}
                         </div>
-                        <AssessmentPanel
-                          eyebrow="Practice checkpoint"
-                          assessment={presentation?.practiceCheckpoint}
-                          answers={practiceCheckpointAnswers}
-                          submitted={practiceCheckpointSubmitted}
-                          answeredCount={practiceAnsweredCount}
-                          score={practiceScore}
-                          passed={practicePassed}
-                          onAnswer={(questionId, value) => {
-                            setPracticeCheckpointSubmitted(false);
-                            setPracticeCheckpointAnswers((current) => ({ ...current, [questionId]: value }));
-                          }}
-                          onSubmit={gradePracticeCheckpoint}
-                          onRetry={retryPracticeCheckpoint}
-                          disabled={!onLastLessonPage}
-                          accent="emerald"
-                        />
-                        {!practiceChoice ? <p className="text-sm text-amber-300">Choose a rehearsal mode before the next step can unlock.</p> : null}
-                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Review each practice page before the checkpoint can be graded.</p> : null}
+                        <div className="rounded-[1.6rem] border border-emerald-400/20 bg-emerald-400/10 p-5">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/70">Practice gate</p>
+                            <Badge className={`rounded-full ${practicePassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{practicePassed ? "Rehearsal gate passed" : "Rehearsal gate pending"}</Badge>
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">The rehearsal checkpoint now appears as a modal quiz inside the guided practice flow, keeping the learner focused on one decision at a time before continuing.</p>
+                          {!practiceChoice ? <p className="mt-3 text-sm text-amber-200">Choose a rehearsal mode before the next step can unlock.</p> : null}
+                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Review each practice page to trigger the next gated quiz moment.</p> : null}
+                        </div>
                       </div>
                     ) : null}
 
                     {currentStage?.id === "apply" ? (
                       <div className="space-y-4">
-                        <AssessmentPanel
-                          eyebrow="Gated application activity"
-                          assessment={presentation?.applicationActivity}
-                          answers={applicationAnswers}
-                          submitted={applicationSubmitted}
-                          answeredCount={applicationAnsweredCount}
-                          score={applicationScore}
-                          passed={applicationPassed}
-                          onAnswer={(questionId, value) => {
-                            setApplicationSubmitted(false);
-                            setApplicationAnswers((current) => ({ ...current, [questionId]: value }));
-                          }}
-                          onSubmit={gradeApplication}
-                          onRetry={retryApplication}
-                          disabled={!onLastLessonPage}
-                          accent="cyan"
-                        />
-                        {!onLastLessonPage ? <p className="text-sm text-amber-300">Finish the lesson page in this step before the application checkpoint can be graded.</p> : null}
+                        <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Transfer gate</p>
+                            <Badge className={`rounded-full ${applicationPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{applicationPassed ? "Transfer gate passed" : "Transfer gate pending"}</Badge>
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Application checks now surface as pop-up quiz gates so the learner proves they can transfer the lesson into live work before the module advances.</p>
+                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Finish the current guided page to unlock the application checkpoint.</p> : null}
+                        </div>
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Live-work transfer</p>
                           <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span>{launchedAsset ? <> while grounding the rehearsal in <span className="font-medium text-white">{launchedAsset.title}</span></> : null} and use the mapped resources below to reinforce the behavior in context.</p>
@@ -2225,31 +2423,22 @@ export function TrainingExperienceView() {
                         </div>
                         <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
-                          <textarea
+                          <Textarea
                             value={reflection}
                             onChange={(event) => setReflection(event.target.value)}
                             rows={5}
-                            className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-slate-500"
+                            className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
                             placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
                           />
                           {reflection.trim().length < 20 ? <p className="text-sm text-amber-300">Add a more concrete behavior commitment before the module can be completed.</p> : null}
                         </div>
-                        <AssessmentPanel
-                          eyebrow="Kahoot-style final quiz"
-                          assessment={presentation?.finalQuiz}
-                          answers={finalQuizAnswers}
-                          submitted={finalQuizSubmitted}
-                          answeredCount={finalQuizAnsweredCount}
-                          score={finalQuizScore}
-                          passed={finalQuizPassed}
-                          onAnswer={(questionId, value) => {
-                            setFinalQuizSubmitted(false);
-                            setFinalQuizAnswers((current) => ({ ...current, [questionId]: value }));
-                          }}
-                          onSubmit={gradeFinalQuiz}
-                          onRetry={retryFinalQuiz}
-                          accent="amber"
-                        />
+                        <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-400/10 p-5">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.22em] text-amber-100/70">Final knowledge sprint</p>
+                            <Badge className={`rounded-full ${finalQuizPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{finalQuizPassed ? "Final sprint passed" : "Final sprint pending"}</Badge>
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">The end-of-module quiz now launches as a modal knowledge sprint, giving the module a cleaner finish and keeping the reflection space focused on commitment and transfer.</p>
+                        </div>
                       </div>
                     ) : null}
 
@@ -2264,6 +2453,7 @@ export function TrainingExperienceView() {
                         Previous step
                       </Button>
                       <div className="flex items-center gap-3">
+                        {activeQuizTrigger && !quizTriggerDismissed && !activeModalPassed ? <span className="text-sm text-amber-300">Checkpoint gate active: complete the pop-up quiz to continue.</span> : null}
                         {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">Training preview complete.</span> : null}
                         <Button
                           type="button"
@@ -2276,6 +2466,57 @@ export function TrainingExperienceView() {
                         </Button>
                       </div>
                     </div>
+                    <Dialog open={Boolean(activeModalQuizTrigger)} onOpenChange={(open) => {
+                      if (!open) {
+                        dismissActiveQuizTrigger();
+                      }
+                    }}>
+                      <DialogContent className="max-w-4xl border-white/10 bg-slate-950/95 text-white">
+                        <DialogHeader>
+                          <DialogTitle>{activeModalQuizTrigger?.modalTitle ?? "Guided checkpoint"}</DialogTitle>
+                          <DialogDescription className="text-slate-300">
+                            {activeModalQuizTrigger?.modalPrompt ?? "Complete this checkpoint to continue the guided training flow."}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Guided checkpoint gate</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">This quiz appears inside the module flow so learners confirm comprehension before they continue through the narrated experience.</p>
+                            <p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">
+                              {activeModalQuizTrigger
+                                ? `${activeModalQuizTrigger.stageId === "brief" ? "Brief walkthrough" : activeModalQuizTrigger.stageId === "practice" ? "Practice rehearsal" : activeModalQuizTrigger.stageId === "apply" ? "Live-work transfer" : "Reflection sprint"} • page ${activeModalQuizTrigger.pageIndex + 1} of ${activeModalQuizTrigger.pageCount}`
+                                : "Checkpoint location loading"}
+                            </p>
+                          </div>
+                          <AssessmentPanel
+                            eyebrow={activeModalQuizTrigger?.label ?? "Guided checkpoint"}
+                            assessment={activeModalAssessment}
+                            answers={activeModalAnswers}
+                            submitted={activeModalQuizTrigger?.assessmentKey === "briefCheckpoint" ? briefCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint" ? practiceCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "applicationActivity" ? applicationSubmitted : finalQuizSubmitted}
+                            answeredCount={activeModalAnsweredCount}
+                            score={activeModalScore}
+                            passed={activeModalPassed}
+                            onAnswer={handleModalAnswer}
+                            onSubmit={handleModalSubmit}
+                            onRetry={handleModalRetry}
+                            disabled={false}
+                            accent={activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint" ? "emerald" : activeModalQuizTrigger?.assessmentKey === "finalQuiz" ? "amber" : "cyan"}
+                            compact
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={dismissActiveQuizTrigger}
+                            disabled={!activeModalPassed}
+                            className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500"
+                          >
+                            {activeModalPassed ? "Return to module" : "Pass quiz to return"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </CardContent>
                 </PremiumCard>
 
@@ -2309,17 +2550,39 @@ export function TrainingExperienceView() {
                         <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">Why this matters in-product</p>
                         <h4 className="mt-3 text-lg font-medium text-white">The course now closes with explicit transfer architecture</h4>
                         <p className="mt-3 text-sm leading-7 text-slate-100">Learners leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Narration proof</p>
+                            <p className="mt-2 text-sm text-white">Each guided page carries voice-ready script support rather than detached audio-only playback.</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Checkpoint proof</p>
+                            <p className="mt-2 text-sm text-white">Modal quiz gates confirm comprehension before learners move into the next stage.</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Coaching proof</p>
+                            <p className="mt-2 text-sm text-white">Reflection commitments and coach prompts stay visible for manager follow-through.</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       {presentation?.resourceActions.map((resource, index) => (
                         <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(15,23,42,0.62))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                           <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Resource action</p>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{String(index + 1).padStart(2, "0")}</Badge>
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transfer action</p>
+                            <div className="flex items-center gap-2">
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Outcome pack</Badge>
+                              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{String(index + 1).padStart(2, "0")}</Badge>
+                            </div>
                           </div>
                           <h4 className="mt-3 text-lg font-medium text-white">{resource.label}</h4>
                           <p className="mt-3 text-sm leading-6 text-slate-300">{resource.detail}</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Narration-ready handoff</Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Coach follow-through</Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Operational proof</Badge>
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -295,6 +295,125 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
   };
 }
 
+function buildGuidedCompanionSlides(
+  slides: TrainingPresentation["slides"],
+  stageLabel: "brief" | "practice" | "apply",
+) {
+  return slides.flatMap((slide, index) => {
+    const companionSlide = {
+      id: `${slide.id}-${stageLabel}-guided-${index + 1}`,
+      eyebrow:
+        stageLabel === "brief"
+          ? "Narration focus"
+          : stageLabel === "practice"
+            ? "Coach cue"
+            : "Transfer proof",
+      title:
+        stageLabel === "brief"
+          ? `Explain why ${slide.title.toLowerCase()} matters`
+          : stageLabel === "practice"
+            ? `Rehearse ${slide.title.toLowerCase()} with feedback`
+            : `Prove ${slide.title.toLowerCase()} in live work`,
+      narrative:
+        stageLabel === "brief"
+          ? `${slide.narrative} This companion slide slows the lesson down so narration can reinforce the key decision, risk, and behavior expectation before the learner advances.`
+          : stageLabel === "practice"
+            ? `${slide.narrative} This guided practice companion adds a coaching lens so the learner can hear what should be reinforced, corrected, or repeated before the next checkpoint.`
+            : `${slide.narrative} This transfer companion makes the work expectation explicit so the learner can connect the lesson to documentation, QA, and manager review after the quiz gate.`,
+      bullets: [
+        ...slide.bullets.slice(0, 2),
+        stageLabel === "brief"
+          ? "Pause narration here to summarize the behavior cue in plain operating language."
+          : stageLabel === "practice"
+            ? "Capture the phrase or action a coach should reinforce immediately after rehearsal."
+            : "Name the exact evidence that should exist once the behavior is used in production work.",
+      ],
+      visualTone:
+        stageLabel === "brief"
+          ? "Narrated reinforcement"
+          : stageLabel === "practice"
+            ? "Coaching overlay"
+            : "Transfer evidence",
+    };
+
+    const synthesisSlide = {
+      id: `${slide.id}-${stageLabel}-synthesis-${index + 1}`,
+      eyebrow:
+        stageLabel === "brief"
+          ? "Retention cue"
+          : stageLabel === "practice"
+            ? "Manager observation"
+            : "Operational handoff",
+      title:
+        stageLabel === "brief"
+          ? `Retain the signal behind ${slide.title.toLowerCase()}`
+          : stageLabel === "practice"
+            ? `Observe what success looks like after ${slide.title.toLowerCase()}`
+            : `Close the loop after ${slide.title.toLowerCase()}`,
+      narrative:
+        stageLabel === "brief"
+          ? `This synthesis slide converts ${slide.title.toLowerCase()} into a memory anchor the learner can repeat back, explain to a coach, and carry into the next quiz gate.`
+          : stageLabel === "practice"
+            ? `This synthesis slide frames ${slide.title.toLowerCase()} as an observed rehearsal moment so coaching feedback, peer review, and self-correction become easier to visualize.`
+            : `This synthesis slide turns ${slide.title.toLowerCase()} into an operational proof point so the learner knows what should be documented, measured, and reinforced once the behavior is used live.`,
+      bullets: [
+        stageLabel === "brief"
+          ? "State the lesson signal in one sentence a learner could repeat without the slide in front of them."
+          : stageLabel === "practice"
+            ? "Name the exact phrase, behavior, or pause a coach should listen for during rehearsal."
+            : "Describe the proof, note, or metric that should exist once the behavior shows up in production work.",
+        slide.bullets[0] ?? slide.title,
+        slide.bullets[1] ?? slide.narrative,
+      ],
+      visualTone:
+        stageLabel === "brief"
+          ? "Retention framing"
+          : stageLabel === "practice"
+            ? "Observation framing"
+            : "Proof framing",
+    };
+
+    const fieldNoteSlide = {
+      id: `${slide.id}-${stageLabel}-field-${index + 1}`,
+      eyebrow:
+        stageLabel === "brief"
+          ? "Field note"
+          : stageLabel === "practice"
+            ? "Coaching note"
+            : "Evidence note",
+      title:
+        stageLabel === "brief"
+          ? `Spot ${slide.title.toLowerCase()} in a live interaction`
+          : stageLabel === "practice"
+            ? `Coach ${slide.title.toLowerCase()} in the moment`
+            : `Record ${slide.title.toLowerCase()} as proof`,
+      narrative:
+        stageLabel === "brief"
+          ? `This field note slide translates ${slide.title.toLowerCase()} into a live-service example so the learner can hear how the narrated concept should sound once it leaves the slide deck and enters real work.`
+          : stageLabel === "practice"
+            ? `This coaching note slide slows ${slide.title.toLowerCase()} into a corrective moment so the learner can anticipate the feedback, phrasing, and reset cues a coach should use during rehearsal.`
+            : `This evidence note slide turns ${slide.title.toLowerCase()} into a documentation and quality signal so the learner can picture what should be captured after the behavior appears in production work.`,
+      bullets: [
+        stageLabel === "brief"
+          ? "Listen for the learner wording or behavior that proves the concept landed in a real conversation."
+          : stageLabel === "practice"
+            ? "Call out the exact intervention a coach should make if the learner skips or weakens the behavior."
+            : "Identify the record, annotation, or metric that should confirm the behavior happened after the module.",
+        slide.bullets[0] ?? slide.title,
+        slide.bullets[2] ?? slide.narrative,
+      ],
+      visualTone:
+        stageLabel === "brief"
+          ? "Live signal framing"
+          : stageLabel === "practice"
+            ? "Corrective coaching framing"
+            : "Audit-ready framing",
+    };
+
+    return [slide, companionSlide, synthesisSlide, fieldNoteSlide];
+  });
+}
+
 function enrichPresentation(module: ModuleLike, presentation: Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">): TrainingPresentation {
   const normalizedApplicationQuestions = presentation.applicationActivity.questions.map((question) => ({
     ...question,
@@ -303,6 +422,9 @@ function enrichPresentation(module: ModuleLike, presentation: Omit<TrainingPrese
 
   const normalizedPresentation = {
     ...presentation,
+    slides: buildGuidedCompanionSlides(presentation.slides, "brief"),
+    practiceSlides: buildGuidedCompanionSlides(presentation.practiceSlides, "practice"),
+    applySlides: buildGuidedCompanionSlides(presentation.applySlides, "apply"),
     applicationActivity: {
       ...presentation.applicationActivity,
       style: presentation.applicationActivity.style ?? "checkpoint",
