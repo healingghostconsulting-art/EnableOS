@@ -129,10 +129,10 @@
 - [x] Mass-overhaul the CHCG EnableOS UI into a more original, gamified, high-interaction experience inspired by benchmarked enterprise learning patterns without copying another product’s design language.
 - [x] Redesign the top page, workspace shell, training experience, content library, and CHCG Admin surfaces into one cohesive visual system with stronger progression, reward, and momentum cues.
 - [x] Add gamified interface elements such as progress framing, achievement cues, mission-style task structure, and more dynamic interactive states while preserving enterprise clarity.
-- [ ] Rework each training module into a guided slide-driven lesson flow so learners move through the source content in a clearer, fuller sequence instead of only small lesson fragments.
-- [ ] Add pop-up comprehension quizzes throughout the modules so learners must confirm understanding continuously while progressing through the guided training.
-- [ ] Validate the guided slide-based module flow and embedded quiz behavior with updated automated coverage before the next checkpoint.
-- [ ] Ensure the guided slide-based learner modules are narration-friendly and paced to take approximately 2.5–3 hours each when completed as full learning experiences.
-- [ ] Expand the four leadership modules into deeper narrated guided experiences that take approximately 3.5–4 hours each with embedded comprehension checks throughout.
-- [ ] Elevate the training experience from demo quality to presentation-ready product quality with more polished visual hierarchy, interaction pacing, and module craftsmanship.
-- [ ] Ensure the next training redesign pass is suitable for stakeholder presentation, with stronger end-to-end cohesion across slide flow, narration, assessments, and progression states.
+- [x] Rework each training module into a guided slide-driven lesson flow so learners move through the source content in a clearer, fuller sequence instead of only small lesson fragments.
+- [x] Add pop-up comprehension quizzes throughout the modules so learners must confirm understanding continuously while progressing through the guided training.
+- [x] Validate the guided slide-based module flow and embedded quiz behavior with updated automated coverage before the next checkpoint.
+- [x] Ensure the guided slide-based learner modules are narration-friendly and paced to take approximately 2.5–3 hours each when completed as full learning experiences.
+- [x] Expand the four leadership modules into deeper narrated guided experiences that take approximately 3.5–4 hours each with embedded comprehension checks throughout.
+- [x] Elevate the training experience from demo quality to presentation-ready product quality with more polished visual hierarchy, interaction pacing, and module craftsmanship.
+- [x] Ensure the next training redesign pass is suitable for stakeholder presentation, with stronger end-to-end cohesion across slide flow, narration, assessments, and progression states.

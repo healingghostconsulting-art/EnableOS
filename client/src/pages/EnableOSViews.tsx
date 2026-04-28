@@ -881,6 +881,7 @@ export function TrainingExperienceView() {
   const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
   const [activeQuizTriggerId, setActiveQuizTriggerId] = useState<string | null>(null);
   const [dismissedQuizTriggerIds, setDismissedQuizTriggerIds] = useState<string[]>([]);
+  const [recentUnlockMoment, setRecentUnlockMoment] = useState<{ title: string; detail: string } | null>(null);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -900,6 +901,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setRecentUnlockMoment(null);
   }, [tenantId]);
 
   useEffect(() => {
@@ -919,6 +921,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setRecentUnlockMoment(null);
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
@@ -941,6 +944,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setRecentUnlockMoment(null);
   }, [previewScenarioId]);
 
   useEffect(() => {
@@ -1303,6 +1307,9 @@ export function TrainingExperienceView() {
           : false;
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
+  const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
+  const reflectionWordCount = reflection.trim().length > 0 ? reflection.trim().split(/\s+/).filter(Boolean).length : 0;
+  const reflectionReady = reflection.trim().length >= 20;
   const canAdvance = currentStage?.id === "brief"
     ? briefPassed && onLastLessonPage
     : currentStage?.id === "practice"
@@ -1313,6 +1320,15 @@ export function TrainingExperienceView() {
           ? reflection.trim().length >= 20 && finalQuizPassed
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
+
+  useEffect(() => {
+    if (!recentUnlockMoment) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setRecentUnlockMoment(null), 4800);
+    return () => window.clearTimeout(timeout);
+  }, [recentUnlockMoment]);
 
   useEffect(() => {
     if (!activeQuizTrigger || quizTriggerDismissed || activeQuizTriggerId) {
@@ -1491,6 +1507,12 @@ export function TrainingExperienceView() {
       return;
     }
 
+    setRecentUnlockMoment({
+      title: `${activeModalQuizTrigger.label} cleared`,
+      detail: activeModalQuizTrigger.assessmentKey === "finalQuiz"
+        ? "The final knowledge sprint is complete, so the learner can close the module with a documented transfer commitment."
+        : `The learner has cleared this comprehension gate and can continue through the guided ${currentStage?.title?.toLowerCase() ?? "training"} flow.`,
+    });
     setDismissedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
     setActiveQuizTriggerId(null);
   };
@@ -1543,7 +1565,10 @@ export function TrainingExperienceView() {
                     <h2 className="mt-2 text-2xl font-semibold text-white">Review every module family directly in the course player</h2>
                     <p className="mt-2 text-sm leading-6 text-slate-300">Use these preview states to inspect the richer workflow, leadership, performance, and engagement visuals in the same training shell instead of validating only the default learner path.</p>
                   </div>
-                  <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                  </div>
                 </div>
                 <div className="grid gap-3 lg:grid-cols-5">
                   {previewScenarios.map((scenario) => (
@@ -1559,6 +1584,20 @@ export function TrainingExperienceView() {
                     </button>
                   ))}
                 </div>
+                {requestedRoleLabel || recentUnlockMoment ? (
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/55 px-4 py-4 text-sm text-slate-300">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Active training launch filter</p>
+                      <p className="mt-2 font-medium text-white">{requestedRoleLabel ? `${requestedRoleLabel} context is pinned into this preview.` : "Current preview is being reviewed without a role-chip launch filter."}</p>
+                      <p className="mt-2 leading-6 text-slate-400">{requestedRoleLabel ? "This makes the role-chip handoff from the content library visible in the course player so stakeholders can see exactly which audience lens shaped the module preview." : "Use a role chip from the content library to show which audience lens carried into the guided training preview."}</p>
+                    </div>
+                    <div className={`rounded-[1.35rem] border px-4 py-4 text-sm ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-100" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest unlock moment</p>
+                      <p className="mt-2 font-medium text-white">{recentUnlockMoment?.title ?? "Pass a modal quiz gate to surface the next module achievement signal."}</p>
+                      <p className={`mt-2 leading-6 ${recentUnlockMoment ? "text-emerald-100" : "text-slate-400"}`}>{recentUnlockMoment?.detail ?? "This panel gives the guided training flow a more presentation-ready sense of momentum after each comprehension checkpoint is cleared."}</p>
+                    </div>
+                  </div>
+                ) : null}
               </CardContent>
             </PremiumCard>
 
@@ -2421,23 +2460,55 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
-                          <Textarea
-                            value={reflection}
-                            onChange={(event) => setReflection(event.target.value)}
-                            rows={5}
-                            className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
-                            placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
-                          />
-                          {reflection.trim().length < 20 ? <p className="text-sm text-amber-300">Add a more concrete behavior commitment before the module can be completed.</p> : null}
-                        </div>
-                        <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-400/10 p-5">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-amber-100/70">Final knowledge sprint</p>
-                            <Badge className={`rounded-full ${finalQuizPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{finalQuizPassed ? "Final sprint passed" : "Final sprint pending"}</Badge>
+                        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+                          <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <p className="text-sm leading-6 text-slate-300">Write the behavior you want your coach or manager to observe next.</p>
+                              <Badge className={`rounded-full ${reflectionReady ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{reflectionReady ? "Transfer commitment ready" : "Commitment still forming"}</Badge>
+                            </div>
+                            <Textarea
+                              value={reflection}
+                              onChange={(event) => setReflection(event.target.value)}
+                              rows={5}
+                              className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
+                              placeholder="Example: I will shorten my verification phrasing, confirm the next action clearly, and document the outcome before ending the interaction."
+                            />
+                            <div className="grid gap-3 md:grid-cols-3">
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Commitment depth</p>
+                                <p className="mt-2 text-lg font-semibold text-white">{reflectionWordCount}</p>
+                                <p className="mt-1 text-xs leading-5 text-slate-400">Words currently captured in the behavior pledge.</p>
+                              </div>
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach visibility</p>
+                                <p className="mt-2 font-medium text-white">{reflectionReady ? "Observable next behavior is named." : "Add a visible behavior and proof point."}</p>
+                                <p className="mt-1 text-xs leading-5 text-slate-400">A strong reflection should describe what a coach can hear, see, or verify next.</p>
+                              </div>
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Module close state</p>
+                                <p className="mt-2 font-medium text-white">{finalQuizPassed ? "Knowledge sprint complete." : "Final sprint still gated."}</p>
+                                <p className="mt-1 text-xs leading-5 text-slate-400">Both the reflection pledge and the final quiz are required before the lesson closes.</p>
+                              </div>
+                            </div>
+                            {!reflectionReady ? <p className="text-sm text-amber-300">Add a more concrete behavior commitment before the module can be completed.</p> : null}
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">The end-of-module quiz now launches as a modal knowledge sprint, giving the module a cleaner finish and keeping the reflection space focused on commitment and transfer.</p>
+                          <div className="space-y-4">
+                            <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-400/10 p-5">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-xs uppercase tracking-[0.22em] text-amber-100/70">Final knowledge sprint</p>
+                                <Badge className={`rounded-full ${finalQuizPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{finalQuizPassed ? "Final sprint passed" : "Final sprint pending"}</Badge>
+                              </div>
+                              <p className="mt-3 text-sm leading-6 text-slate-100">The end-of-module quiz now launches as a modal knowledge sprint, giving the module a cleaner finish and keeping the reflection space focused on commitment and transfer.</p>
+                              <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-200">
+                                {finalQuizPassed ? "The learner has cleared the final knowledge check and only needs a presentation-ready transfer commitment to close the module." : "Once the learner passes the final knowledge sprint, this reflection step becomes the proof that the lesson can transfer into coached behavior."}
+                              </div>
+                            </div>
+                            <div className={`rounded-[1.6rem] border p-5 ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10" : "border-white/10 bg-white/5"}`}>
+                              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Progression cue</p>
+                              <p className="mt-3 text-sm font-medium text-white">{recentUnlockMoment?.title ?? "Clear a quiz gate to surface the next achievement cue here."}</p>
+                              <p className={`mt-3 text-sm leading-6 ${recentUnlockMoment ? "text-emerald-100" : "text-slate-300"}`}>{recentUnlockMoment?.detail ?? "This gives the reflection stage a visible sense of accomplishment instead of ending only with a static pass/fail state."}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ) : null}
