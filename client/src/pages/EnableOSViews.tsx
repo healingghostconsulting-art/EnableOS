@@ -37,6 +37,7 @@ import {
   Mic,
   PauseCircle,
   PlayCircle,
+  Search,
   ShieldCheck,
   Sparkles,
   Target,
@@ -46,6 +47,7 @@ import {
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
+import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
 import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { Link, useLocation } from "wouter";
 
@@ -91,6 +93,18 @@ const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string
     subtitle: "Manage white-label branding, tenant boundaries, and role-scoped configuration.",
   },
 };
+
+const TRAINING_PREVIEW_BY_ROLE: Partial<Record<DemoRole, string>> = {
+  executive: "leadership",
+  manager: "workflow",
+  coach: "coach-supervision",
+  learner: "active",
+  client_admin: "active",
+};
+
+function getRoleLabel(role: string) {
+  return role === "all" ? "All roles" : role.replaceAll("_", " ");
+}
 
 function SectionShell({
   eyebrow,
@@ -536,6 +550,58 @@ export function LandingView() {
   const viewer = trpc.auth.me.useQuery();
   const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
   const featuredTenants = landing.data?.tenants ?? [];
+  const [landingSearchQuery, setLandingSearchQuery] = useState("");
+  const landingTrainingRecords = useMemo(
+    () => [
+      {
+        title: "Service Foundations Core Deck",
+        subtitle: "Customer service, active listening, empathy, de-escalation, and professionalism.",
+        keywords: ["learner", "service foundations", "soft skills", "communication"],
+        href: "/training",
+        cta: "Open training simulator",
+      },
+      {
+        title: "Workflow Precision Field Kit",
+        subtitle: "Verification, QA discipline, documentation accuracy, and workflow execution.",
+        keywords: ["manager", "workflow precision", "qa", "documentation"],
+        href: "/training?role=manager",
+        cta: "Open manager-aligned training",
+      },
+      {
+        title: "Unlocking the Power of Data",
+        subtitle: "KPI interpretation, trend review, and decision-quality leadership.",
+        keywords: ["executive", "leadership", "data", "kpi"],
+        href: "/training?role=executive",
+        cta: "Open executive-aligned training",
+      },
+      {
+        title: "Performance Maximization Governance",
+        subtitle: "Calibration, improvement planning, and coaching accountability.",
+        keywords: ["manager", "performance", "calibration", "reviews"],
+        href: "/training?role=manager",
+        cta: "Open performance training",
+      },
+      {
+        title: "Remote-Team Engagement and Recognition System",
+        subtitle: "Recognition rhythms, gamification, and hybrid-team motivation design.",
+        keywords: ["manager", "engagement", "recognition", "remote teams"],
+        href: "/training?role=manager",
+        cta: "Open engagement training",
+      },
+      ...Object.values(roleMeta).map((item) => ({
+        title: item.title,
+        subtitle: item.subtitle,
+        keywords: [item.eyebrow, item.title],
+        href: item.route,
+        cta: `Open ${item.eyebrow} workspace`,
+      })),
+    ],
+    [],
+  );
+  const landingSearchResults = useMemo(
+    () => filterTrainingRecords(landingTrainingRecords, landingSearchQuery).slice(0, 6),
+    [landingSearchQuery, landingTrainingRecords],
+  );
 
   return (
     <Surface>
@@ -554,6 +620,37 @@ export function LandingView() {
                   <p className="max-w-2xl text-base leading-7 text-slate-300 md:text-lg">
                     This demo shows how CHCG can transform KPI and QA signals into explainable interventions, structured coaching, role-specific insight, and measurable readiness improvement inside a polished multi-tenant experience.
                   </p>
+                </div>
+                <div className="max-w-3xl space-y-3 rounded-[1.7rem] border border-white/10 bg-slate-950/45 p-4 md:p-5">
+                  <label className="block space-y-2 text-sm text-slate-200">
+                    <span>Search training, tracks, and workspaces</span>
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3">
+                      <Search className="h-4 w-4 text-slate-500" />
+                      <input
+                        value={landingSearchQuery}
+                        onChange={(event) => setLandingSearchQuery(event.target.value)}
+                        placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
+                        className="w-full bg-transparent text-white outline-none placeholder:text-slate-500"
+                      />
+                    </div>
+                  </label>
+                  {landingSearchQuery.trim() ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {landingSearchResults.length > 0 ? landingSearchResults.map((result) => (
+                        <Link key={`${result.href}-${result.title}`} href={result.href}>
+                          <button type="button" className="w-full rounded-[1.35rem] border border-white/10 bg-white/6 p-4 text-left transition hover:bg-white/10">
+                            <p className="text-sm font-medium text-white">{result.title}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-300">{result.subtitle}</p>
+                            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-cyan-200/80">{result.cta}</p>
+                          </button>
+                        </Link>
+                      )) : (
+                        <div className="rounded-[1.35rem] border border-white/10 bg-white/6 p-4 text-sm text-slate-300 md:col-span-2">
+                          No training or workspace results match that search yet. Try a track name, role, or skill keyword.
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="space-y-4">
@@ -655,17 +752,17 @@ export function LandingView() {
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 lg:grid-cols-5">
-            {[
-              ["Service Foundations", "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance."],
-              ["Workflow Precision", "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits."],
-              ["Data-Led Leadership", "KPI reading, trend interpretation, root-cause analysis, and action ownership."],
-              ["Performance Leadership", "Calibration, coaching cadence, review structure, and measurable improvement planning."],
-              ["Engagement & Recognition", "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm."],
-            ].map((track: any) => (
-              <div key={track[0]} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+            {filterTrainingRecords([
+              { title: "Service Foundations Core Deck", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
+              { title: "Workflow Precision Field Kit", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
+              { title: "Unlocking the Power of Data", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
+              { title: "Performance Maximization Governance", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
+              { title: "Remote-Team Engagement and Recognition System", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
+            ], landingSearchQuery).map((track: any) => (
+              <div key={track.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
-                <h3 className="mt-3 text-lg font-semibold text-white">{track[0]}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{track[1]}</p>
+                <h3 className="mt-3 text-lg font-semibold text-white">{track.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{track.subtitle}</p>
               </div>
             ))}
           </CardContent>
@@ -754,6 +851,7 @@ export function TrainingExperienceView() {
   }, [location]);
   const requestedAssetId = queryParams.get("assetId");
   const requestedAssetTitle = queryParams.get("assetTitle");
+  const requestedRoleFilter = queryParams.get("role") as DemoRole | null;
   const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
@@ -771,6 +869,7 @@ export function TrainingExperienceView() {
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
   const [narrationRate, setNarrationRate] = useState("0.95");
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
+  const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
 
   useEffect(() => {
     setModuleIndex(0);
@@ -826,6 +925,12 @@ export function TrainingExperienceView() {
     setSelectedDeckVisualIndex(0);
     setNarrationStatus("idle");
   }, [previewScenarioId]);
+
+  useEffect(() => {
+    if (requestedRoleFilter) {
+      setPreviewScenarioId(TRAINING_PREVIEW_BY_ROLE[requestedRoleFilter] ?? "active");
+    }
+  }, [requestedRoleFilter]);
 
   useEffect(() => {
     setLessonPageIndex(0);
@@ -948,6 +1053,30 @@ export function TrainingExperienceView() {
   );
   const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
   const modules = activePreview?.modules ?? [];
+  const filteredModuleEntries = useMemo(
+    () => filterTrainingRecords(
+      modules.map((module: any, index: number) => ({
+        ...module,
+        originalIndex: index,
+        subtitle: `${module.skillFocus} ${module.format} ${activePreview?.journeyTitle ?? ""}`,
+        keywords: [module.skillFocus, module.format, activePreview?.label ?? "", activePreview?.eyebrow ?? ""],
+      })),
+      trainingSearchQuery,
+    ),
+    [activePreview?.eyebrow, activePreview?.journeyTitle, activePreview?.label, modules, trainingSearchQuery],
+  );
+  const visibleModuleIndexes = filteredModuleEntries.map((module: any) => module.originalIndex);
+
+  useEffect(() => {
+    if (!visibleModuleIndexes.length) {
+      return;
+    }
+
+    if (!visibleModuleIndexes.includes(moduleIndex)) {
+      setModuleIndex(visibleModuleIndexes[0] ?? 0);
+    }
+  }, [moduleIndex, visibleModuleIndexes]);
+
   const selectedModule = modules[moduleIndex] ?? null;
   const effectiveJourneyTitle = activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
   const effectiveCompetencyGap = activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
@@ -1259,6 +1388,18 @@ export function TrainingExperienceView() {
                     <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">{selectedModule.title}</h2>
                     <p className="mt-3 text-sm leading-7 text-slate-200">{presentation?.heroSummary ?? `Continue progressing through ${selectedModule.title} so the learner can connect course content, workflow evidence, and coaching action without leaving the platform.`}</p>
                   </div>
+                  <label className="mt-6 block max-w-2xl space-y-2 text-sm text-slate-200">
+                    <span>Search this training path</span>
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3">
+                      <Search className="h-4 w-4 text-cyan-100/70" />
+                      <input
+                        value={trainingSearchQuery}
+                        onChange={(event) => setTrainingSearchQuery(event.target.value)}
+                        placeholder="Search by training name, skill focus, format, or role preview"
+                        className="w-full bg-transparent text-white outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+                  </label>
                   <div className="mt-6 space-y-4">
                     <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-slate-950/50 p-5">
                       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1475,20 +1616,20 @@ export function TrainingExperienceView() {
                       </div>
                     </div>
                   </div>
-                  {modules.map((module: any, index: number) => (
+                  {filteredModuleEntries.length > 0 ? filteredModuleEntries.map((module: any) => (
                     <button
                       key={module.id}
                       type="button"
-                      onClick={() => setModuleIndex(index)}
-                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${index === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      onClick={() => setModuleIndex(module.originalIndex)}
+                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${module.originalIndex === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
-                            {index === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
-                            {index < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
-                            {index === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
+                            {module.originalIndex === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
+                            {module.originalIndex < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
+                            {module.originalIndex === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
                           </div>
                           <h3 className="mt-2 text-lg font-medium text-white">{module.title}</h3>
                           <p className="mt-2 text-sm text-slate-300">{module.skillFocus}</p>
@@ -1496,12 +1637,16 @@ export function TrainingExperienceView() {
                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
                       </div>
                       <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                        <span>{index === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
+                        <span>{module.originalIndex === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
                         <span>{module.completionRate}%</span>
                       </div>
                       <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
                     </button>
-                  ))}
+                  )) : (
+                    <div className="rounded-[1.6rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">
+                      No modules match this training search yet. Try a broader keyword or switch to another role-aligned preview.
+                    </div>
+                  )}
                 </CardContent>
               </PremiumCard>
 
@@ -2268,10 +2413,11 @@ export function ContentLibraryView() {
     [assets, selectedAssetId],
   );
 
-  function handleStartTraining(asset?: any) {
+  function handleStartTraining(asset?: any, role?: DemoRole) {
     const params = new URLSearchParams();
     if (asset?.id) params.set("assetId", asset.id);
     if (asset?.title) params.set("assetTitle", asset.title);
+    if (role) params.set("role", role);
     setLocation(params.toString() ? `/training?${params.toString()}` : "/training");
   }
 
@@ -2484,9 +2630,15 @@ export function ContentLibraryView() {
                       <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Role relevance</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {selectedAsset.linkedRoles.map((linked: string) => (
-                          <Badge key={`selected-role-${selectedAsset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-slate-950/60 text-slate-200">
-                            {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
-                          </Badge>
+                          <Button
+                            key={`selected-role-${selectedAsset.id}-${linked}`}
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleStartTraining(selectedAsset, linked === "all" ? undefined : linked as DemoRole)}
+                            className="rounded-full border-white/10 bg-slate-950/60 text-slate-200 hover:bg-white/10 hover:text-white"
+                          >
+                            {getRoleLabel(linked)}
+                          </Button>
                         ))}
                       </div>
                     </div>

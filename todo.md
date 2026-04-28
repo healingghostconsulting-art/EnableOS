@@ -121,3 +121,7 @@
 - [x] Add a persistent mini audio bar across the training experience so lesson narration controls remain available throughout the lesson flow.
 - [x] Refine the content library sorting so assets are organized by target demographic, making audience intent the primary default structure.
 - [x] Build a dedicated CHCG Admin page so CHCG can add and manage clients, unlock training access, and control organization-level site governance across the platform.
+- [x] Restore the training names so they stay much closer to the original wording instead of heavily modified labels.
+- [x] Add a search bar to the top page so users can quickly find relevant training and content from the main entry experience.
+- [x] Add a search bar to the training content page so users can quickly find specific training material within the lesson experience.
+- [x] Make the role-relevance chips in the content-library asset handoff clickable so they sort or filter the training workflow while keeping the main continuation flow focused on the current asset context.
