@@ -120,15 +120,15 @@ function SectionShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div className="space-y-2">
-          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+    <div className="space-y-7">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div className="space-y-3">
+          <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.28em]">
             {eyebrow}
           </Badge>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h1>
-            <p className="max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">{description}</p>
+            <p className="max-w-3xl text-sm leading-7 text-slate-200/88 sm:text-base">{description}</p>
           </div>
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
@@ -140,7 +140,7 @@ function SectionShell({
 
 function PremiumCard({ className = "", children }: { className?: string; children: React.ReactNode }) {
   return (
-    <Card className={`border-white/10 bg-white/[0.035] shadow-[0_24px_80px_rgba(15,23,42,0.45)] backdrop-blur-xl ${className}`}>
+    <Card className={`glass-panel energy-frame border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(15,23,42,0.48)] backdrop-blur-2xl ${className}`}>
       {children}
     </Card>
   );
@@ -186,13 +186,13 @@ function MetricCard({
     <PremiumCard>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardDescription className="text-slate-400">{label}</CardDescription>
-          <div className="rounded-2xl border border-white/10 bg-white/6 p-2 text-slate-100">{icon}</div>
+          <CardDescription className="text-slate-300/70">{label}</CardDescription>
+          <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2 text-slate-100">{icon}</div>
         </div>
         <CardTitle className="text-3xl font-semibold text-white">{value}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-slate-300">{supporting}</p>
+        <p className="text-sm leading-6 text-slate-200/82">{supporting}</p>
       </CardContent>
     </PremiumCard>
   );
@@ -203,7 +203,7 @@ function ChartFrame({ title, description, children }: { title: string; descripti
     <PremiumCard className="h-full">
       <CardHeader>
         <CardTitle className="text-white">{title}</CardTitle>
-        <CardDescription className="text-slate-400">{description}</CardDescription>
+        <CardDescription className="text-slate-300/76">{description}</CardDescription>
       </CardHeader>
       <CardContent className="h-[280px]">{children}</CardContent>
     </PremiumCard>
@@ -226,7 +226,7 @@ function LoadingState() {
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="h-36 animate-pulse rounded-3xl border border-white/8 bg-white/6" />
+        <div key={index} className="glass-panel h-36 animate-pulse rounded-3xl border border-white/8 bg-white/6" />
       ))}
     </div>
   );
@@ -234,8 +234,12 @@ function LoadingState() {
 
 function Surface({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(47,111,237,0.22),transparent_28%),radial-gradient(circle_at_85%_12%,rgba(124,58,237,0.18),transparent_24%),linear-gradient(180deg,#08111f_0%,#091525_52%,#070d18_100%)] text-slate-100">
-      <div className="container py-10 sm:py-12">{children}</div>
+    <div className="min-h-screen text-slate-100">
+      <div className="container py-10 sm:py-12">
+        <div className="grid-noise rounded-[2.25rem] border border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-0 sm:p-1">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
@@ -606,25 +610,25 @@ export function LandingView() {
   return (
     <Surface>
       <div className="space-y-10">
-        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] shadow-[0_30px_120px_rgba(8,15,30,0.6)]">
+        <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-white/10 bg-white/[0.05] shadow-[0_36px_140px_rgba(8,15,30,0.62)]">
           <div className="grid gap-10 px-8 py-10 md:grid-cols-[1.15fr_0.85fr] md:px-12 md:py-14">
             <div className="space-y-8">
               <div className="space-y-5">
-                <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-slate-300">
-                  CHCG EnableOS Demo
+                <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
+                  CHCG EnableOS mission hub
                 </Badge>
                 <div className="space-y-4">
                   <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.02]">
-                    Enterprise enablement and coaching intelligence built to move performance.
+                    Turn enablement into a live performance mission, not a static training portal.
                   </h1>
-                  <p className="max-w-2xl text-base leading-7 text-slate-300 md:text-lg">
-                    This demo shows how CHCG can transform KPI and QA signals into explainable interventions, structured coaching, role-specific insight, and measurable readiness improvement inside a polished multi-tenant experience.
+                  <p className="max-w-2xl text-base leading-7 text-slate-200/86 md:text-lg">
+                    CHCG EnableOS now frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace.
                   </p>
                 </div>
-                <div className="max-w-3xl space-y-3 rounded-[1.7rem] border border-white/10 bg-slate-950/45 p-4 md:p-5">
+                <div className="glass-panel max-w-3xl space-y-3 rounded-[1.8rem] border border-white/10 bg-slate-950/45 p-4 md:p-5">
                   <label className="block space-y-2 text-sm text-slate-200">
-                    <span>Search training, tracks, and workspaces</span>
-                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3">
+                    <span>Search missions, training tracks, and workspaces</span>
+                    <div className="flex items-center gap-3 rounded-2xl border border-cyan-300/12 bg-slate-950/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                       <Search className="h-4 w-4 text-slate-500" />
                       <input
                         value={landingSearchQuery}
@@ -657,13 +661,13 @@ export function LandingView() {
                 <div className="flex flex-wrap gap-3">
                   <Link href="/learner">
                     <Button className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                      {viewer.data ? "Open my client training access" : "Sign in for client access"}
+                      {viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link href="/training">
                     <Button variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white">
-                      Preview secure training flow
+                      Preview interactive training simulator
                     </Button>
                   </Link>
                 </div>
@@ -702,7 +706,7 @@ export function LandingView() {
                       <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2 text-sm font-medium text-white">
                         {tenant.logoMark}
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{tenant.industry}</Badge>
+                      <Badge className="mission-chip rounded-full border-white/10 bg-white/8 text-slate-200">{tenant.industry}</Badge>
                     </div>
                     <div>
                       <CardTitle className="text-xl text-white">{tenant.name}</CardTitle>
@@ -718,24 +722,24 @@ export function LandingView() {
         <div className="grid gap-5 lg:grid-cols-3">
           {[
             {
-              title: "Signal to action",
-              description: "Simulated KPI and QA feeds trigger interventions tied to Service Foundations, Workflow Precision, and CHCG coaching workflows.",
+              title: "Signal-to-action missions",
+              description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
               icon: <Gauge className="h-5 w-5" />,
             },
             {
-              title: "Role-specific intelligence",
-              description: "Executives, managers, learners, and client admins see only the signals, journeys, and governance content relevant to their decision horizon.",
+              title: "Role-tuned command views",
+              description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
               icon: <Users2 className="h-5 w-5" />,
             },
             {
-              title: "Explainable AI support",
-              description: "AI-assisted coaching prompts include rationale, connect to CHCG methodology, and preserve explicit human override controls.",
+              title: "Guided coaching intelligence",
+              description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
               icon: <Bot className="h-5 w-5" />,
             },
           ].map((item: any) => (
             <PremiumCard key={item.title}>
               <CardHeader>
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white">{item.icon}</div>
+                <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
                 <CardTitle className="text-white">{item.title}</CardTitle>
                 <CardDescription className="text-slate-300">{item.description}</CardDescription>
               </CardHeader>
@@ -745,10 +749,10 @@ export function LandingView() {
 
         <PremiumCard>
           <CardHeader className="space-y-4">
-            <Badge className="w-fit rounded-full border-white/10 bg-white/8 text-slate-200">CHCG learning architecture</Badge>
+            <Badge className="mission-chip w-fit rounded-full text-slate-200">CHCG learning architecture</Badge>
             <div className="max-w-3xl space-y-3">
-              <CardTitle className="text-2xl text-white">Five sanitized learning tracks now power the EnableOS story.</CardTitle>
-              <CardDescription className="text-base leading-7 text-slate-300">The uploaded training materials are being translated into a clearer CHCG product narrative built around frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
+              <CardTitle className="text-2xl text-white">Five mission-ready learning tracks now power the EnableOS story.</CardTitle>
+              <CardDescription className="text-base leading-7 text-slate-300">The experience is now framed around original CHCG mission tracks for frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 lg:grid-cols-5">
@@ -3393,7 +3397,7 @@ function WeeklyCoachingLogTimeline({
     <PremiumCard>
       <CardHeader>
         <CardTitle className="text-white">{title}</CardTitle>
-        <CardDescription className="text-slate-400">{description}</CardDescription>
+        <CardDescription className="text-slate-300/76">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {logs.length === 0 ? (
@@ -3487,7 +3491,7 @@ function WorkflowLibraryPanel({
     <PremiumCard>
       <CardHeader>
         <CardTitle className="text-white">{title}</CardTitle>
-        <CardDescription className="text-slate-400">{description}</CardDescription>
+        <CardDescription className="text-slate-300/76">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {resources.map((asset: any) => (

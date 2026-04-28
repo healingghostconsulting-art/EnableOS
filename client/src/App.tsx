@@ -10,20 +10,20 @@ import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 const baseWorkspaceMenu: DashboardMenuItem[] = [
-  { icon: LayoutDashboard, label: "Overview", path: "/" },
-  { icon: Gauge, label: "Executive", path: "/executive" },
-  { icon: ShieldCheck, label: "Manager", path: "/manager" },
-  { icon: Users2, label: "Coach / Supervisor", path: "/coach" },
-  { icon: BookOpen, label: "Learner", path: "/learner" },
-  { icon: BookOpen, label: "Interactive Training", path: "/training" },
-  { icon: Building2, label: "Client Admin", path: "/admin" },
-  { icon: BookText, label: "Content Library", path: "/library" },
+  { icon: LayoutDashboard, label: "Mission Hub", path: "/" },
+  { icon: Gauge, label: "Executive Command", path: "/executive" },
+  { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
+  { icon: Users2, label: "Coach Studio", path: "/coach" },
+  { icon: BookOpen, label: "Learner Journey", path: "/learner" },
+  { icon: BookOpen, label: "Training Simulator", path: "/training" },
+  { icon: Building2, label: "Client Control", path: "/admin" },
+  { icon: BookText, label: "Content Missions", path: "/library" },
 ];
 
 function WorkspaceShell({ children, roleLabel }: { children: React.ReactNode; roleLabel: string }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const menuItems = access.data?.grant.role === "platform_admin"
-    ? [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Admin", path: "/chcg-admin" }]
+    ? [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" }]
     : baseWorkspaceMenu;
 
   return (
