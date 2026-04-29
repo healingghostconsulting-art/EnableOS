@@ -142,3 +142,6 @@
 - [x] Rename the agent training module family and visible journey labels to the approved CHCG taxonomy: Soft Skills & Customer/Patient Service Foundation, Quality Assurance Essentials, and Workforce & Key Performance Indicators.
 - [x] Rename the leadership training module family and visible journey labels to the approved CHCG taxonomy: Unlocking the power of date, Real Time Coaching, Maximizing performance through performance management, and Gamification & Work From Home.
 - [x] Ensure the corrected CHCG naming taxonomy appears consistently in the training simulator, learning path navigator, preview families, and supporting training records.
+- [ ] Fix the training-player coach checkpoint so it responds correctly when clicked and opens the intended interaction state.
+- [ ] Expand the coach checkpoint fix so learners can both open the checkpoint interaction and type into its response fields.
+- [x] Remove the uploaded voice-reference audio sample, transcript excerpt, and playback UI from the training experience so the site no longer exposes the user's recording.

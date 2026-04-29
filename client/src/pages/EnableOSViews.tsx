@@ -53,16 +53,6 @@ import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shar
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
-const VOICE_REFERENCE_SAMPLE_URL = "/manus-storage/LettingGoRAWFINALUSETHIS_b8a8ab1a.m4a";
-const VOICE_REFERENCE_SAMPLE_NAME = "LettingGoRAWFINALUSETHIS.m4a";
-const VOICE_REFERENCE_TRANSCRIPT_EXCERPT = "We must learn to let go. What we hold tightly takes their toll. Time reshapes us. Change breaks us. Yet they make us whole.";
-const VOICE_REFERENCE_PROFILE = {
-  durationLabel: "40.6 sec",
-  tone: "Reflective and steady",
-  pacing: "Measured cadence with calm pauses",
-  workflowNote: "Use the uploaded recording as the tonal reference, then preview lesson narration with in-browser speech for pacing and script review inside the demo.",
-};
-
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
     title: "Executive command view",
@@ -1138,12 +1128,6 @@ export function TrainingExperienceView() {
     ?? `Prepare to review how ${selectedModule?.skillFocus?.toLowerCase() ?? "the current skill"} transfers into the next live workflow moment.`;
   const reflectionPromptPreview = presentation?.reflectionPrompts[Math.min(stageIndex, Math.max((presentation?.reflectionPrompts.length ?? 1) - 1, 0))]
     ?? `Capture the next observable behavior that should change after this lesson.`;
-  const voiceReferenceHighlights = [
-    `Tone: ${VOICE_REFERENCE_PROFILE.tone}`,
-    `Pacing: ${VOICE_REFERENCE_PROFILE.pacing}`,
-    `Sample length: ${VOICE_REFERENCE_PROFILE.durationLabel}`,
-  ];
-
   const stopNarration = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -2058,7 +2042,7 @@ export function TrainingExperienceView() {
                                       <div>
                                         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narrated lesson controls</p>
                                         <h4 className="mt-2 text-lg font-medium text-white">Read this lesson aloud as spoken guidance</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">This player reads the lesson script shown below. The uploaded recording remains available separately as a tone reference only and is not the narrated lesson itself.</p>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">This player reads the lesson script shown below and keeps narration scoped to the active training content only.</p>
                                       </div>
                                       <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Content narration</Badge>
                                     </div>
@@ -2066,16 +2050,14 @@ export function TrainingExperienceView() {
                                       <Badge className="rounded-full border-white/10 bg-white/6 text-slate-200"><Volume2 className="mr-2 h-4 w-4" /> Browser speech preview</Badge>
                                       <Badge className="rounded-full border-white/10 bg-white/6 text-slate-200"><Mic className="mr-2 h-4 w-4" /> Uses lesson script below</Badge>
                                     </div>
-                                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                                      {voiceReferenceHighlights.map((item) => (
-                                        <div key={item} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{item}</div>
-                                      ))}
+                                    <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-200">
+                                      Lesson narration now stays inside the guided training flow only, with no uploaded reference recording surfaced in the site experience.
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
                                       <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
                                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narration speed</p>
-                                          <p className="mt-1 text-sm text-slate-300">Adjust pacing to match the calm cadence suggested by the uploaded recording.</p>
+                                          <p className="mt-1 text-sm text-slate-300">Adjust pacing so the spoken lesson matches the rhythm that works best for this module.</p>
                                         </div>
                                         <Select value={narrationRate} onValueChange={setNarrationRate}>
                                           <SelectTrigger className="w-[170px] border-white/10 bg-slate-950/80 text-slate-100">
@@ -2109,26 +2091,14 @@ export function TrainingExperienceView() {
                                     </div>
                                   </div>
                                   <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Uploaded voice-reference workflow</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">Tone-reference sample from the provided recording</h4>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">This recording is preserved only as a voice and pacing reference. It does not contain the active lesson narration and should not be used in place of the content-reading controls.</p>
-                                      </div>
-                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{VOICE_REFERENCE_SAMPLE_NAME}</Badge>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-4">
-                                      <audio controls preload="none" className="w-full">
-                                        <source src={VOICE_REFERENCE_SAMPLE_URL} type="audio/mp4" />
-                                      </audio>
-                                    </div>
-                                    <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transcript excerpt used for tone calibration only</p>
-                                      <p className="mt-3 text-sm leading-7 text-slate-200">{VOICE_REFERENCE_TRANSCRIPT_EXCERPT}</p>
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Narration access</p>
+                                      <h4 className="mt-2 text-lg font-medium text-white">Lesson narration stays inside the training experience</h4>
+                                      <p className="mt-2 text-sm leading-6 text-slate-300">The guided player now keeps narration focused on the active lesson only. No uploaded voice sample, transcript excerpt, or downloadable reference recording is exposed anywhere in this training view.</p>
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Workflow note</p>
-                                      <p className="mt-3 text-sm leading-6 text-slate-100">{VOICE_REFERENCE_PROFILE.workflowNote}</p>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Privacy safeguard</p>
+                                      <p className="mt-3 text-sm leading-6 text-slate-100">Learners can use the in-platform narration controls for lesson playback, while private reference audio remains removed from the visible site experience.</p>
                                     </div>
                                   </div>
                                 </div>
