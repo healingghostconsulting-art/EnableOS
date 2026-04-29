@@ -146,3 +146,4 @@
 - [x] Expand the coach checkpoint fix so learners can both open the checkpoint interaction and type into its response fields.
 - [x] Remove the uploaded voice-reference audio sample, transcript excerpt, and playback UI from the training experience so the site no longer exposes the user's recording.
 - [x] Fix the coach checkpoint review flow so a typed checkpoint response can be submitted, reviewed, and visibly confirmed inside the training player.
+- [x] Add graded coach-checkpoint evaluation so submitted responses receive a score, auto-advance learners when they pass, and require retry with guidance when they do not meet the threshold.

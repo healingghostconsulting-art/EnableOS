@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getTrainingPresentation } from "../shared/trainingContent";
-import { buildLessonNarrationScript, clampSlideSelection, getSlideCanvasVisuals } from "../shared/trainingPlayer";
+import { buildLessonNarrationScript, clampSlideSelection, evaluateCoachCheckpointResponse, getSlideCanvasVisuals } from "../shared/trainingPlayer";
 
 describe("training player helpers", () => {
   it("clamps out-of-range slide selections to a safe interactive-canvas index", () => {
@@ -78,5 +78,23 @@ describe("training player helpers", () => {
     expect(narrationScript).toContain(presentation.slides[0].narrative);
     expect(narrationScript).toContain(presentation.slides[0].bullets[0]);
     expect(narrationScript).not.toContain("We must learn to let go");
+  });
+
+  it("passes a coach checkpoint response when it names evidence, behavior, and timing", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "In the next call review, listen for the agent to acknowledge the customer concern, confirm the next step, and document the commitment before closing.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+    expect(evaluation.feedback).toHaveLength(0);
+  });
+
+  it("requires retry when a coach checkpoint response is too vague to verify", () => {
+    const evaluation = evaluateCoachCheckpointResponse("Be better next time.");
+
+    expect(evaluation.passed).toBe(false);
+    expect(evaluation.score).toBeLessThan(75);
+    expect(evaluation.feedback.length).toBeGreaterThan(0);
   });
 });

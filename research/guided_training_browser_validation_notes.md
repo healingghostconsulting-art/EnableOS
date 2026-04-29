@@ -29,3 +29,9 @@ A direct click on the **Slide 14** tile changed the visible selected visual from
 A subsequent click on the **Empathy and Reassurance** module card did not break the training page. The player remained interactive, and the browser state stayed within the guided lesson shell instead of collapsing into a blank or corrupted layout. The preview scrolled within the active lesson region, which confirms the module rail click is being handled by the page rather than ignored.
 
 The browser view taken immediately afterward continued to show the updated training taxonomy and the repaired canvas metadata, including **Soft Skills & Customer/Patient Service Foundation** as the active family label and **Slide 14** as the currently selected course-stage visual. This confirms that the course player remains stable after both slide-tile selection and module-rail interaction.
+
+## 2026-04-29 graded coach checkpoint validation
+
+In the live training preview, the coach checkpoint now exposes a graded review action instead of only a passive confirmation state. A weak response of "Be clearer in the next call tomorrow." produced a visible failing grade of 25%, kept the learner in the checkpoint area, changed the action into a retry state, and surfaced corrective guidance explaining that the response still needed clearer observable evidence, coached behavior, and workflow timing before it could pass.
+
+A stronger response of "In the next call review, listen for the agent to acknowledge the customer concern, confirm the next step, and document the commitment before closing so the coach can verify the behavior change." produced a visible passing grade of 100% in the same live preview. After submission, the checkpoint status changed to a pass state and the learner automatically advanced from **Stage 1 active** to **Stage 2 active**, confirming the requested pass-or-retry progression behavior is now working in the rendered training player.

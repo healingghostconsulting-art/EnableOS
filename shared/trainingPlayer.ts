@@ -34,6 +34,58 @@ export function getSlideCanvasVisuals(deckVisuals: TrainingDeckVisual[], selecte
   };
 }
 
+export type CoachCheckpointEvaluation = {
+  score: number;
+  passed: boolean;
+  passedCriteria: number;
+  totalCriteria: number;
+  strengths: string[];
+  feedback: string[];
+};
+
+export function evaluateCoachCheckpointResponse(note: string): CoachCheckpointEvaluation {
+  const normalizedNote = note.trim().toLowerCase();
+  const wordCount = normalizedNote.length > 0 ? normalizedNote.split(/\s+/).filter(Boolean).length : 0;
+
+  const criteria = [
+    {
+      passed: wordCount >= 16,
+      success: "The response includes enough detail for a coach to assess it in context.",
+      fail: "Add more detail so the coach can understand the full follow-up behavior in context.",
+    },
+    {
+      passed: /(listen|hear|see|verify|observe|monitor|check|review|audit|measure)/.test(normalizedNote),
+      success: "The response names observable evidence a coach can verify.",
+      fail: "Name what the coach should hear, see, review, or verify in the next live interaction.",
+    },
+    {
+      passed: /(acknowledge|confirm|ask|document|coach|restate|clarify|de-escalate|follow up|commit|close|open|validate)/.test(normalizedNote),
+      success: "The response identifies a coached behavior, not just a general intention.",
+      fail: "Describe the exact behavior the learner should demonstrate, such as acknowledging, confirming, clarifying, or documenting.",
+    },
+    {
+      passed: /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during)/.test(normalizedNote),
+      success: "The response explains when the behavior should happen in the workflow.",
+      fail: "Explain when the coached behavior should happen, such as in the next call, before the handoff, or during the follow-up.",
+    },
+  ];
+
+  const strengths = criteria.filter((criterion) => criterion.passed).map((criterion) => criterion.success);
+  const feedback = criteria.filter((criterion) => !criterion.passed).map((criterion) => criterion.fail);
+  const passedCriteria = strengths.length;
+  const totalCriteria = criteria.length;
+  const score = Math.round((passedCriteria / totalCriteria) * 100);
+
+  return {
+    score,
+    passed: passedCriteria >= 3,
+    passedCriteria,
+    totalCriteria,
+    strengths,
+    feedback,
+  };
+}
+
 export function buildLessonNarrationScript(
   currentLessonPage: TrainingPresentationSlide | null,
   presentation: TrainingPresentation | null,

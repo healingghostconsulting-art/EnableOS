@@ -49,7 +49,7 @@ import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
-import { buildLessonNarrationScript, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
+import { buildLessonNarrationScript, evaluateCoachCheckpointResponse, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
@@ -1144,6 +1144,8 @@ export function TrainingExperienceView() {
     ? coachCheckpointNote.trim().split(/\s+/).filter(Boolean).length
     : 0;
   const coachCheckpointReady = coachCheckpointWordCount >= 6;
+  const coachCheckpointEvaluation = evaluateCoachCheckpointResponse(coachCheckpointNote);
+  const coachCheckpointPassed = coachCheckpointSubmitted && coachCheckpointEvaluation.passed;
   const stopNarration = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -1386,6 +1388,46 @@ export function TrainingExperienceView() {
     if (moduleIndex > 0) {
       setModuleIndex((value) => value - 1);
     }
+  };
+
+  const advanceFromCoachCheckpoint = () => {
+    if (!selectedModule) {
+      return;
+    }
+
+    if (stageIndex < stages.length - 1) {
+      setStageIndex((value) => value + 1);
+      return;
+    }
+
+    if (moduleIndex < modules.length - 1) {
+      setModuleIndex((value) => value + 1);
+    }
+  };
+
+  const submitCoachCheckpointForReview = () => {
+    if (!coachCheckpointReady) {
+      return;
+    }
+
+    const evaluation = evaluateCoachCheckpointResponse(coachCheckpointNote);
+    setCoachCheckpointSubmitted(true);
+
+    if (evaluation.passed) {
+      setRecentUnlockMoment({
+        title: "Checkpoint passed",
+        detail: `${evaluation.score}% review score. Advancing to the next training section.`,
+      });
+      window.setTimeout(() => {
+        advanceFromCoachCheckpoint();
+      }, 900);
+      return;
+    }
+
+    setRecentUnlockMoment({
+      title: "Checkpoint revision required",
+      detail: `${evaluation.score}% review score. Strengthen the response and resubmit before moving forward.`,
+    });
   };
 
   const gradeBriefCheckpoint = () => {
@@ -1740,8 +1782,8 @@ export function TrainingExperienceView() {
                             <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Checkpoint response</p>
                             <p className="mt-2 text-sm leading-6 text-slate-100">Capture what the coach should look for next and how the learner will apply this behavior in live work.</p>
                           </div>
-                          <Badge className={`rounded-full ${coachCheckpointReady ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>
-                            {coachCheckpointReady ? "Ready for review" : `${coachCheckpointWordCount} words captured`}
+                          <Badge className={`rounded-full ${coachCheckpointSubmitted ? (coachCheckpointPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-amber-400/20 bg-amber-500/15 text-amber-100") : coachCheckpointReady ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>
+                            {coachCheckpointSubmitted ? `${coachCheckpointEvaluation.score}% · ${coachCheckpointPassed ? "Pass" : "Retry"}` : coachCheckpointReady ? "Ready for review" : `${coachCheckpointWordCount} words captured`}
                           </Badge>
                         </div>
                         <Textarea
@@ -1761,27 +1803,35 @@ export function TrainingExperienceView() {
                             type="button"
                             className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
                             disabled={!coachCheckpointReady}
-                            onClick={() => setCoachCheckpointSubmitted(true)}
+                            onClick={submitCoachCheckpointForReview}
                           >
-                            {coachCheckpointSubmitted ? "Submitted for coach review" : "Submit for coach review"}
+                            {coachCheckpointSubmitted ? (coachCheckpointPassed ? "Passed and advancing" : "Review again after edits") : "Submit for coach review"}
                           </Button>
                         </div>
                         {coachCheckpointSubmitted ? (
-                          <div className="rounded-[1.2rem] border border-emerald-400/20 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-100">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-200/80">Checkpoint review status</p>
-                            <p className="mt-2 font-medium text-white">The checkpoint response has been captured for coach review.</p>
-                            <p className="mt-2 leading-6 text-emerald-100">Review summary: {coachCheckpointNote}</p>
+                          <div className={`rounded-[1.2rem] px-4 py-4 text-sm ${coachCheckpointPassed ? "border border-emerald-400/20 bg-emerald-500/10 text-emerald-100" : "border border-amber-400/20 bg-amber-500/10 text-amber-100"}`}>
+                            <p className={`text-[11px] uppercase tracking-[0.22em] ${coachCheckpointPassed ? "text-emerald-200/80" : "text-amber-200/80"}`}>Checkpoint review status</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointPassed ? `Grade: ${coachCheckpointEvaluation.score}% — passed.` : `Grade: ${coachCheckpointEvaluation.score}% — revise and retry.`}</p>
+                            <p className={`mt-2 leading-6 ${coachCheckpointPassed ? "text-emerald-100" : "text-amber-100"}`}>Review summary: {coachCheckpointNote}</p>
+                            <div className="mt-3 space-y-2">
+                              {coachCheckpointPassed ? coachCheckpointEvaluation.strengths.slice(0, 2).map((strength) => (
+                                <p key={strength} className="text-xs leading-5 text-white/85">{strength}</p>
+                              )) : coachCheckpointEvaluation.feedback.map((item) => (
+                                <p key={item} className="text-xs leading-5 text-white/85">{item}</p>
+                              ))}
+                            </div>
+                            <p className={`mt-3 text-xs leading-5 ${coachCheckpointPassed ? "text-emerald-100/90" : "text-amber-100/90"}`}>{coachCheckpointPassed ? "The learner will move to the next training section automatically." : "Update the note until it clearly states the observable behavior, evidence, and timing the coach should review."}</p>
                           </div>
                         ) : null}
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Typing status</p>
-                            <p className="mt-2 font-medium text-white">{coachCheckpointSubmitted ? "Checkpoint sent for review." : coachCheckpointNote.trim().length > 0 ? "Checkpoint entry is active." : "Open the checkpoint and begin typing."}</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointSubmitted ? (coachCheckpointPassed ? "Checkpoint passed and is advancing." : "Checkpoint needs revision before it can pass.") : coachCheckpointNote.trim().length > 0 ? "Checkpoint entry is active." : "Open the checkpoint and begin typing."}</p>
                             <p className="mt-1 text-xs leading-5 text-slate-400">Your notes stay in the training flow so the checkpoint feels like an in-product coaching interaction instead of static text.</p>
                           </div>
                           <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach readiness</p>
-                            <p className="mt-2 font-medium text-white">{coachCheckpointReady ? "Observable follow-up is documented." : "Add a specific coached behavior and proof point."}</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointSubmitted ? `${coachCheckpointEvaluation.passedCriteria} of ${coachCheckpointEvaluation.totalCriteria} grading signals met.` : coachCheckpointReady ? "Observable follow-up is documented." : "Add a specific coached behavior and proof point."}</p>
                             <p className="mt-1 text-xs leading-5 text-slate-400">A strong checkpoint response should describe what a coach can hear, see, or verify in the next live workflow moment.</p>
                           </div>
                         </div>
