@@ -151,14 +151,17 @@
 - [x] Expand the flexible checkpoint phrase library and fair-answer grading approach across all learning modules, not only the active-listening checkpoint.
 - [x] Restrict learner and agent users so they can only view and launch agent-training content, while non-agent training remains unavailable to those roles.
 - [x] Continue expanding the checkpoint phrase libraries across the training experience so more valid CHCG-aligned learner responses are accepted fairly across all learning families.
-- [ ] Redesign the learner soft-skills training to be more self-guided and game-like, then use the same interaction model across all trainings.
-- [ ] Add interactive activity types to learner training slides, including click-to-reveal, drag-and-drop, branching scenarios, short answer, multiple choice, matching, role-play, simulation, and timed challenges.
-- [ ] Ensure learner-facing soft-skills training includes an interaction on every slide rather than only at section boundaries.
-- [ ] Make grading modular with a default passing threshold of 75%, while allowing the interaction model to support adjustable thresholds per training activity.
-- [ ] After each failed learner interaction, show score first, then hints, then force re-review and re-attempt before progression.
-- [ ] After each passed learner interaction, trigger a congratulatory animation and automatically progress the learner to the next slide.
-- [ ] Tune the learner-facing interaction tone to feel more game-like and kinesthetic instead of primarily static or narration-led.
+- [x] Redesign the learner soft-skills training to be more self-guided and game-like, then use the same interaction model across all trainings.
+- [x] Add interactive activity types to learner training slides, including click-to-reveal, drag-and-drop, branching scenarios, short answer, multiple choice, matching, role-play, simulation, and timed challenges.
+- [x] Ensure learner-facing soft-skills training includes an interaction on every slide rather than only at section boundaries.
+- [x] Make grading modular with a default passing threshold of 75%, while allowing the interaction model to support adjustable thresholds per training activity.
+- [x] After each failed learner interaction, show score first, then hints, then force re-review and re-attempt before progression.
+- [x] After each passed learner interaction, trigger a congratulatory animation and automatically progress the learner to the next slide.
+- [x] Tune the learner-facing interaction tone to feel more game-like and kinesthetic instead of primarily static or narration-led.
 - [x] Add every-slide self-guided learner interactions across the guided training player, rotating through click-to-reveal, multiple-choice, branching, short-answer, match, role-play, simulation, timed, and ordering activities.
 - [x] Gate learner slide progression behind a 75% interaction pass threshold with hint-and-retry feedback plus animated unlock signaling.
 - [x] Expand automated regression coverage for the new slide-interaction builders and evaluators, and re-run the full Vitest suite.
 - [x] Validate the new self-guided learner interaction flow in the live browser preview and document the observed pass-driven page advancement.
+- [x] Re-review the self-guided learner interaction overhaul for fragile progression, scoring, and reset edge cases before the user's next validation run.
+- [x] Add deeper regression coverage for interaction retry behavior, automatic advancement timing, and non-passing submissions.
+- [x] Re-run a higher-confidence validation pass across automated tests, type health, and live browser learner flows before handing back the next checkpoint.

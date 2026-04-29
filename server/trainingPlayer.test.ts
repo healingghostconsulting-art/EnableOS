@@ -249,6 +249,66 @@ describe("training player helpers", () => {
     expect(timedEvaluation.hints[0]).toContain("seconds");
   });
 
+  it("keeps partial reveal and ordering submissions below the default 75 percent pass line", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const revealInteraction = buildSlideInteraction(presentation.slides[0], "Active listening", 0);
+    const dragInteraction = buildSlideInteraction(presentation.slides[8], "Active listening", 8);
+    const partiallyOrderedSteps = [...(dragInteraction?.orderedSteps ?? [])];
+    [partiallyOrderedSteps[1], partiallyOrderedSteps[2]] = [partiallyOrderedSteps[2], partiallyOrderedSteps[1]];
+
+    const revealEvaluation = evaluateSlideInteraction(revealInteraction, {
+      revealedCardIds: revealInteraction?.revealCards?.slice(0, 2).map((card) => card.id) ?? [],
+    });
+
+    const dragEvaluation = evaluateSlideInteraction(dragInteraction, {
+      orderedSteps: partiallyOrderedSteps,
+    });
+
+    expect(revealEvaluation.score).toBeLessThan(75);
+    expect(revealEvaluation.passed).toBe(false);
+    expect(revealEvaluation.hints[0]).toContain("Open each reveal card");
+    expect(dragEvaluation.score).toBeLessThan(75);
+    expect(dragEvaluation.passed).toBe(false);
+    expect(dragEvaluation.hints[0]).toContain("Reorder the steps");
+  });
+
+  it("respects adjustable passing thresholds for per-activity scoring", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const revealInteraction = buildSlideInteraction(presentation.slides[0], "Active listening", 0);
+    const loweredThresholdInteraction = revealInteraction
+      ? { ...revealInteraction, passingPercent: 50 }
+      : null;
+
+    const loweredThresholdEvaluation = evaluateSlideInteraction(loweredThresholdInteraction, {
+      revealedCardIds: revealInteraction?.revealCards?.slice(0, 2).map((card) => card.id) ?? [],
+    });
+
+    expect(loweredThresholdEvaluation.score).toBeGreaterThanOrEqual(50);
+    expect(loweredThresholdEvaluation.passed).toBe(true);
+  });
+
   it("passes a coach checkpoint response when it names evidence, behavior, and timing", () => {
     const evaluation = evaluateCoachCheckpointResponse(
       "In the next call review, listen for the agent to acknowledge the customer concern, confirm the next step, and document the commitment before closing.",

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -880,6 +880,7 @@ export function TrainingExperienceView() {
   const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
+  const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -1230,18 +1231,34 @@ export function TrainingExperienceView() {
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
 
-  useEffect(() => {
-    const nextAttempt = currentSlideInteraction?.kind === "drag_and_drop" && currentSlideInteraction.orderedSteps?.length
-      ? { orderedSteps: [...currentSlideInteraction.orderedSteps].reverse() }
-      : {};
+  const buildInitialSlideInteractionAttempt = () => {
+    if (currentSlideInteraction?.kind === "drag_and_drop" && currentSlideInteraction.orderedSteps?.length) {
+      return { orderedSteps: [...currentSlideInteraction.orderedSteps].reverse() };
+    }
 
-    setSlideInteractionAttempt(nextAttempt);
+    return {};
+  };
+
+  const clearPendingSlideAutoAdvance = () => {
+    if (slideAutoAdvanceTimeoutRef.current !== null) {
+      window.clearTimeout(slideAutoAdvanceTimeoutRef.current);
+      slideAutoAdvanceTimeoutRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    clearPendingSlideAutoAdvance();
+    setSlideInteractionAttempt(buildInitialSlideInteractionAttempt());
     setSlideInteractionSubmitted(false);
     setSlideInteractionResult(null);
     setRevealedCardIds([]);
     setDraggedStepIndex(null);
     setTimerStartedAt(Date.now());
   }, [selectedModule?.id, stageIndex, lessonPageIndex, currentSlideInteraction?.id]);
+
+  useEffect(() => () => {
+    clearPendingSlideAutoAdvance();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -1413,8 +1430,10 @@ export function TrainingExperienceView() {
       });
 
       if (lessonPageIndex < currentStagePages.length - 1) {
-        window.setTimeout(() => {
+        clearPendingSlideAutoAdvance();
+        slideAutoAdvanceTimeoutRef.current = window.setTimeout(() => {
           setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1));
+          slideAutoAdvanceTimeoutRef.current = null;
         }, 900);
       }
     }
@@ -1423,9 +1442,10 @@ export function TrainingExperienceView() {
   };
 
   const resetSlideInteractionForRetry = () => {
+    clearPendingSlideAutoAdvance();
     setSlideInteractionSubmitted(false);
     setSlideInteractionResult(null);
-    setSlideInteractionAttempt({});
+    setSlideInteractionAttempt(buildInitialSlideInteractionAttempt());
     setRevealedCardIds([]);
     setDraggedStepIndex(null);
     setTimerStartedAt(Date.now());
@@ -1444,6 +1464,7 @@ export function TrainingExperienceView() {
       return;
     }
 
+    clearPendingSlideAutoAdvance();
     setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1));
   };
 
