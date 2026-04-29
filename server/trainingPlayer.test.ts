@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { getTrainingPresentation } from "../shared/trainingContent";
-import { buildLessonNarrationScript, clampSlideSelection, evaluateCoachCheckpointResponse, getSlideCanvasVisuals } from "../shared/trainingPlayer";
+import {
+  buildLessonNarrationScript,
+  buildSlideInteraction,
+  clampSlideSelection,
+  evaluateCoachCheckpointResponse,
+  evaluateSlideInteraction,
+  getSlideCanvasVisuals,
+} from "../shared/trainingPlayer";
 
 describe("training player helpers", () => {
   it("clamps out-of-range slide selections to a safe interactive-canvas index", () => {
@@ -78,6 +85,168 @@ describe("training player helpers", () => {
     expect(narrationScript).toContain(presentation.slides[0].narrative);
     expect(narrationScript).toContain(presentation.slides[0].bullets[0]);
     expect(narrationScript).not.toContain("We must learn to let go");
+  });
+
+  it("rotates slide interactions across all nine learner interaction types", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const expectedKinds = [
+      "click_to_reveal",
+      "multiple_choice",
+      "branching_scenario",
+      "short_answer",
+      "match_the_term",
+      "role_play",
+      "simulation",
+      "timed_challenge",
+      "drag_and_drop",
+    ];
+
+    const observedKinds = expectedKinds.map((_, index) => buildSlideInteraction(presentation.slides[index], "Active listening", index)?.kind);
+
+    expect(observedKinds).toEqual(expectedKinds);
+  });
+
+  it("passes reveal, choice, and branching interactions when the learner picks the intended behavior", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const revealInteraction = buildSlideInteraction(presentation.slides[0], "Active listening", 0);
+    const multipleChoiceInteraction = buildSlideInteraction(presentation.slides[1], "Active listening", 1);
+    const branchingInteraction = buildSlideInteraction(presentation.slides[2], "Active listening", 2);
+
+    expect(evaluateSlideInteraction(revealInteraction, {
+      revealedCardIds: revealInteraction?.revealCards?.map((card) => card.id) ?? [],
+    }).passed).toBe(true);
+
+    expect(evaluateSlideInteraction(multipleChoiceInteraction, {
+      selectedChoiceId: multipleChoiceInteraction?.choices?.find((choice) => choice.correct)?.id,
+    }).passed).toBe(true);
+
+    expect(evaluateSlideInteraction(branchingInteraction, {
+      selectedChoiceId: branchingInteraction?.choices?.find((choice) => choice.correct)?.id,
+    }).passed).toBe(true);
+  });
+
+  it("passes short-answer and role-play interactions when the response names the behavior, proof, and timing", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const shortAnswerInteraction = buildSlideInteraction(presentation.slides[3], "Active listening", 3);
+    const rolePlayInteraction = buildSlideInteraction(presentation.slides[5], "Active listening", 5);
+
+    const shortAnswerEvaluation = evaluateSlideInteraction(shortAnswerInteraction, {
+      shortAnswer: "On the next call, I will acknowledge the customer concern, restate the issue, and document the next step so QA can verify it.",
+    });
+
+    const rolePlayEvaluation = evaluateSlideInteraction(rolePlayInteraction, {
+      rolePlayAnswer: "I hear the frustration, I will confirm the next step before closing, and I will document the handoff note so the coach can review it in the next check-in.",
+    });
+
+    expect(shortAnswerEvaluation.passed).toBe(true);
+    expect(shortAnswerEvaluation.score).toBeGreaterThanOrEqual(75);
+    expect(rolePlayEvaluation.passed).toBe(true);
+    expect(rolePlayEvaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("passes matching, simulation, timed, and ordering interactions when the learner completes the correct action", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const matchInteraction = buildSlideInteraction(presentation.slides[4], "Active listening", 4);
+    const simulationInteraction = buildSlideInteraction(presentation.slides[6], "Active listening", 6);
+    const timedInteraction = buildSlideInteraction(presentation.slides[7], "Active listening", 7);
+    const dragInteraction = buildSlideInteraction(presentation.slides[8], "Active listening", 8);
+
+    const matchEvaluation = evaluateSlideInteraction(matchInteraction, {
+      matchedPairs: Object.fromEntries((matchInteraction?.choices ?? []).map((choice) => [choice.matchKey ?? choice.id, choice.id])),
+    });
+
+    const simulationEvaluation = evaluateSlideInteraction(simulationInteraction, {
+      selectedChoiceId: simulationInteraction?.choices?.find((choice) => choice.correct)?.id,
+    });
+
+    const timedEvaluation = evaluateSlideInteraction(timedInteraction, {
+      selectedChoiceId: timedInteraction?.choices?.find((choice) => choice.correct)?.id,
+      elapsedSeconds: 5,
+    });
+
+    const dragEvaluation = evaluateSlideInteraction(dragInteraction, {
+      orderedSteps: dragInteraction?.orderedSteps ?? [],
+    });
+
+    expect(matchEvaluation.passed).toBe(true);
+    expect(simulationEvaluation.passed).toBe(true);
+    expect(timedEvaluation.passed).toBe(true);
+    expect(dragEvaluation.passed).toBe(true);
+  });
+
+  it("returns retry guidance when an interaction submission is too weak or too slow", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const shortAnswerInteraction = buildSlideInteraction(presentation.slides[3], "Active listening", 3);
+    const timedInteraction = buildSlideInteraction(presentation.slides[7], "Active listening", 7);
+
+    const shortAnswerEvaluation = evaluateSlideInteraction(shortAnswerInteraction, {
+      shortAnswer: "Be nicer next time.",
+    });
+
+    const timedEvaluation = evaluateSlideInteraction(timedInteraction, {
+      selectedChoiceId: timedInteraction?.choices?.find((choice) => choice.correct)?.id,
+      elapsedSeconds: 45,
+    });
+
+    expect(shortAnswerEvaluation.passed).toBe(false);
+    expect(shortAnswerEvaluation.hints.length).toBeGreaterThan(0);
+    expect(timedEvaluation.passed).toBe(false);
+    expect(timedEvaluation.hints[0]).toContain("seconds");
   });
 
   it("passes a coach checkpoint response when it names evidence, behavior, and timing", () => {

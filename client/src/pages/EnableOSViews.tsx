@@ -49,7 +49,7 @@ import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
-import { buildLessonNarrationScript, evaluateCoachCheckpointResponse, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
+import { buildLessonNarrationScript, buildSlideInteraction, evaluateCoachCheckpointResponse, evaluateSlideInteraction, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
@@ -874,6 +874,12 @@ export function TrainingExperienceView() {
   const [coachCheckpointOpen, setCoachCheckpointOpen] = useState(false);
   const [coachCheckpointNote, setCoachCheckpointNote] = useState("");
   const [coachCheckpointSubmitted, setCoachCheckpointSubmitted] = useState(false);
+  const [slideInteractionAttempt, setSlideInteractionAttempt] = useState<Record<string, any>>({});
+  const [slideInteractionSubmitted, setSlideInteractionSubmitted] = useState(false);
+  const [slideInteractionResult, setSlideInteractionResult] = useState<any | null>(null);
+  const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
+  const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
+  const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -1216,8 +1222,26 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
+  const currentSlideInteraction = buildSlideInteraction(currentLessonPage, selectedModule?.skillFocus ?? "", lessonPageIndex);
+  const slideInteractionPassed = Boolean(slideInteractionResult?.passed);
+  const slideInteractionProgress = currentSlideInteraction?.kind === "click_to_reveal"
+    ? Math.round((revealedCardIds.length / Math.max(currentSlideInteraction.revealCards?.length ?? 1, 1)) * 100)
+    : (slideInteractionResult?.score ?? 0);
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
+
+  useEffect(() => {
+    const nextAttempt = currentSlideInteraction?.kind === "drag_and_drop" && currentSlideInteraction.orderedSteps?.length
+      ? { orderedSteps: [...currentSlideInteraction.orderedSteps].reverse() }
+      : {};
+
+    setSlideInteractionAttempt(nextAttempt);
+    setSlideInteractionSubmitted(false);
+    setSlideInteractionResult(null);
+    setRevealedCardIds([]);
+    setDraggedStepIndex(null);
+    setTimerStartedAt(Date.now());
+  }, [selectedModule?.id, stageIndex, lessonPageIndex, currentSlideInteraction?.id]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -1323,12 +1347,13 @@ export function TrainingExperienceView() {
   const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
   const reflectionWordCount = reflection.trim().length > 0 ? reflection.trim().split(/\s+/).filter(Boolean).length : 0;
   const reflectionReady = reflection.trim().length >= 20;
+  const requiresSlideInteraction = currentStage?.id === "brief" || currentStage?.id === "practice" || currentStage?.id === "apply";
   const canAdvance = currentStage?.id === "brief"
-    ? briefPassed && onLastLessonPage
+    ? briefPassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
     : currentStage?.id === "practice"
-      ? practiceChoice !== null && practicePassed && onLastLessonPage
+      ? practiceChoice !== null && practicePassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
       : currentStage?.id === "apply"
-        ? applicationPassed && onLastLessonPage
+        ? applicationPassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
         : currentStage?.id === "reflect"
           ? reflection.trim().length >= 20 && finalQuizPassed
           : true;
@@ -1366,6 +1391,78 @@ export function TrainingExperienceView() {
 
     setActiveQuizTriggerId(activeQuizTrigger.id);
   }, [activeQuizTrigger, activeQuizTriggerId, applicationPassed, briefPassed, finalQuizPassed, practicePassed, quizTriggerDismissed]);
+
+  const submitSlideInteraction = () => {
+    if (!currentSlideInteraction) {
+      return true;
+    }
+
+    const evaluation = evaluateSlideInteraction(currentSlideInteraction, {
+      ...slideInteractionAttempt,
+      revealedCardIds,
+      elapsedSeconds: timerStartedAt ? Math.max(Math.round((Date.now() - timerStartedAt) / 1000), 0) : undefined,
+    });
+
+    setSlideInteractionSubmitted(true);
+    setSlideInteractionResult(evaluation);
+
+    if (evaluation.passed) {
+      setRecentUnlockMoment({
+        title: "Slide unlocked!",
+        detail: `${evaluation.score}% interaction score. The next guided page is ready.`,
+      });
+
+      if (lessonPageIndex < currentStagePages.length - 1) {
+        window.setTimeout(() => {
+          setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1));
+        }, 900);
+      }
+    }
+
+    return evaluation.passed;
+  };
+
+  const resetSlideInteractionForRetry = () => {
+    setSlideInteractionSubmitted(false);
+    setSlideInteractionResult(null);
+    setSlideInteractionAttempt({});
+    setRevealedCardIds([]);
+    setDraggedStepIndex(null);
+    setTimerStartedAt(Date.now());
+  };
+
+  const advanceLessonPage = () => {
+    if (lessonPageIndex >= currentStagePages.length - 1) {
+      return;
+    }
+
+    if (currentSlideInteraction && !slideInteractionPassed) {
+      const passed = submitSlideInteraction();
+      if (!passed) {
+        return;
+      }
+      return;
+    }
+
+    setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1));
+  };
+
+  const reorderSlideSteps = (fromIndex: number, toIndex: number) => {
+    setSlideInteractionAttempt((current) => {
+      const currentOrder = [...((current.orderedSteps as string[] | undefined) ?? currentSlideInteraction?.orderedSteps ?? [])];
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= currentOrder.length || toIndex >= currentOrder.length) {
+        return current;
+      }
+
+      const [movedStep] = currentOrder.splice(fromIndex, 1);
+      currentOrder.splice(toIndex, 0, movedStep);
+
+      return {
+        ...current,
+        orderedSteps: currentOrder,
+      };
+    });
+  };
 
   const advanceStage = () => {
     if (!selectedModule || !canAdvance) {
@@ -2098,7 +2195,7 @@ export function TrainingExperienceView() {
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1))}
+                              onClick={advanceLessonPage}
                               disabled={lessonPageIndex >= currentStagePages.length - 1}
                               className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
                             >
@@ -2268,6 +2365,180 @@ export function TrainingExperienceView() {
                                     </div>
                                   ))}
                                 </div>
+                                {currentSlideInteraction ? (
+                                  <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)]">
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                      <div>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Self-guided slide challenge</p>
+                                        <h4 className="mt-2 text-lg font-medium text-white">{currentSlideInteraction.title}</h4>
+                                        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-200">{currentSlideInteraction.prompt}</p>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">{currentSlideInteraction.instructions}</p>
+                                      </div>
+                                      <div className="flex flex-wrap gap-2">
+                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentSlideInteraction.kind.replaceAll("_", " ")}</Badge>
+                                        <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Pass at {currentSlideInteraction.passingPercent}%</Badge>
+                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Progress {slideInteractionProgress}%</Badge>
+                                      </div>
+                                    </div>
+                                    {currentSlideInteraction.kind === "click_to_reveal" ? (
+                                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                                        {currentSlideInteraction.revealCards?.map((card) => {
+                                          const isRevealed = revealedCardIds.includes(card.id);
+                                          return (
+                                            <button
+                                              key={card.id}
+                                              type="button"
+                                              onClick={() => {
+                                                setRevealedCardIds((current) => current.includes(card.id) ? current : [...current, card.id]);
+                                                setSlideInteractionAttempt((current) => ({
+                                                  ...current,
+                                                  revealedCardIds: current.revealedCardIds?.includes(card.id)
+                                                    ? current.revealedCardIds
+                                                    : [...(current.revealedCardIds ?? []), card.id],
+                                                }));
+                                              }}
+                                              className={`rounded-[1.4rem] border p-4 text-left transition ${isRevealed ? "border-emerald-400/30 bg-emerald-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
+                                            >
+                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{card.title}</p>
+                                              <p className="mt-3 text-sm font-medium text-white">{isRevealed ? card.detail : "Tap to reveal this cue"}</p>
+                                              <p className="mt-2 text-xs text-slate-400">{isRevealed ? "Unlocked" : "Hidden until you open it"}</p>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : null}
+                                    {["multiple_choice", "branching_scenario", "simulation", "timed_challenge"].includes(currentSlideInteraction.kind) ? (
+                                      <div className="mt-4 grid gap-3">
+                                        {currentSlideInteraction.choices?.map((choice) => {
+                                          const isSelected = slideInteractionAttempt.selectedChoiceId === choice.id;
+                                          return (
+                                            <button
+                                              key={choice.id}
+                                              type="button"
+                                              onClick={() => setSlideInteractionAttempt((current) => ({ ...current, selectedChoiceId: choice.id }))}
+                                              className={`rounded-[1.35rem] border p-4 text-left transition ${isSelected ? "border-cyan-400/40 bg-cyan-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
+                                            >
+                                              <p className="text-sm font-medium text-white">{choice.label}</p>
+                                              <p className="mt-2 text-sm leading-6 text-slate-300">{choice.detail}</p>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : null}
+                                    {["short_answer", "role_play"].includes(currentSlideInteraction.kind) ? (
+                                      <div className="mt-4 space-y-3">
+                                        <Textarea
+                                          value={currentSlideInteraction.kind === "role_play" ? (slideInteractionAttempt.rolePlayAnswer ?? "") : (slideInteractionAttempt.shortAnswer ?? "")}
+                                          onChange={(event) => setSlideInteractionAttempt((current) => ({
+                                            ...current,
+                                            [currentSlideInteraction.kind === "role_play" ? "rolePlayAnswer" : "shortAnswer"]: event.target.value,
+                                          }))}
+                                          className="min-h-[140px] border-white/10 bg-slate-950/75 text-slate-100 placeholder:text-slate-500"
+                                          placeholder={currentSlideInteraction.sampleAnswer ?? "Type your learner response here."}
+                                        />
+                                        {currentSlideInteraction.sampleAnswer ? <p className="text-xs leading-5 text-slate-400">Example pattern: {currentSlideInteraction.sampleAnswer}</p> : null}
+                                      </div>
+                                    ) : null}
+                                    {currentSlideInteraction.kind === "match_the_term" ? (
+                                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                                        {[
+                                          { key: "cue", label: "Behavior cue" },
+                                          { key: "proof", label: "Proof point" },
+                                          { key: "timing", label: "Timing cue" },
+                                        ].map((matchField) => (
+                                          <div key={matchField.key} className="rounded-[1.35rem] border border-white/10 bg-slate-950/65 p-4">
+                                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{matchField.label}</p>
+                                            <Select
+                                              value={slideInteractionAttempt.matchedPairs?.[matchField.key] ?? "unselected"}
+                                              onValueChange={(value) => setSlideInteractionAttempt((current) => ({
+                                                ...current,
+                                                matchedPairs: {
+                                                  ...(current.matchedPairs ?? {}),
+                                                  [matchField.key]: value === "unselected" ? undefined : value,
+                                                },
+                                              }))}
+                                            >
+                                              <SelectTrigger className="mt-3 border-white/10 bg-slate-950/80 text-slate-100">
+                                                <SelectValue placeholder="Choose a matching card" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="unselected">Choose a matching card</SelectItem>
+                                                {currentSlideInteraction.choices?.map((choice) => (
+                                                  <SelectItem key={choice.id} value={choice.id}>{choice.detail}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : null}
+                                    {currentSlideInteraction.kind === "drag_and_drop" ? (
+                                      <div className="mt-4 grid gap-3">
+                                        {(slideInteractionAttempt.orderedSteps ?? currentSlideInteraction.orderedSteps ?? []).map((step: string, index: number) => (
+                                          <div
+                                            key={`${currentLessonPage.id}-${step}`}
+                                            draggable
+                                            onDragStart={() => setDraggedStepIndex(index)}
+                                            onDragOver={(event) => event.preventDefault()}
+                                            onDrop={() => {
+                                              if (draggedStepIndex === null) {
+                                                return;
+                                              }
+                                              reorderSlideSteps(draggedStepIndex, index);
+                                              setDraggedStepIndex(null);
+                                            }}
+                                            className="rounded-[1.35rem] border border-white/10 bg-slate-950/65 p-4"
+                                          >
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                              <div>
+                                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sequence step {index + 1}</p>
+                                                <p className="mt-2 text-sm font-medium text-white">{step}</p>
+                                              </div>
+                                              <div className="flex gap-2">
+                                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={() => reorderSlideSteps(index, Math.max(index - 1, 0))}>Up</Button>
+                                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={() => reorderSlideSteps(index, Math.min(index + 1, (slideInteractionAttempt.orderedSteps ?? currentSlideInteraction.orderedSteps ?? []).length - 1))}>Down</Button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : null}
+                                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={submitSlideInteraction}>
+                                        {slideInteractionSubmitted ? (slideInteractionPassed ? "Passed" : "Check again") : "Check slide challenge"}
+                                      </Button>
+                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
+                                        Review slide and retry
+                                      </Button>
+                                      {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? <span className="text-sm text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds from page load.</span> : null}
+                                    </div>
+                                    {slideInteractionSubmitted && slideInteractionResult ? (
+                                      <div className={`mt-4 rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                          <div>
+                                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Challenge score</p>
+                                            <p className="mt-2 text-lg font-semibold text-white">{slideInteractionResult.score}% · {slideInteractionPassed ? "Passed" : "Retry required"}</p>
+                                          </div>
+                                          <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-400/20 bg-emerald-400/12 text-emerald-100" : "border-amber-400/20 bg-amber-400/12 text-amber-100"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
+                                        </div>
+                                        {slideInteractionResult.strengths?.length ? (
+                                          <div className="mt-3 space-y-2 text-sm leading-6 text-emerald-100">
+                                            {slideInteractionResult.strengths.map((strength: string) => <p key={strength}>{strength}</p>)}
+                                          </div>
+                                        ) : null}
+                                        {slideInteractionResult.hints?.length ? (
+                                          <div className="mt-3 space-y-2 text-sm leading-6 text-amber-100">
+                                            {slideInteractionResult.hints.map((hint: string) => <p key={hint}>Hint: {hint}</p>)}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : (
+                                      <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-300">
+                                        Pass this slide challenge before the next guided page unlocks. If you miss the threshold, use the hint, review the page content, and retry.
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : null}
                                 {lessonSignalCards.length ? (
                                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                                     {lessonSignalCards.map((signal) => (
