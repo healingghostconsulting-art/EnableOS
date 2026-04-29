@@ -147,3 +147,4 @@
 - [x] Remove the uploaded voice-reference audio sample, transcript excerpt, and playback UI from the training experience so the site no longer exposes the user's recording.
 - [x] Fix the coach checkpoint review flow so a typed checkpoint response can be submitted, reviewed, and visibly confirmed inside the training player.
 - [x] Add graded coach-checkpoint evaluation so submitted responses receive a score, auto-advance learners when they pass, and require retry with guidance when they do not meet the threshold.
+- [x] Deepen the coach-checkpoint phrase library so simpler valid active-listening responses, such as paraphrasing the customer concern and confirming understanding, can pass when they clearly express the intended behavior.

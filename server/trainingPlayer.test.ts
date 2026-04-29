@@ -90,6 +90,15 @@ describe("training player helpers", () => {
     expect(evaluation.feedback).toHaveLength(0);
   });
 
+  it("accepts a simpler active-listening response when it clearly paraphrases and confirms understanding", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "I will rephrase the customer concerns and have them confirm the information is correct.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
   it("requires retry when a coach checkpoint response is too vague to verify", () => {
     const evaluation = evaluateCoachCheckpointResponse("Be better next time.");
 

@@ -46,27 +46,31 @@ export type CoachCheckpointEvaluation = {
 export function evaluateCoachCheckpointResponse(note: string): CoachCheckpointEvaluation {
   const normalizedNote = note.trim().toLowerCase();
   const wordCount = normalizedNote.length > 0 ? normalizedNote.split(/\s+/).filter(Boolean).length : 0;
+  const behaviorPattern = /(acknowledge|confirm|ask|document|coach|restate|clarify|de-escalate|follow up|commit|close|open|validate|rephrase|paraphrase|repeat back|mirror|summari[sz]e)/;
+  const evidencePattern = /(listen|hear|see|verify|observe|monitor|check|review|audit|measure|confirm|confirmation|confirmed|correct|understand|understanding|accurate|accuracy)/;
+  const timingPattern = /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during|tomorrow|today|this call|next call|next interaction|going forward|i will|will|plan to)/;
+  const activeListeningPattern = /(customer concern|customer concerns|concern|concerns|information|understanding|rephrase|paraphrase|repeat back|confirm the information|confirm understanding|make sure|ensure|is correct|correct)/;
 
   const criteria = [
     {
-      passed: wordCount >= 16,
+      passed: wordCount >= 10 || (wordCount >= 8 && behaviorPattern.test(normalizedNote) && activeListeningPattern.test(normalizedNote)),
       success: "The response includes enough detail for a coach to assess it in context.",
-      fail: "Add more detail so the coach can understand the full follow-up behavior in context.",
+      fail: "Add a little more detail so the coach can understand the full follow-up behavior in context.",
     },
     {
-      passed: /(listen|hear|see|verify|observe|monitor|check|review|audit|measure)/.test(normalizedNote),
+      passed: evidencePattern.test(normalizedNote) || /have (them|the customer) confirm/.test(normalizedNote),
       success: "The response names observable evidence a coach can verify.",
-      fail: "Name what the coach should hear, see, review, or verify in the next live interaction.",
+      fail: "Name what the coach should hear, see, review, or verify in the live interaction.",
     },
     {
-      passed: /(acknowledge|confirm|ask|document|coach|restate|clarify|de-escalate|follow up|commit|close|open|validate)/.test(normalizedNote),
+      passed: behaviorPattern.test(normalizedNote),
       success: "The response identifies a coached behavior, not just a general intention.",
-      fail: "Describe the exact behavior the learner should demonstrate, such as acknowledging, confirming, clarifying, or documenting.",
+      fail: "Describe the exact behavior the learner should demonstrate, such as rephrasing, acknowledging, confirming, clarifying, or documenting.",
     },
     {
-      passed: /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during)/.test(normalizedNote),
+      passed: timingPattern.test(normalizedNote),
       success: "The response explains when the behavior should happen in the workflow.",
-      fail: "Explain when the coached behavior should happen, such as in the next call, before the handoff, or during the follow-up.",
+      fail: "Explain when the coached behavior should happen, such as in the next call, during the interaction, or as a stated commitment like 'I will'.",
     },
   ];
 
