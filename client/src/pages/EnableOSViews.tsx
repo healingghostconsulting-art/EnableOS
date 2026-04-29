@@ -871,6 +871,8 @@ export function TrainingExperienceView() {
   const [activeQuizTriggerId, setActiveQuizTriggerId] = useState<string | null>(null);
   const [dismissedQuizTriggerIds, setDismissedQuizTriggerIds] = useState<string[]>([]);
   const [recentUnlockMoment, setRecentUnlockMoment] = useState<{ title: string; detail: string } | null>(null);
+  const [coachCheckpointOpen, setCoachCheckpointOpen] = useState(false);
+  const [coachCheckpointNote, setCoachCheckpointNote] = useState("");
 
   useEffect(() => {
     setModuleIndex(0);
@@ -891,6 +893,8 @@ export function TrainingExperienceView() {
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
+    setCoachCheckpointOpen(false);
+    setCoachCheckpointNote("");
   }, [tenantId]);
 
   useEffect(() => {
@@ -911,6 +915,8 @@ export function TrainingExperienceView() {
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
+    setCoachCheckpointOpen(false);
+    setCoachCheckpointNote("");
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
@@ -934,6 +940,8 @@ export function TrainingExperienceView() {
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
+    setCoachCheckpointOpen(false);
+    setCoachCheckpointNote("");
   }, [previewScenarioId]);
 
   useEffect(() => {
@@ -1128,6 +1136,10 @@ export function TrainingExperienceView() {
     ?? `Prepare to review how ${selectedModule?.skillFocus?.toLowerCase() ?? "the current skill"} transfers into the next live workflow moment.`;
   const reflectionPromptPreview = presentation?.reflectionPrompts[Math.min(stageIndex, Math.max((presentation?.reflectionPrompts.length ?? 1) - 1, 0))]
     ?? `Capture the next observable behavior that should change after this lesson.`;
+  const coachCheckpointWordCount = coachCheckpointNote.trim().length > 0
+    ? coachCheckpointNote.trim().split(/\s+/).filter(Boolean).length
+    : 0;
+  const coachCheckpointReady = coachCheckpointWordCount >= 6;
   const stopNarration = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -1694,21 +1706,64 @@ export function TrainingExperienceView() {
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-4">
+                  <div className="grid gap-4">
                   <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-100"><Users2 className="h-5 w-5" /></div>
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach checkpoint</p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-100"><Users2 className="h-5 w-5" /></div>
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach checkpoint</p>
                           <p className="mt-1 text-lg font-medium text-white">{effectiveCoachingTitle}</p>
-
+                        </div>
                       </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full border-white/15 bg-white/8 text-slate-100 hover:bg-white/12"
+                        onClick={() => setCoachCheckpointOpen((current) => !current)}
+                      >
+                        {coachCheckpointOpen ? "Hide checkpoint" : "Open checkpoint"}
+                      </Button>
                     </div>
                     <p className="mt-4 text-sm leading-7 text-slate-200">{coachPromptPreview}</p>
                     <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
                       {reflectionPromptPreview}
                     </div>
+                    {coachCheckpointOpen ? (
+                      <div className="mt-4 space-y-4 rounded-[1.3rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Checkpoint response</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">Capture what the coach should look for next and how the learner will apply this behavior in live work.</p>
+                          </div>
+                          <Badge className={`rounded-full ${coachCheckpointReady ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>
+                            {coachCheckpointReady ? "Ready for review" : `${coachCheckpointWordCount} words captured`}
+                          </Badge>
+                        </div>
+                        <Textarea
+                          value={coachCheckpointNote}
+                          onChange={(event) => setCoachCheckpointNote(event.target.value)}
+                          rows={5}
+                          autoFocus
+                          className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
+                          placeholder="Example: In the next coaching review, listen for a slower opening, one sentence that names the customer concern, and a clear next-step commitment before the rep moves into the solution."
+                        />
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Typing status</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointNote.trim().length > 0 ? "Checkpoint entry is active." : "Open the checkpoint and begin typing."}</p>
+                            <p className="mt-1 text-xs leading-5 text-slate-400">Your notes stay in the training flow so the checkpoint feels like an in-product coaching interaction instead of static text.</p>
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach readiness</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointReady ? "Observable follow-up is documented." : "Add a specific coached behavior and proof point."}</p>
+                            <p className="mt-1 text-xs leading-5 text-slate-400">A strong checkpoint response should describe what a coach can hear, see, or verify in the next live workflow moment.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
+
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
                     <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                       <div className="flex items-center gap-3">
