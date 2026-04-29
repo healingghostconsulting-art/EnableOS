@@ -425,7 +425,7 @@ describe("demo router", () => {
     const lighthouseLibrary = await caller.demo.library({ tenantId: "lighthouse-finance", role: "all" });
 
     expect(atlasLibrary.chcgAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Core Deck" })]),
+      expect.arrayContaining([expect.objectContaining({ title: "Soft Skills & Customer/Patient Service Foundation" })]),
     );
     expect(atlasLibrary.importedAssets).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Workflow launch guide", tenantId: "atlas-operations" })]),
@@ -550,7 +550,7 @@ it("filters secure library assets to the trainings licensed for the selected cli
   const horizonLibrary = await caller.demo.secureLibrary({ tenantId: "horizon-commerce", role: "all" });
 
   expect(horizonLibrary.chcgAssets).toEqual(
-    expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Core Deck" })]),
+    expect.arrayContaining([expect.objectContaining({ title: "Soft Skills & Customer/Patient Service Foundation" })]),
   );
   expect(horizonLibrary.chcgAssets.some((asset) => asset.title === "QA Essentials and Score Confidence")).toBe(false);
 });

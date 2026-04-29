@@ -136,3 +136,9 @@
 - [x] Expand the four leadership modules into deeper narrated guided experiences that take approximately 3.5–4 hours each with embedded comprehension checks throughout.
 - [x] Elevate the training experience from demo quality to presentation-ready product quality with more polished visual hierarchy, interaction pacing, and module craftsmanship.
 - [x] Ensure the next training redesign pass is suitable for stakeholder presentation, with stronger end-to-end cohesion across slide flow, narration, assessments, and progression states.
+- [x] Fix the guided training module so the interactive slide canvas renders visibly instead of appearing blank.
+- [x] Repair slide-canvas and course-player interactions so learners can click the intended training boxes, slides, and controls.
+- [x] Correct the remaining training naming conventions so module titles match the approved CHCG framing throughout.
+- [x] Rename the agent training module family and visible journey labels to the approved CHCG taxonomy: Soft Skills & Customer/Patient Service Foundation, Quality Assurance Essentials, and Workforce & Key Performance Indicators.
+- [x] Rename the leadership training module family and visible journey labels to the approved CHCG taxonomy: Unlocking the power of date, Real Time Coaching, Maximizing performance through performance management, and Gamification & Work From Home.
+- [x] Ensure the corrected CHCG naming taxonomy appears consistently in the training simulator, learning path navigator, preview families, and supporting training records.

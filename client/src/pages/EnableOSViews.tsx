@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -563,35 +562,35 @@ export function LandingView() {
   const landingTrainingRecords = useMemo(
     () => [
       {
-        title: "Service Foundations Core Deck",
+        title: "Soft Skills & Customer/Patient Service Foundation",
         subtitle: "Customer service, active listening, empathy, de-escalation, and professionalism.",
         keywords: ["learner", "service foundations", "soft skills", "communication"],
         href: "/training",
         cta: "Open training simulator",
       },
       {
-        title: "Workflow Precision Field Kit",
+        title: "Quality Assurance Essentials",
         subtitle: "Verification, QA discipline, documentation accuracy, and workflow execution.",
         keywords: ["manager", "workflow precision", "qa", "documentation"],
         href: "/training?role=manager",
         cta: "Open manager-aligned training",
       },
       {
-        title: "Unlocking the Power of Data",
+        title: "Unlocking the power of date",
         subtitle: "KPI interpretation, trend review, and decision-quality leadership.",
         keywords: ["executive", "leadership", "data", "kpi"],
         href: "/training?role=executive",
         cta: "Open executive-aligned training",
       },
       {
-        title: "Performance Maximization Governance",
+        title: "Maximizing performance through performance management",
         subtitle: "Calibration, improvement planning, and coaching accountability.",
         keywords: ["manager", "performance", "calibration", "reviews"],
         href: "/training?role=manager",
         cta: "Open performance training",
       },
       {
-        title: "Remote-Team Engagement and Recognition System",
+        title: "Gamification & Work From Home",
         subtitle: "Recognition rhythms, gamification, and hybrid-team motivation design.",
         keywords: ["manager", "engagement", "recognition", "remote teams"],
         href: "/training?role=manager",
@@ -762,11 +761,11 @@ export function LandingView() {
           </CardHeader>
           <CardContent className="grid gap-4 lg:grid-cols-5">
             {filterTrainingRecords([
-              { title: "Service Foundations Core Deck", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
-              { title: "Workflow Precision Field Kit", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
-              { title: "Unlocking the Power of Data", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
-              { title: "Performance Maximization Governance", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
-              { title: "Remote-Team Engagement and Recognition System", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
+              { title: "Soft Skills & Customer/Patient Service Foundation", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
+              { title: "Quality Assurance Essentials", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
+              { title: "Unlocking the power of date", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
+              { title: "Maximizing performance through performance management", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
+              { title: "Gamification & Work From Home", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
             ], landingSearchQuery).map((track: any) => (
               <div key={track.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
@@ -977,10 +976,10 @@ export function TrainingExperienceView() {
       },
       {
         id: "workflow",
-        label: "Workflow precision",
+        label: "Quality Assurance Essentials",
         eyebrow: "Manager family preview",
         description: "Preview the QA and workflow family so the expanded coaching-ready visual mapping can be reviewed directly in the course player.",
-        journeyTitle: "Workflow Precision and QA-Driven Coaching",
+        journeyTitle: "Quality Assurance Essentials",
         competencyGap: "Verification consistency and documentation accuracy",
         modules: [
           {
@@ -996,10 +995,10 @@ export function TrainingExperienceView() {
       },
       {
         id: "coach-supervision",
-        label: "Coach supervision",
+        label: "Real Time Coaching",
         eyebrow: "Coach family preview",
         description: "Inspect the weekly coaching and learner-transfer sequence from the dedicated coach or supervisor role before the learner returns to live work.",
-        journeyTitle: "Coach Supervision: Weekly Coaching and Skill Transfer",
+        journeyTitle: "Real Time Coaching",
         competencyGap: "Consistent field coaching with observable follow-through",
         modules: [
           {
@@ -1015,10 +1014,10 @@ export function TrainingExperienceView() {
       },
       {
         id: "leadership",
-        label: "Data-led leadership",
+        label: "Unlocking the power of date",
         eyebrow: "Executive family preview",
         description: "Review the KPI-reading and workshop-style leadership visuals that now support executive decision-quality modules.",
-        journeyTitle: "Data-Led Leadership and Readiness Governance",
+        journeyTitle: "Unlocking the power of date",
         competencyGap: "Intervention-to-outcome visibility",
         modules: [
           {
@@ -1034,10 +1033,10 @@ export function TrainingExperienceView() {
       },
       {
         id: "performance",
-        label: "Performance leadership",
+        label: "Maximizing performance through performance management",
         eyebrow: "Manager leadership preview",
         description: "Inspect the calibration, segmentation, and fairness visuals that now enrich performance-management training modules.",
-        journeyTitle: "Performance Leadership: Calibration, Coaching, and Accountability",
+        journeyTitle: "Maximizing performance through performance management",
         competencyGap: "Performance segmentation without bias",
         modules: [
           {
@@ -1053,10 +1052,10 @@ export function TrainingExperienceView() {
       },
       {
         id: "engagement",
-        label: "Engagement systems",
+        label: "Gamification & Work From Home",
         eyebrow: "Recognition family preview",
         description: "Validate the program-design and recognition-rhythm visuals now mapped into engagement-system lessons.",
-        journeyTitle: "Engagement Systems and Recognition Design",
+        journeyTitle: "Gamification & Work From Home",
         competencyGap: "Recognition rhythm for hybrid teams",
         modules: [
           {
@@ -1235,6 +1234,15 @@ export function TrainingExperienceView() {
   const lessonVisualGallery = deckVisuals
     .filter((visual, index, collection) => collection.findIndex((candidate) => candidate.id === visual.id) === index)
     .slice(0, 3);
+  const interactiveGalleryVisuals = lessonVisualGallery.length
+    ? lessonVisualGallery
+    : contextualDeckVisual
+      ? [contextualDeckVisual]
+      : [];
+  const activeInteractiveVisualIndex = interactiveGalleryVisuals.length
+    ? Math.min(selectedDeckVisualIndex, interactiveGalleryVisuals.length - 1)
+    : 0;
+  const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   const briefQuestions = presentation?.briefCheckpoint.questions ?? [];
@@ -2170,64 +2178,85 @@ export function TrainingExperienceView() {
                                   </div>
                                 ) : null}
                               </div>
-                              {contextualDeckVisual ? (
+                              {activeInteractiveVisual ? (
                                 <div className="space-y-4">
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
-                                      <p className="mt-2 text-sm text-slate-300">Review the lesson as a sequenced course gallery instead of a single static slide image.</p>
+                                      <p className="mt-2 text-sm text-slate-300">Select a slide tile, move backward or forward, or open the current visual in a new tab. The canvas now follows the selected training visual directly.</p>
                                     </div>
-                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length || 1} guided visuals</Badge>
+                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length || 1} guided visuals</Badge>
                                   </div>
-                                  <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] px-4 py-5 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:px-6">
-                                    <Carousel opts={{ loop: false }} className="w-full px-3 sm:px-5 md:px-8">
-                                      <CarouselContent>
-                                        {(lessonVisualGallery.length ? lessonVisualGallery : [contextualDeckVisual]).map((visual) => (
-                                          <CarouselItem key={visual.id}>
-                                            <div className="space-y-4">
-                                              <div className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80">
-                                                <div className="overflow-x-auto overflow-y-hidden rounded-[1.35rem] border border-white/6 bg-black/30">
-                                                  <div className="flex min-h-[18rem] min-w-full items-center justify-center px-4 py-4 sm:min-h-[24rem] sm:px-6 sm:py-6 lg:min-h-[30rem]">
-                                                    <img src={visual.imageUrl} alt={visual.title} className="h-auto min-w-[980px] max-w-none rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]" />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
-                                                <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
-                                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide reference</p>
-                                                  <p className="mt-2 text-sm font-medium text-white">{visual.pageLabel}</p>
-                                                  <p className="mt-1 text-xs leading-5 text-slate-400">{visual.sourceDeck}</p>
-                                                </div>
-                                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
-                                                  <p className="text-sm font-medium text-white">{visual.title}</p>
-                                                  <p className="mt-2 text-sm leading-6 text-slate-300">{visual.caption}</p>
-                                                  <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Scroll inside the slide frame to inspect the full visual when the original deck export uses a widescreen layout.</p>
-                                                  <a href={visual.imageUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-cyan-200 underline-offset-4 transition hover:text-white hover:underline">Open the full-size slide in a new tab</a>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </CarouselItem>
-                                        ))}
-                                      </CarouselContent>
-                                      <CarouselPrevious className="left-2 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
-                                      <CarouselNext className="right-2 border-white/12 bg-white/8 text-white hover:bg-white/14 hover:text-white" />
-                                    </Carousel>
+                                  <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] p-4 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:p-6">
+                                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-3">
+                                      <div>
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected slide</p>
+                                        <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel} · {activeInteractiveVisual.title}</p>
+                                        <p className="mt-1 text-xs leading-5 text-slate-400">{activeInteractiveVisual.sourceDeck}</p>
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))}
+                                          disabled={activeInteractiveVisualIndex === 0}
+                                          className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                                        >
+                                          Previous slide
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))}
+                                          disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1}
+                                          className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                                        >
+                                          Next slide
+                                        </Button>
+                                        <a href={activeInteractiveVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 hover:text-white">
+                                          Open full-size slide
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => window.open(activeInteractiveVisual.imageUrl, "_blank", "noopener,noreferrer")}
+                                      className="mt-4 block w-full overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80 text-left transition hover:border-cyan-300/30"
+                                    >
+                                      <div className="overflow-x-auto overflow-y-hidden rounded-[1.35rem] border border-white/6 bg-black/30">
+                                        <div className="flex min-h-[18rem] min-w-full items-center justify-center px-4 py-4 sm:min-h-[24rem] sm:px-6 sm:py-6 lg:min-h-[30rem]">
+                                          <img src={activeInteractiveVisual.imageUrl} alt={activeInteractiveVisual.title} className="h-auto min-w-[980px] max-w-none rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]" />
+                                        </div>
+                                      </div>
+                                    </button>
+                                    <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+                                      <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide reference</p>
+                                        <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
+                                        <p className="mt-1 text-xs leading-5 text-slate-400">{activeInteractiveVisual.sourceDeck}</p>
+                                      </div>
+                                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                        <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
+                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Click the main slide or the slide tiles below to inspect another visual. Open the full-size slide when you want a separate reading view.</p>
+                                      </div>
+                                    </div>
                                   </div>
-                                  {lessonVisualGallery.length ? (
+                                  {interactiveGalleryVisuals.length ? (
                                     <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
                                       <div className="flex items-center justify-between gap-3">
                                         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Module visual navigator</p>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualGallery.length} visuals</Badge>
+                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length} clickable slide tiles</Badge>
                                       </div>
                                       <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                                        {lessonVisualGallery.map((visual, index) => (
-                                          <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${selectedDeckVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
+                                        {interactiveGalleryVisuals.map((visual, index) => (
+                                          <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${activeInteractiveVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10 shadow-[0_16px_40px_rgba(6,182,212,0.14)]" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
                                             <div className="flex min-h-[10rem] items-center justify-center overflow-hidden bg-slate-950/85 px-3 py-3">
                                               <img src={visual.imageUrl} alt={visual.title} className="max-h-40 rounded-lg object-contain object-center" />
                                             </div>
                                             <div className="border-t border-white/10 px-3 py-3">
-                                              <p className="text-sm font-medium text-white">{visual.pageLabel}</p>
-                                              <p className="mt-1 text-xs leading-5 text-slate-400">{visual.title}</p>
+                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{visual.pageLabel}</p>
+                                              <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
                                             </div>
                                           </button>
                                         ))}
@@ -2236,6 +2265,7 @@ export function TrainingExperienceView() {
                                   ) : null}
                                 </div>
                               ) : null}
+
                             </div>
                           </div>
                         ) : null}

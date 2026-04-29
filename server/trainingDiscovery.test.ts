@@ -4,17 +4,17 @@ import { filterTrainingRecords, matchesTrainingSearch } from "../shared/training
 describe("training discovery search", () => {
   const records = [
     {
-      title: "Service Foundations Core Deck",
+      title: "Soft Skills & Customer/Patient Service Foundation",
       subtitle: "Customer service, empathy, and professionalism.",
       keywords: ["learner", "service foundations", "communication"],
     },
     {
-      title: "Workflow Precision Field Kit",
+      title: "Quality Assurance Essentials",
       subtitle: "Verification, QA discipline, and documentation accuracy.",
       keywords: ["manager", "workflow", "qa"],
     },
     {
-      title: "Unlocking the Power of Data",
+      title: "Unlocking the power of date",
       subtitle: "KPI reading and executive decision quality.",
       keywords: ["executive", "kpi", "leadership"],
     },
@@ -35,11 +35,11 @@ describe("training discovery search", () => {
   });
 
   it("returns only the matching training cards for scoped searches", () => {
-    expect(filterTrainingRecords(records, "workflow").map((record) => record.title)).toEqual([
-      "Workflow Precision Field Kit",
+    expect(filterTrainingRecords(records, "quality assurance").map((record) => record.title)).toEqual([
+      "Quality Assurance Essentials",
     ]);
-    expect(filterTrainingRecords(records, "power data").map((record) => record.title)).toEqual([
-      "Unlocking the Power of Data",
+    expect(filterTrainingRecords(records, "power date").map((record) => record.title)).toEqual([
+      "Unlocking the power of date",
     ]);
   });
 });

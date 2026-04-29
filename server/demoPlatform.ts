@@ -360,7 +360,7 @@ const journeys: LearningJourney[] = [
     id: "journey-service-foundations",
     tenantId: "atlas-operations",
     role: "learner",
-    title: "Service Foundations Core Deck",
+    title: "Soft Skills & Customer/Patient Service Foundation",
     progress: 71,
     competencyGap: "Empathy language and call control consistency",
     modules: [
@@ -374,7 +374,7 @@ const journeys: LearningJourney[] = [
     id: "journey-workflow-precision",
     tenantId: "atlas-operations",
     role: "manager",
-    title: "Workflow Precision Field Kit",
+    title: "Quality Assurance Essentials",
     progress: 83,
     competencyGap: "Coaching consistency on workflow accuracy and documentation",
     modules: [
@@ -387,7 +387,7 @@ const journeys: LearningJourney[] = [
     id: "journey-coach-practice-atlas",
     tenantId: "atlas-operations",
     role: "coach",
-    title: "Weekly Coaching and Skill Transfer",
+    title: "Real Time Coaching",
     progress: 77,
     competencyGap: "Consistent field coaching with observable follow-through",
     modules: [
@@ -399,7 +399,7 @@ const journeys: LearningJourney[] = [
     id: "journey-data-led-leadership",
     tenantId: "atlas-operations",
     role: "executive",
-    title: "Unlocking the Power of Data",
+    title: "Unlocking the power of date",
     progress: 68,
     competencyGap: "Intervention-to-outcome visibility",
     modules: [
@@ -412,7 +412,7 @@ const journeys: LearningJourney[] = [
     id: "journey-service-foundations-lf",
     tenantId: "lighthouse-finance",
     role: "learner",
-    title: "Trust-Centered Service Foundations",
+    title: "Soft Skills & Customer/Patient Service Foundation",
     progress: 66,
     competencyGap: "Professional confidence in regulated conversations",
     modules: [
@@ -425,7 +425,7 @@ const journeys: LearningJourney[] = [
     id: "journey-coach-practice-lf",
     tenantId: "lighthouse-finance",
     role: "coach",
-    title: "Coach Supervision: Recovery Coaching and Compliance Reinforcement",
+    title: "Real Time Coaching",
     progress: 75,
     competencyGap: "Recovery coaching consistency under compliance pressure",
     modules: [
@@ -437,7 +437,7 @@ const journeys: LearningJourney[] = [
     id: "journey-performance-leadership-lf",
     tenantId: "lighthouse-finance",
     role: "manager",
-    title: "Performance Maximization Governance",
+    title: "Maximizing performance through performance management",
     progress: 79,
     competencyGap: "Performance segmentation without bias",
     modules: [
@@ -450,7 +450,7 @@ const journeys: LearningJourney[] = [
     id: "journey-data-led-leadership-lf",
     tenantId: "lighthouse-finance",
     role: "executive",
-    title: "Executive Signal Review and Coaching ROI",
+    title: "Unlocking the power of date",
     progress: 73,
     competencyGap: "Cross-team trend validation",
     modules: [
@@ -487,7 +487,7 @@ const journeys: LearningJourney[] = [
     id: "journey-engagement-systems-hc",
     tenantId: "horizon-commerce",
     role: "manager",
-    title: "Remote-Team Engagement and Recognition System",
+    title: "Gamification & Work From Home",
     progress: 76,
     competencyGap: "Recognition rhythm for hybrid teams",
     modules: [
@@ -867,7 +867,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
   {
     id: "library-service-foundations-core",
     tenantId: "all",
-    title: "Service Foundations Core Deck",
+    title: "Soft Skills & Customer/Patient Service Foundation",
     summary: "A CHCG learning deck covering empathy, active listening, professionalism, reassurance, and customer-service recovery behaviors for frontline roles.",
     category: "Agent enablement",
     sourceKind: "chcg",
@@ -897,7 +897,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
   {
     id: "library-workflow-precision-kit",
     tenantId: "all",
-    title: "Workflow Precision Field Kit",
+    title: "Quality Assurance Essentials",
     summary: "A structured CHCG toolkit for verification, hold and transfer discipline, documentation accuracy, and workflow behaviors that directly influence quality results.",
     category: "Operational execution",
     sourceKind: "chcg",
@@ -912,7 +912,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
   {
     id: "library-data-leadership-studio",
     tenantId: "all",
-    title: "Unlocking the Power of Data",
+    title: "Unlocking the power of date",
     summary: "A CHCG leadership deck that teaches KPI interpretation, trend reading, root-cause diagnosis, and decision-ready storytelling for enablement leaders.",
     category: "Leadership intelligence",
     sourceKind: "chcg",
@@ -942,7 +942,7 @@ const contentLibraryAssets: ContentLibraryAsset[] = [
   {
     id: "library-gamified-engagement",
     tenantId: "all",
-    title: "Remote-Team Engagement and Recognition System",
+    title: "Gamification & Work From Home",
     summary: "A CHCG asset focused on recognition loops, gamified motivation, pulse checks, and leadership rhythms for distributed teams.",
     category: "Culture and motivation",
     sourceKind: "chcg",
