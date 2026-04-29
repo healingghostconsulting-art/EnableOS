@@ -126,6 +126,33 @@ describe("training player helpers", () => {
     expect(evaluation.score).toBeGreaterThanOrEqual(75);
   });
 
+  it("accepts a service-recovery checkpoint response with simpler expectation-setting phrasing", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "On the next call, I will apologize, set expectations, and document the follow-up so the record shows what happens next.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("accepts a coaching checkpoint response that references a one-on-one and observable proof", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "In the next one-on-one, review the call, coach the behavior, and log a coaching note so the manager can verify the action plan.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("accepts a documentation-focused checkpoint response that uses account-note phrasing", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "Before the case is closed, capture the note, confirm the next step, and make sure the account record shows the handoff clearly.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
   it("requires retry when a coach checkpoint response is too vague to verify", () => {
     const evaluation = evaluateCoachCheckpointResponse("Be better next time.");
 

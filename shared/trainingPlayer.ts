@@ -44,30 +44,30 @@ export type CoachCheckpointEvaluation = {
 };
 
 const BEHAVIOR_SIGNAL_PATTERNS = [
-  /(acknowledge|confirm|ask|document|coach|restate|clarify|de-?escalate|follow up|commit|close|open|validate|rephrase|paraphrase|repeat back|mirror|summari[sz]e)/,
-  /(empath(y|ize|etic)|reassure|apologize|ownership|own the issue|take ownership|calm|stabilize|recover|recovery)/,
-  /(verify|verification|authenticate|accuracy|accurate|handoff|next step|transfer|workflow|process|compliance|qa|quality|scorecard|audit)/,
-  /(trend|metric|kpi|root cause|signal|dashboard|performance|calibration|review cadence|improvement plan|coach(?:ing)? follow-?through)/,
-  /(recognition|gamification|motivation|engagement|remote|work from home|pulse check|collaboration|fairness)/,
+  /(acknowledge|confirm|ask|document|coach|restate|clarify|de-?escalate|follow up|commit|close|open|validate|rephrase|paraphrase|repeat back|mirror|summari[sz]e|listen back|play back|reflect back)/,
+  /(empath(y|ize|etic)|reassure|apologize|ownership|own the issue|take ownership|calm|stabilize|recover|recovery|set expectations|reset expectations|close the loop|walk through the next step|guide them through)/,
+  /(verify|verification|authenticate|accuracy|accurate|handoff|next step|transfer|workflow|process|compliance|qa|quality|scorecard|audit|review the case|complete the note|log the note|capture the note)/,
+  /(trend|metric|kpi|root cause|signal|dashboard|performance|calibration|review cadence|improvement plan|coach(?:ing)? follow-?through|one-on-one|1:1|performance plan|action plan|observe the call|side-by-side)/,
+  /(recognition|gamification|motivation|engagement|remote|work from home|pulse check|collaboration|fairness|celebrate wins|recognize success|shout.?out|check in with the team|team huddle)/,
 ];
 
 const EVIDENCE_SIGNAL_PATTERNS = [
-  /(listen|hear|see|verify|observe|monitor|check|review|audit|measure|score|track|document|record|confirmation|confirmed|correct|understand|understanding)/,
-  /(qa note|qa score|scorecard|dashboard|metric|trend|proof point|evidence|handoff note|case note|follow-up note|ticket|documentation)/,
+  /(listen|hear|see|verify|observe|monitor|check|review|audit|measure|score|track|document|record|confirmation|confirmed|correct|understand|understanding|visible|shown|logged)/,
+  /(qa note|qa score|scorecard|dashboard|metric|trend|proof point|evidence|handoff note|case note|follow-up note|ticket|documentation|crm note|account note|wrap note|coaching note|recognition log|pulse-check result)/,
   /have (them|the customer|the member|the patient) confirm/,
-  /(customer confirms|customer confirmation|patient confirms|member confirms|next step is documented|coach can verify|manager can review)/,
+  /(customer confirms|customer confirmation|patient confirms|member confirms|next step is documented|coach can verify|manager can review|the note shows|the record shows|the dashboard shows|the score improves)/,
 ];
 
 const TIMING_SIGNAL_PATTERNS = [
-  /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during|tomorrow|today|this call|next call|next interaction|going forward|i will|will|plan to)/,
-  /(at the close|before closing|during verification|during the handoff|on the next review|in the next coaching review|after the call|before the transfer)/,
+  /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during|tomorrow|today|this call|next call|next interaction|going forward|i will|will|plan to|each time|every time|at the end|right away|immediately)/,
+  /(at the close|before closing|during verification|during the handoff|on the next review|in the next coaching review|after the call|before the transfer|during the huddle|in the next one-on-one|at wrap-up|before the case is closed)/,
 ];
 
 const CONTEXT_SIGNAL_PATTERNS = [
-  /(customer concern|customer concerns|member concern|patient concern|concern|concerns|information|understanding|service recovery|expectation)/,
-  /(workflow|verification|documentation|handoff|qa finding|quality finding|case note|process step|escalation|transfer)/,
-  /(kpi|metric|trend|dashboard|root cause|scorecard|performance gap|coaching cadence|calibration|review)/,
-  /(recognition|engagement|remote team|work from home|motivation|collaboration|fairness|pulse check)/,
+  /(customer concern|customer concerns|member concern|patient concern|concern|concerns|information|understanding|service recovery|expectation|question|issue|call reason)/,
+  /(workflow|verification|documentation|handoff|qa finding|quality finding|case note|process step|escalation|transfer|account|record|ticket|follow-up)/,
+  /(kpi|metric|trend|dashboard|root cause|scorecard|performance gap|coaching cadence|calibration|review|1:1|one-on-one|performance conversation)/,
+  /(recognition|engagement|remote team|work from home|motivation|collaboration|fairness|pulse check|team huddle|employee win|morale)/,
 ];
 
 function matchesAny(patterns: RegExp[], note: string) {

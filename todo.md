@@ -150,3 +150,4 @@
 - [x] Deepen the coach-checkpoint phrase library so simpler valid active-listening responses, such as paraphrasing the customer concern and confirming understanding, can pass when they clearly express the intended behavior.
 - [x] Expand the flexible checkpoint phrase library and fair-answer grading approach across all learning modules, not only the active-listening checkpoint.
 - [x] Restrict learner and agent users so they can only view and launch agent-training content, while non-agent training remains unavailable to those roles.
+- [x] Continue expanding the checkpoint phrase libraries across the training experience so more valid CHCG-aligned learner responses are accepted fairly across all learning families.
