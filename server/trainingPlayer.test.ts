@@ -99,6 +99,33 @@ describe("training player helpers", () => {
     expect(evaluation.score).toBeGreaterThanOrEqual(75);
   });
 
+  it("accepts a workflow-focused checkpoint response when it names verification, documentation, and timing", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "During the next verification call, confirm the account details, document the handoff note, and let QA review the record for accuracy.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("accepts a leadership checkpoint response when it ties KPI review to a visible follow-up action", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "In the next dashboard review, compare the KPI trend, verify the root cause with the scorecard, and document the improvement action for follow-up.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("accepts an engagement checkpoint response when it names a recognition behavior and proof point", () => {
+    const evaluation = evaluateCoachCheckpointResponse(
+      "On the next remote team huddle, recognize the behavior publicly, track the engagement response, and review the pulse-check results afterward.",
+    );
+
+    expect(evaluation.passed).toBe(true);
+    expect(evaluation.score).toBeGreaterThanOrEqual(75);
+  });
+
   it("requires retry when a coach checkpoint response is too vague to verify", () => {
     const evaluation = evaluateCoachCheckpointResponse("Be better next time.");
 

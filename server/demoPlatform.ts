@@ -1289,6 +1289,13 @@ function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" |
   );
 }
 
+function isLearnerTrainingAsset(asset: ContentLibraryAsset) {
+  return asset.category === "Agent enablement"
+    || asset.linkedJourneyIds.includes("journey-service-foundations")
+    || asset.linkedJourneyIds.includes("journey-workflow-precision")
+    || asset.title === "Workforce & Key Performance Indicators";
+}
+
 function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
   return contentLibraryAssets.filter((asset) => {
     const tenantScoped = asset.tenantId === "all" || asset.tenantId === tenantId;
@@ -1298,7 +1305,8 @@ function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
       || asset.linkedRoles.includes(role)
       || (role === "coach" && asset.linkedRoles.includes("manager"));
     const entitled = isAssetLicensedForTenant(asset, tenantId);
-    return tenantScoped && roleScoped && entitled;
+    const learnerScoped = role !== "learner" || isLearnerTrainingAsset(asset);
+    return tenantScoped && roleScoped && entitled && learnerScoped;
   });
 }
 
@@ -1352,7 +1360,10 @@ function getWorkflowLibraryMix(tenantId: string, role: DemoRole) {
 
 export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
   const tenant = getTenant(tenantId);
-  const assets = getTenantLibraryAssets(tenant.id, role);
+  const baseAssets = getTenantLibraryAssets(tenant.id, role);
+  const assets = role === "learner"
+    ? baseAssets.filter((asset) => isLearnerTrainingAsset(asset))
+    : baseAssets;
   const chcgAssets = assets.filter((asset) => asset.sourceKind === "chcg");
   const importedAssets = assets.filter((asset) => asset.sourceKind === "client_upload");
 

@@ -555,6 +555,22 @@ it("filters secure library assets to the trainings licensed for the selected cli
   expect(horizonLibrary.chcgAssets.some((asset) => asset.title === "QA Essentials and Score Confidence")).toBe(false);
 });
 
+it("forces learner accounts back to agent-training assets even when all-role content is requested", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "atlas-learner",
+      role: "user",
+      name: "Enterprise Learner",
+    }),
+  );
+
+  const learnerLibrary = await caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "all" });
+
+  expect(learnerLibrary.chcgAssets.every((asset) => asset.linkedRoles.includes("learner") || asset.linkedJourneyIds.some((journeyId) => journeyId === "journey-service-foundations" || journeyId === "journey-workflow-precision"))).toBe(true);
+  expect(learnerLibrary.chcgAssets.some((asset) => asset.title === "Quality Assurance Essentials")).toBe(true);
+  expect(learnerLibrary.chcgAssets.some((asset) => asset.title === "Unlocking the power of date")).toBe(false);
+});
+
 it("denies protected training and library access when the signed-in user has no configured client grant", async () => {
   const caller = appRouter.createCaller(
     createContext({

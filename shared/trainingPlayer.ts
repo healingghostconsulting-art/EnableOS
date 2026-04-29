@@ -43,34 +43,65 @@ export type CoachCheckpointEvaluation = {
   feedback: string[];
 };
 
+const BEHAVIOR_SIGNAL_PATTERNS = [
+  /(acknowledge|confirm|ask|document|coach|restate|clarify|de-?escalate|follow up|commit|close|open|validate|rephrase|paraphrase|repeat back|mirror|summari[sz]e)/,
+  /(empath(y|ize|etic)|reassure|apologize|ownership|own the issue|take ownership|calm|stabilize|recover|recovery)/,
+  /(verify|verification|authenticate|accuracy|accurate|handoff|next step|transfer|workflow|process|compliance|qa|quality|scorecard|audit)/,
+  /(trend|metric|kpi|root cause|signal|dashboard|performance|calibration|review cadence|improvement plan|coach(?:ing)? follow-?through)/,
+  /(recognition|gamification|motivation|engagement|remote|work from home|pulse check|collaboration|fairness)/,
+];
+
+const EVIDENCE_SIGNAL_PATTERNS = [
+  /(listen|hear|see|verify|observe|monitor|check|review|audit|measure|score|track|document|record|confirmation|confirmed|correct|understand|understanding)/,
+  /(qa note|qa score|scorecard|dashboard|metric|trend|proof point|evidence|handoff note|case note|follow-up note|ticket|documentation)/,
+  /have (them|the customer|the member|the patient) confirm/,
+  /(customer confirms|customer confirmation|patient confirms|member confirms|next step is documented|coach can verify|manager can review)/,
+];
+
+const TIMING_SIGNAL_PATTERNS = [
+  /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during|tomorrow|today|this call|next call|next interaction|going forward|i will|will|plan to)/,
+  /(at the close|before closing|during verification|during the handoff|on the next review|in the next coaching review|after the call|before the transfer)/,
+];
+
+const CONTEXT_SIGNAL_PATTERNS = [
+  /(customer concern|customer concerns|member concern|patient concern|concern|concerns|information|understanding|service recovery|expectation)/,
+  /(workflow|verification|documentation|handoff|qa finding|quality finding|case note|process step|escalation|transfer)/,
+  /(kpi|metric|trend|dashboard|root cause|scorecard|performance gap|coaching cadence|calibration|review)/,
+  /(recognition|engagement|remote team|work from home|motivation|collaboration|fairness|pulse check)/,
+];
+
+function matchesAny(patterns: RegExp[], note: string) {
+  return patterns.some((pattern) => pattern.test(note));
+}
+
 export function evaluateCoachCheckpointResponse(note: string): CoachCheckpointEvaluation {
   const normalizedNote = note.trim().toLowerCase();
   const wordCount = normalizedNote.length > 0 ? normalizedNote.split(/\s+/).filter(Boolean).length : 0;
-  const behaviorPattern = /(acknowledge|confirm|ask|document|coach|restate|clarify|de-escalate|follow up|commit|close|open|validate|rephrase|paraphrase|repeat back|mirror|summari[sz]e)/;
-  const evidencePattern = /(listen|hear|see|verify|observe|monitor|check|review|audit|measure|confirm|confirmation|confirmed|correct|understand|understanding|accurate|accuracy)/;
-  const timingPattern = /(next|before|after|then|within|follow-up|follow up|step|commitment|again|during|tomorrow|today|this call|next call|next interaction|going forward|i will|will|plan to)/;
-  const activeListeningPattern = /(customer concern|customer concerns|concern|concerns|information|understanding|rephrase|paraphrase|repeat back|confirm the information|confirm understanding|make sure|ensure|is correct|correct)/;
+  const hasBehaviorSignal = matchesAny(BEHAVIOR_SIGNAL_PATTERNS, normalizedNote);
+  const hasEvidenceSignal = matchesAny(EVIDENCE_SIGNAL_PATTERNS, normalizedNote);
+  const hasTimingSignal = matchesAny(TIMING_SIGNAL_PATTERNS, normalizedNote);
+  const hasContextSignal = matchesAny(CONTEXT_SIGNAL_PATTERNS, normalizedNote);
 
   const criteria = [
     {
-      passed: wordCount >= 10 || (wordCount >= 8 && behaviorPattern.test(normalizedNote) && activeListeningPattern.test(normalizedNote)),
-      success: "The response includes enough detail for a coach to assess it in context.",
+      passed: wordCount >= 8 || (wordCount >= 6 && hasBehaviorSignal && hasContextSignal),
+      success: "The response includes enough context for a coach to assess the behavior in a real work situation.",
       fail: "Add a little more detail so the coach can understand the full follow-up behavior in context.",
     },
     {
-      passed: evidencePattern.test(normalizedNote) || /have (them|the customer) confirm/.test(normalizedNote),
-      success: "The response names observable evidence a coach can verify.",
-      fail: "Name what the coach should hear, see, review, or verify in the live interaction.",
+      passed: hasEvidenceSignal,
+      success: "The response names observable evidence a coach, reviewer, or manager can verify.",
+      fail: "Name what the coach should hear, see, review, document, or verify in the live interaction or follow-up record.",
     },
     {
-      passed: behaviorPattern.test(normalizedNote),
-      success: "The response identifies a coached behavior, not just a general intention.",
-      fail: "Describe the exact behavior the learner should demonstrate, such as rephrasing, acknowledging, confirming, clarifying, or documenting.",
+      passed: hasBehaviorSignal,
+      success: "The response identifies a concrete coached behavior instead of only a general intention.",
+      fail: "Describe the exact behavior the learner should demonstrate, such as rephrasing, verifying, documenting, calming, coaching, reviewing, or recognizing.",
     },
     {
-      passed: timingPattern.test(normalizedNote),
-      success: "The response explains when the behavior should happen in the workflow.",
-      fail: "Explain when the coached behavior should happen, such as in the next call, during the interaction, or as a stated commitment like 'I will'.",
+      passed: hasTimingSignal,
+      success: "The response explains when the behavior should happen in the workflow or review cycle.",
+      fail: "Explain when the behavior should happen, such as in the next call, during verification, before closing, or in the next review.",
     },
   ];
 

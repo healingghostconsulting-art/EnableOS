@@ -194,7 +194,11 @@ export const demoRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Cross-tenant access is not allowed." });
     }
 
-    return listContentLibrary(tenantId, input.role);
+    const requestedRole = grant.role === "learner"
+      ? "learner"
+      : input.role;
+
+    return listContentLibrary(tenantId, requestedRole);
   }),
   previewUploadContent: publicProcedure.input(clientContentInput).mutation(async ({ input }) => {
     let fileUrl: string | undefined;

@@ -964,8 +964,8 @@ export function TrainingExperienceView() {
   }, [stageIndex]);
 
   const liveJourney = learner.data?.activeJourney ?? null;
-  const previewScenarios = useMemo(
-    () => [
+  const previewScenarios = useMemo(() => {
+    const allPreviewScenarios = [
       {
         id: "active",
         label: "Live learner path",
@@ -1071,9 +1071,12 @@ export function TrainingExperienceView() {
         ],
         coachingTitle: "Recognition design checkpoint",
       },
-    ],
-    [liveJourney, learner.data?.nextCoachingSession.title],
-  );
+    ];
+
+    return access.data?.grant.role === "learner"
+      ? allPreviewScenarios.slice(0, 1)
+      : allPreviewScenarios;
+  }, [access.data?.grant.role, liveJourney, learner.data?.nextCoachingSession.title]);
   const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
   const modules = activePreview?.modules ?? [];
   const filteredModuleEntries = useMemo(
