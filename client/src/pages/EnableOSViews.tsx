@@ -873,6 +873,7 @@ export function TrainingExperienceView() {
   const [recentUnlockMoment, setRecentUnlockMoment] = useState<{ title: string; detail: string } | null>(null);
   const [coachCheckpointOpen, setCoachCheckpointOpen] = useState(false);
   const [coachCheckpointNote, setCoachCheckpointNote] = useState("");
+  const [coachCheckpointSubmitted, setCoachCheckpointSubmitted] = useState(false);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -895,6 +896,7 @@ export function TrainingExperienceView() {
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
+    setCoachCheckpointSubmitted(false);
   }, [tenantId]);
 
   useEffect(() => {
@@ -917,6 +919,7 @@ export function TrainingExperienceView() {
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
+    setCoachCheckpointSubmitted(false);
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
@@ -942,6 +945,7 @@ export function TrainingExperienceView() {
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
+    setCoachCheckpointSubmitted(false);
   }, [previewScenarioId]);
 
   useEffect(() => {
@@ -1742,16 +1746,37 @@ export function TrainingExperienceView() {
                         </div>
                         <Textarea
                           value={coachCheckpointNote}
-                          onChange={(event) => setCoachCheckpointNote(event.target.value)}
+                          onChange={(event) => {
+                            setCoachCheckpointNote(event.target.value);
+                            setCoachCheckpointSubmitted(false);
+                          }}
                           rows={5}
                           autoFocus
                           className="w-full rounded-2xl border-white/10 bg-slate-950/80 px-4 py-3 text-white placeholder:text-slate-500"
                           placeholder="Example: In the next coaching review, listen for a slower opening, one sentence that names the customer concern, and a clear next-step commitment before the rep moves into the solution."
                         />
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-xs leading-5 text-slate-300">Use the review action to lock this note as the checkpoint response for the current module stage.</p>
+                          <Button
+                            type="button"
+                            className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
+                            disabled={!coachCheckpointReady}
+                            onClick={() => setCoachCheckpointSubmitted(true)}
+                          >
+                            {coachCheckpointSubmitted ? "Submitted for coach review" : "Submit for coach review"}
+                          </Button>
+                        </div>
+                        {coachCheckpointSubmitted ? (
+                          <div className="rounded-[1.2rem] border border-emerald-400/20 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-100">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-200/80">Checkpoint review status</p>
+                            <p className="mt-2 font-medium text-white">The checkpoint response has been captured for coach review.</p>
+                            <p className="mt-2 leading-6 text-emerald-100">Review summary: {coachCheckpointNote}</p>
+                          </div>
+                        ) : null}
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Typing status</p>
-                            <p className="mt-2 font-medium text-white">{coachCheckpointNote.trim().length > 0 ? "Checkpoint entry is active." : "Open the checkpoint and begin typing."}</p>
+                            <p className="mt-2 font-medium text-white">{coachCheckpointSubmitted ? "Checkpoint sent for review." : coachCheckpointNote.trim().length > 0 ? "Checkpoint entry is active." : "Open the checkpoint and begin typing."}</p>
                             <p className="mt-1 text-xs leading-5 text-slate-400">Your notes stay in the training flow so the checkpoint feels like an in-product coaching interaction instead of static text.</p>
                           </div>
                           <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
