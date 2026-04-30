@@ -130,9 +130,9 @@ function SectionShell({
   );
 }
 
-function PremiumCard({ className = "", children }: { className?: string; children: React.ReactNode }) {
+function PremiumCard({ className = "", children, id }: { className?: string; children: React.ReactNode; id?: string }) {
   return (
-    <Card className={`glass-panel energy-frame border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(15,23,42,0.48)] backdrop-blur-2xl ${className}`}>
+    <Card id={id} className={`glass-panel energy-frame border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(15,23,42,0.48)] backdrop-blur-2xl ${className}`}>
       {children}
     </Card>
   );
@@ -168,16 +168,20 @@ function MetricCard({
   value,
   supporting,
   icon,
+  onClick,
+  actionLabel = "Open view",
 }: {
   label: string;
   value: string;
   supporting: string;
   icon: React.ReactNode;
+  onClick?: () => void;
+  actionLabel?: string;
 }) {
-  return (
-    <PremiumCard>
+  const content = (
+    <PremiumCard className={`h-full ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <CardDescription className="text-slate-300/70">{label}</CardDescription>
           <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2 text-slate-100">{icon}</div>
         </div>
@@ -185,9 +189,46 @@ function MetricCard({
       </CardHeader>
       <CardContent>
         <p className="text-sm leading-6 text-slate-200/82">{supporting}</p>
+        {onClick ? (
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.22em] text-cyan-100/85">
+            <span>{actionLabel}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </div>
+        ) : null}
       </CardContent>
     </PremiumCard>
   );
+
+  if (!onClick) {
+    return content;
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className="rounded-[1.8rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
+    >
+      {content}
+    </div>
+  );
+}
+
+function revealWorkspaceSection(sectionId: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function ChartFrame({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
@@ -4443,16 +4484,22 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
 
 function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const leadModule = data.activeJourney?.modules?.[0] ?? null;
+  const [activeTab, setActiveTab] = useState<"coaching" | "transfer" | "documentation" | "alerts">("coaching");
+
+  const openCoachView = (tab: "coaching" | "transfer" | "documentation" | "alerts", sectionId: string) => {
+    setActiveTab(tab);
+    window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
+  };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} />
-        <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} />
-        <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} />
-        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} />
+        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-signal-trend")} actionLabel="Open signal trend" />
+        <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-supervision-lane")} actionLabel="Open supervision lane" />
+        <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
+        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+      <div id="coach-signal-trend" className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] scroll-mt-24">
         <ChartFrame title="Coach-visible signal trend" description="Frontline coaching should connect active performance signals to the next observed behavior, not just course completion.">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
@@ -4465,7 +4512,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             </LineChart>
           </ResponsiveContainer>
         </ChartFrame>
-        <PremiumCard>
+        <PremiumCard className="scroll-mt-24" id="coach-supervision-lane">
           <CardHeader>
             <CardTitle className="text-white">Coach supervision lane</CardTitle>
             <CardDescription className="text-slate-400">A dedicated coach workspace sits between learner delivery and manager governance so weekly coaching, observed behaviors, and escalation context stay visible.</CardDescription>
@@ -4491,14 +4538,14 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </CardContent>
         </PremiumCard>
       </div>
-      <Tabs defaultValue="coaching" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-4">
         <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
           <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
           <TabsTrigger value="transfer" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
           <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
           <TabsTrigger value="alerts" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
         </TabsList>
-        <TabsContent value="coaching" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <TabsContent value="coaching" id="coach-coaching-lane" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
           <div className="space-y-4">
             {data.coachingSessions.map((session: any) => (
               <PremiumCard key={session.id}>
@@ -4527,7 +4574,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </PremiumCard>
             ))}
           </div>
-          <div className="space-y-6">
+          <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
             <WeeklyCoachingLogComposer
               tenantId={data.tenant.id}
               subjectUserId={data.directLearner.id}
@@ -4550,7 +4597,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
           </div>
         </TabsContent>
-        <TabsContent value="transfer" className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+        <TabsContent value="transfer" id="coach-transfer-lane" className="grid gap-6 xl:grid-cols-[1fr_0.92fr] scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Training-transfer focus</CardTitle>
@@ -4576,7 +4623,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             resources={data.workflowLibraryMix.documentationResources}
           />
         </TabsContent>
-        <TabsContent value="documentation" className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+        <TabsContent value="documentation" id="coach-documentation-feed" className="grid gap-6 xl:grid-cols-[1fr_0.92fr] scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Coach documentation feed</CardTitle>
@@ -4601,7 +4648,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
           </div>
         </TabsContent>
-        <TabsContent value="alerts" className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="alerts" id="coach-alerts-feed" className="grid gap-4 md:grid-cols-2 scroll-mt-24">
           {data.notifications.map((item: any) => (
             <PremiumCard key={item.id}>
               <CardHeader>
@@ -4625,15 +4672,22 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 }
 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+  const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
+
+  const openManagerView = (tab: "interventions" | "coaching" | "documentation" | "notifications", sectionId: string) => {
+    setActiveTab(tab);
+    window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Active signals" value={`${data.openSignals.length}`} supporting="Live KPI and QA feed requiring attention" icon={<CircleAlert className="h-4 w-4" />} />
-        <MetricCard label="Open interventions" value={`${data.interventions.length}`} supporting="Workflow actions assigned from rule triggers" icon={<Target className="h-4 w-4" />} />
-        <MetricCard label="Coaching follow-ups" value={`${data.coachingSessions.length}`} supporting="Structured sessions with action plans and reminders" icon={<Users2 className="h-4 w-4" />} />
-        <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} />
+        <MetricCard label="Active signals" value={`${data.openSignals.length}`} supporting="Live KPI and QA feed requiring attention" icon={<CircleAlert className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-signal-trend")} actionLabel="Open signal feed" />
+        <MetricCard label="Open interventions" value={`${data.interventions.length}`} supporting="Workflow actions assigned from rule triggers" icon={<Target className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-interventions-lane")} actionLabel="Open interventions" />
+        <MetricCard label="Coaching follow-ups" value={`${data.coachingSessions.length}`} supporting="Structured sessions with action plans and reminders" icon={<Users2 className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coaching-lane")} actionLabel="Open coaching lane" />
+        <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coach-oversight")} actionLabel="Review coach oversight" />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <div id="manager-signal-trend" className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] scroll-mt-24">
         <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to Workflow Precision, Service Foundations, and manager-led intervention logic.">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
@@ -4683,14 +4737,14 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           </CardContent>
         </PremiumCard>
       </div>
-      <Tabs defaultValue="interventions" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")} className="space-y-4">
         <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
           <TabsTrigger value="interventions" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Interventions</TabsTrigger>
           <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching log</TabsTrigger>
           <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
         </TabsList>
-        <TabsContent value="interventions" className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <TabsContent value="interventions" id="manager-interventions-lane" className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] scroll-mt-24">
           <div className="grid gap-4">
             {data.interventions.map((item: any) => (
               <PremiumCard key={item.id}>
@@ -4727,7 +4781,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             resources={data.workflowLibraryMix.interventionResources}
           />
         </TabsContent>
-        <TabsContent value="coaching" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <TabsContent value="coaching" id="manager-coaching-lane" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
           <div className="space-y-4">
             {data.coachingSessions.map((session: any) => (
               <PremiumCard key={session.id}>
@@ -4788,9 +4842,47 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               tenantId={data.tenant.id}
               logs={data.weeklyCoachingLogs}
             />
+            <PremiumCard className="scroll-mt-24" id="manager-coach-oversight">
+              <CardHeader>
+                <CardTitle className="text-white">Coach direct-report oversight</CardTitle>
+                <CardDescription className="text-slate-400">Managers can remotely review the same direct-report coaching history the coach sees, keeping the escalation conversation aligned inside the manager workspace.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.coachCoverage.map((coverage: any) => (
+                  <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
+                        <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
+                      </div>
+                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p>
+                        <p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p>
+                        <p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p>
+                        <p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p>
+                        <p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <WeeklyCoachingLogTimeline
+                  title="Coach-lane direct-report logs"
+                  description="This mirrored timeline lets managers review the same direct-report coaching history the coach is working from without leaving the manager workspace."
+                  tenantId={data.tenant.id}
+                  logs={data.coachCoverage.flatMap((coverage: any) => coverage.weeklyCoachingLogs)}
+                />
+              </CardContent>
+            </PremiumCard>
           </div>
         </TabsContent>
-        <TabsContent value="documentation" className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <TabsContent value="documentation" id="manager-documentation-lane" className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr] scroll-mt-24">
           <div className="space-y-6">
             <PremiumCard>
               <CardHeader>
@@ -4837,7 +4929,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </PremiumCard>
           </div>
         </TabsContent>
-        <TabsContent value="notifications" className="grid gap-4 lg:grid-cols-2">
+        <TabsContent value="notifications" id="manager-alerts-lane" className="grid gap-4 lg:grid-cols-2 scroll-mt-24">
           {data.notifications.map((item: any) => (
             <PremiumCard key={item.id}>
               <CardHeader>

@@ -73,6 +73,18 @@ describe("demo router", () => {
     expect(manager.documentationEntries.length).toBeGreaterThan(0);
     expect(manager.reviewLogs.length).toBeGreaterThan(0);
     expect(manager.weeklyCoachingLogs.length).toBeGreaterThan(0);
+    expect(manager.coachCoverage).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          coach: expect.objectContaining({ role: "coach" }),
+          directReport: expect.objectContaining({ role: "learner" }),
+          weeklyCoachingLogs: expect.arrayContaining([
+            expect.objectContaining({ subjectUserId: manager.directReport.id }),
+          ]),
+          latestLog: expect.objectContaining({ subjectUserId: manager.directReport.id }),
+        }),
+      ]),
+    );
     expect(manager.aiSuggestion.overrideAvailable).toBe(true);
     expect(manager.aiSuggestion.rationale.length).toBeGreaterThan(1);
     expect(manager.workflowLibraryMix.interventionResources).toEqual(

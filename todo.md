@@ -168,3 +168,6 @@
 - [x] Fix the duplicate React key warning on the manager page where repeated learner identity labels are being used as list keys.
 - [x] Add regression coverage or targeted validation to ensure manager-page list items use stable unique keys even when names and emails repeat.
 - [x] Re-validate the manager page in the browser after the duplicate-key fix so the next user test run is clean.
+- [x] Make the top summary cards in the manager and coaching workspaces clickable so each one navigates to its corresponding section or view.
+- [x] Expand the manager workspace so managers can review coaching logs for coaches' direct reports alongside the coach workflow.
+- [x] Re-validate the manager and coaching navigation plus shared coaching-log review flow before the next delivery.

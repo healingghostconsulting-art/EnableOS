@@ -1857,15 +1857,27 @@ export function getExecutiveDashboard(tenantId?: string) {
 export function getManagerDashboard(tenantId?: string) {
   const tenant = getTenant(tenantId);
   const manager = getUser("manager", tenant.id);
+  const coach = getUser("coach", tenant.id);
   const learner = getUser("learner", tenant.id);
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "manager");
+  const directReportLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
+  const coachCoverage = [
+    {
+      coach,
+      directReport: learner,
+      coachingSessions: getTenantCoachingSessions(tenant.id).filter((session) => session.learnerUserId === learner.id),
+      weeklyCoachingLogs: directReportLogs,
+      latestLog: directReportLogs[0] ?? null,
+    },
+  ];
 
   return {
     tenant,
     branding,
     manager,
     directReport: learner,
+    coachCoverage,
     openSignals: getTenantSignals(tenant.id),
     interventions: getTenantInterventions(tenant.id),
     coachingSessions: getTenantCoachingSessions(tenant.id),
@@ -1873,7 +1885,7 @@ export function getManagerDashboard(tenantId?: string) {
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     documentationEntries: getDocumentationEntries(tenant.id, learner.id),
     reviewLogs: getReviewLogs(tenant.id, learner.id),
-    weeklyCoachingLogs: getWeeklyCoachingLogs(tenant.id, learner.id),
+    weeklyCoachingLogs: directReportLogs,
     aiSuggestion: aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0],
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
     rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
