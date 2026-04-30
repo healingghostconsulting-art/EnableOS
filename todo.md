@@ -165,3 +165,6 @@
 - [x] Re-review the self-guided learner interaction overhaul for fragile progression, scoring, and reset edge cases before the user's next validation run.
 - [x] Add deeper regression coverage for interaction retry behavior, automatic advancement timing, and non-passing submissions.
 - [x] Re-run a higher-confidence validation pass across automated tests, type health, and live browser learner flows before handing back the next checkpoint.
+- [x] Fix the duplicate React key warning on the manager page where repeated learner identity labels are being used as list keys.
+- [x] Add regression coverage or targeted validation to ensure manager-page list items use stable unique keys even when names and emails repeat.
+- [x] Re-validate the manager page in the browser after the duplicate-key fix so the next user test run is clean.

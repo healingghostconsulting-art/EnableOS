@@ -4056,11 +4056,13 @@ function WeeklyCoachingLogComposer({
   });
 
   const shareTargets = [
-    `${employeeName} · ${employeeEmail}`,
-    `${coachName} · ${coachEmail}`,
-    `${supervisorName} · ${supervisorEmail}`,
-    managerOfSupervisorEmail ? `Optional leadership copy · ${managerOfSupervisorEmail}` : null,
-  ].filter(Boolean) as string[];
+    { key: `employee-${subjectUserId}`, label: `${employeeName} · ${employeeEmail}` },
+    { key: `coach-${coachRole}-${coachEmail}`, label: `${coachName} · ${coachEmail}` },
+    { key: `supervisor-${supervisorEmail}`, label: `${supervisorName} · ${supervisorEmail}` },
+    managerOfSupervisorEmail
+      ? { key: `leadership-${managerOfSupervisorEmail}`, label: `Optional leadership copy · ${managerOfSupervisorEmail}` }
+      : null,
+  ].filter(Boolean) as { key: string; label: string }[];
 
   return (
     <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
@@ -4071,7 +4073,7 @@ function WeeklyCoachingLogComposer({
       </div>
       <div className="mb-5 flex flex-wrap gap-2">
         {shareTargets.map((target) => (
-          <Badge key={target} className="rounded-full border-white/10 bg-white/8 text-slate-200">{target}</Badge>
+          <Badge key={target.key} className="rounded-full border-white/10 bg-white/8 text-slate-200">{target.label}</Badge>
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-2">
@@ -4195,13 +4197,15 @@ function WeeklyCoachingLogTimeline({
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                `Employee copy · ${log.employeeEmail}`,
-                `Coach copy · ${log.coachEmail}`,
-                `Supervisor copy · ${log.supervisorEmail}`,
-                log.managerOfSupervisorEmail ? `Optional leadership copy · ${log.managerOfSupervisorEmail}` : null,
-              ].filter(Boolean).map((recipient) => (
-                <Badge key={String(recipient)} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{recipient}</Badge>
+              {([
+                { key: `employee-${log.id}-${log.employeeEmail}`, label: `Employee copy · ${log.employeeEmail}` },
+                { key: `coach-${log.id}-${log.coachEmail}`, label: `Coach copy · ${log.coachEmail}` },
+                { key: `supervisor-${log.id}-${log.supervisorEmail}`, label: `Supervisor copy · ${log.supervisorEmail}` },
+                log.managerOfSupervisorEmail
+                  ? { key: `leadership-${log.id}-${log.managerOfSupervisorEmail}`, label: `Optional leadership copy · ${log.managerOfSupervisorEmail}` }
+                  : null,
+              ].filter(Boolean) as { key: string; label: string }[]).map((recipient) => (
+                <Badge key={recipient.key} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{recipient.label}</Badge>
               ))}
             </div>
             <div className="mt-4 rounded-2xl border border-white/8 bg-white/5 p-4">
