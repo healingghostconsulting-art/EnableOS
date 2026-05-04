@@ -179,16 +179,16 @@ function MetricCard({
   actionLabel?: string;
 }) {
   const content = (
-    <PremiumCard className={`h-full min-h-[14.25rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
-      <CardHeader className="space-y-5 pb-2">
-        <div className="flex items-start justify-between gap-4">
-          <CardDescription className="max-w-[14ch] text-[11px] font-semibold uppercase leading-5 tracking-[0.2em] text-slate-300/82 xl:max-w-[17ch]">{label}</CardDescription>
-          <div className="reward-ring shrink-0 rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2.5 text-slate-100">{icon}</div>
+    <PremiumCard className={`h-full min-h-[13.2rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
+      <CardHeader className="space-y-4 pb-1">
+        <div className="flex items-start justify-between gap-3">
+          <CardDescription className="max-w-[15ch] text-[10px] font-semibold uppercase leading-[1.45] tracking-[0.18em] text-slate-300/82 xl:max-w-[18ch] xl:text-[10.5px]">{label}</CardDescription>
+          <div className="reward-ring mt-0.5 shrink-0 rounded-xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/8 to-violet-400/12 p-2 text-slate-100 [&_svg]:h-3.5 [&_svg]:w-3.5">{icon}</div>
         </div>
-        <CardTitle className="max-w-[8ch] text-[2.35rem] font-semibold leading-[1.02] text-white xl:text-[2.7rem]">{value}</CardTitle>
+        <CardTitle className="max-w-[8ch] text-[2.15rem] font-semibold leading-[1.04] text-white xl:text-[2.4rem]">{value}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-1">
-        <p className="max-w-[16ch] text-[15px] leading-7 text-slate-200/82 xl:max-w-[18ch] xl:text-[1.02rem]">{supporting}</p>
+      <CardContent className="space-y-3 pt-0.5">
+        <p className="max-w-[18ch] text-[14px] leading-6 text-slate-200/82 xl:max-w-[19ch] xl:text-[15px]">{supporting}</p>
         {onClick ? (
           <div className="mt-4 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-cyan-100/85">
             <span>{actionLabel}</span>
@@ -935,7 +935,7 @@ export function LandingView() {
                   ))}
                 </div>
               </div>
-              <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
                 {landing.data?.featuredMetrics.map((item: any) => (
                   <MetricCard
                     key={item.label}

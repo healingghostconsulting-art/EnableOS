@@ -183,3 +183,6 @@
 - [x] Reformat the mission-hub desktop action area so the primary buttons, status copy, and secure-workspace links read more cleanly and align better.
 - [x] Rework the landing-page summary metric cards so the labels, values, and supporting text feel balanced and readable at desktop sizes.
 - [x] Re-validate the reformatted homepage action-and-metrics section in the browser and with automated checks before the next checkpoint.
+- [x] Reformat the mission-hub summary boxes so the metric cards feel clean and balanced on desktop.
+- [x] Reduce and rebalance the summary-card icon badges so they fit the boxes cleanly without crowding the labels or values.
+- [x] Re-validate the cleaned-up mission-hub boxes in the browser and with project checks before the next checkpoint.
