@@ -179,16 +179,16 @@ function MetricCard({
   actionLabel?: string;
 }) {
   const content = (
-    <PremiumCard className={`h-full min-h-[15.5rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
-      <CardHeader className="space-y-4 pb-3">
+    <PremiumCard className={`h-full min-h-[14.25rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
+      <CardHeader className="space-y-5 pb-2">
         <div className="flex items-start justify-between gap-4">
-          <CardDescription className="max-w-[13ch] text-[13px] font-medium uppercase tracking-[0.16em] text-slate-300/78 xl:max-w-[16ch]">{label}</CardDescription>
-          <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2.5 text-slate-100">{icon}</div>
+          <CardDescription className="max-w-[14ch] text-[11px] font-semibold uppercase leading-5 tracking-[0.2em] text-slate-300/82 xl:max-w-[17ch]">{label}</CardDescription>
+          <div className="reward-ring shrink-0 rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2.5 text-slate-100">{icon}</div>
         </div>
-        <CardTitle className="text-[2.6rem] font-semibold leading-[0.98] text-white xl:text-[2.95rem]">{value}</CardTitle>
+        <CardTitle className="max-w-[8ch] text-[2.35rem] font-semibold leading-[1.02] text-white xl:text-[2.7rem]">{value}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-[15px] leading-7 text-slate-200/82 xl:text-[1.02rem]">{supporting}</p>
+      <CardContent className="space-y-4 pt-1">
+        <p className="max-w-[16ch] text-[15px] leading-7 text-slate-200/82 xl:max-w-[18ch] xl:text-[1.02rem]">{supporting}</p>
         {onClick ? (
           <div className="mt-4 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-cyan-100/85">
             <span>{actionLabel}</span>
@@ -858,7 +858,7 @@ export function LandingView() {
     <Surface>
       <div className="space-y-10">
         <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-white/10 bg-white/[0.05] shadow-[0_36px_140px_rgba(8,15,30,0.62)]">
-          <div className="grid gap-10 px-8 py-10 md:grid-cols-[1.15fr_0.85fr] md:px-12 md:py-14">
+          <div className="grid gap-10 px-8 py-10 xl:grid-cols-[minmax(0,1.28fr)_minmax(21rem,0.72fr)] md:px-12 md:py-14">
             <div className="space-y-8">
               <div className="space-y-5">
                 <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
@@ -904,36 +904,38 @@ export function LandingView() {
                   ) : null}
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-3">
+              <div className="space-y-5 rounded-[1.9rem] border border-white/10 bg-white/[0.045] p-5 xl:p-6">
+                <div className="flex flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
                   <Link href="/learner">
-                    <Button className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                    <Button className="min-h-12 rounded-full bg-white px-6 text-[15px] font-medium text-slate-950 hover:bg-slate-100">
                       {viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link href="/training">
-                    <Button variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white">
+                    <Button variant="outline" className="min-h-12 rounded-full border-white/12 bg-white/6 px-6 text-[15px] font-medium text-white hover:bg-white/12 hover:text-white">
                       Preview interactive training simulator
                     </Button>
                   </Link>
                 </div>
-                <p className="max-w-3xl text-sm leading-6 text-slate-300">
-                  {viewerAccess.data
-                    ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                    : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
-                </p>
-                <div className="flex flex-wrap gap-3">
+                <div className="rounded-[1.4rem] border border-white/8 bg-slate-950/18 px-4 py-3.5">
+                  <p className="max-w-[62rem] text-[15px] leading-7 text-slate-200/88 xl:text-[1.02rem]">
+                    {viewerAccess.data
+                      ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                      : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {Object.values(roleMeta).map((item: any) => (
-                    <Link key={item.route} href={item.route}>
-                      <Button variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white">
+                    <Link key={item.route} href={item.route} className="min-w-0">
+                      <Button variant="outline" className="min-h-11 w-full rounded-full border-white/12 bg-white/6 px-5 text-[14px] font-medium text-white hover:bg-white/12 hover:text-white xl:px-6 xl:text-[15px]">
                         Secure {item.eyebrow} workspace
                       </Button>
                     </Link>
                   ))}
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+              <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
                 {landing.data?.featuredMetrics.map((item: any) => (
                   <MetricCard
                     key={item.label}
@@ -945,7 +947,7 @@ export function LandingView() {
                 ))}
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               {featuredTenants.map((tenant: any) => (
                 <PremiumCard key={tenant.id} className="relative overflow-hidden">
                   <CardHeader className="space-y-4">

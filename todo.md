@@ -180,3 +180,6 @@
 - [x] Ensure approved retraining sends the learner only to the pertinent overall training and module segment instead of the full course whenever the coaching issue is specific.
 - [x] Add an override flow with a first dropdown for overall training and a second dependent dropdown for the specific module a manager or coach wants to assign.
 - [x] Re-validate the manager, coach, learner, and training pages after the live coaching-guidance workflow and formatting repairs are implemented.
+- [x] Reformat the mission-hub desktop action area so the primary buttons, status copy, and secure-workspace links read more cleanly and align better.
+- [x] Rework the landing-page summary metric cards so the labels, values, and supporting text feel balanced and readable at desktop sizes.
+- [x] Re-validate the reformatted homepage action-and-metrics section in the browser and with automated checks before the next checkpoint.
