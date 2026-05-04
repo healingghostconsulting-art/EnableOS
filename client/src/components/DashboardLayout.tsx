@@ -35,9 +35,9 @@ export type DashboardMenuItem = {
 };
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 308;
-const MIN_WIDTH = 240;
-const MAX_WIDTH = 428;
+const DEFAULT_WIDTH = 332;
+const MIN_WIDTH = 252;
+const MAX_WIDTH = 460;
 
 export default function DashboardLayout({
   children,
@@ -213,22 +213,22 @@ function DashboardLayoutContent({
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold tracking-tight text-white">{title}</p>
-                        <p className="truncate text-xs text-slate-300/80">{subtitle}</p>
+                        <p className="truncate text-[15px] font-semibold tracking-tight text-white xl:text-base">{title}</p>
+                        <p className="truncate text-sm text-slate-300/85">{subtitle}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2">
-                        <p className="text-[10px] uppercase tracking-[0.26em] text-cyan-100/55">Mode</p>
-                        <p className="mt-1 text-xs font-medium text-white">Live</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Mode</p>
+                        <p className="mt-1.5 text-sm font-medium text-white">Live</p>
                       </div>
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2">
-                        <p className="text-[10px] uppercase tracking-[0.26em] text-cyan-100/55">Focus</p>
-                        <p className="mt-1 text-xs font-medium text-white">Readiness</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Focus</p>
+                        <p className="mt-1.5 text-sm font-medium text-white">Readiness</p>
                       </div>
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2">
-                        <p className="text-[10px] uppercase tracking-[0.26em] text-cyan-100/55">Motion</p>
-                        <p className="mt-1 text-xs font-medium text-white">Active</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Motion</p>
+                        <p className="mt-1.5 text-sm font-medium text-white">Active</p>
                       </div>
                     </div>
                   </div>
@@ -242,10 +242,10 @@ function DashboardLayoutContent({
               <div className="mb-4 rounded-[1.6rem] border border-cyan-400/15 bg-gradient-to-br from-cyan-400/10 via-sky-400/8 to-violet-500/10 p-3 text-white">
                 <div className="flex items-center gap-2 text-cyan-100/85">
                   <Sparkles className="h-4 w-4" />
-                  <p className="text-xs uppercase tracking-[0.26em]">Mission rhythm</p>
+                  <p className="text-[11px] uppercase tracking-[0.24em]">Mission rhythm</p>
                 </div>
-                <p className="mt-3 text-sm font-medium">Keep momentum across discovery, training, coaching, and governance.</p>
-                <div className="mt-3 flex items-center gap-2 text-xs text-slate-200">
+                <p className="mt-3 text-[15px] font-medium leading-6">Keep momentum across discovery, training, coaching, and governance.</p>
+                <div className="mt-3 flex items-center gap-2 text-sm text-slate-200">
                   <Flame className="h-3.5 w-3.5 text-amber-300" />
                   <span>Progress cues are now visible across the platform.</span>
                 </div>
@@ -261,7 +261,7 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className="h-12 rounded-2xl border border-transparent font-normal text-slate-100 transition-all data-[active=true]:border-cyan-300/20 data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_18px_48px_rgba(125,211,252,0.18)]"
+                      className="h-13 rounded-2xl border border-transparent px-2.5 text-[15px] font-medium text-slate-100 transition-all data-[active=true]:border-cyan-300/20 data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_18px_48px_rgba(125,211,252,0.18)]"
                     >
                       <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-slate-950/6" : "bg-white/6"}`}>
                         <item.icon className={`h-4 w-4 ${isActive ? "text-slate-950" : "text-cyan-100/85"}`} />
@@ -269,7 +269,7 @@ function DashboardLayoutContent({
                       <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                         <span>{item.label}</span>
                         {!isCollapsed ? (
-                          isActive ? <Badge className="rounded-full border-none bg-slate-950/8 text-[10px] uppercase tracking-[0.2em] text-slate-800">live</Badge> : <span className="text-[11px] text-slate-400">{String(index + 1).padStart(2, "0")}</span>
+                          isActive ? <Badge className="rounded-full border-none bg-slate-950/8 text-[11px] uppercase tracking-[0.18em] text-slate-800">live</Badge> : <span className="text-xs text-slate-400">{String(index + 1).padStart(2, "0")}</span>
                         ) : null}
                       </div>
                     </SidebarMenuButton>
@@ -281,18 +281,18 @@ function DashboardLayoutContent({
 
           <SidebarFooter className="border-t border-white/8 p-3">
             {!isCollapsed ? (
-              <div className="mb-3 grid grid-cols-3 gap-2 rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-3 text-white">
+              <div className="mb-3 grid grid-cols-3 gap-2 rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-3.5 text-white">
                 <div>
-                  <div className="flex items-center gap-1 text-cyan-100/70"><Compass className="h-3.5 w-3.5" /><span className="text-[10px] uppercase tracking-[0.22em]">Nav</span></div>
-                  <p className="mt-1 text-sm font-medium">Clear</p>
+                  <div className="flex items-center gap-1 text-cyan-100/70"><Compass className="h-3.5 w-3.5" /><span className="text-[11px] uppercase tracking-[0.2em]">Nav</span></div>
+                  <p className="mt-1.5 text-[15px] font-medium">Clear</p>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1 text-cyan-100/70"><Target className="h-3.5 w-3.5" /><span className="text-[10px] uppercase tracking-[0.22em]">Goals</span></div>
-                  <p className="mt-1 text-sm font-medium">Tracked</p>
+                  <div className="flex items-center gap-1 text-cyan-100/70"><Target className="h-3.5 w-3.5" /><span className="text-[11px] uppercase tracking-[0.2em]">Goals</span></div>
+                  <p className="mt-1.5 text-[15px] font-medium">Tracked</p>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1 text-cyan-100/70"><Trophy className="h-3.5 w-3.5" /><span className="text-[10px] uppercase tracking-[0.22em]">Wins</span></div>
-                  <p className="mt-1 text-sm font-medium">Visible</p>
+                  <div className="flex items-center gap-1 text-cyan-100/70"><Trophy className="h-3.5 w-3.5" /><span className="text-[11px] uppercase tracking-[0.2em]">Wins</span></div>
+                  <p className="mt-1.5 text-[15px] font-medium">Visible</p>
                 </div>
               </div>
             ) : null}
@@ -303,8 +303,8 @@ function DashboardLayoutContent({
                     <AvatarFallback className="bg-white/10 text-xs font-medium text-white">{profileFallback}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                    <p className="truncate text-sm font-medium leading-none text-white">{profileName}</p>
-                    <p className="mt-1.5 truncate text-xs text-slate-300/80">{profileEmail}</p>
+                    <p className="truncate text-[15px] font-medium leading-none text-white">{profileName}</p>
+                    <p className="mt-1.5 truncate text-sm text-slate-300/80">{profileEmail}</p>
                   </div>
                 </button>
               </DropdownMenuTrigger>
@@ -345,7 +345,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         ) : null}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-7 xl:p-8">{children}</main>
       </SidebarInset>
     </>
   );

@@ -112,18 +112,18 @@ function SectionShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-7">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div className="space-y-3">
-          <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.28em]">
+    <div className="space-y-8 xl:space-y-9">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="space-y-4">
+          <Badge variant="outline" className="mission-chip rounded-full px-3.5 py-1.5 text-[12px] uppercase tracking-[0.24em]">
             {eyebrow}
           </Badge>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h1>
-            <p className="max-w-3xl text-sm leading-7 text-slate-200/88 sm:text-base">{description}</p>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl xl:text-[3.65rem]">{title}</h1>
+            <p className="max-w-4xl text-base leading-8 text-slate-200/88 xl:text-[1.05rem]">{description}</p>
           </div>
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-3.5 xl:justify-end">{actions}</div> : null}
       </div>
       {children}
     </div>
@@ -180,19 +180,19 @@ function MetricCard({
 }) {
   const content = (
     <PremiumCard className={`h-full ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-3">
-          <CardDescription className="text-slate-300/70">{label}</CardDescription>
-          <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2 text-slate-100">{icon}</div>
+      <CardHeader className="space-y-4 pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <CardDescription className="text-sm font-medium uppercase tracking-[0.18em] text-slate-300/72">{label}</CardDescription>
+          <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2.5 text-slate-100">{icon}</div>
         </div>
-        <CardTitle className="text-3xl font-semibold text-white">{value}</CardTitle>
+        <CardTitle className="text-4xl font-semibold leading-none text-white xl:text-[2.8rem]">{value}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm leading-6 text-slate-200/82">{supporting}</p>
+      <CardContent className="space-y-4">
+        <p className="text-[15px] leading-7 text-slate-200/82 xl:text-base">{supporting}</p>
         {onClick ? (
-          <div className="mt-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.22em] text-cyan-100/85">
+          <div className="mt-4 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-cyan-100/85">
             <span>{actionLabel}</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ArrowRight className="h-4 w-4" />
           </div>
         ) : null}
       </CardContent>
@@ -3303,7 +3303,7 @@ export function ContentLibraryView() {
 
             <PremiumCard className="overflow-hidden">
               <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${library.data.branding.accent}, rgba(255,255,255,0.08))` }} />
-              <CardContent className="flex flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
+              <CardContent className="flex flex-col gap-6 px-7 py-7 lg:flex-row lg:items-center lg:justify-between xl:px-8 xl:py-8">
                 <div className="flex items-center gap-4">
                   <div
                     className="flex h-16 w-16 items-center justify-center rounded-[1.4rem] border text-xl font-semibold text-white shadow-[0_20px_40px_rgba(8,15,30,0.35)]"
@@ -3311,15 +3311,15 @@ export function ContentLibraryView() {
                   >
                     {library.data.branding.logoMark}
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">White-label library view</p>
-                    <h2 className="text-2xl font-semibold tracking-tight text-white">{library.data.branding.preferredLabel}</h2>
-                    <p className="max-w-2xl text-sm leading-6 text-slate-300">{library.data.branding.heroStatement}</p>
+                  <div className="space-y-2">
+                    <p className="text-[12px] uppercase tracking-[0.22em] text-slate-500">White-label library view</p>
+                    <h2 className="text-[2rem] font-semibold leading-tight tracking-tight text-white xl:text-[2.2rem]">{library.data.branding.preferredLabel}</h2>
+                    <p className="max-w-3xl text-base leading-7 text-slate-300">{library.data.branding.heroStatement}</p>
                   </div>
                 </div>
-                <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
+                <div className="max-w-xl rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-[15px] leading-7 text-slate-300 xl:px-6 xl:py-5">
                   <p className="font-medium text-white">Tenant-safe presentation</p>
-                  <p className="mt-1">Imported assets inherit this tenant context while CHCG core materials remain visibly labeled as shared methodology content.</p>
+                  <p className="mt-1.5">Imported assets inherit this tenant context while CHCG core materials remain visibly labeled as shared methodology content.</p>
                 </div>
               </CardContent>
             </PremiumCard>
@@ -3328,21 +3328,21 @@ export function ContentLibraryView() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-3">
-                    <div>
-                      <CardTitle className="text-white">Track explorer</CardTitle>
-                      <CardDescription className="text-slate-400">Filter by CHCG learning track and role relevance to inspect how methodology assets and client imports align.</CardDescription>
+                    <div className="space-y-2">
+                      <CardTitle className="text-[1.65rem] text-white">Track explorer</CardTitle>
+                      <CardDescription className="max-w-3xl text-base leading-7 text-slate-400">Filter by CHCG learning track and role relevance to inspect how methodology assets and client imports align.</CardDescription>
                     </div>
-                    <label className="block max-w-xl space-y-2 text-sm text-slate-200">
+                    <label className="block max-w-2xl space-y-2 text-[15px] text-slate-200">
                       <span>Search assets</span>
                       <input
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
-                        className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500"
+                        className="h-13 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4.5 text-[15px] text-white outline-none placeholder:text-slate-500 xl:text-base"
                         placeholder="Search by title, category, tag, or source label"
                       />
                     </label>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex max-w-3xl flex-wrap gap-2.5 xl:justify-end">
                     {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
                       <Button
                         key={option.value}
@@ -3356,16 +3356,16 @@ export function ContentLibraryView() {
                     ))}
                   </div>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setTrackFilter("all")}
-                    className={`h-auto rounded-3xl border-white/10 px-4 py-4 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                    className={`h-auto rounded-3xl border-white/10 px-5 py-5 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
                   >
                     <div>
-                      <p className="text-sm font-semibold">All tracks</p>
-                      <p className={`mt-1 text-xs leading-5 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
+                      <p className="text-base font-semibold leading-6">All tracks</p>
+                      <p className={`mt-2 text-sm leading-6 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
                     </div>
                   </Button>
                   {library.data.tracks.map((track: any) => (
@@ -3374,11 +3374,11 @@ export function ContentLibraryView() {
                       type="button"
                       variant="outline"
                       onClick={() => setTrackFilter(track.id)}
-                      className={`h-auto rounded-3xl border-white/10 px-4 py-4 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                      className={`h-auto rounded-3xl border-white/10 px-5 py-5 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
                     >
                       <div>
-                        <p className="text-sm font-semibold">{track.title}</p>
-                        <p className={`mt-1 text-xs leading-5 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
+                        <p className="text-base font-semibold leading-6">{track.title}</p>
+                        <p className={`mt-2 text-sm leading-6 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
                       </div>
                     </Button>
                   ))}
@@ -3404,7 +3404,7 @@ export function ContentLibraryView() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+                <CardContent className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] xl:gap-7">
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
@@ -3412,26 +3412,26 @@ export function ContentLibraryView() {
                       <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold text-white">{selectedAsset.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{selectedAsset.summary}</p>
+                      <h3 className="text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
+                      <p className="mt-3 text-base leading-7 text-slate-300">{selectedAsset.summary}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {selectedAsset.tags.map((tag: string) => (
-                        <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs text-slate-300">#{tag}</span>
+                        <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5 text-sm text-slate-300">#{tag}</span>
                       ))}
                     </div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training use</p>
-                      <p className="mt-2 text-white">This asset can be framed as lesson context, practice language, or reflection evidence inside the training simulator.</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
+                      <p className="mt-2.5 text-white">This asset can be framed as lesson context, practice language, or reflection evidence inside the training simulator.</p>
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300">
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Source label</p>
-                      <p className="mt-2 text-white">{selectedAsset.sourceLabel}</p>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Source label</p>
+                      <p className="mt-2.5 text-white">{selectedAsset.sourceLabel}</p>
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-300 sm:col-span-2">
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Role relevance</p>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300 sm:col-span-2">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Role relevance</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {selectedAsset.linkedRoles.map((linked: string) => (
                           <Button
@@ -3439,7 +3439,7 @@ export function ContentLibraryView() {
                             type="button"
                             variant="outline"
                             onClick={() => handleStartTraining(selectedAsset, linked === "all" ? undefined : linked as DemoRole)}
-                            className="rounded-full border-white/10 bg-slate-950/60 text-slate-200 hover:bg-white/10 hover:text-white"
+                            className="rounded-full border-white/10 bg-slate-950/60 px-4 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white"
                           >
                             {getRoleLabel(linked)}
                           </Button>
@@ -3466,13 +3466,13 @@ export function ContentLibraryView() {
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                               <CardTitle className="text-white">{group.title}</CardTitle>
-                              <CardDescription className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{group.description}</CardDescription>
+                              <CardDescription className="mt-2 max-w-3xl text-base leading-7 text-slate-300">{group.description}</CardDescription>
                             </div>
                             <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length} asset{group.assets.length === 1 ? "" : "s"}</Badge>
                           </div>
                         </CardHeader>
                         <CardContent className="px-6 py-6">
-                          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
                             {group.assets.map((asset: any) => (
                               <PremiumCard key={asset.id} className={`h-full transition-all ${selectedAsset?.id === asset.id ? "ring-1 ring-white/30" : ""}`}>
                                 <CardHeader className="space-y-4">
@@ -3481,9 +3481,9 @@ export function ContentLibraryView() {
                                     <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
                                     <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.category}</Badge>
                                   </div>
-                                  <div className="space-y-2">
-                                    <CardTitle className="text-xl text-white">{asset.title}</CardTitle>
-                                    <CardDescription className="text-sm leading-6 text-slate-300">{asset.summary}</CardDescription>
+                                  <div className="space-y-3">
+                                    <CardTitle className="text-[1.4rem] leading-tight text-white">{asset.title}</CardTitle>
+                                    <CardDescription className="text-base leading-7 text-slate-300">{asset.summary}</CardDescription>
                                   </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -3494,12 +3494,12 @@ export function ContentLibraryView() {
                                       </Badge>
                                     ))}
                                   </div>
-                                  <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                                  <div className="flex flex-wrap gap-2.5 text-sm text-slate-300">
                                     {asset.tags.map((tag: string) => (
-                                      <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1">#{tag}</span>
+                                      <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5">#{tag}</span>
                                     ))}
                                   </div>
-                                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-300">
+                                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4.5 text-[15px] leading-7 text-slate-300">
                                     <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
                                     <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
                                   </div>

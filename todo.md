@@ -171,3 +171,6 @@
 - [x] Make the top summary cards in the manager and coaching workspaces clickable so each one navigates to its corresponding section or view.
 - [x] Expand the manager workspace so managers can review coaching logs for coaches' direct reports alongside the coach workflow.
 - [x] Re-validate the manager and coaching navigation plus shared coaching-log review flow before the next delivery.
+- [x] Audit the major EnableOS pages for desktop text readability issues including undersized copy, cramped labels, overflow, and poor wrapping on 14–36 inch screens.
+- [x] Create a shared desktop-first typography and spacing cleanup across the primary pages so headings, labels, cards, and supporting copy read comfortably at large monitor sizes.
+- [x] Re-validate the updated text formatting across the main role and content pages before the next checkpoint.
