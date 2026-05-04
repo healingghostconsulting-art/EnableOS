@@ -118,9 +118,9 @@ function SectionShell({
           <Badge variant="outline" className="mission-chip rounded-full px-3.5 py-1.5 text-[12px] uppercase tracking-[0.24em]">
             {eyebrow}
           </Badge>
-          <div className="space-y-3">
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl xl:text-[3.65rem]">{title}</h1>
-            <p className="max-w-4xl text-base leading-8 text-slate-200/88 xl:text-[1.05rem]">{description}</p>
+          <div className="max-w-[54rem] space-y-3 xl:max-w-[60rem]">
+            <h1 className="max-w-[16ch] text-[2.45rem] font-semibold leading-[1.06] tracking-tight text-white sm:text-[2.95rem] xl:max-w-[17ch] xl:text-[3.1rem]">{title}</h1>
+            <p className="max-w-[56rem] text-base leading-8 text-slate-200/88 xl:text-[1.08rem]">{description}</p>
           </div>
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-3.5 xl:justify-end">{actions}</div> : null}
@@ -179,16 +179,16 @@ function MetricCard({
   actionLabel?: string;
 }) {
   const content = (
-    <PremiumCard className={`h-full ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
+    <PremiumCard className={`h-full min-h-[15.5rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
       <CardHeader className="space-y-4 pb-3">
         <div className="flex items-start justify-between gap-4">
-          <CardDescription className="text-sm font-medium uppercase tracking-[0.18em] text-slate-300/72">{label}</CardDescription>
+          <CardDescription className="max-w-[13ch] text-[13px] font-medium uppercase tracking-[0.16em] text-slate-300/78 xl:max-w-[16ch]">{label}</CardDescription>
           <div className="reward-ring rounded-2xl border border-cyan-300/18 bg-gradient-to-br from-cyan-300/20 via-sky-400/10 to-violet-400/14 p-2.5 text-slate-100">{icon}</div>
         </div>
-        <CardTitle className="text-4xl font-semibold leading-none text-white xl:text-[2.8rem]">{value}</CardTitle>
+        <CardTitle className="text-[2.6rem] font-semibold leading-[0.98] text-white xl:text-[2.95rem]">{value}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-[15px] leading-7 text-slate-200/82 xl:text-base">{supporting}</p>
+        <p className="text-[15px] leading-7 text-slate-200/82 xl:text-[1.02rem]">{supporting}</p>
         {onClick ? (
           <div className="mt-4 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-cyan-100/85">
             <span>{actionLabel}</span>
@@ -231,6 +231,48 @@ function revealWorkspaceSection(sectionId: string) {
   });
 }
 
+function buildTrainingLaunchPath({
+  asset,
+  role,
+  journeyId,
+  moduleId,
+  assignmentId,
+}: {
+  asset?: any;
+  role?: DemoRole;
+  journeyId?: string;
+  moduleId?: string;
+  assignmentId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (asset?.id) params.set("assetId", asset.id);
+  if (asset?.title) params.set("assetTitle", asset.title);
+  if (role) params.set("role", role);
+  if (journeyId) params.set("journeyId", journeyId);
+  if (moduleId) params.set("moduleId", moduleId);
+  if (assignmentId) params.set("assignmentId", assignmentId);
+  return params.toString() ? `/training?${params.toString()}` : "/training";
+}
+
+function formatDueWindow(dateValue?: string | null) {
+  if (!dateValue) {
+    return "Due soon";
+  }
+
+  const dueAt = new Date(dateValue).getTime();
+  if (Number.isNaN(dueAt)) {
+    return "Due soon";
+  }
+
+  const diffHours = Math.max(1, Math.round((dueAt - Date.now()) / (1000 * 60 * 60)));
+  if (diffHours >= 24) {
+    const days = Math.max(1, Math.round(diffHours / 24));
+    return `Due in ${days} day${days === 1 ? "" : "s"}`;
+  }
+
+  return `Due in ${diffHours} hour${diffHours === 1 ? "" : "s"}`;
+}
+
 function ChartFrame({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <PremiumCard className="h-full">
@@ -253,6 +295,176 @@ function StatusBadge({ value }: { value: string }) {
         : "border-blue-500/30 bg-blue-500/12 text-blue-300";
 
   return <Badge className={`rounded-full border ${tone}`}>{value.replaceAll("_", " ")}</Badge>;
+}
+
+function GuidanceActionPanel({
+  tenantId,
+  suggestion,
+  catalog,
+  assignments,
+  actorRole,
+  learnerName,
+  onUpdated,
+}: {
+  tenantId: string;
+  suggestion: any;
+  catalog: any[];
+  assignments: any[];
+  actorRole: "manager" | "coach";
+  learnerName: string;
+  onUpdated?: () => void;
+}) {
+  const guidanceMutation = trpc.demo.secureApplyCoachingGuidance.useMutation({
+    onSuccess: () => {
+      setOverrideOpen(false);
+      onUpdated?.();
+    },
+  });
+  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [selectedJourneyId, setSelectedJourneyId] = useState("");
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const activeAssignment = assignments[0] ?? null;
+  const selectedJourney = useMemo(
+    () => catalog.find((journey: any) => journey.id === selectedJourneyId) ?? null,
+    [catalog, selectedJourneyId],
+  );
+
+  useEffect(() => {
+    if (!overrideOpen) {
+      return;
+    }
+
+    const fallbackJourneyId = selectedJourneyId || catalog[0]?.id || "";
+    if (fallbackJourneyId !== selectedJourneyId) {
+      setSelectedJourneyId(fallbackJourneyId);
+      return;
+    }
+
+    const availableModules = catalog.find((journey: any) => journey.id === fallbackJourneyId)?.modules ?? [];
+    if (!availableModules.some((module: any) => module.id === selectedModuleId)) {
+      setSelectedModuleId(availableModules[0]?.id ?? "");
+    }
+  }, [catalog, overrideOpen, selectedJourneyId, selectedModuleId]);
+
+  const submitGuidance = async (mode: "approve" | "override") => {
+    await guidanceMutation.mutateAsync({
+      tenantId,
+      suggestionId: suggestion.id,
+      approverRole: actorRole,
+      journeyId: mode === "override" ? selectedJourneyId : undefined,
+      moduleId: mode === "override" ? selectedModuleId : undefined,
+    });
+  };
+
+  return (
+    <PremiumCard>
+      <CardHeader>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <CardTitle className="text-white">AI coaching suggestion</CardTitle>
+            <CardDescription className="max-w-2xl text-slate-300/80">Explainable rationale with human override and targeted retraining delivery.</CardDescription>
+          </div>
+          <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-200">Override enabled</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="rounded-[1.75rem] border border-blue-500/20 bg-blue-500/10 p-5">
+          <p className="text-base font-semibold leading-7 text-blue-100">{suggestion.summary}</p>
+          <p className="mt-3 text-[15px] leading-7 text-slate-100/92">{suggestion.recommendation}</p>
+        </div>
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Why this was suggested</p>
+          {suggestion.rationale.map((reason: string) => (
+            <div key={reason} className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4 text-[15px] leading-7 text-slate-200">
+              {reason}
+            </div>
+          ))}
+        </div>
+        {activeAssignment ? (
+          <div className="rounded-[1.6rem] border border-emerald-400/20 bg-emerald-400/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/75">Live retraining assignment</p>
+                <h4 className="mt-2 text-xl font-semibold text-white">{activeAssignment.moduleTitle}</h4>
+                <p className="mt-2 text-sm leading-7 text-emerald-50/92">{learnerName} is now assigned to {activeAssignment.journeyTitle} with a {formatDueWindow(activeAssignment.dueAt).toLowerCase()} deadline.</p>
+              </div>
+              <StatusBadge value={activeAssignment.status} />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href={buildTrainingLaunchPath({ journeyId: activeAssignment.journeyId, moduleId: activeAssignment.moduleId, assignmentId: activeAssignment.id })}>
+                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                  Open assigned retraining
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{new Date(activeAssignment.dueAt).toLocaleString()}</Badge>
+            </div>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" onClick={() => void submitGuidance("approve")} disabled={guidanceMutation.isPending} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+            {guidanceMutation.isPending ? "Sending guidance..." : "Approve guidance"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setOverrideOpen(true)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+            Override suggestion
+          </Button>
+        </div>
+        <Dialog open={overrideOpen} onOpenChange={setOverrideOpen}>
+          <DialogContent className="border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Select the retraining assignment</DialogTitle>
+              <DialogDescription className="text-slate-400">Choose the overall training first, then the exact module {learnerName} should complete within the next 48 hours.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-200">Overall training</p>
+                <Select value={selectedJourneyId} onValueChange={setSelectedJourneyId}>
+                  <SelectTrigger className="border-white/10 bg-white/5 text-slate-100">
+                    <SelectValue placeholder="Select a training" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {catalog.map((journey: any) => (
+                      <SelectItem key={journey.id} value={journey.id}>
+                        {journey.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-200">Module</p>
+                <Select value={selectedModuleId} onValueChange={setSelectedModuleId} disabled={!selectedJourney}>
+                  <SelectTrigger className="border-white/10 bg-white/5 text-slate-100">
+                    <SelectValue placeholder="Select a module" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(selectedJourney?.modules ?? []).map((module: any) => (
+                      <SelectItem key={`${selectedJourney?.id}-${module.id}`} value={module.id}>
+                        {module.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {selectedJourney && selectedModuleId ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">
+                {(selectedJourney.modules.find((module: any) => module.id === selectedModuleId)?.skillFocus ?? "Focused retraining")} will be sent to {learnerName} as a required retraining assignment with a 48-hour due window.
+              </div>
+            ) : null}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOverrideOpen(false)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                Cancel
+              </Button>
+              <Button type="button" onClick={() => void submitGuidance("override")} disabled={!selectedJourneyId || !selectedModuleId || guidanceMutation.isPending} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                Send targeted retraining
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </PremiumCard>
+  );
 }
 
 function LoadingState() {
@@ -652,11 +864,11 @@ export function LandingView() {
                 <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
                   CHCG EnableOS mission hub
                 </Badge>
-                <div className="space-y-4">
-                  <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.02]">
+                <div className="max-w-[56rem] space-y-4">
+                  <h1 className="max-w-[12ch] text-[2.95rem] font-semibold tracking-tight text-white md:text-[3.95rem] md:leading-[1.04] xl:text-[4.45rem]">
                     Turn enablement into a live performance mission, not a static training portal.
                   </h1>
-                  <p className="max-w-2xl text-base leading-7 text-slate-200/86 md:text-lg">
+                  <p className="max-w-3xl text-base leading-8 text-slate-200/86 md:text-[1.14rem]">
                     CHCG EnableOS now frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace.
                   </p>
                 </div>
@@ -721,7 +933,7 @@ export function LandingView() {
                   ))}
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
                 {landing.data?.featuredMetrics.map((item: any) => (
                   <MetricCard
                     key={item.label}
@@ -891,6 +1103,9 @@ export function TrainingExperienceView() {
   const requestedAssetId = queryParams.get("assetId");
   const requestedAssetTitle = queryParams.get("assetTitle");
   const requestedRoleFilter = queryParams.get("role") as DemoRole | null;
+  const requestedJourneyId = queryParams.get("journeyId");
+  const requestedModuleId = queryParams.get("moduleId");
+  const requestedAssignmentId = queryParams.get("assignmentId");
   const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
@@ -1126,7 +1341,27 @@ export function TrainingExperienceView() {
       : allPreviewScenarios;
   }, [access.data?.grant.role, liveJourney, learner.data?.nextCoachingSession.title]);
   const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
-  const modules = activePreview?.modules ?? [];
+  const targetedAssignment = learner.data?.retrainingAssignments?.find((assignment: any) => {
+    if (requestedAssignmentId) {
+      return assignment.id === requestedAssignmentId;
+    }
+
+    return assignment.journeyId === requestedJourneyId && assignment.moduleId === requestedModuleId;
+  }) ?? null;
+  const targetedJourney = requestedJourneyId
+    ? learner.data?.retrainingAssignments?.find((assignment: any) => assignment.journeyId === requestedJourneyId)?.journeyTitle
+    : null;
+  const targetedModules = targetedAssignment
+    ? [{
+      id: targetedAssignment.moduleId,
+      title: targetedAssignment.moduleTitle,
+      format: targetedAssignment.moduleFormat,
+      durationMinutes: 18,
+      skillFocus: targetedAssignment.skillFocus,
+      completionRate: 0,
+    }]
+    : activePreview?.modules ?? [];
+  const modules = targetedModules;
   const filteredModuleEntries = useMemo(
     () => filterTrainingRecords(
       modules.map((module: any, index: number) => ({
@@ -1152,9 +1387,9 @@ export function TrainingExperienceView() {
   }, [moduleIndex, visibleModuleIndexes]);
 
   const selectedModule = modules[moduleIndex] ?? null;
-  const effectiveJourneyTitle = activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
-  const effectiveCompetencyGap = activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
-  const effectiveCoachingTitle = activePreview?.coachingTitle ?? learner.data?.nextCoachingSession.title ?? "your next coaching session";
+  const effectiveJourneyTitle = targetedAssignment?.journeyTitle ?? targetedJourney ?? activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
+  const effectiveCompetencyGap = targetedAssignment?.skillFocus ?? activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
+  const effectiveCoachingTitle = targetedAssignment ? `Targeted retraining for ${targetedAssignment.skillFocus}` : activePreview?.coachingTitle ?? learner.data?.nextCoachingSession.title ?? "your next coaching session";
   const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
   const launchedAsset = journeyResources.find((asset: any) => asset.id === requestedAssetId)
     ?? journeyResources.find((asset: any) => asset.title === requestedAssetTitle)
@@ -1782,17 +2017,17 @@ export function TrainingExperienceView() {
                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
                   </div>
                 </div>
-                <div className="grid gap-3 lg:grid-cols-5">
+                <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-5">
                   {previewScenarios.map((scenario) => (
                     <button
                       key={scenario.id}
                       type="button"
                       onClick={() => setPreviewScenarioId(scenario.id)}
-                      className={`rounded-[1.5rem] border p-4 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      className={`min-h-[13.5rem] rounded-[1.5rem] border p-5 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                     >
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{scenario.eyebrow}</p>
-                      <p className="mt-2 text-sm font-medium text-white">{scenario.label}</p>
-                      <p className="mt-2 text-xs leading-6 text-slate-300">{scenario.description}</p>
+                      <p className="mt-3 text-base font-medium leading-7 text-white">{scenario.label}</p>
+                      <p className="mt-3 text-sm leading-7 text-slate-300">{scenario.description}</p>
                     </button>
                   ))}
                 </div>
@@ -2025,7 +2260,7 @@ export function TrainingExperienceView() {
               </CardContent>
             </PremiumCard>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
               <MetricCard label="Modules in path" value={String(modules.length)} supporting={effectiveJourneyTitle} icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
               <MetricCard label="Interactive progress" value={`${overallProgress}%`} supporting={`Stage ${stageIndex + 1} of ${stages.length}`} icon={<Sparkles className="h-4 w-4" />} />
@@ -3217,12 +3452,8 @@ export function ContentLibraryView() {
     [assets, selectedAssetId],
   );
 
-  function handleStartTraining(asset?: any, role?: DemoRole) {
-    const params = new URLSearchParams();
-    if (asset?.id) params.set("assetId", asset.id);
-    if (asset?.title) params.set("assetTitle", asset.title);
-    if (role) params.set("role", role);
-    setLocation(params.toString() ? `/training?${params.toString()}` : "/training");
+  function handleStartTraining(asset?: any, role?: DemoRole, journeyId?: string, moduleId?: string, assignmentId?: string) {
+    setLocation(buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId }));
   }
 
   async function readFileAsBase64(file: File) {
@@ -3294,7 +3525,7 @@ export function ContentLibraryView() {
         {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
           <div className="space-y-8">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
               <MetricCard label="Total assets" value={String(library.data.stats.totalAssets)} supporting="Visible under the current tenant, role, and search filters." icon={<Layers3 className="h-4 w-4" />} />
               <MetricCard label="CHCG core assets" value={String(library.data.stats.chcgAssets)} supporting="Sanitized CHCG methodology assets ready for reuse." icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Client imports" value={String(library.data.stats.importedAssets)} supporting="Tenant-scoped materials uploaded for this workspace." icon={<Building2 className="h-4 w-4" />} />
@@ -3768,7 +3999,7 @@ export function ChcgAdminView() {
         description="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy from one admin surface."
       >
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
             {dashboard.data.metrics.map((metric: any) => (
               <MetricCard key={metric.label} label={metric.label} value={metric.value} supporting={metric.supporting} icon={<ShieldCheck className="h-4 w-4" />} />
             ))}
@@ -3890,7 +4121,7 @@ export function ChcgAdminView() {
                     <TenantPicker tenants={dashboard.data.tenants} tenantId={selectedTenant.tenant.id} setTenantId={setSelectedTenantId} />
                     <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{selectedTenant.users.length} users provisioned</Badge>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
                     <MetricCard label="Selected client" value={selectedTenant.tenant.name} supporting={selectedTenant.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
                     <MetricCard label="Licensed journeys" value={`${licensedJourneyIds.length}`} supporting="Journeys currently unlocked for this client." icon={<BookOpen className="h-4 w-4" />} />
                     <MetricCard label="Licensed assets" value={`${licensedAssetIds.length}`} supporting="Library assets available to this client." icon={<Layers3 className="h-4 w-4" />} />
@@ -4334,7 +4565,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Enterprise readiness" value={`${data.readiness.score}`} supporting={`Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`} icon={<Target className="h-4 w-4" />} />
         <MetricCard label="Team readiness" value={`${data.readiness.teamScore}`} supporting="Role- and intervention-weighted readiness score" icon={<Layers3 className="h-4 w-4" />} />
         <MetricCard label="Intervention confidence" value="High" supporting="Correlation between action volume and readiness movement is positive" icon={<BrainCircuit className="h-4 w-4" />} />
@@ -4493,7 +4724,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-signal-trend")} actionLabel="Open signal trend" />
         <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-supervision-lane")} actionLabel="Open supervision lane" />
         <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
@@ -4535,6 +4766,15 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
               <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
             </div>
+            <GuidanceActionPanel
+              tenantId={data.tenant.id}
+              suggestion={data.aiSuggestion}
+              catalog={data.retrainingCatalog}
+              assignments={data.activeRetrainingAssignments}
+              actorRole="coach"
+              learnerName={data.directLearner.name}
+              onUpdated={onUpdated}
+            />
           </CardContent>
         </PremiumCard>
       </div>
@@ -4681,7 +4921,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Active signals" value={`${data.openSignals.length}`} supporting="Live KPI and QA feed requiring attention" icon={<CircleAlert className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-signal-trend")} actionLabel="Open signal feed" />
         <MetricCard label="Open interventions" value={`${data.interventions.length}`} supporting="Workflow actions assigned from rule triggers" icon={<Target className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-interventions-lane")} actionLabel="Open interventions" />
         <MetricCard label="Coaching follow-ups" value={`${data.coachingSessions.length}`} supporting="Structured sessions with action plans and reminders" icon={<Users2 className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coaching-lane")} actionLabel="Open coaching lane" />
@@ -4706,36 +4946,15 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </AreaChart>
           </ResponsiveContainer>
         </ChartFrame>
-        <PremiumCard>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-white">AI coaching suggestion</CardTitle>
-                <CardDescription className="text-slate-400">Explainable rationale with human override.</CardDescription>
-              </div>
-              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Override enabled</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-              <p className="text-sm font-medium text-blue-100">{data.aiSuggestion.summary}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-200">{data.aiSuggestion.recommendation}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Why this was suggested</p>
-              {data.aiSuggestion.rationale.map((reason: any) => (
-                <div key={reason} className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                  <span>{reason}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Approve guidance</Button>
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Override suggestion</Button>
-            </div>
-          </CardContent>
-        </PremiumCard>
+        <GuidanceActionPanel
+          tenantId={data.tenant.id}
+          suggestion={data.aiSuggestion}
+          catalog={data.retrainingCatalog}
+          assignments={data.activeRetrainingAssignments}
+          actorRole="manager"
+          learnerName={data.directReport.name}
+          onUpdated={onUpdated}
+        />
       </div>
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")} className="space-y-4">
         <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
@@ -4953,12 +5172,21 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
 function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const learnerModules = data.activeJourney.modules;
   const primaryLearnerModule = learnerModules[0] ?? null;
-  const nextLearnerModule = learnerModules[1] ?? null;
+  const activeRetrainingAssignment = data.retrainingAssignments?.[0] ?? null;
+  const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
+  const primaryTrainingPath = activeRetrainingAssignment
+    ? buildTrainingLaunchPath({
+      journeyId: activeRetrainingAssignment.journeyId,
+      moduleId: activeRetrainingAssignment.moduleId,
+      assignmentId: activeRetrainingAssignment.id,
+    })
+    : "/training";
 
   return (
+
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
         <MetricCard label="Assigned interventions" value={`${data.assignedInterventions.length}`} supporting="Skill-gap actions linked to manager workflows" icon={<Target className="h-4 w-4" />} />
@@ -4968,14 +5196,14 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
           <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.1),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Continue learning</Badge>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{primaryLearnerModule?.format ?? "Learning path"}</Badge>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{data.activeJourney.progress}% path progress</Badge>
+              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
             </div>
             <div className="mt-5 max-w-3xl">
-              <p className="text-sm uppercase tracking-[0.24em] text-cyan-100/75">Recommended path</p>
-              <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-200">{primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
+              <p className="text-sm uppercase tracking-[0.24em] text-cyan-100/75">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
+              <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{activeRetrainingAssignment?.moduleTitle ?? primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-200">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
@@ -4983,8 +5211,8 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                 <p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
-                <p className="mt-2 text-sm font-medium text-white">{nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{activeRetrainingAssignment ? "Assigned module" : "Recommended next"}</p>
+                <p className="mt-2 text-sm font-medium text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach milestone</p>
@@ -4992,9 +5220,9 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/training">
+              <Link href={primaryTrainingPath}>
                 <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                  Resume guided training
+                  {activeRetrainingAssignment ? "Start assigned retraining" : "Resume guided training"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -5006,6 +5234,24 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </div>
           </div>
           <div className="grid gap-4">
+            {activeRetrainingAssignment ? (
+              <div className="rounded-[1.8rem] border border-amber-400/20 bg-[linear-gradient(180deg,rgba(251,191,36,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-amber-100/80">48-hour retraining alert</p>
+                    <h4 className="mt-3 text-xl font-semibold text-white">{activeRetrainingAssignment.moduleTitle}</h4>
+                    <p className="mt-3 text-sm leading-7 text-slate-100/92">Focus on {activeRetrainingAssignment.skillFocus.toLowerCase()} first, then return to the wider journey after this assigned refresher is complete.</p>
+                  </div>
+                  <Badge className="rounded-full border-amber-400/20 bg-amber-400/10 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link href={primaryTrainingPath}>
+                    <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open assigned module</Button>
+                  </Link>
+                  <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
+                </div>
+              </div>
+            ) : null}
             <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learning signals</p>
               <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
@@ -5043,9 +5289,9 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                 <Progress value={data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
               </div>
               <div className="flex flex-wrap gap-3">
-                <Link href="/training">
+                <Link href={primaryTrainingPath}>
                   <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                    Launch interactive training
+                    {activeRetrainingAssignment ? "Launch assigned retraining" : "Launch interactive training"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
@@ -5182,7 +5428,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
         <MetricCard label="Role users" value={`${data.tenantUsers.length}`} supporting="Strictly tenant-scoped account inventory" icon={<Users2 className="h-4 w-4" />} />
         <MetricCard label="Brand accent" value={data.branding.accent} supporting={data.branding.preferredLabel} icon={<Sparkles className="h-4 w-4" />} />

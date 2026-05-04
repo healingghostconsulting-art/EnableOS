@@ -136,6 +136,27 @@ export type AiSuggestion = {
   overrideAvailable: boolean;
 };
 
+export type RetrainingAssignment = {
+  id: string;
+  tenantId: string;
+  learnerUserId: string;
+  journeyId: string;
+  journeyTitle: string;
+  moduleId: string;
+  moduleTitle: string;
+  moduleFormat: LearningModule["format"];
+  skillFocus: string;
+  sourceSuggestionId: string;
+  requestedByRole: "manager" | "coach";
+  requestedByUserId: string;
+  deliveryMode: "ai_approved" | "manual_override";
+  summary: string;
+  guidanceNote: string;
+  status: "assigned" | "in_progress" | "completed";
+  createdAt: string;
+  dueAt: string;
+};
+
 export type DocumentationEntry = {
   id: string;
   tenantId: string;
@@ -217,6 +238,14 @@ export type UpdateWeeklyCoachingTakeawaysInput = {
   tenantId: string;
   weeklyCoachingLogId: string;
   agentTakeaways: string;
+};
+
+export type ApplyCoachingGuidanceInput = {
+  tenantId: string;
+  suggestionId: string;
+  approverRole: "manager" | "coach";
+  journeyId?: string;
+  moduleId?: string;
 };
 
 export type TenantBranding = {
@@ -1018,6 +1047,8 @@ const aiSuggestions: AiSuggestion[] = [
   },
 ];
 
+const retrainingAssignments: RetrainingAssignment[] = [];
+
 const documentationEntries: DocumentationEntry[] = [
   {
     id: "doc-1",
@@ -1287,6 +1318,33 @@ function getTenantJourneys(tenantId: string, role: Extract<DemoRole, "manager" |
     ?? journeys.find((journey) => journey.role === role)
     ?? journeys[0]!
   );
+}
+
+function getJourneyById(journeyId: string, tenantId?: string) {
+  const tenant = getTenant(tenantId);
+  return journeys.find((journey) => journey.id === journeyId && journey.tenantId === tenant.id) ?? null;
+}
+
+function getJourneyModule(tenantId: string, journeyId: string, moduleId: string) {
+  const journey = getJourneyById(journeyId, tenantId);
+  const module = journey?.modules.find((entry) => entry.id === moduleId) ?? null;
+  return journey && module ? { journey, module } : null;
+}
+
+function getRetrainingAssignmentsForLearner(tenantId: string, learnerUserId: string) {
+  return retrainingAssignments
+    .filter((assignment) => assignment.tenantId === tenantId && assignment.learnerUserId === learnerUserId)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
+
+function getSuggestedRetrainingTarget(suggestion: AiSuggestion) {
+  if (suggestion.id === "ai-1") {
+    return getJourneyModule(suggestion.tenantId, "journey-workflow-precision", "mod-wp-1");
+  }
+
+  const fallbackJourney = getTenantJourneys(suggestion.tenantId, "learner");
+  const fallbackModule = fallbackJourney.modules[0] ?? null;
+  return fallbackJourney && fallbackModule ? { journey: fallbackJourney, module: fallbackModule } : null;
 }
 
 function isLearnerTrainingAsset(asset: ContentLibraryAsset) {
@@ -1796,6 +1854,111 @@ export function updateWeeklyCoachingLogTakeaways(input: UpdateWeeklyCoachingTake
   return existing;
 }
 
+export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
+  const suggestion = aiSuggestions.find((entry) => entry.tenantId === input.tenantId && entry.id === input.suggestionId);
+
+  if (!suggestion) {
+    throw new Error(`AI coaching suggestion not found for ${input.suggestionId}`);
+  }
+
+  const approver = getUser(input.approverRole, input.tenantId);
+  const learner = getUserById(suggestion.learnerUserId, input.tenantId) ?? getUser("learner", input.tenantId);
+  const selectedTarget = input.journeyId && input.moduleId
+    ? getJourneyModule(input.tenantId, input.journeyId, input.moduleId)
+    : getSuggestedRetrainingTarget(suggestion);
+
+  if (!selectedTarget) {
+    throw new Error("No valid training target is available for this coaching suggestion.");
+  }
+
+  const createdAt = new Date().toISOString();
+  const dueAt = new Date(Date.now() + (48 * 60 * 60 * 1000)).toISOString();
+  const existingAssignment = retrainingAssignments.find((assignment) => assignment.tenantId === input.tenantId && assignment.sourceSuggestionId === suggestion.id && assignment.learnerUserId === learner.id && assignment.status !== "completed");
+  const guidanceMode = input.journeyId && input.moduleId ? "manual_override" : "ai_approved";
+  const guidanceNote = guidanceMode === "manual_override"
+    ? `${approver.name} overrode the AI suggestion and selected ${selectedTarget.module.title} from ${selectedTarget.journey.title}.`
+    : `${approver.name} approved the AI recommendation and assigned the targeted retraining module ${selectedTarget.module.title}.`;
+
+  const assignment: RetrainingAssignment = existingAssignment ?? {
+    id: `retraining-${retrainingAssignments.length + 1}`,
+    tenantId: input.tenantId,
+    learnerUserId: learner.id,
+    journeyId: selectedTarget.journey.id,
+    journeyTitle: selectedTarget.journey.title,
+    moduleId: selectedTarget.module.id,
+    moduleTitle: selectedTarget.module.title,
+    moduleFormat: selectedTarget.module.format,
+    skillFocus: selectedTarget.module.skillFocus,
+    sourceSuggestionId: suggestion.id,
+    requestedByRole: input.approverRole,
+    requestedByUserId: approver.id,
+    deliveryMode: guidanceMode,
+    summary: suggestion.summary,
+    guidanceNote,
+    status: "assigned",
+    createdAt,
+    dueAt,
+  };
+
+  assignment.journeyId = selectedTarget.journey.id;
+  assignment.journeyTitle = selectedTarget.journey.title;
+  assignment.moduleId = selectedTarget.module.id;
+  assignment.moduleTitle = selectedTarget.module.title;
+  assignment.moduleFormat = selectedTarget.module.format;
+  assignment.skillFocus = selectedTarget.module.skillFocus;
+  assignment.requestedByRole = input.approverRole;
+  assignment.requestedByUserId = approver.id;
+  assignment.deliveryMode = guidanceMode;
+  assignment.summary = suggestion.summary;
+  assignment.guidanceNote = guidanceNote;
+  assignment.status = "assigned";
+  assignment.createdAt = createdAt;
+  assignment.dueAt = dueAt;
+
+  if (!existingAssignment) {
+    retrainingAssignments.unshift(assignment);
+  }
+
+  notifications.unshift(
+    {
+      id: `note-retraining-learner-${notifications.length + 1}`,
+      tenantId: input.tenantId,
+      audience: "learner",
+      title: `Retraining assigned: ${assignment.moduleTitle}`,
+      detail: `${approver.name} assigned a targeted retraining module for ${assignment.skillFocus.toLowerCase()}. Complete ${assignment.moduleTitle} within the next 48 hours.`,
+      priority: "critical",
+      createdAt,
+    },
+    {
+      id: `note-retraining-${input.approverRole}-${notifications.length + 2}`,
+      tenantId: input.tenantId,
+      audience: input.approverRole,
+      title: `${guidanceMode === "manual_override" ? "Override" : "AI guidance"} sent to learner`,
+      detail: `${learner.name} was assigned ${assignment.moduleTitle} from ${assignment.journeyTitle} with a 48-hour due window.`,
+      priority: "info",
+      createdAt,
+    },
+  );
+
+  documentationEntries.unshift({
+    id: `doc-guidance-${documentationEntries.length + 1}`,
+    tenantId: input.tenantId,
+    subjectUserId: learner.id,
+    sourceType: "coaching_summary",
+    title: `Targeted retraining assigned: ${assignment.moduleTitle}`,
+    summary: guidanceNote,
+    createdAt,
+    authoredByRole: input.approverRole,
+    evidencePoints: [
+      `Journey: ${assignment.journeyTitle}`,
+      `Module: ${assignment.moduleTitle}`,
+      `Due by: ${new Date(assignment.dueAt).toLocaleString()}`,
+    ],
+  });
+
+  return assignment;
+}
+
 export function getDemoLanding() {
   return {
     tenants: tenants.map((tenant) => ({
@@ -1862,11 +2025,27 @@ export function getManagerDashboard(tenantId?: string) {
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "manager");
   const directReportLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
+  const coachingSessions = getTenantCoachingSessions(tenant.id);
+  const aiSuggestion = aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0];
+  const activeRetrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const retrainingCatalog = journeys
+    .filter((journey) => journey.tenantId === tenant.id)
+    .map((journey) => ({
+      id: journey.id,
+      title: journey.title,
+      role: journey.role,
+      modules: journey.modules.map((module) => ({
+        id: module.id,
+        title: module.title,
+        format: module.format,
+        skillFocus: module.skillFocus,
+      })),
+    }));
   const coachCoverage = [
     {
       coach,
       directReport: learner,
-      coachingSessions: getTenantCoachingSessions(tenant.id).filter((session) => session.learnerUserId === learner.id),
+      coachingSessions: coachingSessions.filter((session) => session.learnerUserId === learner.id),
       weeklyCoachingLogs: directReportLogs,
       latestLog: directReportLogs[0] ?? null,
     },
@@ -1880,13 +2059,15 @@ export function getManagerDashboard(tenantId?: string) {
     coachCoverage,
     openSignals: getTenantSignals(tenant.id),
     interventions: getTenantInterventions(tenant.id),
-    coachingSessions: getTenantCoachingSessions(tenant.id),
+    coachingSessions,
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     documentationEntries: getDocumentationEntries(tenant.id, learner.id),
     reviewLogs: getReviewLogs(tenant.id, learner.id),
     weeklyCoachingLogs: directReportLogs,
-    aiSuggestion: aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0],
+    aiSuggestion,
+    activeRetrainingAssignments,
+    retrainingCatalog,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
     rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
     workflowLibraryMix,
@@ -1903,6 +2084,21 @@ export function getCoachDashboard(tenantId?: string) {
   const coachingSessions = getTenantCoachingSessions(tenant.id).filter((session) => session.learnerUserId === learner.id);
   const openSignals = getTenantSignals(tenant.id).slice(0, 3);
   const weeklyLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
+  const aiSuggestion = aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.learnerUserId === learner.id) ?? aiSuggestions[0];
+  const activeRetrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const retrainingCatalog = journeys
+    .filter((journey) => journey.tenantId === tenant.id)
+    .map((journey) => ({
+      id: journey.id,
+      title: journey.title,
+      role: journey.role,
+      modules: journey.modules.map((module) => ({
+        id: module.id,
+        title: module.title,
+        format: module.format,
+        skillFocus: module.skillFocus,
+      })),
+    }));
 
   return {
     tenant,
@@ -1918,6 +2114,9 @@ export function getCoachDashboard(tenantId?: string) {
     documentationEntries: getDocumentationEntries(tenant.id, learner.id),
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+    aiSuggestion,
+    activeRetrainingAssignments,
+    retrainingCatalog,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "coach" || item.audience === "manager" || item.audience === "all")).slice(0, 4),
     workflowLibraryMix,
   };
@@ -1928,6 +2127,7 @@ export function getLearnerDashboard(tenantId?: string) {
   const learner = getUser("learner", tenant.id);
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "learner");
+  const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
 
   return {
     tenant,
@@ -1935,6 +2135,7 @@ export function getLearnerDashboard(tenantId?: string) {
     learner,
     activeJourney: getTenantJourneys(tenant.id, "learner"),
     assignedInterventions: getTenantInterventions(tenant.id).filter((item) => item.assigneeUserId === learner.id),
+    retrainingAssignments,
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "learner" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     documentationEntries: getDocumentationEntries(tenant.id, learner.id),

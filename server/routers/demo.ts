@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
 import {
+  applyCoachingGuidance,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -89,6 +90,14 @@ const weeklyCoachingTakeawaysInput = z.object({
   tenantId: z.string(),
   weeklyCoachingLogId: z.string(),
   agentTakeaways: z.string().min(3).max(800),
+});
+
+const coachingGuidanceInput = z.object({
+  tenantId: z.string(),
+  suggestionId: z.string(),
+  approverRole: z.enum(["manager", "coach"]),
+  journeyId: z.string().optional(),
+  moduleId: z.string().optional(),
 });
 
 const libraryInput = z.object({
@@ -287,6 +296,31 @@ export const demoRouter = router({
     }
 
     return updateWeeklyCoachingLogTakeaways({ ...input, tenantId });
+  }),
+  secureApplyCoachingGuidance: protectedProcedure.input(coachingGuidanceInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+
+    if (!["manager", "coach", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only coach and manager roles can assign targeted retraining." });
+    }
+
+    const approverRole = grant.role === "platform_admin"
+      ? input.approverRole
+      : grant.role === "client_admin"
+        ? input.approverRole
+        : grant.role;
+
+    if (approverRole !== "manager" && approverRole !== "coach") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "The selected approver role is not valid for coaching guidance." });
+    }
+
+    return applyCoachingGuidance({
+      tenantId,
+      suggestionId: input.suggestionId,
+      approverRole,
+      journeyId: input.journeyId,
+      moduleId: input.moduleId,
+    });
   }),
 
 });

@@ -496,7 +496,6 @@ describe("demo router", () => {
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
-});
 
   it("returns coach workspace data with coaching oversight, transfer context, and role-scoped library resources", async () => {
     const caller = appRouter.createCaller(createContext());
@@ -691,5 +690,79 @@ it("denies CHCG Admin controls to non-admin users", async () => {
 
   await expect(caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" })).rejects.toMatchObject({
     code: "FORBIDDEN",
+  });
+});
+
+  it("creates a targeted retraining assignment and learner alert when a manager approves AI guidance", async () => {
+    const managerCaller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    const assignment = await managerCaller.demo.secureApplyCoachingGuidance({
+      tenantId: "atlas-operations",
+      suggestionId: "ai-1",
+      approverRole: "manager",
+    });
+
+    expect(assignment.deliveryMode).toBe("ai_approved");
+    expect(assignment.moduleTitle).toBeTruthy();
+    expect(assignment.dueAt).toBeTruthy();
+
+    const learner = await managerCaller.demo.learner({ tenantId: "atlas-operations" });
+    expect(learner.retrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: assignment.id,
+          moduleId: assignment.moduleId,
+          requestedByRole: "manager",
+        }),
+      ]),
+    );
+    expect(learner.notifications).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: expect.stringContaining("Retraining assigned"),
+          detail: expect.stringContaining("48 hours"),
+        }),
+      ]),
+    );
+  });
+
+  it("allows a coach to override the AI suggestion with a specific module from a selected training", async () => {
+    const coachCaller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-coach",
+        role: "user",
+        name: "Coach Danielle",
+      }),
+    );
+
+    const assignment = await coachCaller.demo.secureApplyCoachingGuidance({
+      tenantId: "atlas-operations",
+      suggestionId: "ai-1",
+      approverRole: "coach",
+      journeyId: "journey-service-foundations",
+      moduleId: "mod-sf-2",
+    });
+
+    expect(assignment.deliveryMode).toBe("manual_override");
+    expect(assignment.requestedByRole).toBe("coach");
+    expect(assignment.journeyId).toBe("journey-service-foundations");
+    expect(assignment.moduleId).toBe("mod-sf-2");
+
+    const managerView = await coachCaller.demo.manager({ tenantId: "atlas-operations" });
+    expect(managerView.activeRetrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: assignment.id,
+          moduleId: "mod-sf-2",
+          requestedByRole: "coach",
+        }),
+      ]),
+    );
   });
 });

@@ -174,3 +174,9 @@
 - [x] Audit the major EnableOS pages for desktop text readability issues including undersized copy, cramped labels, overflow, and poor wrapping on 14–36 inch screens.
 - [x] Create a shared desktop-first typography and spacing cleanup across the primary pages so headings, labels, cards, and supporting copy read comfortably at large monitor sizes.
 - [x] Re-validate the updated text formatting across the main role and content pages before the next checkpoint.
+- [x] Re-audit all major EnableOS pages for remaining desktop text-formatting issues after the prior cleanup, with special attention to dense workflow cards and labels.
+- [x] Make AI coaching guidance live for both manager and coach workspaces so approving guidance creates a targeted retraining assignment for Nina.
+- [x] Send the learner a visible alert or notification that the retraining must be completed within 48 hours after manager or coach approval.
+- [x] Ensure approved retraining sends the learner only to the pertinent overall training and module segment instead of the full course whenever the coaching issue is specific.
+- [x] Add an override flow with a first dropdown for overall training and a second dependent dropdown for the specific module a manager or coach wants to assign.
+- [x] Re-validate the manager, coach, learner, and training pages after the live coaching-guidance workflow and formatting repairs are implemented.
