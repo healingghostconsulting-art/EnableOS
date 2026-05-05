@@ -22,6 +22,7 @@ import {
   listMethodologyMappings,
   listTenants,
   updateChcgPlatformSettings,
+  updateRetrainingAssignmentStatus,
   updateTenantBranding,
   updateTenantTrainingAccess,
   updateWeeklyCoachingLogTakeaways,
@@ -98,6 +99,12 @@ const coachingGuidanceInput = z.object({
   approverRole: z.enum(["manager", "coach"]),
   journeyId: z.string().optional(),
   moduleId: z.string().optional(),
+});
+
+const retrainingAssignmentStatusInput = z.object({
+  tenantId: z.string(),
+  assignmentId: z.string(),
+  status: z.enum(["assigned", "in_progress", "completed"]),
 });
 
 const libraryInput = z.object({
@@ -320,6 +327,19 @@ export const demoRouter = router({
       approverRole,
       journeyId: input.journeyId,
       moduleId: input.moduleId,
+    });
+  }),
+  secureUpdateRetrainingAssignmentStatus: protectedProcedure.input(retrainingAssignmentStatusInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+
+    if (!["learner", "manager", "coach", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot update retraining assignment status." });
+    }
+
+    return updateRetrainingAssignmentStatus({
+      tenantId,
+      assignmentId: input.assignmentId,
+      status: input.status,
     });
   }),
 

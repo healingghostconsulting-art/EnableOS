@@ -155,6 +155,7 @@ export type RetrainingAssignment = {
   status: "assigned" | "in_progress" | "completed";
   createdAt: string;
   dueAt: string;
+  completedAt?: string;
 };
 
 export type DocumentationEntry = {
@@ -246,6 +247,12 @@ export type ApplyCoachingGuidanceInput = {
   approverRole: "manager" | "coach";
   journeyId?: string;
   moduleId?: string;
+};
+
+export type UpdateRetrainingAssignmentStatusInput = {
+  tenantId: string;
+  assignmentId: string;
+  status: RetrainingAssignment["status"];
 };
 
 export type TenantBranding = {
@@ -1362,9 +1369,22 @@ function getJourneyModule(tenantId: string, journeyId: string, moduleId: string)
 }
 
 function getRetrainingAssignmentsForLearner(tenantId: string, learnerUserId: string) {
+  const statusRank: Record<RetrainingAssignment["status"], number> = {
+    in_progress: 0,
+    assigned: 1,
+    completed: 2,
+  };
+
   return retrainingAssignments
     .filter((assignment) => assignment.tenantId === tenantId && assignment.learnerUserId === learnerUserId)
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    .sort((left, right) => {
+      const rankDelta = statusRank[left.status] - statusRank[right.status];
+      if (rankDelta !== 0) {
+        return rankDelta;
+      }
+
+      return right.createdAt.localeCompare(left.createdAt);
+    });
 }
 
 function getSuggestedRetrainingTarget(suggestion: AiSuggestion) {
@@ -1928,6 +1948,7 @@ export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
     status: "assigned",
     createdAt,
     dueAt,
+    completedAt: undefined,
   };
 
   assignment.journeyId = selectedTarget.journey.id;
@@ -1944,6 +1965,7 @@ export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
   assignment.status = "assigned";
   assignment.createdAt = createdAt;
   assignment.dueAt = dueAt;
+  assignment.completedAt = undefined;
 
   if (!existingAssignment) {
     retrainingAssignments.unshift(assignment);
@@ -1985,6 +2007,86 @@ export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
       `Due by: ${new Date(assignment.dueAt).toLocaleString()}`,
     ],
   });
+
+  return assignment;
+}
+
+export function updateRetrainingAssignmentStatus(input: UpdateRetrainingAssignmentStatusInput) {
+  const assignment = retrainingAssignments.find((entry) => entry.tenantId === input.tenantId && entry.id === input.assignmentId);
+
+  if (!assignment) {
+    throw new Error(`Retraining assignment not found for ${input.assignmentId}`);
+  }
+
+  const learner = getUserById(assignment.learnerUserId, input.tenantId) ?? getUser("learner", input.tenantId);
+  const changedAt = new Date().toISOString();
+
+  assignment.status = input.status;
+  assignment.completedAt = input.status === "completed" ? changedAt : undefined;
+
+  const journey = journeys.find((entry) => entry.tenantId === input.tenantId && entry.id === assignment.journeyId);
+  const module = journey?.modules.find((entry) => entry.id === assignment.moduleId);
+
+  if (module) {
+    if (input.status === "completed") {
+      module.completionRate = 100;
+    } else if (input.status === "in_progress") {
+      module.completionRate = Math.max(module.completionRate, 55);
+    }
+  }
+
+  if (journey) {
+    const total = journey.modules.reduce((sum, entry) => sum + entry.completionRate, 0);
+    journey.progress = Math.round(total / Math.max(journey.modules.length, 1));
+  }
+
+  if (input.status === "completed") {
+    notifications.unshift(
+      {
+        id: `note-retraining-complete-learner-${notifications.length + 1}`,
+        tenantId: input.tenantId,
+        audience: "learner",
+        title: `Retraining completed: ${assignment.moduleTitle}`,
+        detail: `You completed the targeted retraining module ${assignment.moduleTitle}. Your coach and manager can now see the completed status in their oversight views.`,
+        priority: "info",
+        createdAt: changedAt,
+      },
+      {
+        id: `note-retraining-complete-manager-${notifications.length + 2}`,
+        tenantId: input.tenantId,
+        audience: "manager",
+        title: `${learner.name} completed retraining`,
+        detail: `${learner.name} finished ${assignment.moduleTitle} from ${assignment.journeyTitle}. The completion chip is now reflected in the oversight lane.`,
+        priority: "info",
+        createdAt: changedAt,
+      },
+      {
+        id: `note-retraining-complete-coach-${notifications.length + 3}`,
+        tenantId: input.tenantId,
+        audience: "coach",
+        title: `${learner.name} completed retraining`,
+        detail: `${learner.name} finished ${assignment.moduleTitle} from ${assignment.journeyTitle}. The completion chip is now reflected in the coach supervision lane.`,
+        priority: "info",
+        createdAt: changedAt,
+      },
+    );
+
+    documentationEntries.unshift({
+      id: `doc-retraining-complete-${documentationEntries.length + 1}`,
+      tenantId: input.tenantId,
+      subjectUserId: learner.id,
+      sourceType: "module_completion",
+      title: `Targeted retraining completed: ${assignment.moduleTitle}`,
+      summary: `${learner.name} completed the assigned retraining module and the completion state is now visible in leadership oversight views.`,
+      createdAt: changedAt,
+      authoredByRole: "system",
+      evidencePoints: [
+        `Journey: ${assignment.journeyTitle}`,
+        `Module: ${assignment.moduleTitle}`,
+        `Completed at: ${new Date(changedAt).toLocaleString()}`,
+      ],
+    });
+  }
 
   return assignment;
 }
@@ -2078,6 +2180,7 @@ export function getManagerDashboard(tenantId?: string) {
       coachingSessions: coachingSessions.filter((session) => session.learnerUserId === learner.id),
       weeklyCoachingLogs: directReportLogs,
       latestLog: directReportLogs[0] ?? null,
+      retrainingAssignments: activeRetrainingAssignments.filter((assignment) => assignment.learnerUserId === learner.id),
     },
   ];
 

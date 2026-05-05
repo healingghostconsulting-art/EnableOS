@@ -190,3 +190,6 @@
 - [x] Clean up the shared sidebar card and navigation-label formatting so the shell reads cleanly without clipped or cramped text.
 - [x] Make assigned retraining unmistakable in the learner experience by surfacing a clear notification and pushing active assigned training to the top of the learner journey.
 - [x] Re-validate the updated homepage, sidebar, and learner-assignment priority flow in the browser and with project checks before the next checkpoint.
+- [x] Add retraining completion-status chips for manager and coach oversight once the learner finishes the assigned module
+- [x] Add learner-side demo completion handling so retraining status can update during walkthroughs
+- [x] Validate completion-status chips with tests, type checks, and browser review

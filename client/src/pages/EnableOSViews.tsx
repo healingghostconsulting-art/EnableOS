@@ -292,9 +292,16 @@ function StatusBadge({ value }: { value: string }) {
       ? "border-rose-500/30 bg-rose-500/12 text-rose-300"
       : value === "in_progress" || value === "follow_up_due"
         ? "border-amber-500/30 bg-amber-500/12 text-amber-300"
-        : "border-blue-500/30 bg-blue-500/12 text-blue-300";
+        : value === "assigned" || value === "pending"
+          ? "border-slate-400/20 bg-slate-400/10 text-slate-200"
+          : "border-blue-500/30 bg-blue-500/12 text-blue-300";
+  const label = value === "assigned"
+    ? "Pending"
+    : value === "in_progress"
+      ? "In progress"
+      : value.replaceAll("_", " ");
 
-  return <Badge className={`rounded-full border ${tone}`}>{value.replaceAll("_", " ")}</Badge>;
+  return <Badge className={`rounded-full border ${tone}`}>{label}</Badge>;
 }
 
 function GuidanceActionPanel({
@@ -386,18 +393,18 @@ function GuidanceActionPanel({
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/75">Live retraining assignment</p>
                 <h4 className="mt-2 text-xl font-semibold text-white">{activeAssignment.moduleTitle}</h4>
-                <p className="mt-2 text-sm leading-7 text-emerald-50/92">{learnerName} is now assigned to {activeAssignment.journeyTitle} with a {formatDueWindow(activeAssignment.dueAt).toLowerCase()} deadline.</p>
+                <p className="mt-2 text-sm leading-7 text-emerald-50/92">{activeAssignment.status === "completed" ? `${learnerName} completed this targeted retraining from ${activeAssignment.journeyTitle}.` : `${learnerName} is now assigned to ${activeAssignment.journeyTitle} with a ${formatDueWindow(activeAssignment.dueAt).toLowerCase()} deadline.`}</p>
               </div>
               <StatusBadge value={activeAssignment.status} />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link href={buildTrainingLaunchPath({ journeyId: activeAssignment.journeyId, moduleId: activeAssignment.moduleId, assignmentId: activeAssignment.id })}>
                 <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                  Open assigned retraining
+                  {activeAssignment.status === "completed" ? "Review completed retraining" : "Open assigned retraining"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{new Date(activeAssignment.dueAt).toLocaleString()}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{activeAssignment.status === "completed" && activeAssignment.completedAt ? `Completed ${new Date(activeAssignment.completedAt).toLocaleString()}` : new Date(activeAssignment.dueAt).toLocaleString()}</Badge>
             </div>
           </div>
         ) : null}
@@ -4768,6 +4775,31 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
               <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
             </div>
+            {data.activeRetrainingAssignments?.length ? (
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learner retraining completion</p>
+                    <p className="mt-2 text-sm text-slate-300">Coach-visible completion chips stay attached to Nina's targeted retraining assignment so follow-through is easy to confirm.</p>
+                  </div>
+                  <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{data.activeRetrainingAssignments.length} tracked</Badge>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {data.activeRetrainingAssignments.map((assignment: any) => (
+                    <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
+                          <p className="mt-1 text-sm text-slate-300">{assignment.journeyTitle} · {assignment.skillFocus}</p>
+                        </div>
+                        <StatusBadge value={assignment.status} />
+                      </div>
+                      <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{assignment.status === "completed" && assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <GuidanceActionPanel
               tenantId={data.tenant.id}
               suggestion={data.aiSuggestion}
@@ -5091,6 +5123,23 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                         <p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p>
                       </div>
                     </div>
+                    {coverage.retrainingAssignments?.length ? (
+                      <div className="mt-4 space-y-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Targeted retraining completion</p>
+                        {coverage.retrainingAssignments.map((assignment: any) => (
+                          <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
+                                <p className="mt-1 text-sm text-slate-300">{assignment.journeyTitle} · {assignment.skillFocus}</p>
+                              </div>
+                              <StatusBadge value={assignment.status} />
+                            </div>
+                            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{assignment.status === "completed" && assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ))}
                 <WeeklyCoachingLogTimeline
@@ -5177,6 +5226,17 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   const activeRetrainingAssignment = data.retrainingAssignments?.[0] ?? null;
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
+  const utils = trpc.useUtils();
+  const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.demo.secureLearner.invalidate({ tenantId: data.tenant.id }),
+        utils.demo.secureCoach.invalidate({ tenantId: data.tenant.id }),
+        utils.demo.secureManager.invalidate({ tenantId: data.tenant.id }),
+      ]);
+      onUpdated?.();
+    },
+  });
   const primaryTrainingPath = activeRetrainingAssignment
     ? buildTrainingLaunchPath({
       journeyId: activeRetrainingAssignment.journeyId,
@@ -5184,6 +5244,17 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       assignmentId: activeRetrainingAssignment.id,
     })
     : "/training";
+  const updateActiveAssignmentStatus = (status: "assigned" | "in_progress" | "completed") => {
+    if (!activeRetrainingAssignment) {
+      return;
+    }
+
+    updateRetrainingStatus.mutate({
+      tenantId: data.tenant.id,
+      assignmentId: activeRetrainingAssignment.id,
+      status,
+    });
+  };
 
   return (
 
@@ -5193,18 +5264,30 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <p className="text-[11px] uppercase tracking-[0.24em] text-amber-100/85">Priority retraining notification</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{activeRetrainingAssignment.moduleTitle} has been assigned to you</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-100/92">Complete this targeted refresher from {activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{activeRetrainingAssignment.status === "completed" ? `${activeRetrainingAssignment.moduleTitle} is complete` : `${activeRetrainingAssignment.moduleTitle} has been assigned to you`}</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-100/92">{activeRetrainingAssignment.status === "completed" ? `You finished this targeted retraining from ${activeRetrainingAssignment.journeyTitle}. Your manager and coach can now see the completed chip in their oversight lanes.` : `Complete this targeted refresher from ${activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.`}</p>
             </div>
-            <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 px-3 py-1 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge value={activeRetrainingAssignment.status} />
+              <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 px-3 py-1 text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+            </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href={primaryTrainingPath}>
-              <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                Start assigned retraining now
+              <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                if (activeRetrainingAssignment.status === "assigned") {
+                  updateActiveAssignmentStatus("in_progress");
+                }
+              }}>
+                {activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining now"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
+            {activeRetrainingAssignment.status !== "completed" ? (
+              <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark retraining complete"}
+              </Button>
+            ) : null}
             <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
           </div>
         </div>
@@ -5244,11 +5327,20 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href={primaryTrainingPath}>
-                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                  {activeRetrainingAssignment ? "Start assigned retraining" : "Resume guided training"}
+                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                  if (activeRetrainingAssignment?.status === "assigned") {
+                    updateActiveAssignmentStatus("in_progress");
+                  }
+                }}>
+                  {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining") : "Resume guided training"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
+              {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
+                <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                  {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark module complete"}
+                </Button>
+              ) : null}
               <Link href="/library">
                 <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                   Browse mapped resources
@@ -5289,14 +5381,26 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] uppercase tracking-[0.22em] text-amber-100/80">Assigned first</p>
                       <h3 className="mt-2 text-lg font-semibold text-white">{activeRetrainingAssignment.moduleTitle}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-100/90">This retraining has been pinned to the top of your journey and should be completed before resuming the rest of your learning path.</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100/90">{activeRetrainingAssignment.status === "completed" ? "This targeted retraining is complete and leadership can now see the completion chip in their oversight lanes." : "This retraining has been pinned to the top of your journey and should be completed before resuming the rest of your learning path."}</p>
                     </div>
-                    <Badge className="rounded-full border-amber-400/20 bg-amber-400/14 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge value={activeRetrainingAssignment.status} />
+                      <Badge className="rounded-full border-amber-400/20 bg-amber-400/14 text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+                    </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Link href={primaryTrainingPath}>
-                      <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open assigned module</Button>
+                      <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                        if (activeRetrainingAssignment.status === "assigned") {
+                          updateActiveAssignmentStatus("in_progress");
+                        }
+                      }}>{activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Open assigned module"}</Button>
                     </Link>
+                    {activeRetrainingAssignment.status !== "completed" ? (
+                      <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                        {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark complete"}
+                      </Button>
+                    ) : null}
                     <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">{activeRetrainingAssignment.journeyTitle}</Badge>
                   </div>
                 </div>
@@ -5313,8 +5417,12 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link href={primaryTrainingPath}>
-                  <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
-                    {activeRetrainingAssignment ? "Launch assigned retraining" : "Launch interactive training"}
+                  <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                    if (activeRetrainingAssignment?.status === "assigned") {
+                      updateActiveAssignmentStatus("in_progress");
+                    }
+                  }}>
+                    {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review assigned retraining" : "Launch assigned retraining") : "Launch interactive training"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>

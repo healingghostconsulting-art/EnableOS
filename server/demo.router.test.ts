@@ -94,6 +94,11 @@ describe("demo router", () => {
       ]),
     );
     expect(manager.workflowLibraryMix.documentationResources.length).toBeGreaterThan(0);
+    expect(manager.activeRetrainingAssignments[0]).toEqual(
+      expect.objectContaining({
+        status: expect.any(String),
+      }),
+    );
   });
 
   it("returns learner data tied to a sanitized skill-gap journey and assigned interventions", async () => {
@@ -125,6 +130,11 @@ describe("demo router", () => {
         expect.objectContaining({ title: "Operational launch readiness brief", sourceKind: "client_upload" }),
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
+    );
+    expect(learner.retrainingAssignments[0]).toEqual(
+      expect.objectContaining({
+        status: expect.any(String),
+      }),
     );
   });
 
@@ -711,6 +721,7 @@ it("denies CHCG Admin controls to non-admin users", async () => {
     expect(assignment.deliveryMode).toBe("ai_approved");
     expect(assignment.moduleTitle).toBeTruthy();
     expect(assignment.dueAt).toBeTruthy();
+    expect(assignment.status).toBe("assigned");
 
     const learner = await managerCaller.demo.learner({ tenantId: "atlas-operations" });
     expect(learner.retrainingAssignments).toEqual(
@@ -761,6 +772,59 @@ it("denies CHCG Admin controls to non-admin users", async () => {
           id: assignment.id,
           moduleId: "mod-sf-2",
           requestedByRole: "coach",
+          status: "assigned",
+        }),
+      ]),
+    );
+  });
+
+  it("updates retraining completion so learner, coach, and manager views reflect the completed chip state", async () => {
+    const learnerCaller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-learner",
+        role: "user",
+        name: "Enterprise Learner",
+      }),
+    );
+
+    const updated = await learnerCaller.demo.secureUpdateRetrainingAssignmentStatus({
+      tenantId: "atlas-operations",
+      assignmentId: "retraining-seeded-1",
+      status: "completed",
+    });
+
+    expect(updated.status).toBe("completed");
+    expect(updated.completedAt).toBeTruthy();
+
+    const learnerView = await learnerCaller.demo.secureLearner({ tenantId: "atlas-operations" });
+    expect(learnerView.retrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
+    );
+
+    const coachView = await learnerCaller.demo.coach({ tenantId: "atlas-operations" });
+    expect(coachView.activeRetrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
+    );
+
+    const managerView = await learnerCaller.demo.manager({ tenantId: "atlas-operations" });
+    expect(managerView.coachCoverage[0]?.retrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
         }),
       ]),
     );
