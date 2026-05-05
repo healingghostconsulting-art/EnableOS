@@ -196,3 +196,6 @@
 - [x] Show retraining completion history for past assignments across learner, coach, and manager views
 - [x] Extend retraining assignment data and UI sections so active and historical modules are both visible during walkthroughs
 - [x] Validate retraining completion history with tests, type checks, and browser review
+- [x] Add a manager-side date-range filter so retraining history can be viewed by week or month
+- [x] Update the manager coach-oversight retraining history UI to reflect the selected time window clearly
+- [x] Validate the manager retraining-history date-range filter with tests, type checks, and browser review

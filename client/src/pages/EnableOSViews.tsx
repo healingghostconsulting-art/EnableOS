@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -4972,6 +4973,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
+  const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
 
   const openManagerView = (tab: "interventions" | "coaching" | "documentation" | "notifications", sectionId: string) => {
     setActiveTab(tab);
@@ -5126,7 +5128,10 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                 <CardDescription className="text-slate-400">Managers can remotely review the same direct-report coaching history the coach sees, keeping the escalation conversation aligned inside the manager workspace.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {data.coachCoverage.map((coverage: any) => (
+                {data.coachCoverage.map((coverage: any) => {
+                  const filteredHistory = filterRetrainingHistoryByWindow(coverage.retrainingHistory ?? [], historyWindow);
+
+                  return (
                   <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -5148,16 +5153,33 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                         <p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p>
                       </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 space-y-3">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
+                            <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant={historyWindow === "week" ? "default" : "outline"} className={historyWindow === "week" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("week")}>
+                              Week
+                            </Button>
+                            <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>
+                              Month
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                       <RetrainingHistorySection
                         title="Targeted retraining history"
                         description="Managers can review the current retraining outcome and prior completions without leaving the coach-oversight lane."
-                        assignments={coverage.retrainingHistory ?? []}
-                        emptyLabel="Past retraining completions will appear here once the direct report finishes earlier assignments."
+                        assignments={filteredHistory}
+                        emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`}
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <WeeklyCoachingLogTimeline
                   title="Coach-lane direct-report logs"
                   description="This mirrored timeline lets managers review the same direct-report coaching history the coach is working from without leaving the manager workspace."
