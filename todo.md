@@ -199,3 +199,6 @@
 - [x] Add a manager-side date-range filter so retraining history can be viewed by week or month
 - [x] Update the manager coach-oversight retraining history UI to reflect the selected time window clearly
 - [x] Validate the manager retraining-history date-range filter with tests, type checks, and browser review
+- [x] Add a manager export action for the currently filtered retraining history
+- [x] Include completion dates and assigning roles in the exported retraining history output
+- [x] Validate the manager filtered retraining-history export with tests, type checks, and browser review

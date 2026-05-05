@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
+import { buildRetrainingHistoryCsv, filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -4980,6 +4980,22 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
 
+  const exportRetrainingHistory = (learnerName: string, assignments: any[]) => {
+    const csv = buildRetrainingHistoryCsv(assignments);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const safeLearnerName = learnerName.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "learner";
+    anchor.href = url;
+    anchor.download = `${safeLearnerName}-retraining-history-${historyWindow}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+      anchor.remove();
+    }, 0);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
@@ -5167,12 +5183,15 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                             <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>
                               Month
                             </Button>
+                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white" onClick={() => exportRetrainingHistory(coverage.directReport.name, filteredHistory)} disabled={!filteredHistory.length}>
+                              Export CSV
+                            </Button>
                           </div>
                         </div>
                       </div>
                       <RetrainingHistorySection
                         title="Targeted retraining history"
-                        description="Managers can review the current retraining outcome and prior completions without leaving the coach-oversight lane."
+                        description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane."
                         assignments={filteredHistory}
                         emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`}
                       />
