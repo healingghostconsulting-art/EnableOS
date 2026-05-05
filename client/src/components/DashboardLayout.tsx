@@ -35,8 +35,8 @@ export type DashboardMenuItem = {
 };
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 332;
-const MIN_WIDTH = 252;
+const DEFAULT_WIDTH = 348;
+const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
 
 export default function DashboardLayout({
@@ -212,23 +212,23 @@ function DashboardLayoutContent({
                       <div className="reward-ring flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300/30 via-sky-400/20 to-violet-400/25 text-white">
                         <Building2 className="h-5 w-5" />
                       </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-[15px] font-semibold tracking-tight text-white xl:text-base">{title}</p>
-                        <p className="truncate text-sm text-slate-300/85">{subtitle}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-semibold leading-5 tracking-tight text-white xl:text-base">{title}</p>
+                        <p className="mt-1 text-[13px] leading-5 text-slate-300/85 xl:text-[13.5px]">{subtitle}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Mode</p>
-                        <p className="mt-1.5 text-sm font-medium text-white">Live</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2.5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-100/55">Mode</p>
+                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-white">Live</p>
                       </div>
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Focus</p>
-                        <p className="mt-1.5 text-sm font-medium text-white">Readiness</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2.5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-100/55">Focus</p>
+                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-white">Readiness</p>
                       </div>
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3.5 py-2.5">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">Motion</p>
-                        <p className="mt-1.5 text-sm font-medium text-white">Active</p>
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2.5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-100/55">Motion</p>
+                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-white">Active</p>
                       </div>
                     </div>
                   </div>
@@ -242,11 +242,11 @@ function DashboardLayoutContent({
               <div className="mb-4 rounded-[1.6rem] border border-cyan-400/15 bg-gradient-to-br from-cyan-400/10 via-sky-400/8 to-violet-500/10 p-3 text-white">
                 <div className="flex items-center gap-2 text-cyan-100/85">
                   <Sparkles className="h-4 w-4" />
-                  <p className="text-[11px] uppercase tracking-[0.24em]">Mission rhythm</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em]">Mission rhythm</p>
                 </div>
-                <p className="mt-3 text-[15px] font-medium leading-6">Keep momentum across discovery, training, coaching, and governance.</p>
-                <div className="mt-3 flex items-center gap-2 text-sm text-slate-200">
-                  <Flame className="h-3.5 w-3.5 text-amber-300" />
+                <p className="mt-3 text-[14px] font-medium leading-6">Keep momentum across discovery, training, coaching, and governance.</p>
+                <div className="mt-3 flex items-start gap-2 text-[13px] leading-5 text-slate-200">
+                  <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
                   <span>Progress cues are now visible across the platform.</span>
                 </div>
               </div>
@@ -261,13 +261,13 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className="h-13 rounded-2xl border border-transparent px-2.5 text-[15px] font-medium text-slate-100 transition-all data-[active=true]:border-cyan-300/20 data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_18px_48px_rgba(125,211,252,0.18)]"
+                      className="h-auto min-h-13 rounded-2xl border border-transparent px-2.5 py-3 text-[14px] font-medium text-slate-100 transition-all data-[active=true]:border-cyan-300/20 data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_18px_48px_rgba(125,211,252,0.18)]"
                     >
                       <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-slate-950/6" : "bg-white/6"}`}>
                         <item.icon className={`h-4 w-4 ${isActive ? "text-slate-950" : "text-cyan-100/85"}`} />
                       </div>
                       <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                        <span>{item.label}</span>
+                        <span className="min-w-0 leading-5 whitespace-normal">{item.label}</span>
                         {!isCollapsed ? (
                           isActive ? <Badge className="rounded-full border-none bg-slate-950/8 text-[11px] uppercase tracking-[0.18em] text-slate-800">live</Badge> : <span className="text-xs text-slate-400">{String(index + 1).padStart(2, "0")}</span>
                         ) : null}

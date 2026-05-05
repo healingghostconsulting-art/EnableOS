@@ -179,18 +179,18 @@ function MetricCard({
   actionLabel?: string;
 }) {
   const content = (
-    <PremiumCard className={`h-full min-h-[13.2rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
-      <CardHeader className="space-y-4 pb-1">
+    <PremiumCard className={`h-full min-h-[12.6rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
+      <CardHeader className="space-y-3 pb-1">
         <div className="flex items-start justify-between gap-3">
-          <CardDescription className="max-w-[15ch] text-[10px] font-semibold uppercase leading-[1.45] tracking-[0.18em] text-slate-300/82 xl:max-w-[18ch] xl:text-[10.5px]">{label}</CardDescription>
-          <div className="reward-ring mt-0.5 shrink-0 rounded-xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/8 to-violet-400/12 p-2 text-slate-100 [&_svg]:h-3.5 [&_svg]:w-3.5">{icon}</div>
+          <CardDescription className="max-w-[17ch] text-[10px] font-semibold uppercase leading-[1.5] tracking-[0.16em] text-slate-300/82 xl:max-w-[19ch] xl:text-[10.5px]">{label}</CardDescription>
+          <div className="reward-ring mt-0.5 shrink-0 rounded-lg border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/8 to-violet-400/12 p-1.5 text-slate-100 [&_svg]:h-3 [&_svg]:w-3">{icon}</div>
         </div>
-        <CardTitle className="max-w-[8ch] text-[2.15rem] font-semibold leading-[1.04] text-white xl:text-[2.4rem]">{value}</CardTitle>
+        <CardTitle className="max-w-[9ch] text-[2rem] font-semibold leading-[1.02] text-white xl:text-[2.15rem]">{value}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 pt-0.5">
-        <p className="max-w-[18ch] text-[14px] leading-6 text-slate-200/82 xl:max-w-[19ch] xl:text-[15px]">{supporting}</p>
+      <CardContent className="space-y-3 pt-0">
+        <p className="max-w-[22ch] text-[13.5px] leading-6 text-slate-200/82 xl:max-w-[24ch] xl:text-[14px]">{supporting}</p>
         {onClick ? (
-          <div className="mt-4 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-cyan-100/85">
+          <div className="mt-4 flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-cyan-100/85">
             <span>{actionLabel}</span>
             <ArrowRight className="h-4 w-4" />
           </div>
@@ -905,16 +905,16 @@ export function LandingView() {
                 </div>
               </div>
               <div className="space-y-5 rounded-[1.9rem] border border-white/10 bg-white/[0.045] p-5 xl:p-6">
-                <div className="flex flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
-                  <Link href="/learner">
-                    <Button className="min-h-12 rounded-full bg-white px-6 text-[15px] font-medium text-slate-950 hover:bg-slate-100">
-                      {viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                <div className="grid gap-3 xl:grid-cols-2">
+                  <Link href="/learner" className="min-w-0">
+                    <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-slate-950 hover:bg-slate-100 xl:text-[15px]">
+                      <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
+                      <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
                     </Button>
                   </Link>
-                  <Link href="/training">
-                    <Button variant="outline" className="min-h-12 rounded-full border-white/12 bg-white/6 px-6 text-[15px] font-medium text-white hover:bg-white/12 hover:text-white">
-                      Preview interactive training simulator
+                  <Link href="/training" className="min-w-0">
+                    <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-white/12 bg-white/6 px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-white/12 hover:text-white xl:text-[15px]">
+                      <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
                     </Button>
                   </Link>
                 </div>
@@ -925,11 +925,11 @@ export function LandingView() {
                       : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
                   </p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
                   {Object.values(roleMeta).map((item: any) => (
                     <Link key={item.route} href={item.route} className="min-w-0">
-                      <Button variant="outline" className="min-h-11 w-full rounded-full border-white/12 bg-white/6 px-5 text-[14px] font-medium text-white hover:bg-white/12 hover:text-white xl:px-6 xl:text-[15px]">
-                        Secure {item.eyebrow} workspace
+                      <Button variant="outline" className="min-h-[3.75rem] h-auto w-full justify-center rounded-[1.25rem] border-white/12 bg-white/6 px-3.5 py-3 text-center text-[12.5px] font-medium leading-[1.35] text-white hover:bg-white/12 hover:text-white xl:px-4 xl:text-[13px] 2xl:text-[13.5px]">
+                        <span className="min-w-0 whitespace-normal">Secure {item.eyebrow} workspace</span>
                       </Button>
                     </Link>
                   ))}
@@ -5188,6 +5188,27 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   return (
 
     <div className="space-y-6">
+      {activeRetrainingAssignment ? (
+        <div className="rounded-[1.8rem] border border-amber-400/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.92))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.24)]">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-100/85">Priority retraining notification</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{activeRetrainingAssignment.moduleTitle} has been assigned to you</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-100/92">Complete this targeted refresher from {activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.</p>
+            </div>
+            <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 px-3 py-1 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href={primaryTrainingPath}>
+              <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                Start assigned retraining now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
+          </div>
+        </div>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
@@ -5236,24 +5257,6 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </div>
           </div>
           <div className="grid gap-4">
-            {activeRetrainingAssignment ? (
-              <div className="rounded-[1.8rem] border border-amber-400/20 bg-[linear-gradient(180deg,rgba(251,191,36,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-amber-100/80">48-hour retraining alert</p>
-                    <h4 className="mt-3 text-xl font-semibold text-white">{activeRetrainingAssignment.moduleTitle}</h4>
-                    <p className="mt-3 text-sm leading-7 text-slate-100/92">Focus on {activeRetrainingAssignment.skillFocus.toLowerCase()} first, then return to the wider journey after this assigned refresher is complete.</p>
-                  </div>
-                  <Badge className="rounded-full border-amber-400/20 bg-amber-400/10 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Link href={primaryTrainingPath}>
-                    <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open assigned module</Button>
-                  </Link>
-                  <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
-                </div>
-              </div>
-            ) : null}
             <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learning signals</p>
               <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
@@ -5280,6 +5283,24 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap across Service Foundations and Workflow Precision tracks.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {activeRetrainingAssignment ? (
+                <div className="rounded-3xl border border-amber-400/25 bg-amber-400/10 p-4 shadow-[0_18px_50px_rgba(251,191,36,0.12)]">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-amber-100/80">Assigned first</p>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{activeRetrainingAssignment.moduleTitle}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-100/90">This retraining has been pinned to the top of your journey and should be completed before resuming the rest of your learning path.</p>
+                    </div>
+                    <Badge className="rounded-full border-amber-400/20 bg-amber-400/14 text-amber-100">{formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link href={primaryTrainingPath}>
+                      <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open assigned module</Button>
+                    </Link>
+                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">{activeRetrainingAssignment.journeyTitle}</Badge>
+                  </div>
+                </div>
+              ) : null}
               <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>

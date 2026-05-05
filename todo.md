@@ -186,3 +186,7 @@
 - [x] Reformat the mission-hub summary boxes so the metric cards feel clean and balanced on desktop.
 - [x] Reduce and rebalance the summary-card icon badges so they fit the boxes cleanly without crowding the labels or values.
 - [x] Re-validate the cleaned-up mission-hub boxes in the browser and with project checks before the next checkpoint.
+- [x] Fix the remaining homepage action-panel and secure-workspace button text-fitting issues so labels stay inside their boxes cleanly.
+- [x] Clean up the shared sidebar card and navigation-label formatting so the shell reads cleanly without clipped or cramped text.
+- [x] Make assigned retraining unmistakable in the learner experience by surfacing a clear notification and pushing active assigned training to the top of the learner journey.
+- [x] Re-validate the updated homepage, sidebar, and learner-assignment priority flow in the browser and with project checks before the next checkpoint.

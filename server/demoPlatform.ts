@@ -737,6 +737,15 @@ const coachingSessions: CoachingSession[] = [
 
 const notifications: NotificationItem[] = [
   {
+    id: "note-retraining-seeded",
+    tenantId: "atlas-operations",
+    audience: "learner",
+    title: "Retraining assigned: Verification confidence",
+    detail: "Marcus Bell assigned a targeted refresher on verification confidence and closing discipline. Complete Verification confidence and closing control within the next 48 hours.",
+    priority: "critical",
+    createdAt: "2026-05-05T12:00:00Z",
+  },
+  {
     id: "note-1",
     tenantId: "atlas-operations",
     audience: "manager",
@@ -1047,7 +1056,28 @@ const aiSuggestions: AiSuggestion[] = [
   },
 ];
 
-const retrainingAssignments: RetrainingAssignment[] = [];
+const retrainingAssignments: RetrainingAssignment[] = [
+  {
+    id: "retraining-seeded-1",
+    tenantId: "atlas-operations",
+    learnerUserId: "u-learn-1",
+    journeyId: "journey-workflow-precision",
+    journeyTitle: "Workflow Precision",
+    moduleId: "mod-wp-1",
+    moduleTitle: "Verification confidence and closing control",
+    moduleFormat: "Microlearning",
+    skillFocus: "Verification confidence",
+    sourceSuggestionId: "suggest-1",
+    requestedByRole: "manager",
+    requestedByUserId: "u-manager-1",
+    deliveryMode: "ai_approved",
+    summary: "Coach Nina on verification confidence and closing discipline before adding new learning volume.",
+    guidanceNote: "Marcus Bell approved the AI recommendation and assigned a targeted verification refresher to the top of Nina's learner journey.",
+    status: "assigned",
+    createdAt: "2026-05-05T12:00:00Z",
+    dueAt: "2026-05-07T12:00:00Z",
+  },
+];
 
 const documentationEntries: DocumentationEntry[] = [
   {
