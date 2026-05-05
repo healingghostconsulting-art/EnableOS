@@ -304,6 +304,50 @@ function StatusBadge({ value }: { value: string }) {
   return <Badge className={`rounded-full border ${tone}`}>{label}</Badge>;
 }
 
+function RetrainingHistorySection({
+  title,
+  description,
+  assignments,
+  emptyLabel = "No past retraining has been completed yet.",
+}: {
+  title: string;
+  description: string;
+  assignments: any[];
+  emptyLabel?: string;
+}) {
+  return (
+    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{title}</p>
+          <p className="mt-2 text-sm text-slate-300">{description}</p>
+        </div>
+        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{assignments.length} tracked</Badge>
+      </div>
+      <div className="mt-4 space-y-3">
+        {assignments.length ? assignments.map((assignment: any) => (
+          <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
+                <p className="mt-1 text-sm text-slate-300">{assignment.journeyTitle} · {assignment.skillFocus}</p>
+              </div>
+              <StatusBadge value={assignment.status} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+              <span>{assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</span>
+              <span>·</span>
+              <span>Assigned by {assignment.requestedByRole}</span>
+            </div>
+          </div>
+        )) : (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 px-4 py-5 text-sm text-slate-400">{emptyLabel}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function GuidanceActionPanel({
   tenantId,
   suggestion,
@@ -4775,31 +4819,12 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
               <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
             </div>
-            {data.activeRetrainingAssignments?.length ? (
-              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learner retraining completion</p>
-                    <p className="mt-2 text-sm text-slate-300">Coach-visible completion chips stay attached to Nina's targeted retraining assignment so follow-through is easy to confirm.</p>
-                  </div>
-                  <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{data.activeRetrainingAssignments.length} tracked</Badge>
-                </div>
-                <div className="mt-4 space-y-3">
-                  {data.activeRetrainingAssignments.map((assignment: any) => (
-                    <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
-                          <p className="mt-1 text-sm text-slate-300">{assignment.journeyTitle} · {assignment.skillFocus}</p>
-                        </div>
-                        <StatusBadge value={assignment.status} />
-                      </div>
-                      <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{assignment.status === "completed" && assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+            <RetrainingHistorySection
+              title="Retraining completion history"
+              description="Coach-visible history keeps past retraining outcomes attached to Nina's supervision lane so follow-through remains easy to confirm over time."
+              assignments={data.retrainingHistory ?? []}
+              emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules."
+            />
             <GuidanceActionPanel
               tenantId={data.tenant.id}
               suggestion={data.aiSuggestion}
@@ -5123,23 +5148,14 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                         <p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p>
                       </div>
                     </div>
-                    {coverage.retrainingAssignments?.length ? (
-                      <div className="mt-4 space-y-3">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Targeted retraining completion</p>
-                        {coverage.retrainingAssignments.map((assignment: any) => (
-                          <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
-                                <p className="mt-1 text-sm text-slate-300">{assignment.journeyTitle} · {assignment.skillFocus}</p>
-                              </div>
-                              <StatusBadge value={assignment.status} />
-                            </div>
-                            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{assignment.status === "completed" && assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
+                    <div className="mt-4">
+                      <RetrainingHistorySection
+                        title="Targeted retraining history"
+                        description="Managers can review the current retraining outcome and prior completions without leaving the coach-oversight lane."
+                        assignments={coverage.retrainingHistory ?? []}
+                        emptyLabel="Past retraining completions will appear here once the direct report finishes earlier assignments."
+                      />
+                    </div>
                   </div>
                 ))}
                 <WeeklyCoachingLogTimeline
@@ -5223,7 +5239,8 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
 function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const learnerModules = data.activeJourney.modules;
   const primaryLearnerModule = learnerModules[0] ?? null;
-  const activeRetrainingAssignment = data.retrainingAssignments?.[0] ?? null;
+  const activeRetrainingAssignment = data.currentRetrainingAssignment ?? data.retrainingAssignments?.[0] ?? null;
+  const retrainingHistory = data.retrainingHistory ?? [];
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
   const utils = trpc.useUtils();
@@ -5291,6 +5308,13 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
           </div>
         </div>
+      ) : null}
+      {retrainingHistory.length ? (
+        <RetrainingHistorySection
+          title="Past retraining history"
+          description="Your learner workspace now keeps earlier assigned modules visible after completion so you can review what was already finished before the next intervention starts."
+          assignments={retrainingHistory}
+        />
       ) : null}
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />

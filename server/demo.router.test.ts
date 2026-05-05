@@ -94,10 +94,20 @@ describe("demo router", () => {
       ]),
     );
     expect(manager.workflowLibraryMix.documentationResources.length).toBeGreaterThan(0);
-    expect(manager.activeRetrainingAssignments[0]).toEqual(
+    expect(manager.currentRetrainingAssignment).toEqual(
       expect.objectContaining({
+        id: "retraining-seeded-1",
         status: expect.any(String),
       }),
+    );
+    expect(manager.retrainingHistory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-0",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
     );
   });
 
@@ -131,10 +141,20 @@ describe("demo router", () => {
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
     );
-    expect(learner.retrainingAssignments[0]).toEqual(
+    expect(learner.currentRetrainingAssignment).toEqual(
       expect.objectContaining({
+        id: "retraining-seeded-1",
         status: expect.any(String),
       }),
+    );
+    expect(learner.retrainingHistory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-0",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
     );
   });
 
@@ -766,13 +786,19 @@ it("denies CHCG Admin controls to non-admin users", async () => {
     expect(assignment.moduleId).toBe("mod-sf-2");
 
     const managerView = await coachCaller.demo.manager({ tenantId: "atlas-operations" });
-    expect(managerView.activeRetrainingAssignments).toEqual(
+    expect(managerView.currentRetrainingAssignment).toEqual(
+      expect.objectContaining({
+        id: assignment.id,
+        moduleId: "mod-sf-2",
+        requestedByRole: "coach",
+        status: "assigned",
+      }),
+    );
+    expect(managerView.retrainingHistory).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: assignment.id,
-          moduleId: "mod-sf-2",
-          requestedByRole: "coach",
-          status: "assigned",
+          id: "retraining-seeded-0",
+          status: "completed",
         }),
       ]),
     );
@@ -804,11 +830,30 @@ it("denies CHCG Admin controls to non-admin users", async () => {
           status: "completed",
           completedAt: expect.any(String),
         }),
+        expect.objectContaining({
+          id: "retraining-seeded-0",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
+    );
+    expect(learnerView.retrainingHistory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+        expect.objectContaining({
+          id: "retraining-seeded-0",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
       ]),
     );
 
     const coachView = await learnerCaller.demo.coach({ tenantId: "atlas-operations" });
-    expect(coachView.activeRetrainingAssignments).toEqual(
+    expect(coachView.retrainingAssignments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: "retraining-seeded-1",
@@ -817,12 +862,40 @@ it("denies CHCG Admin controls to non-admin users", async () => {
         }),
       ]),
     );
-
-    const managerView = await learnerCaller.demo.manager({ tenantId: "atlas-operations" });
-    expect(managerView.coachCoverage[0]?.retrainingAssignments).toEqual(
+    expect(coachView.retrainingHistory).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+        expect.objectContaining({
+          id: "retraining-seeded-0",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
+    );
+
+    const managerView = await learnerCaller.demo.manager({ tenantId: "atlas-operations" });
+    expect(managerView.retrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+      ]),
+    );
+    expect(managerView.coachCoverage[0]?.retrainingHistory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "retraining-seeded-1",
+          status: "completed",
+          completedAt: expect.any(String),
+        }),
+        expect.objectContaining({
+          id: "retraining-seeded-0",
           status: "completed",
           completedAt: expect.any(String),
         }),

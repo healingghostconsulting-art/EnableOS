@@ -1084,6 +1084,27 @@ const retrainingAssignments: RetrainingAssignment[] = [
     createdAt: "2026-05-05T12:00:00Z",
     dueAt: "2026-05-07T12:00:00Z",
   },
+  {
+    id: "retraining-seeded-0",
+    tenantId: "atlas-operations",
+    learnerUserId: "u-learn-1",
+    journeyId: "journey-service-foundations",
+    journeyTitle: "Service Foundations",
+    moduleId: "mod-sf-1",
+    moduleTitle: "Active listening in high-friction interactions",
+    moduleFormat: "Scenario",
+    skillFocus: "Listening precision",
+    sourceSuggestionId: "suggest-archive-1",
+    requestedByRole: "coach",
+    requestedByUserId: "u-coach-1",
+    deliveryMode: "manual_override",
+    summary: "Reinforce calm acknowledgment and paraphrasing before the next coaching cycle.",
+    guidanceNote: "Renee Lawson assigned a focused listening refresher after the prior QA review and the learner completed it before the next weekly coaching log.",
+    status: "completed",
+    createdAt: "2026-04-18T14:00:00Z",
+    dueAt: "2026-04-20T14:00:00Z",
+    completedAt: "2026-04-19T18:05:00Z",
+  },
 ];
 
 const documentationEntries: DocumentationEntry[] = [
@@ -1383,8 +1404,21 @@ function getRetrainingAssignmentsForLearner(tenantId: string, learnerUserId: str
         return rankDelta;
       }
 
+      const completedAtDelta = (right.completedAt ?? "").localeCompare(left.completedAt ?? "");
+      if (completedAtDelta !== 0) {
+        return completedAtDelta;
+      }
+
       return right.createdAt.localeCompare(left.createdAt);
     });
+}
+
+function getCurrentRetrainingAssignment(assignments: RetrainingAssignment[]) {
+  return assignments.find((assignment) => assignment.status !== "completed") ?? assignments[0] ?? null;
+}
+
+function getHistoricalRetrainingAssignments(assignments: RetrainingAssignment[], currentAssignmentId?: string | null) {
+  return assignments.filter((assignment) => assignment.id !== currentAssignmentId);
 }
 
 function getSuggestedRetrainingTarget(suggestion: AiSuggestion) {
@@ -2159,7 +2193,12 @@ export function getManagerDashboard(tenantId?: string) {
   const directReportLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
   const coachingSessions = getTenantCoachingSessions(tenant.id);
   const aiSuggestion = aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.managerUserId === manager.id) ?? aiSuggestions[0];
-  const activeRetrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
+  const activeRetrainingAssignments = currentRetrainingAssignment && currentRetrainingAssignment.status !== "completed"
+    ? [currentRetrainingAssignment]
+    : [];
+  const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);
   const retrainingCatalog = journeys
     .filter((journey) => journey.tenantId === tenant.id)
     .map((journey) => ({
@@ -2180,7 +2219,9 @@ export function getManagerDashboard(tenantId?: string) {
       coachingSessions: coachingSessions.filter((session) => session.learnerUserId === learner.id),
       weeklyCoachingLogs: directReportLogs,
       latestLog: directReportLogs[0] ?? null,
-      retrainingAssignments: activeRetrainingAssignments.filter((assignment) => assignment.learnerUserId === learner.id),
+      currentRetrainingAssignment,
+      retrainingAssignments,
+      retrainingHistory,
     },
   ];
 
@@ -2199,7 +2240,10 @@ export function getManagerDashboard(tenantId?: string) {
     reviewLogs: getReviewLogs(tenant.id, learner.id),
     weeklyCoachingLogs: directReportLogs,
     aiSuggestion,
+    currentRetrainingAssignment,
     activeRetrainingAssignments,
+    retrainingAssignments,
+    retrainingHistory,
     retrainingCatalog,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
     rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
@@ -2218,7 +2262,12 @@ export function getCoachDashboard(tenantId?: string) {
   const openSignals = getTenantSignals(tenant.id).slice(0, 3);
   const weeklyLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
   const aiSuggestion = aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.learnerUserId === learner.id) ?? aiSuggestions[0];
-  const activeRetrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
+  const activeRetrainingAssignments = currentRetrainingAssignment && currentRetrainingAssignment.status !== "completed"
+    ? [currentRetrainingAssignment]
+    : [];
+  const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);
   const retrainingCatalog = journeys
     .filter((journey) => journey.tenantId === tenant.id)
     .map((journey) => ({
@@ -2248,7 +2297,10 @@ export function getCoachDashboard(tenantId?: string) {
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     aiSuggestion,
+    currentRetrainingAssignment,
     activeRetrainingAssignments,
+    retrainingAssignments,
+    retrainingHistory,
     retrainingCatalog,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "coach" || item.audience === "manager" || item.audience === "all")).slice(0, 4),
     workflowLibraryMix,
@@ -2261,6 +2313,8 @@ export function getLearnerDashboard(tenantId?: string) {
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "learner");
   const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
+  const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
+  const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);
 
   return {
     tenant,
@@ -2268,7 +2322,9 @@ export function getLearnerDashboard(tenantId?: string) {
     learner,
     activeJourney: getTenantJourneys(tenant.id, "learner"),
     assignedInterventions: getTenantInterventions(tenant.id).filter((item) => item.assigneeUserId === learner.id),
+    currentRetrainingAssignment,
     retrainingAssignments,
+    retrainingHistory,
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "learner" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     documentationEntries: getDocumentationEntries(tenant.id, learner.id),

@@ -193,3 +193,6 @@
 - [x] Add retraining completion-status chips for manager and coach oversight once the learner finishes the assigned module
 - [x] Add learner-side demo completion handling so retraining status can update during walkthroughs
 - [x] Validate completion-status chips with tests, type checks, and browser review
+- [x] Show retraining completion history for past assignments across learner, coach, and manager views
+- [x] Extend retraining assignment data and UI sections so active and historical modules are both visible during walkthroughs
+- [x] Validate retraining completion history with tests, type checks, and browser review
