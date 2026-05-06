@@ -17,3 +17,15 @@ On `/manager`, the coach direct-report oversight lane now includes a dedicated *
 On `/manager`, the coach-oversight lane now shows a **History window** control with **Week** and **Month** options above targeted retraining history. In the live preview, the default month view displayed **2 tracked** completed assignments, and after switching to **Week**, the panel narrowed to **1 tracked** recent completion while preserving the same oversight context.
 
 On `/manager`, the coach-oversight lane now includes an **Export CSV** action beside the **Week** and **Month** history window controls. After re-triggering the month export following the download-flow fix, the browser saved `/home/ubuntu/Downloads/nina-patel-retraining-history-month.csv` with two filtered history rows and the expected columns: `module_title`, `journey_title`, `skill_focus`, `completion_date`, and `assigning_role`.
+
+Inspection notes for the CHCG redesign pass: the landing experience currently places the search block before the primary sign-in CTA in `LandingView`, the shared workspace shell in `DashboardLayout.tsx` keeps all protected routes on a very dark navy gradient, and the live training simulator currently exposes only three guided visuals for the learner path in the course-player hero. The training route confirmed the slide gallery is functioning, but the current visual coverage feels too limited relative to the broader deck-based training expectation described by the user.
+
+## 2026-05-06 CHCG redesign inspection
+
+The landing hero at `/` now presents the primary sign-in and resume actions before the search block, which matches the requested entry sequence and makes the initial path feel more natural.
+
+The overall shell is noticeably lighter, with white and light-neutral surfaces around the mission hub and a clearer navy-and-gold CHCG treatment replacing the prior all-dark first impression.
+
+The training simulator at `/training` now exposes a much larger visual navigator that includes generated **Brief**, **Practice**, and **Apply** slides in addition to mapped presentation visuals, confirming broader slide coverage instead of the earlier deck-only set.
+
+The training route still needs one final contrast pass in the upper instructional hero area because some top-of-page copy appears too low-contrast against the new light background in the current preview.

@@ -50,7 +50,15 @@ import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
-import { buildLessonNarrationScript, buildSlideInteraction, evaluateCoachCheckpointResponse, evaluateSlideInteraction, getSlideCanvasVisuals } from "../../../shared/trainingPlayer";
+import {
+  buildLessonNarrationScript,
+  buildSlideInteraction,
+  buildTrainingVisualGallery,
+  evaluateCoachCheckpointResponse,
+  evaluateSlideInteraction,
+  getSlideCanvasVisuals,
+  type TrainingGalleryVisual,
+} from "../../../shared/trainingPlayer";
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
@@ -120,8 +128,8 @@ function SectionShell({
             {eyebrow}
           </Badge>
           <div className="max-w-[54rem] space-y-3 xl:max-w-[60rem]">
-            <h1 className="max-w-[16ch] text-[2.45rem] font-semibold leading-[1.06] tracking-tight text-white sm:text-[2.95rem] xl:max-w-[17ch] xl:text-[3.1rem]">{title}</h1>
-            <p className="max-w-[56rem] text-base leading-8 text-slate-200/88 xl:text-[1.08rem]">{description}</p>
+            <h1 className="max-w-[16ch] text-[2.45rem] font-semibold leading-[1.06] tracking-tight text-[#1B303C] sm:text-[2.95rem] xl:max-w-[17ch] xl:text-[3.1rem]">{title}</h1>
+            <p className="max-w-[56rem] text-base leading-8 text-[#4A6373] xl:text-[1.08rem]">{description}</p>
           </div>
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-3.5 xl:justify-end">{actions}</div> : null}
@@ -133,7 +141,7 @@ function SectionShell({
 
 function PremiumCard({ className = "", children, id }: { className?: string; children: React.ReactNode; id?: string }) {
   return (
-    <Card id={id} className={`glass-panel energy-frame border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(15,23,42,0.48)] backdrop-blur-2xl ${className}`}>
+    <Card id={id} className={`energy-frame border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] shadow-[0_28px_90px_rgba(27,48,60,0.18)] backdrop-blur-2xl ${className}`}>
       {children}
     </Card>
   );
@@ -150,7 +158,7 @@ function TenantPicker({
 }) {
   return (
     <Select value={tenantId} onValueChange={setTenantId}>
-      <SelectTrigger className="w-[260px] border-white/10 bg-slate-950/70 text-slate-100">
+      <SelectTrigger className="w-[260px] border-[#1B303C]/10 bg-white text-[#1B303C] shadow-sm">
         <SelectValue placeholder="Choose tenant" />
       </SelectTrigger>
       <SelectContent>
@@ -317,17 +325,17 @@ function RetrainingHistorySection({
   emptyLabel?: string;
 }) {
   return (
-    <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+    <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{title}</p>
           <p className="mt-2 text-sm text-slate-300">{description}</p>
         </div>
-        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{assignments.length} tracked</Badge>
+        <Badge className="rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/18 text-white">{assignments.length} tracked</Badge>
       </div>
       <div className="mt-4 space-y-3">
         {assignments.length ? assignments.map((assignment: any) => (
-          <div key={assignment.id} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+          <div key={assignment.id} className="rounded-2xl border border-white/10 bg-[#142129] p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-white">{assignment.moduleTitle}</p>
@@ -342,8 +350,46 @@ function RetrainingHistorySection({
             </div>
           </div>
         )) : (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 px-4 py-5 text-sm text-slate-400">{emptyLabel}</div>
+          <div className="rounded-2xl border border-dashed border-white/10 bg-[#142129] px-4 py-5 text-sm text-slate-400">{emptyLabel}</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function TrainingVisualFrame({ visual, compact = false }: { visual: TrainingGalleryVisual; compact?: boolean }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showFallback = !visual.imageUrl || imageFailed;
+
+  if (!showFallback) {
+    return (
+      <img
+        src={visual.imageUrl ?? undefined}
+        alt={visual.title}
+        className="max-h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.02]"
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={`flex h-full w-full flex-col justify-between rounded-[inherit] border border-white/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.96),rgba(20,33,41,0.98))] text-white ${compact ? "p-3" : "p-5"}`}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className="rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/15 text-[#FCBC34]">{visual.pageLabel}</Badge>
+          <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-200">{visual.stageLabel}</Badge>
+        </div>
+        <div>
+          <p className={`${compact ? "text-sm" : "text-xl"} font-semibold tracking-tight text-white`}>{visual.title}</p>
+          <p className={`mt-2 ${compact ? "text-xs leading-5" : "text-sm leading-6"} text-slate-300`}>{visual.caption}</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {(visual.bullets.length ? visual.bullets : [visual.narrative]).slice(0, compact ? 2 : 3).map((bullet, index) => (
+          <div key={`${visual.id}-bullet-${index}`} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-left text-xs leading-5 text-slate-200">
+            {bullet}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -531,9 +577,9 @@ function LoadingState() {
 
 function Surface({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="min-h-screen text-[#1B303C]">
       <div className="container py-10 sm:py-12">
-        <div className="grid-noise rounded-[2.25rem] border border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-0 sm:p-1">
+        <div className="grid-noise rounded-[2.25rem] border border-[#1B303C]/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(247,248,250,0.92))] p-0 sm:p-1">
           {children}
         </div>
       </div>
@@ -908,8 +954,8 @@ export function LandingView() {
 
   return (
     <Surface>
-      <div className="space-y-10">
-        <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-white/10 bg-white/[0.05] shadow-[0_36px_140px_rgba(8,15,30,0.62)]">
+            <div className="space-y-10">
+        <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-[#1B303C]/10 bg-white shadow-[0_32px_120px_rgba(27,48,60,0.12)]">
           <div className="grid gap-10 px-8 py-10 xl:grid-cols-[minmax(0,1.28fr)_minmax(21rem,0.72fr)] md:px-12 md:py-14">
             <div className="space-y-8">
               <div className="space-y-5">
@@ -917,23 +963,45 @@ export function LandingView() {
                   CHCG EnableOS mission hub
                 </Badge>
                 <div className="max-w-[56rem] space-y-4">
-                  <h1 className="max-w-[12ch] text-[2.95rem] font-semibold tracking-tight text-white md:text-[3.95rem] md:leading-[1.04] xl:text-[4.45rem]">
+                  <h1 className="max-w-[12ch] text-[2.95rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.95rem] md:leading-[1.04] xl:text-[4.45rem]">
                     Turn enablement into a live performance mission, not a static training portal.
                   </h1>
-                  <p className="max-w-3xl text-base leading-8 text-slate-200/86 md:text-[1.14rem]">
+                  <p className="max-w-3xl text-base leading-8 text-[#4A6373] md:text-[1.14rem]">
                     CHCG EnableOS now frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace.
                   </p>
                 </div>
-                <div className="glass-panel max-w-3xl space-y-3 rounded-[1.8rem] border border-white/10 bg-slate-950/45 p-4 md:p-5">
-                  <label className="block space-y-2 text-sm text-slate-200">
+                <div className="space-y-5 rounded-[1.9rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-5 xl:p-6">
+                  <div className="grid gap-3 xl:grid-cols-2">
+                    <Link href="/learner" className="min-w-0">
+                      <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
+                        <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
+                        <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
+                      </Button>
+                    </Link>
+                    <Link href="/training" className="min-w-0">
+                      <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
+                        <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
+                    <p className="max-w-[62rem] text-[15px] leading-7 text-[#4A6373] xl:text-[1.02rem]">
+                      {viewerAccess.data
+                        ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                        : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
+                    </p>
+                  </div>
+                </div>
+                <div className="glass-panel max-w-3xl space-y-3 rounded-[1.8rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
+                  <label className="block space-y-2 text-sm text-[#1B303C]">
                     <span>Search missions, training tracks, and workspaces</span>
-                    <div className="flex items-center gap-3 rounded-2xl border border-cyan-300/12 bg-slate-950/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                      <Search className="h-4 w-4 text-slate-500" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                      <Search className="h-4 w-4 text-[#4A6373]" />
                       <input
                         value={landingSearchQuery}
                         onChange={(event) => setLandingSearchQuery(event.target.value)}
                         placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
-                        className="w-full bg-transparent text-white outline-none placeholder:text-slate-500"
+                        className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
                       />
                     </div>
                   </label>
@@ -941,42 +1009,21 @@ export function LandingView() {
                     <div className="grid gap-3 md:grid-cols-2">
                       {landingSearchResults.length > 0 ? landingSearchResults.map((result) => (
                         <Link key={`${result.href}-${result.title}`} href={result.href}>
-                          <button type="button" className="w-full rounded-[1.35rem] border border-white/10 bg-white/6 p-4 text-left transition hover:bg-white/10">
-                            <p className="text-sm font-medium text-white">{result.title}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-300">{result.subtitle}</p>
-                            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-cyan-200/80">{result.cta}</p>
+                          <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-left transition hover:border-[#FCBC34]/30 hover:bg-white">
+                            <p className="text-sm font-medium text-[#1B303C]">{result.title}</p>
+                            <p className="mt-2 text-xs leading-5 text-[#4A6373]">{result.subtitle}</p>
+                            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{result.cta}</p>
                           </button>
                         </Link>
                       )) : (
-                        <div className="rounded-[1.35rem] border border-white/10 bg-white/6 p-4 text-sm text-slate-300 md:col-span-2">
+                        <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-sm text-[#4A6373] md:col-span-2">
                           No training or workspace results match that search yet. Try a track name, role, or skill keyword.
                         </div>
                       )}
                     </div>
                   ) : null}
                 </div>
-              </div>
-              <div className="space-y-5 rounded-[1.9rem] border border-white/10 bg-white/[0.045] p-5 xl:p-6">
-                <div className="grid gap-3 xl:grid-cols-2">
-                  <Link href="/learner" className="min-w-0">
-                    <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-slate-950 hover:bg-slate-100 xl:text-[15px]">
-                      <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
-                      <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
-                    </Button>
-                  </Link>
-                  <Link href="/training" className="min-w-0">
-                    <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-white/12 bg-white/6 px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-white/12 hover:text-white xl:text-[15px]">
-                      <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
-                    </Button>
-                  </Link>
-                </div>
-                <div className="rounded-[1.4rem] border border-white/8 bg-slate-950/18 px-4 py-3.5">
-                  <p className="max-w-[62rem] text-[15px] leading-7 text-slate-200/88 xl:text-[1.02rem]">
-                    {viewerAccess.data
-                      ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                      : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
-                  </p>
-                </div>
+
                 <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
                   {Object.values(roleMeta).map((item: any) => (
                     <Link key={item.route} href={item.route} className="min-w-0">
@@ -1468,11 +1515,10 @@ export function TrainingExperienceView() {
     skillFocus: selectedModule?.skillFocus ?? "Behavior change",
     presentation,
   });
-  const deckVisuals = presentation?.deckVisuals ?? [];
+  const trainingVisuals = useMemo(() => (presentation ? buildTrainingVisualGallery(presentation) : []), [presentation]);
   const insightCharts = presentation?.insightCharts ?? [];
-  const slideCanvas = getSlideCanvasVisuals(deckVisuals, selectedDeckVisualIndex);
+  const slideCanvas = getSlideCanvasVisuals(trainingVisuals, selectedDeckVisualIndex);
   const featuredDeckVisual = slideCanvas.activeVisual;
-  const contextualDeckVisual = getSlideCanvasVisuals(deckVisuals, lessonPageIndex).activeVisual ?? featuredDeckVisual;
   const moduleFamilyLabel = featuredDeckVisual?.sourceDeck ?? presentation?.evidenceLabel ?? selectedModule?.format ?? "CHCG learning module";
   const completedModuleCount = modules.filter((module: any) => module.completionRate >= 80).length;
   const nextRecommendedModule = modules[moduleIndex + 1] ?? null;
@@ -1553,6 +1599,8 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
+  const stageVisuals = currentStage ? trainingVisuals.filter((visual) => visual.stageId === currentStage.id) : [];
+  const contextualDeckVisual = stageVisuals[Math.min(lessonPageIndex, Math.max(stageVisuals.length - 1, 0))] ?? featuredDeckVisual;
   const currentSlideInteraction = buildSlideInteraction(currentLessonPage, selectedModule?.skillFocus ?? "", lessonPageIndex);
   const slideInteractionPassed = Boolean(slideInteractionResult?.passed);
   const slideInteractionProgress = currentSlideInteraction?.kind === "click_to_reveal"
@@ -1607,9 +1655,9 @@ export function TrainingExperienceView() {
       }))
     : [];
   const lessonSignalCards = (activeChart?.data ?? []).slice(0, 3);
-  const lessonVisualGallery = deckVisuals
+  const lessonVisualGallery = stageVisuals
     .filter((visual, index, collection) => collection.findIndex((candidate) => candidate.id === visual.id) === index)
-    .slice(0, 3);
+    .slice(0, 6);
   const interactiveGalleryVisuals = lessonVisualGallery.length
     ? lessonVisualGallery
     : contextualDeckVisual
@@ -2321,7 +2369,7 @@ export function TrainingExperienceView() {
               <MetricCard label="Mapped assets" value={String(supportingAssets.length)} supporting="CHCG and tenant materials blended into this lesson" icon={<Layers3 className="h-4 w-4" />} />
             </div>
 
-            {deckVisuals.length > 0 ? (
+            {trainingVisuals.length > 0 ? (
               <PremiumCard className="overflow-hidden">
                 <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.42))] pb-6">
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2336,7 +2384,7 @@ export function TrainingExperienceView() {
                     <div className="grid gap-3 sm:grid-cols-3">
                       <div className="rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3">
                         <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Visual pages</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{deckVisuals.length}</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{trainingVisuals.length}</p>
                       </div>
                       <div className="rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-3">
                         <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Evidence graphs</p>
@@ -2362,21 +2410,21 @@ export function TrainingExperienceView() {
                         </div>
                         <div className="bg-slate-950/90 p-4 sm:p-5">
                           <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:px-6 sm:py-5">
-                            <img src={featuredDeckVisual.imageUrl} alt={featuredDeckVisual.title} className="max-h-full w-full object-contain object-center" />
+                            <TrainingVisualFrame visual={featuredDeckVisual} />
                           </div>
                         </div>
                       </div>
                     ) : null}
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                      {deckVisuals.map((visual, index) => (
+                      {trainingVisuals.map((visual, index) => (
                         <button
                           key={visual.id}
                           type="button"
                           onClick={() => setSelectedDeckVisualIndex(index)}
-                          className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_20px_50px_rgba(6,182,212,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                          className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-[#FCBC34]/45 bg-[#FCBC34]/12 shadow-[0_20px_50px_rgba(252,188,52,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                         >
                           <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80 px-2 py-2">
-                            <img src={visual.imageUrl} alt={visual.title} className="max-h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.02]" />
+                            <TrainingVisualFrame visual={visual} compact />
                           </div>
                           <div className="mt-3">
                             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{visual.pageLabel}</p>
@@ -2391,7 +2439,7 @@ export function TrainingExperienceView() {
                       <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge>
-                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{featuredDeckVisual.sourceDeck}</Badge>
+                          <Badge className="rounded-full border-[#FCBC34]/20 bg-[#FCBC34]/12 text-[#FCBC34]">{featuredDeckVisual.sourceDeck}</Badge>
                         </div>
                         <h3 className="mt-4 text-2xl font-semibold text-white">{featuredDeckVisual.title}</h3>
                         <p className="mt-3 text-sm leading-7 text-slate-300">{featuredDeckVisual.caption}</p>
@@ -2938,19 +2986,31 @@ export function TrainingExperienceView() {
                                         >
                                           Next slide
                                         </Button>
-                                        <a href={activeInteractiveVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 hover:text-white">
-                                          Open full-size slide
-                                        </a>
+                                        {activeInteractiveVisual.imageUrl ? (
+                                          <a href={activeInteractiveVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-4 py-2 text-sm font-medium text-[#FCBC34] transition hover:border-[#FCBC34]/50 hover:bg-[#FCBC34]/15 hover:text-white">
+                                            Open full-size slide
+                                          </a>
+                                        ) : (
+                                          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-slate-300">
+                                            Generated lesson visual
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     <button
                                       type="button"
-                                      onClick={() => window.open(activeInteractiveVisual.imageUrl, "_blank", "noopener,noreferrer")}
-                                      className="mt-4 block w-full overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80 text-left transition hover:border-cyan-300/30"
+                                      onClick={() => {
+                                        if (activeInteractiveVisual.imageUrl) {
+                                          window.open(activeInteractiveVisual.imageUrl, "_blank", "noopener,noreferrer");
+                                        }
+                                      }}
+                                      className="mt-4 block w-full overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80 text-left transition hover:border-[#FCBC34]/30"
                                     >
                                       <div className="overflow-x-auto overflow-y-hidden rounded-[1.35rem] border border-white/6 bg-black/30">
                                         <div className="flex min-h-[18rem] min-w-full items-center justify-center px-4 py-4 sm:min-h-[24rem] sm:px-6 sm:py-6 lg:min-h-[30rem]">
-                                          <img src={activeInteractiveVisual.imageUrl} alt={activeInteractiveVisual.title} className="h-auto min-w-[980px] max-w-none rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]" />
+                                          <div className="flex h-full min-h-[16rem] w-full min-w-[980px] items-center justify-center rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]">
+                                            <TrainingVisualFrame visual={activeInteractiveVisual} />
+                                          </div>
                                         </div>
                                       </div>
                                     </button>
@@ -2977,7 +3037,9 @@ export function TrainingExperienceView() {
                                         {interactiveGalleryVisuals.map((visual, index) => (
                                           <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${activeInteractiveVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10 shadow-[0_16px_40px_rgba(6,182,212,0.14)]" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
                                             <div className="flex min-h-[10rem] items-center justify-center overflow-hidden bg-slate-950/85 px-3 py-3">
-                                              <img src={visual.imageUrl} alt={visual.title} className="max-h-40 rounded-lg object-contain object-center" />
+                                              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg">
+                                                <TrainingVisualFrame visual={visual} compact />
+                                              </div>
                                             </div>
                                             <div className="border-t border-white/10 px-3 py-3">
                                               <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{visual.pageLabel}</p>

@@ -202,3 +202,7 @@
 - [x] Add a manager export action for the currently filtered retraining history
 - [x] Include completion dates and assigning roles in the exported retraining history output
 - [x] Validate the manager filtered retraining-history export with tests, type checks, and browser review
+- [x] Fix missing slides and visual assets inside the training modules so all lesson pages render reliably
+- [x] Move the login section ahead of the search flow to create a more natural entry sequence
+- [x] Restyle the interface with lighter CHCG-branded backgrounds, Montserrat typography, and stronger contrast between page sections and training modules
+- [x] Validate the revised training slide experience and CHCG UI refresh with tests, type checks, and browser review

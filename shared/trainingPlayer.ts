@@ -1,5 +1,61 @@
 import type { TrainingDeckVisual, TrainingPresentation, TrainingPresentationSlide } from "./trainingContent";
 
+export type TrainingGalleryVisual = {
+  id: string;
+  title: string;
+  caption: string;
+  pageLabel: string;
+  sourceDeck: string;
+  imageUrl?: string | null;
+  narrative: string;
+  bullets: string[];
+  stageId: "deck" | "brief" | "practice" | "apply";
+  stageLabel: string;
+  visualType: "deck" | "generated";
+};
+
+export function buildTrainingVisualGallery(presentation: TrainingPresentation): TrainingGalleryVisual[] {
+  const deckVisuals: TrainingGalleryVisual[] = presentation.deckVisuals.map((visual) => ({
+    ...visual,
+    narrative: visual.caption,
+    bullets: [],
+    stageId: "deck",
+    stageLabel: "Presentation",
+    visualType: "deck",
+  }));
+
+  const generatedVisuals: TrainingGalleryVisual[] = [
+    { stageId: "brief" as const, stageLabel: "Brief", slides: presentation.slides },
+    { stageId: "practice" as const, stageLabel: "Practice", slides: presentation.practiceSlides },
+    { stageId: "apply" as const, stageLabel: "Apply", slides: presentation.applySlides },
+  ].flatMap(({ stageId, stageLabel, slides }) =>
+    slides.map((slide, index) => ({
+      id: `generated-${stageId}-${slide.id}`,
+      title: slide.title,
+      caption: slide.narrative,
+      pageLabel: `${stageLabel} ${index + 1}`,
+      sourceDeck: presentation.heroTitle,
+      imageUrl: null,
+      narrative: slide.narrative,
+      bullets: slide.bullets.slice(0, 3),
+      stageId,
+      stageLabel,
+      visualType: "generated",
+    })),
+  );
+
+  const seenKeys = new Set<string>();
+
+  return [...deckVisuals, ...generatedVisuals].filter((visual) => {
+    const key = `${visual.stageId}:${visual.pageLabel}:${visual.title}`;
+    if (seenKeys.has(key)) {
+      return false;
+    }
+    seenKeys.add(key);
+    return true;
+  });
+}
+
 export function clampSlideSelection(selectedIndex: number, visualCount: number) {
   if (visualCount <= 0) {
     return 0;
@@ -16,12 +72,12 @@ export function clampSlideSelection(selectedIndex: number, visualCount: number) 
   return selectedIndex;
 }
 
-export function getSlideCanvasVisuals(deckVisuals: TrainingDeckVisual[], selectedIndex: number) {
+export function getSlideCanvasVisuals<T>(deckVisuals: T[], selectedIndex: number) {
   if (!deckVisuals.length) {
     return {
       activeIndex: 0,
-      activeVisual: null,
-      visuals: [] as TrainingDeckVisual[],
+      activeVisual: null as T | null,
+      visuals: [] as T[],
     };
   }
 
