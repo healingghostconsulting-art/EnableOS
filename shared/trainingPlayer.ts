@@ -552,7 +552,8 @@ export function buildLessonNarrationScript(
 ) {
   if (currentLessonPage) {
     const bulletNarration = currentLessonPage.bullets.slice(0, 3).join(" ");
-    return `${currentLessonPage.title}. ${currentLessonPage.narrative} ${bulletNarration}`.trim();
+    const speakerNoteNarration = currentLessonPage.speakerNotes?.slice(0, 2).join(" ") ?? "";
+    return `${currentLessonPage.title}. ${currentLessonPage.narrative} ${bulletNarration} ${speakerNoteNarration}`.trim();
   }
 
   return presentation?.heroSummary ?? "Narration becomes available when a lesson page is active.";

@@ -212,3 +212,11 @@
 - [x] Add a smooth sliding animation to the collapsible CHCG sidebar
 - [x] Clarify the sidebar chevron state so collapse and expand feedback is more obvious
 - [x] Validate the updated sidebar animation and chevron behavior with tests, type checks, and browser review
+- [x] Review the three agent trainings and map each module goal to a stronger research-backed learning structure
+- [x] Research credible operational, healthcare, QA, and adult-learning sources to strengthen slide text, visuals, and narration for the three agent trainings
+- [x] Update the three agent trainings with more human-crafted copy, relevant visuals or statements, and CHCG-aligned speaker notes
+- [x] Validate the revised three agent trainings in the product experience after the content upgrade
+- [x] Reframe the three agent trainings around stronger internal content quality, flow, and polish rather than healthcare-focused evidence gathering
+- [x] Identify the highest-impact opportunities to enrich slide copy, supporting statements, visuals, and narration across the three agent trainings
+- [x] Upgrade the three agent trainings so each module feels more complete, intentional, and human-crafted
+- [x] Validate the revised three agent trainings in the product experience after the content-focused upgrade

@@ -84,6 +84,7 @@ describe("training player helpers", () => {
     expect(narrationScript).toContain(presentation.slides[0].title);
     expect(narrationScript).toContain(presentation.slides[0].narrative);
     expect(narrationScript).toContain(presentation.slides[0].bullets[0]);
+    expect(narrationScript).toContain(presentation.slides[0].speakerNotes?.[0] ?? "");
     expect(narrationScript).not.toContain("We must learn to let go");
   });
 

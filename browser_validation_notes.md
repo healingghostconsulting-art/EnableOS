@@ -35,3 +35,11 @@ The training route still needs one final contrast pass in the upper instructiona
 On `/learner`, the new desktop navigation control now collapses the CHCG sidebar fully off-canvas instead of shrinking to a narrow icon rail. After collapse, the learner content expands cleanly and a floating **Navigation** reopen button stays visible at the upper-left edge of the workspace.
 The updated learner sidebar now uses clearer directional chevrons: a left chevron on the in-sidebar collapse control and a right chevron on the floating reopen pill after collapse. In the live preview, the sidebar slides off-canvas cleanly and the content area remains stable while the reopen button stays anchored at the upper-left for quick restoration.
 After reopening the learner workspace sidebar, the full CHCG navigation returns without layout breakage and the left-facing collapse chevron is visible again inside the panel. The reopened state confirms the updated motion remains reversible and the directional chevron cues are now clearer between collapse and expand states.
+
+## 2026-05-06 three agent training content upgrade
+
+The live training simulator at `/training` successfully switched into the upgraded **Empathy and Reassurance** module, confirming that the rewritten module content is active in the product experience.
+
+The browser view surfaced the stronger, more human-crafted lesson framing directly in the module overview and slide navigator, including the updated copy **"Reassurance should sound steady, not inflated"** and **"What strong reassurance says and what risky reassurance hides."**
+
+The live module summary and coach-checkpoint prompts also reflected the rewritten tone, including the upgraded coaching language around specific reassurance, owned phrasing, and hidden promise-risk wording. Combined with the passing type check and passing Vitest run, this confirms the new speaker-note-aware training content is wired into the current experience.

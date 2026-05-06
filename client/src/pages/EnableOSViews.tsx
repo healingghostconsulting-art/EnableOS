@@ -2718,6 +2718,16 @@ export function TrainingExperienceView() {
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson narration script</p>
                                       <p className="mt-3 text-sm leading-7 text-slate-100">{narrationScript}</p>
                                     </div>
+                                    {currentLessonPage.speakerNotes?.length ? (
+                                      <div className="mt-4 rounded-[1.4rem] border border-amber-300/20 bg-amber-300/10 p-4">
+                                        <p className="text-xs uppercase tracking-[0.22em] text-amber-100/90">Speaker notes</p>
+                                        <div className="mt-3 space-y-3 text-sm leading-7 text-slate-100">
+                                          {currentLessonPage.speakerNotes.map((note) => (
+                                            <p key={note}>{note}</p>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : null}
                                   </div>
                                   <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                                     <div>
