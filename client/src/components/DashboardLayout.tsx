@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { Building2, Compass, Flame, LogOut, PanelLeft, Sparkles, Target, Trophy, type LucideIcon } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Compass, Flame, LogOut, Sparkles, Target, Trophy, type LucideIcon } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
@@ -51,6 +51,7 @@ export function getDesktopSidebarUiState({
   return {
     collapseMode: "offcanvas" as const,
     toggleLabel: isCollapsed ? "Open navigation" : "Collapse navigation",
+    toggleChevronDirection: isCollapsed ? "right" as const : "left" as const,
     showFloatingTrigger,
     mainPaddingClass: showFloatingTrigger ? "pt-20 md:pt-24" : "",
   };
@@ -224,14 +225,19 @@ function DashboardLayoutContent({
             <div className="glass-panel energy-frame rounded-[2rem] px-3 py-3">
               <div className="flex w-full items-start gap-3 px-1">
                   <button
+                    type="button"
                     onClick={toggleSidebar}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#1B303C]/10 bg-white transition-colors hover:bg-[#FCBC34]/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#1B303C]/10 bg-white shadow-[0_10px_24px_rgba(27,48,60,0.06)] transition-all duration-300 ease-out hover:-translate-x-0.5 hover:bg-[#FCBC34]/12 hover:shadow-[0_16px_36px_rgba(27,48,60,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label={desktopSidebarUi.toggleLabel}
+                    aria-expanded={!isCollapsed}
                     title={desktopSidebarUi.toggleLabel}
                   >
-
-                  <PanelLeft className="h-4 w-4 text-[#1B303C]" />
-                </button>
+                    {desktopSidebarUi.toggleChevronDirection === "left" ? (
+                      <ChevronLeft className="h-4 w-4 text-[#1B303C] transition-transform duration-300 ease-out group-hover:-translate-x-0.5" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-[#1B303C] transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
+                    )}
+                  </button>
                 {!isCollapsed ? (
                   <div className="min-w-0 flex-1 space-y-3">
                     <div className="flex items-center gap-3">
@@ -365,9 +371,10 @@ function DashboardLayoutContent({
             type="button"
             onClick={toggleSidebar}
             aria-label="Open navigation"
-            className="fixed left-4 top-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-[#1B303C]/12 bg-white/94 px-4 text-sm font-medium text-[#1B303C] shadow-[0_18px_48px_rgba(27,48,60,0.12)] backdrop-blur-xl transition hover:border-[#FCBC34]/60 hover:bg-[#FFFBF0]"
+            aria-expanded="false"
+            className="group fixed left-4 top-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-[#1B303C]/12 bg-white/94 px-4 text-sm font-medium text-[#1B303C] shadow-[0_18px_48px_rgba(27,48,60,0.12)] backdrop-blur-xl transition-all duration-300 ease-out hover:border-[#FCBC34]/60 hover:bg-[#FFFBF0] hover:shadow-[0_22px_54px_rgba(27,48,60,0.18)] data-[state=entering]:animate-in data-[state=entering]:slide-in-from-left-2"
           >
-            <PanelLeft className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
             <span>Navigation</span>
           </button>
         ) : null}

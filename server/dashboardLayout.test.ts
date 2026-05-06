@@ -7,6 +7,7 @@ describe("getDesktopSidebarUiState", () => {
     expect(getDesktopSidebarUiState({ isMobile: false, isCollapsed: true })).toEqual({
       collapseMode: "offcanvas",
       toggleLabel: "Open navigation",
+      toggleChevronDirection: "right",
       showFloatingTrigger: true,
       mainPaddingClass: "pt-20 md:pt-24",
     });
@@ -16,6 +17,7 @@ describe("getDesktopSidebarUiState", () => {
     expect(getDesktopSidebarUiState({ isMobile: false, isCollapsed: false })).toEqual({
       collapseMode: "offcanvas",
       toggleLabel: "Collapse navigation",
+      toggleChevronDirection: "left",
       showFloatingTrigger: false,
       mainPaddingClass: "",
     });
@@ -25,6 +27,7 @@ describe("getDesktopSidebarUiState", () => {
     expect(getDesktopSidebarUiState({ isMobile: true, isCollapsed: true })).toEqual({
       collapseMode: "offcanvas",
       toggleLabel: "Open navigation",
+      toggleChevronDirection: "right",
       showFloatingTrigger: false,
       mainPaddingClass: "",
     });

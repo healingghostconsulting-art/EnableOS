@@ -209,3 +209,6 @@
 - [x] Make the CHCG sidebar collapsible across the role workspaces
 - [x] Refine the compact sidebar state so navigation, branding, and profile areas remain usable when collapsed
 - [x] Validate the collapsible sidebar behavior with tests, type checks, and browser review
+- [x] Add a smooth sliding animation to the collapsible CHCG sidebar
+- [x] Clarify the sidebar chevron state so collapse and expand feedback is more obvious
+- [x] Validate the updated sidebar animation and chevron behavior with tests, type checks, and browser review

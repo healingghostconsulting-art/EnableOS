@@ -33,3 +33,5 @@ The training route still needs one final contrast pass in the upper instructiona
 ## 2026-05-06 collapsible sidebar validation
 
 On `/learner`, the new desktop navigation control now collapses the CHCG sidebar fully off-canvas instead of shrinking to a narrow icon rail. After collapse, the learner content expands cleanly and a floating **Navigation** reopen button stays visible at the upper-left edge of the workspace.
+The updated learner sidebar now uses clearer directional chevrons: a left chevron on the in-sidebar collapse control and a right chevron on the floating reopen pill after collapse. In the live preview, the sidebar slides off-canvas cleanly and the content area remains stable while the reopen button stays anchored at the upper-left for quick restoration.
+After reopening the learner workspace sidebar, the full CHCG navigation returns without layout breakage and the left-facing collapse chevron is visible again inside the panel. The reopened state confirms the updated motion remains reversible and the directional chevron cues are now clearer between collapse and expand states.
