@@ -220,3 +220,7 @@
 - [x] Identify the highest-impact opportunities to enrich slide copy, supporting statements, visuals, and narration across the three agent trainings
 - [x] Upgrade the three agent trainings so each module feels more complete, intentional, and human-crafted
 - [x] Validate the revised three agent trainings in the product experience after the content-focused upgrade
+- [x] Audit the full training experience for text overflow, clipped copy, and layouts where content does not fit its boxes
+- [x] Reformat training cards, panels, prompts, and controls so text fits cleanly or containers are resized/restructured appropriately
+- [x] Verify that every intended training interaction works reliably, including checkpoints, quizzes, reveal states, navigation, and action controls
+- [x] Validate the repaired training formatting and interactive behavior with tests, type checks, and browser review

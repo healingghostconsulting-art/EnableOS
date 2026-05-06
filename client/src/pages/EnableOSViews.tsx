@@ -373,20 +373,20 @@ function TrainingVisualFrame({ visual, compact = false }: { visual: TrainingGall
   }
 
   return (
-    <div className={`flex h-full w-full flex-col justify-between rounded-[inherit] border border-white/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.96),rgba(20,33,41,0.98))] text-white ${compact ? "p-3" : "p-5"}`}>
-      <div className="space-y-3">
+    <div className={`flex h-full w-full min-h-0 flex-col rounded-[inherit] border border-white/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.96),rgba(20,33,41,0.98))] text-white ${compact ? "p-3" : "p-5"}`}>
+      <div className="min-w-0 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className="rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/15 text-[#FCBC34]">{visual.pageLabel}</Badge>
           <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-200">{visual.stageLabel}</Badge>
         </div>
-        <div>
-          <p className={`${compact ? "text-sm" : "text-xl"} font-semibold tracking-tight text-white`}>{visual.title}</p>
-          <p className={`mt-2 ${compact ? "text-xs leading-5" : "text-sm leading-6"} text-slate-300`}>{visual.caption}</p>
+        <div className="min-w-0">
+          <p className={`${compact ? "line-clamp-2 text-sm" : "text-xl"} break-words font-semibold tracking-tight text-white`}>{visual.title}</p>
+          <p className={`mt-2 break-words ${compact ? "line-clamp-3 text-xs leading-5" : "text-sm leading-6"} text-slate-300`}>{visual.caption}</p>
         </div>
       </div>
-      <div className="space-y-2">
+      <div className={`mt-4 grid gap-2 ${compact ? "overflow-hidden" : "max-h-[12rem] overflow-y-auto pr-1"}`}>
         {(visual.bullets.length ? visual.bullets : [visual.narrative]).slice(0, compact ? 2 : 3).map((bullet, index) => (
-          <div key={`${visual.id}-bullet-${index}`} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-left text-xs leading-5 text-slate-200">
+          <div key={`${visual.id}-bullet-${index}`} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-2 text-left text-xs leading-5 text-slate-200 break-words">
             {bullet}
           </div>
         ))}
@@ -787,7 +787,7 @@ function AssessmentPanel({
           const questionOptions = question.options ?? [];
 
           return (
-            <div key={question.id} className={`rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
+            <div key={question.id} className={`min-w-0 overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
                   {assessment.style === "kahoot" ? `Quiz question ${questionIndex + 1}` : `Checkpoint question ${questionIndex + 1}`}
@@ -804,7 +804,7 @@ function AssessmentPanel({
                   )
                 ) : null}
               </div>
-              <h4 className="mt-3 text-lg font-medium text-white">{question.prompt}</h4>
+              <h4 className="mt-3 break-words text-lg font-medium text-white">{question.prompt}</h4>
               {question.type === "short_answer" ? (
                 <div className="mt-4 space-y-3">
                   <Textarea
@@ -838,10 +838,10 @@ function AssessmentPanel({
                         key={option.id}
                         type="button"
                         onClick={() => onAnswer(question.id, option.id)}
-                        className={`rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
+                        className={`min-w-0 overflow-hidden rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
                       >
-                        <p className="text-sm font-medium text-white">{option.label}</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">{option.rationale}</p>
+                        <p className="break-words text-sm font-medium text-white">{option.label}</p>
+                        <p className="mt-2 break-words text-sm leading-6 text-slate-300">{option.rationale}</p>
                         {submitted && selected ? (
                           <p className={`mt-3 text-sm ${isCorrect ? "text-emerald-300" : "text-rose-300"}`}>
                             {isCorrect ? question.successFeedback : question.failureFeedback}
@@ -1227,6 +1227,7 @@ export function TrainingExperienceView() {
   const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
   const [activeQuizTriggerId, setActiveQuizTriggerId] = useState<string | null>(null);
   const [dismissedQuizTriggerIds, setDismissedQuizTriggerIds] = useState<string[]>([]);
+  const [completedQuizTriggerIds, setCompletedQuizTriggerIds] = useState<string[]>([]);
   const [recentUnlockMoment, setRecentUnlockMoment] = useState<{ title: string; detail: string } | null>(null);
   const [coachCheckpointOpen, setCoachCheckpointOpen] = useState(false);
   const [coachCheckpointNote, setCoachCheckpointNote] = useState("");
@@ -1257,6 +1258,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setCompletedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
@@ -1280,6 +1282,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setCompletedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
@@ -1306,6 +1309,7 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
+    setCompletedQuizTriggerIds([]);
     setRecentUnlockMoment(null);
     setCoachCheckpointOpen(false);
     setCoachCheckpointNote("");
@@ -1532,6 +1536,7 @@ export function TrainingExperienceView() {
   const coachCheckpointReady = coachCheckpointWordCount >= 6;
   const coachCheckpointEvaluation = evaluateCoachCheckpointResponse(coachCheckpointNote);
   const coachCheckpointPassed = coachCheckpointSubmitted && coachCheckpointEvaluation.passed;
+  const narrationSupported = typeof window !== "undefined" && "speechSynthesis" in window;
   const stopNarration = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -1737,6 +1742,8 @@ export function TrainingExperienceView() {
         : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
           ? finalQuizPassed
           : false;
+  const currentStageQuizTriggers = guidedPlan.quizTriggers.filter((trigger) => trigger.stageId === currentStage?.id);
+  const currentStageQuizGatePassed = currentStageQuizTriggers.every((trigger) => completedQuizTriggerIds.includes(trigger.id));
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
   const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
@@ -1744,13 +1751,13 @@ export function TrainingExperienceView() {
   const reflectionReady = reflection.trim().length >= 20;
   const requiresSlideInteraction = currentStage?.id === "brief" || currentStage?.id === "practice" || currentStage?.id === "apply";
   const canAdvance = currentStage?.id === "brief"
-    ? briefPassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
+    ? currentStageQuizGatePassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
     : currentStage?.id === "practice"
-      ? practiceChoice !== null && practicePassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
+      ? practiceChoice !== null && currentStageQuizGatePassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
       : currentStage?.id === "apply"
-        ? applicationPassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
+        ? currentStageQuizGatePassed && onLastLessonPage && (!requiresSlideInteraction || slideInteractionPassed)
         : currentStage?.id === "reflect"
-          ? reflection.trim().length >= 20 && finalQuizPassed
+          ? reflectionReady && currentStageQuizGatePassed
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
 
@@ -1764,28 +1771,39 @@ export function TrainingExperienceView() {
   }, [recentUnlockMoment]);
 
   useEffect(() => {
-    if (!activeQuizTrigger || quizTriggerDismissed || activeQuizTriggerId) {
-      return;
-    }
-
-    if (activeQuizTrigger.stageId === "brief" && activeQuizTrigger.assessmentKey === "briefCheckpoint" && briefPassed) {
-      return;
-    }
-
-    if (activeQuizTrigger.stageId === "practice" && activeQuizTrigger.assessmentKey === "practiceCheckpoint" && practicePassed) {
-      return;
-    }
-
-    if (activeQuizTrigger.stageId === "apply" && activeQuizTrigger.assessmentKey === "applicationActivity" && applicationPassed) {
-      return;
-    }
-
-    if (activeQuizTrigger.stageId === "reflect" && activeQuizTrigger.assessmentKey === "finalQuiz" && finalQuizPassed) {
+    if (!activeQuizTrigger || quizTriggerDismissed || activeQuizTriggerId || completedQuizTriggerIds.includes(activeQuizTrigger.id)) {
       return;
     }
 
     setActiveQuizTriggerId(activeQuizTrigger.id);
-  }, [activeQuizTrigger, activeQuizTriggerId, applicationPassed, briefPassed, finalQuizPassed, practicePassed, quizTriggerDismissed]);
+  }, [activeQuizTrigger, activeQuizTriggerId, completedQuizTriggerIds, quizTriggerDismissed]);
+
+  useEffect(() => {
+    if (!activeModalQuizTrigger || completedQuizTriggerIds.includes(activeModalQuizTrigger.id)) {
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "briefCheckpoint") {
+      setBriefCheckpointAnswers({});
+      setBriefCheckpointSubmitted(false);
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "practiceCheckpoint") {
+      setPracticeCheckpointAnswers({});
+      setPracticeCheckpointSubmitted(false);
+      return;
+    }
+
+    if (activeModalQuizTrigger.assessmentKey === "applicationActivity") {
+      setApplicationAnswers({});
+      setApplicationSubmitted(false);
+      return;
+    }
+
+    setFinalQuizAnswers({});
+    setFinalQuizSubmitted(false);
+  }, [activeModalQuizTrigger, completedQuizTriggerIds]);
 
   const submitSlideInteraction = () => {
     if (!currentSlideInteraction) {
@@ -2062,6 +2080,7 @@ export function TrainingExperienceView() {
         ? "The final knowledge sprint is complete, so the learner can close the module with a documented transfer commitment."
         : `The learner has cleared this comprehension gate and can continue through the guided ${currentStage?.title?.toLowerCase() ?? "training"} flow.`,
     });
+    setCompletedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
     setDismissedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
     setActiveQuizTriggerId(null);
   };
@@ -2125,11 +2144,11 @@ export function TrainingExperienceView() {
                       key={scenario.id}
                       type="button"
                       onClick={() => setPreviewScenarioId(scenario.id)}
-                      className={`min-h-[13.5rem] rounded-[1.5rem] border p-5 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      className={`flex h-full min-h-[14.5rem] flex-col rounded-[1.5rem] border p-5 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                     >
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{scenario.eyebrow}</p>
                       <p className="mt-3 text-base font-medium leading-7 text-white">{scenario.label}</p>
-                      <p className="mt-3 text-sm leading-7 text-slate-300">{scenario.description}</p>
+                      <p className="mt-3 break-words text-sm leading-7 text-slate-300">{scenario.description}</p>
                     </button>
                   ))}
                 </div>
@@ -2409,7 +2428,7 @@ export function TrainingExperienceView() {
                           <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">Primary learning canvas</Badge>
                         </div>
                         <div className="bg-slate-950/90 p-4 sm:p-5">
-                          <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:px-6 sm:py-5">
+                          <div className="flex min-h-[18rem] items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:min-h-[22rem] sm:px-6 sm:py-5 lg:min-h-[26rem]">
                             <TrainingVisualFrame visual={featuredDeckVisual} />
                           </div>
                         </div>
@@ -2423,7 +2442,7 @@ export function TrainingExperienceView() {
                           onClick={() => setSelectedDeckVisualIndex(index)}
                           className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-[#FCBC34]/45 bg-[#FCBC34]/12 shadow-[0_20px_50px_rgba(252,188,52,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                         >
-                          <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80 px-2 py-2">
+                          <div className="flex min-h-[11rem] items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80 px-2 py-2">
                             <TrainingVisualFrame visual={visual} compact />
                           </div>
                           <div className="mt-3">
@@ -2479,7 +2498,7 @@ export function TrainingExperienceView() {
                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto pr-1">
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                     <p className="text-sm text-slate-400">Competency gap</p>
                     <p className="mt-2 text-xl font-semibold text-white">{learner.data.activeJourney.competencyGap}</p>
@@ -2504,17 +2523,17 @@ export function TrainingExperienceView() {
                       className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${module.originalIndex === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
                             {module.originalIndex === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
                             {module.originalIndex < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
                             {module.originalIndex === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
                           </div>
-                          <h3 className="mt-2 text-lg font-medium text-white">{module.title}</h3>
-                          <p className="mt-2 text-sm text-slate-300">{module.skillFocus}</p>
+                          <h3 className="mt-2 line-clamp-2 text-lg font-medium text-white">{module.title}</h3>
+                          <p className="mt-2 line-clamp-3 text-sm text-slate-300">{module.skillFocus}</p>
                         </div>
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
+                        <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
                       </div>
                       <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
                         <span>{module.originalIndex === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
@@ -2617,11 +2636,11 @@ export function TrainingExperienceView() {
                             </div>
                             <div className="flex flex-col gap-3 lg:items-end">
                               <div className="flex flex-wrap items-center gap-3">
-                                <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
+                                <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-500" onClick={playNarrationPreview} disabled={!narrationSupported}>
                                   <PlayCircle className="mr-2 h-4 w-4" />
                                   Play audio
                                 </Button>
-                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
+                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500" onClick={stopNarration} disabled={!narrationSupported || narrationStatus === "idle" || narrationStatus === "unsupported"}>
                                   <PauseCircle className="mr-2 h-4 w-4" />
                                   Stop
                                 </Button>
@@ -2651,8 +2670,8 @@ export function TrainingExperienceView() {
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
-                                <h3 className="mt-4 text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
-                                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
+                                <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
+                                <p className="mt-4 max-w-3xl break-words text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
                                 <div className="mt-6 rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -2702,11 +2721,11 @@ export function TrainingExperienceView() {
                                       </div>
                                     </div>
                                     <div className="mt-4 flex flex-wrap items-center gap-3">
-                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={playNarrationPreview}>
+                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-500" onClick={playNarrationPreview} disabled={!narrationSupported}>
                                         <PlayCircle className="mr-2 h-4 w-4" />
                                         Play lesson narration
                                       </Button>
-                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={stopNarration}>
+                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500" onClick={stopNarration} disabled={!narrationSupported || narrationStatus === "idle" || narrationStatus === "unsupported"}>
                                         <PauseCircle className="mr-2 h-4 w-4" />
                                         Stop preview
                                       </Button>
@@ -2716,12 +2735,12 @@ export function TrainingExperienceView() {
                                     </div>
                                     <div className="mt-4 rounded-[1.4rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson narration script</p>
-                                      <p className="mt-3 text-sm leading-7 text-slate-100">{narrationScript}</p>
+                                      <div className="mt-3 max-h-[16rem] overflow-y-auto pr-2 text-sm leading-7 text-slate-100 break-words">{narrationScript}</div>
                                     </div>
                                     {currentLessonPage.speakerNotes?.length ? (
                                       <div className="mt-4 rounded-[1.4rem] border border-amber-300/20 bg-amber-300/10 p-4">
                                         <p className="text-xs uppercase tracking-[0.22em] text-amber-100/90">Speaker notes</p>
-                                        <div className="mt-3 space-y-3 text-sm leading-7 text-slate-100">
+                                        <div className="mt-3 max-h-[16rem] space-y-3 overflow-y-auto pr-2 text-sm leading-7 text-slate-100 break-words">
                                           {currentLessonPage.speakerNotes.map((note) => (
                                             <p key={note}>{note}</p>
                                           ))}
@@ -2806,10 +2825,10 @@ export function TrainingExperienceView() {
                                                     : [...(current.revealedCardIds ?? []), card.id],
                                                 }));
                                               }}
-                                              className={`rounded-[1.4rem] border p-4 text-left transition ${isRevealed ? "border-emerald-400/30 bg-emerald-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
+                                              className={`flex h-full min-h-[12rem] flex-col justify-between rounded-[1.4rem] border p-4 text-left transition ${isRevealed ? "border-emerald-400/30 bg-emerald-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
                                             >
                                               <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{card.title}</p>
-                                              <p className="mt-3 text-sm font-medium text-white">{isRevealed ? card.detail : "Tap to reveal this cue"}</p>
+                                              <p className="mt-3 break-words text-sm font-medium text-white">{isRevealed ? card.detail : "Tap to reveal this cue"}</p>
                                               <p className="mt-2 text-xs text-slate-400">{isRevealed ? "Unlocked" : "Hidden until you open it"}</p>
                                             </button>
                                           );
@@ -2825,10 +2844,10 @@ export function TrainingExperienceView() {
                                               key={choice.id}
                                               type="button"
                                               onClick={() => setSlideInteractionAttempt((current) => ({ ...current, selectedChoiceId: choice.id }))}
-                                              className={`rounded-[1.35rem] border p-4 text-left transition ${isSelected ? "border-cyan-400/40 bg-cyan-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
+                                              className={`min-w-0 overflow-hidden rounded-[1.35rem] border p-4 text-left transition ${isSelected ? "border-cyan-400/40 bg-cyan-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
                                             >
-                                              <p className="text-sm font-medium text-white">{choice.label}</p>
-                                              <p className="mt-2 text-sm leading-6 text-slate-300">{choice.detail}</p>
+                                              <p className="break-words text-sm font-medium text-white">{choice.label}</p>
+                                              <p className="mt-2 break-words text-sm leading-6 text-slate-300">{choice.detail}</p>
                                             </button>
                                           );
                                         })}
@@ -3369,14 +3388,14 @@ export function TrainingExperienceView() {
                         dismissActiveQuizTrigger();
                       }
                     }}>
-                      <DialogContent className="max-w-4xl border-white/10 bg-slate-950/95 text-white">
+                      <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950/95 text-white sm:max-w-4xl">
                         <DialogHeader>
                           <DialogTitle>{activeModalQuizTrigger?.modalTitle ?? "Guided checkpoint"}</DialogTitle>
                           <DialogDescription className="text-slate-300">
                             {activeModalQuizTrigger?.modalPrompt ?? "Complete this checkpoint to continue the guided training flow."}
                           </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4">
+                        <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1">
                           <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Guided checkpoint gate</p>
                             <p className="mt-2 text-sm leading-6 text-slate-100">This quiz appears inside the module flow so learners confirm comprehension before they continue through the narrated experience.</p>
