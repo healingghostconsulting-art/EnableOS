@@ -206,3 +206,6 @@
 - [x] Move the login section ahead of the search flow to create a more natural entry sequence
 - [x] Restyle the interface with lighter CHCG-branded backgrounds, Montserrat typography, and stronger contrast between page sections and training modules
 - [x] Validate the revised training slide experience and CHCG UI refresh with tests, type checks, and browser review
+- [x] Make the CHCG sidebar collapsible across the role workspaces
+- [x] Refine the compact sidebar state so navigation, branding, and profile areas remain usable when collapsed
+- [x] Validate the collapsible sidebar behavior with tests, type checks, and browser review

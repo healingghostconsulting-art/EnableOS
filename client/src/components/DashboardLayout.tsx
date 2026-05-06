@@ -39,6 +39,23 @@ const DEFAULT_WIDTH = 348;
 const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
 
+export function getDesktopSidebarUiState({
+  isMobile,
+  isCollapsed,
+}: {
+  isMobile: boolean;
+  isCollapsed: boolean;
+}) {
+  const showFloatingTrigger = !isMobile && isCollapsed;
+
+  return {
+    collapseMode: "offcanvas" as const,
+    toggleLabel: isCollapsed ? "Open navigation" : "Collapse navigation",
+    showFloatingTrigger,
+    mainPaddingClass: showFloatingTrigger ? "pt-20 md:pt-24" : "",
+  };
+}
+
 export default function DashboardLayout({
   children,
   menuItems,
@@ -59,13 +76,19 @@ export default function DashboardLayout({
   };
 }) {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+    if (typeof window === "undefined") {
+      return DEFAULT_WIDTH;
+    }
+
+    const saved = window.localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
 
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
+    }
   }, [sidebarWidth]);
 
   if (loading) {
@@ -147,6 +170,7 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find((item) => item.path === location);
   const isMobile = useIsMobile();
+  const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
   const profileName = user?.name || demoProfile?.name || "CHCG Demo";
   const profileEmail = user?.email || demoProfile?.email || demoProfile?.roleLabel || "Demo workspace";
   const profileFallback = profileName
@@ -195,15 +219,17 @@ function DashboardLayoutContent({
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar collapsible="icon" className="border-r border-[#1B303C]/10 bg-white/90 text-[#1B303C] backdrop-blur-2xl" disableTransition={isResizing}>
+        <Sidebar collapsible={desktopSidebarUi.collapseMode} className="border-r border-[#1B303C]/10 bg-white/90 text-[#1B303C] backdrop-blur-2xl" disableTransition={isResizing}>
           <SidebarHeader className="h-auto border-b border-[#1B303C]/10 px-3 pb-4 pt-4">
             <div className="glass-panel energy-frame rounded-[2rem] px-3 py-3">
               <div className="flex w-full items-start gap-3 px-1">
-                <button
-                  onClick={toggleSidebar}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#1B303C]/10 bg-white transition-colors hover:bg-[#FCBC34]/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label="Toggle navigation"
-                >
+                  <button
+                    onClick={toggleSidebar}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#1B303C]/10 bg-white transition-colors hover:bg-[#FCBC34]/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={desktopSidebarUi.toggleLabel}
+                    title={desktopSidebarUi.toggleLabel}
+                  >
+
                   <PanelLeft className="h-4 w-4 text-[#1B303C]" />
                 </button>
                 {!isCollapsed ? (
@@ -333,7 +359,18 @@ function DashboardLayoutContent({
         />
       </div>
 
-      <SidebarInset className="bg-transparent">
+      <SidebarInset className="relative bg-transparent">
+        {desktopSidebarUi.showFloatingTrigger ? (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Open navigation"
+            className="fixed left-4 top-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-[#1B303C]/12 bg-white/94 px-4 text-sm font-medium text-[#1B303C] shadow-[0_18px_48px_rgba(27,48,60,0.12)] backdrop-blur-xl transition hover:border-[#FCBC34]/60 hover:bg-[#FFFBF0]"
+          >
+            <PanelLeft className="h-4 w-4" />
+            <span>Navigation</span>
+          </button>
+        ) : null}
         {isMobile ? (
           <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#1B303C]/10 bg-white/92 px-3 backdrop-blur-xl">
             <div className="flex items-center gap-2">
@@ -345,7 +382,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         ) : null}
-        <main className="flex-1 p-4 md:p-7 xl:p-8">{children}</main>
+        <main className={`flex-1 p-4 md:p-7 xl:p-8 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>
       </SidebarInset>
     </>
   );

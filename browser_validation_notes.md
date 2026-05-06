@@ -29,3 +29,7 @@ The overall shell is noticeably lighter, with white and light-neutral surfaces a
 The training simulator at `/training` now exposes a much larger visual navigator that includes generated **Brief**, **Practice**, and **Apply** slides in addition to mapped presentation visuals, confirming broader slide coverage instead of the earlier deck-only set.
 
 The training route still needs one final contrast pass in the upper instructional hero area because some top-of-page copy appears too low-contrast against the new light background in the current preview.
+
+## 2026-05-06 collapsible sidebar validation
+
+On `/learner`, the new desktop navigation control now collapses the CHCG sidebar fully off-canvas instead of shrinking to a narrow icon rail. After collapse, the learner content expands cleanly and a floating **Navigation** reopen button stays visible at the upper-left edge of the workspace.
