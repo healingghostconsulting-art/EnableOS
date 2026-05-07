@@ -224,3 +224,6 @@
 - [x] Reformat training cards, panels, prompts, and controls so text fits cleanly or containers are resized/restructured appropriately
 - [x] Verify that every intended training interaction works reliably, including checkpoints, quizzes, reveal states, navigation, and action controls
 - [x] Validate the repaired training formatting and interactive behavior with tests, type checks, and browser review
+- [x] Create a 3–4 minute demo video that walks through the learner training flow, coach coaching-log handoff, agent receipt, and manager review journey
+- [x] Capture the exact learner, coach, agent, and manager scenes needed for the demo video from the current product experience
+- [x] Produce and validate the final demo video asset for handoff

@@ -1,0 +1,114 @@
+[
+  {
+    "scene": 1,
+    "slug": "01-title",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/01_01-title.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/01_01-title.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/01_01-title.mp4",
+    "duration_seconds": 16.22
+  },
+  {
+    "scene": 2,
+    "slug": "02-learner-assignment",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/02_02-learner-assignment.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/02_02-learner-assignment.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/02_02-learner-assignment.mp4",
+    "duration_seconds": 14.62
+  },
+  {
+    "scene": 3,
+    "slug": "03-learner-context",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/03_03-learner-context.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/03_03-learner-context.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/03_03-learner-context.mp4",
+    "duration_seconds": 15.26
+  },
+  {
+    "scene": 4,
+    "slug": "04-learner-actions",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/04_04-learner-actions.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/04_04-learner-actions.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/04_04-learner-actions.mp4",
+    "duration_seconds": 13.63
+  },
+  {
+    "scene": 5,
+    "slug": "05-training-overview",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/05_05-training-overview.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/05_05-training-overview.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/05_05-training-overview.mp4",
+    "duration_seconds": 15.98
+  },
+  {
+    "scene": 6,
+    "slug": "06-training-checkpoints",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/06_06-training-checkpoints.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/06_06-training-checkpoints.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/06_06-training-checkpoints.mp4",
+    "duration_seconds": 15.84
+  },
+  {
+    "scene": 7,
+    "slug": "07-coach-overview",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/07_07-coach-overview.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/07_07-coach-overview.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/07_07-coach-overview.mp4",
+    "duration_seconds": 16.87
+  },
+  {
+    "scene": 8,
+    "slug": "08-coach-history",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/08_08-coach-history.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/08_08-coach-history.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/08_08-coach-history.mp4",
+    "duration_seconds": 14.88
+  },
+  {
+    "scene": 9,
+    "slug": "09-coach-guidance",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/09_09-coach-guidance.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/09_09-coach-guidance.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/09_09-coach-guidance.mp4",
+    "duration_seconds": 15.65
+  },
+  {
+    "scene": 10,
+    "slug": "10-coaching-log",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/10_10-coaching-log.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/10_10-coaching-log.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/10_10-coaching-log.mp4",
+    "duration_seconds": 15.74
+  },
+  {
+    "scene": 11,
+    "slug": "11-agent-receipt",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/11_11-agent-receipt.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/11_11-agent-receipt.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/11_11-agent-receipt.mp4",
+    "duration_seconds": 15.55
+  },
+  {
+    "scene": 12,
+    "slug": "12-manager-overview",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/12_12-manager-overview.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/12_12-manager-overview.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/12_12-manager-overview.mp4",
+    "duration_seconds": 16.25
+  },
+  {
+    "scene": 13,
+    "slug": "13-manager-review",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/13_13-manager-review.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/13_13-manager-review.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/13_13-manager-review.mp4",
+    "duration_seconds": 15.31
+  },
+  {
+    "scene": 14,
+    "slug": "14-close",
+    "image": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_images/14_14-close.png",
+    "audio": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_audio/14_14-close.mp3",
+    "clip": "/home/ubuntu/chcg-enableos-demo/demo_video/output/scene_clips/14_14-close.mp4",
+    "duration_seconds": 14.09
+  }
+]
