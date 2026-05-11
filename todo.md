@@ -239,3 +239,6 @@
 - [x] Rework the learner training layout to use whitespace more effectively and reduce condensed content boxes
 - [x] Replace the scroll-heavy brief list with a click-through brief panel that lets learners progress through briefs one at a time
 - [x] Validate the updated brief-navigation and training-layout experience in tests and the live preview
+- [x] Remove the messy duplicate practice-and-brief list from the learner training page so it no longer competes with the focused brief panel
+- [x] Make the focused brief box the primary navigation pattern for brief progression in the learner training flow
+- [x] Validate that the cleaned-up training page still preserves gated progression and usable brief navigation in tests and live preview

@@ -78,3 +78,9 @@ The top of the training lesson now exposes a dedicated click-through brief panel
 
 The live preview also preserved the learner-only left navigation while showing the updated training entry, which confirms the learner shell and the roomier training redesign are working together in the same preview state.
 The new **Next brief** control remained visible and interactive inside the focused brief panel. In the live preview, it held the learner on the current brief while the unfinished slide challenge still required completion, which confirms the redesigned brief-stepper is wired into the existing progression gate rather than bypassing lesson logic.
+
+## 2026-05-11 duplicate visual-list cleanup validation
+
+On the `/training` dev preview, the large brief, practice, and apply visual gallery beneath the course canvas is no longer rendered. That area now presents a compact **Focused course visual sync** summary instead of a long clickable list.
+
+The interactive slide-canvas region also no longer repeats the full lesson sequence as a second thumbnail navigator. In its place, the page now shows a smaller **Visual focus lock** companion card, while the focused brief panel remains the primary navigation pattern for moving through the lesson.

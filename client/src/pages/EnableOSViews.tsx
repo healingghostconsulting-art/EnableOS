@@ -2456,23 +2456,32 @@ export function TrainingExperienceView() {
                         </div>
                       </div>
                     ) : null}
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                      {trainingVisuals.map((visual, index) => (
-                        <button
-                          key={visual.id}
-                          type="button"
-                          onClick={() => setSelectedDeckVisualIndex(index)}
-                          className={`group rounded-[1.35rem] border p-3 text-left transition ${index === selectedDeckVisualIndex ? "border-[#FCBC34]/45 bg-[#FCBC34]/12 shadow-[0_20px_50px_rgba(252,188,52,0.14)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
-                        >
-                          <div className="flex min-h-[11rem] items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-slate-950/80 px-2 py-2">
-                            <TrainingVisualFrame visual={visual} compact />
-                          </div>
-                          <div className="mt-3">
-                            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{visual.pageLabel}</p>
-                            <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
-                          </div>
-                        </button>
-                      ))}
+                    <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(15,23,42,0.76))] p-5 shadow-[0_18px_45px_rgba(8,15,35,0.18)]">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="max-w-2xl">
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Focused course visual sync</p>
+                          <h3 className="mt-2 text-lg font-medium text-white">The active brief now drives the visual context</h3>
+                          <p className="mt-3 text-sm leading-6 text-slate-300">The broad brief, practice, and apply gallery has been removed from this area so the learner stays anchored to the focused brief panel. The canvas and supporting visual context now follow the active lesson page instead of asking the learner to scan a second visual list.</p>
+                        </div>
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trainingVisuals.length} mapped visuals in course memory</Badge>
+                      </div>
+                      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                        <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current course visual</p>
+                          <p className="mt-2 text-sm font-medium text-white">{featuredDeckVisual?.pageLabel ?? "Visual loading"}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{featuredDeckVisual?.title ?? "The current brief will populate the active learning visual here."}</p>
+                        </div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current stage</p>
+                          <p className="mt-2 text-sm font-medium text-white">{currentStage?.label ?? "Stage loading"}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{currentStage?.title ?? "The focused brief panel controls stage-by-stage movement through the lesson."}</p>
+                        </div>
+                        <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Primary navigation</p>
+                          <p className="mt-2 text-sm font-medium text-white">Use the brief panel and next-step controls</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-100">Learners now move with the focused brief cards and the guided next or previous actions rather than a separate thumbnail gallery.</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -3042,7 +3051,7 @@ export function TrainingExperienceView() {
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
-                                      <p className="mt-2 text-sm text-slate-300">Select a slide tile, move backward or forward, or open the current visual in a new tab. The canvas now follows the selected training visual directly.</p>
+                                      <p className="mt-2 text-sm text-slate-300">Use the focused brief panel or the previous and next controls to keep the canvas aligned to the active learning moment. The duplicate slide-tile list has been removed so the learner stays in one guided flow.</p>
                                     </div>
                                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length || 1} guided visuals</Badge>
                                   </div>
@@ -3109,30 +3118,35 @@ export function TrainingExperienceView() {
                                       <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
                                         <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
                                         <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Click the main slide or the slide tiles below to inspect another visual. Open the full-size slide when you want a separate reading view.</p>
+                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Use the focused brief panel and the previous or next controls above to move the active visual. Open the full-size slide when you want a separate reading view.</p>
                                       </div>
                                     </div>
                                   </div>
                                   {interactiveGalleryVisuals.length ? (
                                     <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
-                                      <div className="flex items-center justify-between gap-3">
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Module visual navigator</p>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length} clickable slide tiles</Badge>
+                                      <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <div className="max-w-2xl">
+                                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Visual focus lock</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-300">This area no longer repeats the full brief and practice list as slide tiles. The focused brief panel is the main navigator, while this companion card simply confirms where the learner is in the visual sequence.</p>
+                                        </div>
+                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
                                       </div>
-                                      <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                                        {interactiveGalleryVisuals.map((visual, index) => (
-                                          <button key={visual.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} className={`overflow-hidden rounded-[1.2rem] border text-left transition ${activeInteractiveVisualIndex === index ? "border-cyan-300/50 bg-cyan-400/10 shadow-[0_16px_40px_rgba(6,182,212,0.14)]" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}>
-                                            <div className="flex min-h-[10rem] items-center justify-center overflow-hidden bg-slate-950/85 px-3 py-3">
-                                              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg">
-                                                <TrainingVisualFrame visual={visual} compact />
-                                              </div>
-                                            </div>
-                                            <div className="border-t border-white/10 px-3 py-3">
-                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{visual.pageLabel}</p>
-                                              <p className="mt-2 text-sm font-medium text-white">{visual.title}</p>
-                                            </div>
-                                          </button>
-                                        ))}
+                                      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Previous context</p>
+                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.pageLabel : "Start of sequence"}</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.title : "The learner is on the first guided visual in this section."}</p>
+                                        </div>
+                                        <div className="rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current visual focus</p>
+                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-100">{activeInteractiveVisual.title}</p>
+                                        </div>
+                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next context</p>
+                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.pageLabel : "End of sequence"}</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.title : "Advance the brief flow to move into the next learning section."}</p>
+                                        </div>
                                       </div>
                                     </div>
                                   ) : null}
