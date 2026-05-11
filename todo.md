@@ -231,3 +231,7 @@
 - [x] Add branded outro animation to the EnableOS demo video
 - [x] Add balanced background music underneath the narrated walkthrough
 - [x] Re-render and validate the enhanced demo video with the new branded motion and music mix
+- [x] Provide a learner-only user-testing link for the published EnableOS experience
+- [x] Verify whether the learner testing link is route-specific only or truly access-restricted
+- [x] Restrict the Learner Journey workspace navigation to Learner Journey, Training Zone, and Content Missions only
+- [x] Validate that learner user-testing sessions cannot see broader workspace navigation after the update

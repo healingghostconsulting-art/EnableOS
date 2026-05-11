@@ -65,3 +65,7 @@ After selecting an answer and submitting the next multiple-choice slide challeng
 The newly loaded challenge remained legible inside the same visual frame, which is a good signal that the updated overflow handling is holding across both reveal-card and multiple-choice states.
 
 The inline coach checkpoint expanded successfully when opened from the training route and exposed a readable response textarea plus supporting prompt copy inside the card. Closing it returned the checkpoint card to its compact state without breaking the surrounding layout, confirming that the coach-checkpoint interaction is functioning and the expanded text area remains usable at the tested viewport.
+
+## 2026-05-11 learner-only navigation validation
+
+On the dev preview learner route after the App.tsx navigation update, the sidebar showed exactly three learner-facing entries: **Learner Journey**, **Training Zone**, and **Content Missions**. No Executive, Manager, Coach, Client Admin, or other broader workspace navigation items were visible in the learner shell during validation.

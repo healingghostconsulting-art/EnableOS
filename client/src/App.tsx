@@ -9,22 +9,41 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
-const baseWorkspaceMenu: DashboardMenuItem[] = [
+export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/" },
   { icon: Gauge, label: "Executive Command", path: "/executive" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
   { icon: BookOpen, label: "Learner Journey", path: "/learner" },
-  { icon: BookOpen, label: "Training Simulator", path: "/training" },
+  { icon: BookOpen, label: "Training Zone", path: "/training" },
   { icon: Building2, label: "Client Control", path: "/admin" },
   { icon: BookText, label: "Content Missions", path: "/library" },
 ];
 
-function WorkspaceShell({ children, roleLabel }: { children: React.ReactNode; roleLabel: string }) {
+export const learnerWorkspaceMenu: DashboardMenuItem[] = [
+  { icon: BookOpen, label: "Learner Journey", path: "/learner" },
+  { icon: BookOpen, label: "Training Zone", path: "/training" },
+  { icon: BookText, label: "Content Missions", path: "/library" },
+];
+
+export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null }) {
+  if (options?.menuItemsOverride) {
+    return options.menuItemsOverride;
+  }
+
+  if (options?.grantRole === "platform_admin") {
+    return [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" }];
+  }
+
+  return baseWorkspaceMenu;
+}
+
+function WorkspaceShell({ children, roleLabel, menuItemsOverride }: { children: React.ReactNode; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
-  const menuItems = access.data?.grant.role === "platform_admin"
-    ? [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" }]
-    : baseWorkspaceMenu;
+  const menuItems = resolveWorkspaceMenu({
+    menuItemsOverride,
+    grantRole: access.data?.grant.role,
+  });
 
   return (
     <DashboardLayout
@@ -69,7 +88,7 @@ function Router() {
       </Route>
       <Route path="/learner">
         {() => (
-          <WorkspaceShell roleLabel="Learner Journey">
+          <WorkspaceShell roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
             <RoleWorkspace role="learner" />
           </WorkspaceShell>
         )}
@@ -90,14 +109,14 @@ function Router() {
       </Route>
       <Route path="/training">
         {() => (
-          <WorkspaceShell roleLabel="Interactive Training">
+          <WorkspaceShell roleLabel="Interactive Training" menuItemsOverride={learnerWorkspaceMenu}>
             <TrainingExperienceView />
           </WorkspaceShell>
         )}
       </Route>
       <Route path="/library">
         {() => (
-          <WorkspaceShell roleLabel="Content Library">
+          <WorkspaceShell roleLabel="Content Library" menuItemsOverride={learnerWorkspaceMenu}>
             <ContentLibraryView />
           </WorkspaceShell>
         )}
