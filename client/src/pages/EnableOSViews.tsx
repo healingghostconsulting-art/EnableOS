@@ -124,6 +124,10 @@ export function getStageNavigatorLabel(stageId?: string | null) {
         : "Reflection walkthrough";
 }
 
+export function getModalCheckpointResetKey(trigger?: { id?: string | null; assessmentKey?: string | null } | null) {
+  return trigger?.id ? `${trigger.id}:${trigger.assessmentKey ?? "unknown"}` : "none";
+}
+
 function SectionShell({
   eyebrow,
   title,
@@ -1764,6 +1768,7 @@ export function TrainingExperienceView() {
         : activeModalQuizTrigger?.assessmentKey === "finalQuiz"
           ? finalQuizPassed
           : false;
+  const activeModalCheckpointResetKey = getModalCheckpointResetKey(activeModalQuizTrigger);
   const currentStageQuizTriggers = guidedPlan.quizTriggers.filter((trigger) => trigger.stageId === currentStage?.id);
   const currentStageQuizGatePassed = currentStageQuizTriggers.every((trigger) => completedQuizTriggerIds.includes(trigger.id));
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
@@ -1825,7 +1830,7 @@ export function TrainingExperienceView() {
 
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
-  }, [activeModalQuizTrigger, completedQuizTriggerIds]);
+  }, [activeModalCheckpointResetKey, completedQuizTriggerIds]);
 
   const submitSlideInteraction = () => {
     if (!currentSlideInteraction) {

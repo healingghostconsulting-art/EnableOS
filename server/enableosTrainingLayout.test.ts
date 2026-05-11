@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getLessonPageWindowStart, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
+import { getLessonPageWindowStart, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
 
 describe("learner training layout helpers", () => {
   it("anchors the first brief window at the start of the stage", () => {
@@ -23,5 +23,12 @@ describe("learner training layout helpers", () => {
     expect(getStageNavigatorLabel("apply")).toBe("Application walkthrough");
     expect(getStageNavigatorLabel("reflect")).toBe("Reflection walkthrough");
     expect(getStageNavigatorLabel()).toBe("Reflection walkthrough");
+  });
+
+  it("creates a stable modal reset key from trigger identity instead of object reference", () => {
+    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6:briefCheckpoint");
+    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6:briefCheckpoint");
+    expect(getModalCheckpointResetKey({ id: "apply-2", assessmentKey: "applicationActivity" })).toBe("apply-2:applicationActivity");
+    expect(getModalCheckpointResetKey(null)).toBe("none");
   });
 });

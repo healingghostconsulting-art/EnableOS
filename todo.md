@@ -242,3 +242,5 @@
 - [x] Remove the messy duplicate practice-and-brief list from the learner training page so it no longer competes with the focused brief panel
 - [x] Make the focused brief box the primary navigation pattern for brief progression in the learner training flow
 - [x] Validate that the cleaned-up training page still preserves gated progression and usable brief navigation in tests and live preview
+- [x] Fix the Active Listening training crash that occurs when learners reach brief six
+- [x] Validate that the repaired Active Listening brief progression no longer throws a runtime error in tests and live review
