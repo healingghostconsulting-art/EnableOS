@@ -107,6 +107,23 @@ function getRoleLabel(role: string) {
   return role === "all" ? "All roles" : role.replaceAll("_", " ");
 }
 
+export function getLessonPageWindowStart(lessonPageIndex: number, totalPages: number, windowSize = 3) {
+  return Math.max(
+    0,
+    Math.min(lessonPageIndex === 0 ? 0 : lessonPageIndex - 1, Math.max(totalPages - windowSize, 0)),
+  );
+}
+
+export function getStageNavigatorLabel(stageId?: string | null) {
+  return stageId === "brief"
+    ? "Brief walkthrough"
+    : stageId === "practice"
+      ? "Practice walkthrough"
+      : stageId === "apply"
+        ? "Application walkthrough"
+        : "Reflection walkthrough";
+}
+
 function SectionShell({
   eyebrow,
   title,
@@ -1674,6 +1691,11 @@ export function TrainingExperienceView() {
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
+  const lessonPageWindowStart = getLessonPageWindowStart(lessonPageIndex, currentStagePages.length);
+  const lessonPageWindow = currentStagePages.slice(lessonPageWindowStart, lessonPageWindowStart + 3);
+  const currentStageItemLabel = `${currentStage?.label ?? "Lesson"} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
+  const currentStageItemCountLabel = currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "No pages loaded";
+  const stageNavigatorLabel = getStageNavigatorLabel(currentStage?.id);
   const briefQuestions = presentation?.briefCheckpoint.questions ?? [];
   const briefAnsweredCount = briefQuestions.filter((question) => hasAssessmentAnswer(question, briefCheckpointAnswers)).length;
   const briefScore = briefQuestions.filter((question) => isAssessmentQuestionCorrect(question, briefCheckpointAnswers[question.id])).length;
@@ -2487,8 +2509,8 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
-            <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-              <PremiumCard className="xl:sticky xl:top-6">
+            <div className="grid gap-6 2xl:grid-cols-[340px_minmax(0,1fr)]">
+              <PremiumCard className="2xl:sticky 2xl:top-6">
                 <CardHeader>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -2576,49 +2598,83 @@ export function TrainingExperienceView() {
 
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.65))] px-5 py-4 shadow-[0_18px_50px_rgba(8,15,35,0.18)]">
-                          <div className="space-y-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label}</Badge>
-                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{moduleFamilyLabel}</Badge>
-                            </div>
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
-                              <p className="mt-1 text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
-                              <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-cyan-100/80">
-                                {guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Stage runtime calibrating"}
-                              </p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4">
-                              <div className="h-2 w-56 overflow-hidden rounded-full bg-white/8">
-                                <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${lessonPageProgress}%` }} />
+                        <div className="grid gap-4 2xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+                          <div className="rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.65))] px-5 py-5 shadow-[0_18px_50px_rgba(8,15,35,0.18)]">
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label}</Badge>
+                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{moduleFamilyLabel}</Badge>
                               </div>
-                              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{lessonPageProgress}% section complete</p>
-                              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                                {Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} guided pages remaining
-                              </p>
-                              {activeQuizTrigger ? <p className="text-xs uppercase tracking-[0.2em] text-amber-100/80">Upcoming checkpoint: {activeQuizTrigger.label}</p> : null}
+                              <div>
+                                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson page</p>
+                                <p className="mt-1 text-sm text-slate-300">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
+                                <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-cyan-100/80">
+                                  {guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Stage runtime calibrating"}
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-4">
+                                <div className="h-2 min-w-[14rem] flex-1 overflow-hidden rounded-full bg-white/8">
+                                  <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" style={{ width: `${lessonPageProgress}%` }} />
+                                </div>
+                                <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{lessonPageProgress}% section complete</p>
+                                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                                  {Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} guided pages remaining
+                                </p>
+                                {activeQuizTrigger ? <p className="text-xs uppercase tracking-[0.2em] text-amber-100/80">Upcoming checkpoint: {activeQuizTrigger.label}</p> : null}
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setLessonPageIndex((value) => Math.max(value - 1, 0))}
-                              disabled={lessonPageIndex === 0}
-                              className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                            >
-                              Previous page
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={advanceLessonPage}
-                              disabled={lessonPageIndex >= currentStagePages.length - 1}
-                              className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                            >
-                              Next page
-                            </Button>
+                          <div className="rounded-[1.9rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] px-5 py-5 shadow-[0_20px_60px_rgba(8,15,35,0.2)]">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div className="max-w-lg">
+                                <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">{stageNavigatorLabel}</p>
+                                <h4 className="mt-2 text-lg font-medium text-white">{currentStageItemLabel}</h4>
+                                <p className="mt-2 text-sm leading-6 text-slate-300">Move through this section one focused brief at a time so the learner stays centered on the current card instead of scanning a long scrolling list.</p>
+                              </div>
+                              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStageItemCountLabel}</Badge>
+                            </div>
+                            <div className="mt-4 grid gap-3">
+                              {lessonPageWindow.map((page: any, windowIndex: number) => {
+                                const absoluteIndex = lessonPageWindowStart + windowIndex;
+                                const isActivePage = absoluteIndex === lessonPageIndex;
+                                return (
+                                  <button
+                                    key={page.id}
+                                    type="button"
+                                    onClick={() => setLessonPageIndex(absoluteIndex)}
+                                    className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${isActivePage ? "border-cyan-400/40 bg-cyan-400/12 shadow-[0_18px_40px_rgba(34,211,238,0.14)]" : "border-white/10 bg-slate-950/55 hover:bg-white/8"}`}
+                                  >
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{currentStage?.label} {absoluteIndex + 1}</p>
+                                      {isActivePage ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Current brief</Badge> : null}
+                                    </div>
+                                    <p className="mt-2 text-sm font-medium text-white">{page.title}</p>
+                                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{page.narrative}</p>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="mt-4 flex flex-wrap items-center gap-3">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setLessonPageIndex((value) => Math.max(value - 1, 0))}
+                                disabled={lessonPageIndex === 0}
+                                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                              >
+                                Previous brief
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={advanceLessonPage}
+                                disabled={lessonPageIndex >= currentStagePages.length - 1}
+                                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                              >
+                                Next brief
+                              </Button>
+                              <p className="text-xs leading-5 text-slate-400">Use the active brief card or the previous/next controls to progress without hunting through a longer list.</p>
+                            </div>
                           </div>
                         </div>
                         <div className="sticky bottom-4 z-20 mt-6 rounded-[1.5rem] border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.18),rgba(15,23,42,0.94))] px-4 py-4 shadow-[0_20px_60px_rgba(8,15,35,0.35)] backdrop-blur-xl">
@@ -2663,7 +2719,7 @@ export function TrainingExperienceView() {
                           </div>
                         </div>
                         {currentLessonPage ? (
-                          <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8">
+                          <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
                             <div className="space-y-8">
                               <div>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2671,7 +2727,7 @@ export function TrainingExperienceView() {
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
                                 <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
-                                <p className="mt-4 max-w-3xl break-words text-sm leading-7 text-slate-200">{currentLessonPage.narrative}</p>
+                                <p className="mt-4 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
                                 <div className="mt-6 rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -2684,7 +2740,7 @@ export function TrainingExperienceView() {
                                     {narrationStatus === "playing" ? "The mini audio bar is currently reading the active lesson content." : narrationStatus === "ended" ? "The mini audio bar finished reading the active lesson content." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "The mini audio bar is ready to read the content shown on this page."}
                                   </p>
                                 </div>
-                                <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+                                <div className="mt-6 grid gap-4 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
                                   <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div>
@@ -2783,9 +2839,10 @@ export function TrainingExperienceView() {
                                     </div>
                                   </div>
                                 ) : null}
-                                <div className="mt-6 grid gap-4">
+                                  <div className="mt-6 grid gap-4 xl:grid-cols-2">
+
                                   {currentLessonPage.bullets.map((bullet) => (
-                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)] xl:min-h-[9rem]">
                                       <div className="flex items-start gap-3">
                                         <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
                                         <span>{bullet}</span>
@@ -2799,7 +2856,7 @@ export function TrainingExperienceView() {
                                       <div>
                                         <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Self-guided slide challenge</p>
                                         <h4 className="mt-2 text-lg font-medium text-white">{currentSlideInteraction.title}</h4>
-                                        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-200">{currentSlideInteraction.prompt}</p>
+                                        <p className="mt-2 max-w-none text-sm leading-6 text-slate-200 2xl:max-w-[58rem]">{currentSlideInteraction.prompt}</p>
                                         <p className="mt-2 text-sm leading-6 text-slate-300">{currentSlideInteraction.instructions}</p>
                                       </div>
                                       <div className="flex flex-wrap gap-2">

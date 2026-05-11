@@ -235,3 +235,7 @@
 - [x] Verify whether the learner testing link is route-specific only or truly access-restricted
 - [x] Restrict the Learner Journey workspace navigation to Learner Journey, Training Zone, and Content Missions only
 - [x] Validate that learner user-testing sessions cannot see broader workspace navigation after the update
+- [x] Verify whether the learner testing URL now behaves as a learner-only link on the shareable site
+- [x] Rework the learner training layout to use whitespace more effectively and reduce condensed content boxes
+- [x] Replace the scroll-heavy brief list with a click-through brief panel that lets learners progress through briefs one at a time
+- [x] Validate the updated brief-navigation and training-layout experience in tests and the live preview

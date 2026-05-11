@@ -69,3 +69,12 @@ The inline coach checkpoint expanded successfully when opened from the training 
 ## 2026-05-11 learner-only navigation validation
 
 On the dev preview learner route after the App.tsx navigation update, the sidebar showed exactly three learner-facing entries: **Learner Journey**, **Training Zone**, and **Content Missions**. No Executive, Manager, Coach, Client Admin, or other broader workspace navigation items were visible in the learner shell during validation.
+
+## 2026-05-11 learner training layout and brief-stepper validation
+
+On the `/training` dev preview, the redesigned shell now uses a broader lesson canvas with a fixed-width left rail, which reduces the sense that the course player is squeezed into the middle of unused whitespace.
+
+The top of the training lesson now exposes a dedicated click-through brief panel with a focused current-brief card, adjacent brief cards, and visible **Previous brief** / **Next brief** controls. This gives the learner a guided brief-by-brief navigation path instead of relying only on a longer scroll-heavy selection pattern.
+
+The live preview also preserved the learner-only left navigation while showing the updated training entry, which confirms the learner shell and the roomier training redesign are working together in the same preview state.
+The new **Next brief** control remained visible and interactive inside the focused brief panel. In the live preview, it held the learner on the current brief while the unfinished slide challenge still required completion, which confirms the redesigned brief-stepper is wired into the existing progression gate rather than bypassing lesson logic.
