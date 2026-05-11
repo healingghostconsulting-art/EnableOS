@@ -244,3 +244,8 @@
 - [x] Validate that the cleaned-up training page still preserves gated progression and usable brief navigation in tests and live preview
 - [x] Fix the Active Listening training crash that occurs when learners reach brief six
 - [x] Validate that the repaired Active Listening brief progression no longer throws a runtime error in tests and live review
+- [x] Extend the user role model and migration so the database supports coach and manager access levels alongside admin and learner roles
+- [x] Add server-side role guard helpers for admin, coach, and manager access paths
+- [x] Update workspace navigation so Admin sees all sections, Coaching sees Coach Studio plus learner access, and Manager sees every section except Executive
+- [x] Add route-level access redirects so unauthorized manual navigation returns each role to an allowed home view
+- [x] Add and run regression coverage for role-based navigation and access-control behavior

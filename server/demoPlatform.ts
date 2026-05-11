@@ -1614,6 +1614,62 @@ export function listMethodologyMappings() {
   return methodologyMappings;
 }
 
+export function getPermittedRolesForGrant(role: DemoAccessGrant["role"]): DemoRole[] {
+  switch (role) {
+    case "platform_admin":
+    case "client_admin":
+      return ["executive", "manager", "coach", "learner", "client_admin"];
+    case "manager":
+      return ["manager", "coach", "learner", "client_admin"];
+    case "coach":
+      return ["coach", "learner"];
+    case "executive":
+      return ["executive"];
+    case "learner":
+    default:
+      return ["learner"];
+  }
+}
+
+export function canAccessWorkspace(grantRole: DemoAccessGrant["role"], requiredRole: DemoRole) {
+  return getPermittedRolesForGrant(grantRole).includes(requiredRole);
+}
+
+function createFallbackGrant(openId?: string | null, appRole?: string | null): DemoAccessGrant | null {
+  switch (appRole) {
+    case "admin":
+      return {
+        openId: openId ?? "platform-admin",
+        tenantId: tenants[0]!.id,
+        role: "platform_admin",
+        name: "Platform Admin",
+      } satisfies DemoAccessGrant;
+    case "manager":
+      return {
+        openId: openId ?? "platform-manager",
+        tenantId: tenants[0]!.id,
+        role: "manager",
+        name: "Operations Manager",
+      } satisfies DemoAccessGrant;
+    case "coach":
+      return {
+        openId: openId ?? "platform-coach",
+        tenantId: tenants[0]!.id,
+        role: "coach",
+        name: "Coaching Supervisor",
+      } satisfies DemoAccessGrant;
+    case "user":
+      return {
+        openId: openId ?? "platform-learner",
+        tenantId: tenants[0]!.id,
+        role: "learner",
+        name: "Learner User",
+      } satisfies DemoAccessGrant;
+    default:
+      return null;
+  }
+}
+
 export function getAccessGrant(openId?: string | null, appRole?: string | null) {
   if (openId) {
     const explicitGrant = accessGrants.find((grant) => grant.openId === openId) ?? null;
@@ -1622,16 +1678,7 @@ export function getAccessGrant(openId?: string | null, appRole?: string | null) 
     }
   }
 
-  if (appRole === "admin") {
-    return {
-      openId: openId ?? "platform-admin",
-      tenantId: tenants[0]!.id,
-      role: "platform_admin",
-      name: "Platform Admin",
-    } satisfies DemoAccessGrant;
-  }
-
-  return null;
+  return createFallbackGrant(openId, appRole);
 }
 
 export function getViewerAccess(openId?: string | null, appRole?: string | null): DemoViewerAccess | null {
@@ -1642,9 +1689,6 @@ export function getViewerAccess(openId?: string | null, appRole?: string | null)
   }
 
   const tenant = getTenant(grant.tenantId);
-  const permittedRoles: DemoRole[] = grant.role === "platform_admin" || grant.role === "client_admin"
-    ? ["executive", "manager", "coach", "learner", "client_admin"]
-    : [grant.role];
 
   return {
     grant,
@@ -1653,7 +1697,7 @@ export function getViewerAccess(openId?: string | null, appRole?: string | null)
       name: tenant.name,
       industry: tenant.industry,
     },
-    permittedRoles,
+    permittedRoles: getPermittedRolesForGrant(grant.role),
     canSwitchTenant: grant.role === "platform_admin",
   };
 }

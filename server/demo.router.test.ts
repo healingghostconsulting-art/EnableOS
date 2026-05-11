@@ -576,7 +576,52 @@ it("returns viewer access for a signed-in tenant member with role-scoped permiss
 
   expect(access.tenant.id).toBe("atlas-operations");
   expect(access.grant.role).toBe("manager");
-  expect(access.permittedRoles).toEqual(["manager"]);
+  expect(access.permittedRoles).toEqual(["manager", "coach", "learner", "client_admin"]);
+});
+
+it("maps an app-level manager role to manager, coach, learner, and client-admin workspaces while blocking executive access", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "manager-app-user",
+      role: "manager",
+      name: "Manager Access Tester",
+    }),
+  );
+
+  const access = await caller.demo.viewerAccess();
+  expect(access?.grant.role).toBe("manager");
+  expect(access?.permittedRoles).toEqual(["manager", "coach", "learner", "client_admin"]);
+
+  await expect(caller.demo.secureManager({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureCoach({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureLearner({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureAdmin({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureExecutive({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+});
+
+it("maps an app-level coach role to coach studio plus learner access only", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "coach-app-user",
+      role: "coach",
+      name: "Coach Access Tester",
+    }),
+  );
+
+  const access = await caller.demo.viewerAccess();
+  expect(access?.grant.role).toBe("coach");
+  expect(access?.permittedRoles).toEqual(["coach", "learner"]);
+
+  await expect(caller.demo.secureCoach({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureLearner({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureManager({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
+  await expect(caller.demo.secureAdmin({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+    code: "FORBIDDEN",
+  });
 });
 
 it("filters secure library assets to the trainings licensed for the selected client workspace", async () => {
@@ -612,7 +657,7 @@ it("forces learner accounts back to agent-training assets even when all-role con
   expect(learnerLibrary.chcgAssets.some((asset) => asset.title === "Unlocking the power of date")).toBe(false);
 });
 
-it("denies protected training and library access when the signed-in user has no configured client grant", async () => {
+it("maps a signed-in default user role to learner access in the default tenant workspace", async () => {
   const caller = appRouter.createCaller(
     createContext({
       openId: "ungranted-user",
@@ -621,11 +666,12 @@ it("denies protected training and library access when the signed-in user has no 
     }),
   );
 
-  await expect(caller.demo.viewerAccess()).resolves.toBeNull();
-  await expect(caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "all" })).rejects.toMatchObject({
-    code: "FORBIDDEN",
-  });
-  await expect(caller.demo.secureTraining({ tenantId: "atlas-operations" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  const access = await caller.demo.viewerAccess();
+  expect(access?.grant.role).toBe("learner");
+  expect(access?.tenant.id).toBe("atlas-operations");
+
+  await expect(caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "all" })).resolves.toBeTruthy();
+  await expect(caller.demo.secureTraining({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
 });
 
 it("denies secure training access outside the signed-in viewer's client workspace", async () => {

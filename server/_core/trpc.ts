@@ -27,12 +27,12 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
-export const adminProcedure = t.procedure.use(
-  t.middleware(async opts => {
+function requireOneOfRoles(allowedRoles: Array<"admin" | "manager" | "coach">, message: string) {
+  return t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user || ctx.user.role !== 'admin') {
-      throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+    if (!ctx.user || !allowedRoles.includes(ctx.user.role as "admin" | "manager" | "coach")) {
+      throw new TRPCError({ code: "FORBIDDEN", message });
     }
 
     return next({
@@ -41,5 +41,15 @@ export const adminProcedure = t.procedure.use(
         user: ctx.user,
       },
     });
-  }),
+  });
+}
+
+export const adminProcedure = t.procedure.use(requireOneOfRoles(["admin"], NOT_ADMIN_ERR_MSG));
+
+export const managerProcedure = t.procedure.use(
+  requireOneOfRoles(["admin", "manager"], "Manager access is required for this action."),
+);
+
+export const coachProcedure = t.procedure.use(
+  requireOneOfRoles(["admin", "manager", "coach"], "Coach access is required for this action."),
 );

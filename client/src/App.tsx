@@ -1,13 +1,16 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { useEffect } from "react";
+import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+
+export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/" },
@@ -20,22 +23,111 @@ export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: BookText, label: "Content Missions", path: "/library" },
 ];
 
-export const learnerWorkspaceMenu: DashboardMenuItem[] = [
-  { icon: BookOpen, label: "Learner Journey", path: "/learner" },
-  { icon: BookOpen, label: "Training Zone", path: "/training" },
-  { icon: BookText, label: "Content Missions", path: "/library" },
+export const adminWorkspaceMenu: DashboardMenuItem[] = [
+  ...baseWorkspaceMenu,
+  { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
 ];
+
+export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/executive");
+
+export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
+  item.path === "/coach"
+  || item.path === "/learner"
+  || item.path === "/training"
+  || item.path === "/library"
+));
+
+export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
+  item.path === "/learner"
+  || item.path === "/training"
+  || item.path === "/library"
+));
+
+function normalizeGrantRole(grantRole?: string | null): WorkspaceGrantRole | null {
+  switch (grantRole) {
+    case "platform_admin":
+    case "client_admin":
+    case "executive":
+    case "manager":
+    case "coach":
+    case "learner":
+      return grantRole;
+    default:
+      return null;
+  }
+}
+
+export function resolveRoleHomePath(grantRole?: string | null) {
+  const normalizedRole = normalizeGrantRole(grantRole);
+
+  switch (normalizedRole) {
+    case "platform_admin":
+      return "/chcg-admin";
+    case "client_admin":
+      return "/admin";
+    case "executive":
+      return "/executive";
+    case "manager":
+      return "/manager";
+    case "coach":
+      return "/coach";
+    case "learner":
+      return "/learner";
+    default:
+      return "/";
+  }
+}
+
+export function canAccessWorkspacePath(path: string, grantRole?: string | null) {
+  const normalizedRole = normalizeGrantRole(grantRole);
+
+  if (path === "/" || path === "/404") {
+    return true;
+  }
+
+  if (!normalizedRole) {
+    return false;
+  }
+
+  switch (path) {
+    case "/executive":
+      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
+    case "/manager":
+      return normalizedRole !== "coach" && normalizedRole !== "learner";
+    case "/coach":
+      return normalizedRole !== "learner";
+    case "/learner":
+    case "/training":
+    case "/library":
+      return true;
+    case "/admin":
+      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive" || normalizedRole === "manager";
+    case "/chcg-admin":
+      return normalizedRole === "platform_admin";
+    default:
+      return true;
+  }
+}
 
 export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null }) {
   if (options?.menuItemsOverride) {
     return options.menuItemsOverride;
   }
 
-  if (options?.grantRole === "platform_admin") {
-    return [...baseWorkspaceMenu, { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" }];
-  }
+  const normalizedRole = normalizeGrantRole(options?.grantRole);
 
-  return baseWorkspaceMenu;
+  switch (normalizedRole) {
+    case "platform_admin":
+      return adminWorkspaceMenu;
+    case "manager":
+      return managerWorkspaceMenu;
+    case "coach":
+      return coachWorkspaceMenu;
+    case "learner":
+      return learnerWorkspaceMenu;
+    default:
+      return baseWorkspaceMenu;
+  }
 }
 
 function WorkspaceShell({ children, roleLabel, menuItemsOverride }: { children: React.ReactNode; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
@@ -61,64 +153,87 @@ function WorkspaceShell({ children, roleLabel, menuItemsOverride }: { children: 
   );
 }
 
+function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.ReactNode; path: string; roleLabel: string }) {
+  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
+  const [, setLocation] = useLocation();
+  const grantRole = access.data?.grant.role ?? null;
+  const canAccess = canAccessWorkspacePath(path, grantRole);
+
+  useEffect(() => {
+    if (access.isSuccess && !canAccess) {
+      setLocation(resolveRoleHomePath(grantRole));
+    }
+  }, [access.isSuccess, canAccess, grantRole, setLocation]);
+
+  if (access.isSuccess && !canAccess) {
+    return null;
+  }
+
+  return (
+    <WorkspaceShell roleLabel={roleLabel}>
+      {children}
+    </WorkspaceShell>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingView} />
       <Route path="/executive">
         {() => (
-          <WorkspaceShell roleLabel="Executive View">
+          <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">
             <RoleWorkspace role="executive" />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/manager">
         {() => (
-          <WorkspaceShell roleLabel="Manager Workspace">
+          <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace">
             <RoleWorkspace role="manager" />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/coach">
         {() => (
-          <WorkspaceShell roleLabel="Coach / Supervisor Workspace">
+          <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace">
             <RoleWorkspace role="coach" />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/learner">
         {() => (
-          <WorkspaceShell roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
+          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
             <RoleWorkspace role="learner" />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/admin">
         {() => (
-          <WorkspaceShell roleLabel="Client Admin Console">
+          <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console">
             <RoleWorkspace role="client_admin" />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/chcg-admin">
         {() => (
-          <WorkspaceShell roleLabel="CHCG Admin Control Plane">
+          <GuardedWorkspaceShell path="/chcg-admin" roleLabel="CHCG Admin Control Plane">
             <ChcgAdminView />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/training">
         {() => (
-          <WorkspaceShell roleLabel="Interactive Training" menuItemsOverride={learnerWorkspaceMenu}>
+          <GuardedWorkspaceShell path="/training" roleLabel="Interactive Training">
             <TrainingExperienceView />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/library">
         {() => (
-          <WorkspaceShell roleLabel="Content Library" menuItemsOverride={learnerWorkspaceMenu}>
+          <GuardedWorkspaceShell path="/library" roleLabel="Content Library">
             <ContentLibraryView />
-          </WorkspaceShell>
+          </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/404" component={NotFound} />

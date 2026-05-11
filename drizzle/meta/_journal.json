@@ -15,6 +15,13 @@
       "when": 1776708073234,
       "tag": "0001_bitter_morgan_stark",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1778540526917,
+      "tag": "0002_lazy_mercury",
+      "breakpoints": true
     }
   ]
 }

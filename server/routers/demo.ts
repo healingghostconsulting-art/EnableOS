@@ -8,6 +8,7 @@ import {
   createClientContent,
   createReviewLog,
   createWeeklyCoachingLog,
+  canAccessWorkspace,
   getAccessGrant,
   getAdminDashboard,
   getChcgAdminDashboard,
@@ -133,17 +134,17 @@ function assertScopedAccess(openId: string | undefined, appRole: string | undefi
     throw new TRPCError({ code: "FORBIDDEN", message: "No tenant access grant is configured for this user." });
   }
 
-  if (grant.role !== "platform_admin") {
-    if (grant.tenantId !== requestedTenantId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Cross-tenant access is not allowed." });
-    }
+  const tenantId = requestedTenantId ?? grant.tenantId;
 
-    if (grant.role !== requiredRole && grant.role !== "client_admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot access the requested workspace." });
-    }
+  if (grant.role !== "platform_admin" && grant.tenantId !== tenantId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Cross-tenant access is not allowed." });
   }
 
-  return requestedTenantId ?? grant.tenantId;
+  if (!canAccessWorkspace(grant.role, requiredRole)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot access the requested workspace." });
+  }
+
+  return tenantId;
 }
 
 function assertTenantMembership(openId: string | undefined, appRole: string | undefined, requestedTenantId: string | undefined) {
