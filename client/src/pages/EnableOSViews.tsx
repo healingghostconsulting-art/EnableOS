@@ -62,6 +62,13 @@ import {
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 
+export const learnerWorkspaceCopy = {
+  routeSubtitle: "Complete assignments tied to skill opportunities, coaching actions, and readiness progress.",
+  assignedReengagementsMetricLabel: "Assigned Re-engagements",
+  assignedReengagementsMetricSupporting: "Skill-opportunity actions linked to manager workflows",
+  assignedReengagementsCardTitle: "Assigned Re-engagements",
+} as const;
+
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
     title: "Executive command view",
@@ -85,7 +92,7 @@ const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string
     title: "Learner enablement journey",
     route: "/learner",
     eyebrow: "Learner",
-    subtitle: "Complete assignments tied to skill gaps, coaching actions, and readiness progress.",
+    subtitle: learnerWorkspaceCopy.routeSubtitle,
   },
   client_admin: {
     title: "Client admin control plane",
@@ -5527,7 +5534,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
-        <MetricCard label="Assigned interventions" value={`${data.assignedInterventions.length}`} supporting="Skill-gap actions linked to manager workflows" icon={<Target className="h-4 w-4" />} />
+        <MetricCard label={learnerWorkspaceCopy.assignedReengagementsMetricLabel} value={`${data.assignedInterventions.length}`} supporting={learnerWorkspaceCopy.assignedReengagementsMetricSupporting} icon={<Target className="h-4 w-4" />} />
         <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
       </div>
       <PremiumCard className="overflow-hidden">
@@ -5701,7 +5708,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         <div className="space-y-6">
           <PremiumCard>
             <CardHeader>
-              <CardTitle className="text-white">Assigned interventions</CardTitle>
+              <CardTitle className="text-white">{learnerWorkspaceCopy.assignedReengagementsCardTitle}</CardTitle>
               <CardDescription className="text-slate-400">Auto-assigned actions with clear accountability, grounded in workflow reliability and customer-service fundamentals.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
