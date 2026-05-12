@@ -274,3 +274,4 @@
 - [x] Update the shared Google Doc feedback workflow to recognize and preserve [Blocked] items without attempting automatic implementation
 - [x] Update the shared Google Doc feedback workflow to recognize and preserve [Needs Clarification] items and avoid automatic implementation until clarified
 - [x] Reflect the new feedback states in the shared-document playbook, automation notes, and recurring review behavior
+- [x] Review and adjust the learner training brief box experience based on the latest user follow-up, then validate the updated behavior

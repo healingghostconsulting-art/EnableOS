@@ -170,11 +170,24 @@ function getRoleLabel(role: string) {
   return role === "all" ? "All roles" : role.replaceAll("_", " ");
 }
 
-export function getLessonPageWindowStart(lessonPageIndex: number, totalPages: number, windowSize = 3) {
-  return Math.max(
-    0,
-    Math.min(lessonPageIndex === 0 ? 0 : lessonPageIndex - 1, Math.max(totalPages - windowSize, 0)),
-  );
+export function getBriefBoxPages<T>(pages: T[], lessonPageIndex: number) {
+  if (pages.length === 0) {
+    return {
+      currentPage: null,
+      previousPage: null,
+      nextPage: null,
+      boundedIndex: 0,
+    };
+  }
+
+  const boundedIndex = Math.min(Math.max(lessonPageIndex, 0), pages.length - 1);
+
+  return {
+    currentPage: pages[boundedIndex] ?? null,
+    previousPage: boundedIndex > 0 ? pages[boundedIndex - 1] ?? null : null,
+    nextPage: boundedIndex < pages.length - 1 ? pages[boundedIndex + 1] ?? null : null,
+    boundedIndex,
+  };
 }
 
 export function getStageNavigatorLabel(stageId?: string | null) {
@@ -1322,7 +1335,9 @@ export function TrainingExperienceView() {
   const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
+  const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
+  const briefCardRef = useRef<HTMLDivElement | null>(null);
   const restoredTrainingProgressKeyRef = useRef<string | null>(null);
   const trainingProgressRestoreTimeoutRef = useRef<number | null>(null);
   const trainingProgressHydratedRef = useRef(false);
@@ -1720,7 +1735,7 @@ export function TrainingExperienceView() {
       : currentStage?.id === "apply"
         ? (presentation?.applySlides ?? [])
         : [];
-  const currentLessonPage = currentStagePages[Math.min(lessonPageIndex, Math.max(currentStagePages.length - 1, 0))] ?? null;
+  const { currentPage: currentLessonPage, previousPage: previousLessonPage, nextPage: nextLessonPage } = getBriefBoxPages(currentStagePages, lessonPageIndex);
   const stageVisuals = currentStage ? trainingVisuals.filter((visual) => visual.stageId === currentStage.id) : [];
   const contextualDeckVisual = stageVisuals[Math.min(lessonPageIndex, Math.max(stageVisuals.length - 1, 0))] ?? featuredDeckVisual;
   const currentSlideInteraction = buildSlideInteraction(currentLessonPage, selectedModule?.skillFocus ?? "", lessonPageIndex);
@@ -1887,6 +1902,31 @@ export function TrainingExperienceView() {
     setNarrationStatus("idle");
   }, [narrationScript]);
 
+  useEffect(() => {
+    const card = briefCardRef.current;
+    if (!card || typeof card.animate !== "function") {
+      return;
+    }
+
+    card.animate(
+      [
+        {
+          opacity: 0,
+          transform: `translateX(${briefTransitionDirection === "forward" ? "18px" : "-18px"}) scale(0.985)`,
+        },
+        {
+          opacity: 1,
+          transform: "translateX(0) scale(1)",
+        },
+      ],
+      {
+        duration: 260,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        fill: "both",
+      },
+    );
+  }, [briefTransitionDirection, lessonPageIndex, currentStage?.id]);
+
   const activeChart = insightCharts[Math.min(lessonPageIndex, Math.max(insightCharts.length - 1, 0))] ?? insightCharts[0] ?? null;
   const lessonVisualSequence = currentLessonPage
     ? currentLessonPage.bullets.slice(0, 3).map((bullet, index) => ({
@@ -1911,8 +1951,6 @@ export function TrainingExperienceView() {
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
-  const lessonPageWindowStart = getLessonPageWindowStart(lessonPageIndex, currentStagePages.length);
-  const lessonPageWindow = currentStagePages.slice(lessonPageWindowStart, lessonPageWindowStart + 3);
   const currentStageItemLabel = `${currentStage?.label ?? "Lesson"} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
   const currentStageItemCountLabel = currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "No pages loaded";
   const stageNavigatorLabel = getStageNavigatorLabel(currentStage?.id);
@@ -2106,6 +2144,16 @@ export function TrainingExperienceView() {
     setTimerStartedAt(Date.now());
   };
 
+  const goToLessonPage = (nextIndex: number) => {
+    if (nextIndex < 0 || nextIndex >= currentStagePages.length || nextIndex === lessonPageIndex) {
+      return;
+    }
+
+    clearPendingSlideAutoAdvance();
+    setBriefTransitionDirection(nextIndex > lessonPageIndex ? "forward" : "backward");
+    setLessonPageIndex(nextIndex);
+  };
+
   const advanceLessonPage = () => {
     if (lessonPageIndex >= currentStagePages.length - 1) {
       return;
@@ -2119,8 +2167,15 @@ export function TrainingExperienceView() {
       return;
     }
 
-    clearPendingSlideAutoAdvance();
-    setLessonPageIndex((value) => Math.min(value + 1, currentStagePages.length - 1));
+    goToLessonPage(Math.min(lessonPageIndex + 1, currentStagePages.length - 1));
+  };
+
+  const retreatLessonPage = () => {
+    if (lessonPageIndex <= 0) {
+      return;
+    }
+
+    goToLessonPage(Math.max(lessonPageIndex - 1, 0));
   };
 
   const reorderSlideSteps = (fromIndex: number, toIndex: number) => {
@@ -2891,32 +2946,49 @@ export function TrainingExperienceView() {
                               </div>
                               <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStageItemCountLabel}</Badge>
                             </div>
-                            <div className="mt-4 grid gap-3">
-                              {lessonPageWindow.map((page: any, windowIndex: number) => {
-                                const absoluteIndex = lessonPageWindowStart + windowIndex;
-                                const isActivePage = absoluteIndex === lessonPageIndex;
-                                return (
-                                  <button
-                                    key={page.id}
-                                    type="button"
-                                    onClick={() => setLessonPageIndex(absoluteIndex)}
-                                    className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${isActivePage ? "border-cyan-400/40 bg-cyan-400/12 shadow-[0_18px_40px_rgba(34,211,238,0.14)]" : "border-white/10 bg-slate-950/55 hover:bg-white/8"}`}
-                                  >
-                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{currentStage?.label} {absoluteIndex + 1}</p>
-                                      {isActivePage ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Current brief</Badge> : null}
-                                    </div>
-                                    <p className="mt-2 text-sm font-medium text-white">{page.title}</p>
-                                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{page.narrative}</p>
-                                  </button>
-                                );
-                              })}
+                            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                              <div
+                                key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`}
+                                ref={briefCardRef}
+                                className="rounded-[1.45rem] border border-cyan-400/30 bg-slate-950/65 px-5 py-5 shadow-[0_22px_48px_rgba(34,211,238,0.12)]"
+                              >
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div className="max-w-2xl">
+                                    <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current brief focus</p>
+                                    <h5 className="mt-2 text-base font-semibold text-white">{currentLessonPage?.title ?? "Brief loading"}</h5>
+                                  </div>
+                                  <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Current brief</Badge>
+                                </div>
+                                <p className="mt-4 text-sm leading-7 text-slate-200">{currentLessonPage?.narrative ?? "The current brief will appear here once the lesson content is ready."}</p>
+                                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                  <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
+                                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Transition behavior</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-300">Each brief now advances inside this same open space so the learner sees one focused card at a time with a directional transition.</p>
+                                  </div>
+                                  <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
+                                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Navigation rule</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-300">Adjacent brief previews are context only. Use the previous and next controls below to move through the sequence.</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid gap-3">
+                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Previous brief</p>
+                                  <p className="mt-2 text-sm font-medium text-white">{previousLessonPage?.title ?? "Start of sequence"}</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-300">{previousLessonPage?.narrative ?? "There is no earlier brief before this one."}</p>
+                                </div>
+                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next brief</p>
+                                  <p className="mt-2 text-sm font-medium text-white">{nextLessonPage?.title ?? "End of sequence"}</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-300">{nextLessonPage?.narrative ?? "You are on the final brief for this stage."}</p>
+                                </div>
+                              </div>
                             </div>
                             <div className="mt-4 flex flex-wrap items-center gap-3">
                               <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => setLessonPageIndex((value) => Math.max(value - 1, 0))}
+                                onClick={retreatLessonPage}
                                 disabled={lessonPageIndex === 0}
                                 className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
                               >
@@ -2931,7 +3003,7 @@ export function TrainingExperienceView() {
                               >
                                 Next brief
                               </Button>
-                              <p className="text-xs leading-5 text-slate-400">Use the active brief card or the previous/next controls to progress without hunting through a longer list.</p>
+                              <p className="text-xs leading-5 text-slate-400">The brief box now keeps only one active card in the open space while the next and previous controls guide the learner through the sequence.</p>
                             </div>
                           </div>
                         </div>
