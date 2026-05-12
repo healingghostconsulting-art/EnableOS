@@ -16,3 +16,9 @@
 ## Updated permission check
 
 After the user updated sharing, the document now exposes the full editing toolbar and editing mode in the browser, which indicates that the workflow can write completion markers back into the same Google Doc. The document therefore appears suitable as the single source of truth for recurring feedback review, implementation tracking, and completed-line marking.
+
+## Supported feedback states
+
+The shared-document workflow now treats **[Completed]** as the preferred completion marker and still recognizes **[Done]** as a valid legacy completion state. It also supports **[Blocked]** for items that cannot proceed because of a concrete dependency or access issue, and **[Needs Clarification]** for items that require a product decision or more specific instruction before safe implementation.
+
+Recurring review cycles should skip **[Completed]** and **[Done]** items, preserve and report **[Blocked]** items without auto-implementation, and preserve and report **[Needs Clarification]** items until the underlying ambiguity has been resolved in the shared document.

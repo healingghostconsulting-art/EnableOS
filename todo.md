@@ -267,3 +267,10 @@
 - [x] Make the learner journey clickable so each learner can jump back to their current training point
 - [x] Make assigned re-engagement actions open a training selector that routes learners into the correct assigned module
 - [x] Expand the QA training so it surfaces more of the provided slide content instead of a single-slide experience
+- [x] Update the shared Google Doc feedback workflow to recognize and preserve [Blocked] items without attempting automatic implementation
+- [x] Update the shared Google Doc feedback workflow to recognize and preserve [Needs Clarification] items and avoid automatic implementation until clarified
+- [x] Reflect the new feedback states in the shared-document playbook, automation notes, and recurring review behavior
+- [x] Update the shared Google Doc feedback workflow to recognize and preserve [Completed] items as an explicit completion state alongside [Done]
+- [x] Update the shared Google Doc feedback workflow to recognize and preserve [Blocked] items without attempting automatic implementation
+- [x] Update the shared Google Doc feedback workflow to recognize and preserve [Needs Clarification] items and avoid automatic implementation until clarified
+- [x] Reflect the new feedback states in the shared-document playbook, automation notes, and recurring review behavior
