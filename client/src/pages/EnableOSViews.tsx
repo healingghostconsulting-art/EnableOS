@@ -125,6 +125,34 @@ export function buildTrainingProgressStorageKey({
   ].join(":");
 }
 
+export function normalizePersistedTrainingProgress(
+  parsed: Partial<PersistedTrainingProgress>,
+  moduleUpperBound: number,
+  stageUpperBound: number,
+) {
+  return {
+    moduleIndex: clampTrainingProgressIndex(parsed.moduleIndex, moduleUpperBound),
+    stageIndex: clampTrainingProgressIndex(parsed.stageIndex, stageUpperBound),
+    lessonPageIndex: Math.max(0, typeof parsed.lessonPageIndex === "number" ? Math.trunc(parsed.lessonPageIndex) : 0),
+    briefCheckpointAnswers: parsed.briefCheckpointAnswers ?? {},
+    briefCheckpointSubmitted: Boolean(parsed.briefCheckpointSubmitted),
+    practiceChoice: parsed.practiceChoice === "coach_first" || parsed.practiceChoice === "peer_shadow" ? parsed.practiceChoice : null,
+    practiceCheckpointAnswers: parsed.practiceCheckpointAnswers ?? {},
+    practiceCheckpointSubmitted: Boolean(parsed.practiceCheckpointSubmitted),
+    reflection: parsed.reflection ?? "",
+    applicationAnswers: parsed.applicationAnswers ?? {},
+    applicationSubmitted: Boolean(parsed.applicationSubmitted),
+    finalQuizAnswers: parsed.finalQuizAnswers ?? {},
+    finalQuizSubmitted: Boolean(parsed.finalQuizSubmitted),
+    selectedDeckVisualIndex: Math.max(0, typeof parsed.selectedDeckVisualIndex === "number" ? Math.trunc(parsed.selectedDeckVisualIndex) : 0),
+    narrationRate: parsed.narrationRate ?? "0.95",
+    dismissedQuizTriggerIds: Array.isArray(parsed.dismissedQuizTriggerIds) ? parsed.dismissedQuizTriggerIds : [],
+    completedQuizTriggerIds: Array.isArray(parsed.completedQuizTriggerIds) ? parsed.completedQuizTriggerIds : [],
+    coachCheckpointNote: parsed.coachCheckpointNote ?? "",
+    coachCheckpointSubmitted: Boolean(parsed.coachCheckpointSubmitted),
+  };
+}
+
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
     title: "Executive command view",
@@ -379,6 +407,87 @@ function buildTrainingLaunchPath({
   if (moduleId) params.set("moduleId", moduleId);
   if (assignmentId) params.set("assignmentId", assignmentId);
   return params.toString() ? `/training?${params.toString()}` : "/training";
+}
+
+export function buildLearnerWorkspaceReturnPath({
+  assignmentId,
+  moduleId,
+  focus,
+}: {
+  assignmentId?: string | null;
+  moduleId?: string | null;
+  focus?: "priority-retraining" | null;
+}) {
+  const params = new URLSearchParams();
+  if (assignmentId) params.set("completedAssignmentId", assignmentId);
+  if (moduleId) params.set("completedModuleId", moduleId);
+  if (focus) params.set("focus", focus);
+  return params.toString() ? `/learner?${params.toString()}` : "/learner";
+}
+
+export function buildLearnerJourneyModulePath({
+  activeJourneyId,
+  moduleId,
+  activeRetrainingAssignment,
+  primaryTrainingPath,
+}: {
+  activeJourneyId: string;
+  moduleId: string;
+  activeRetrainingAssignment?: { moduleId: string } | null;
+  primaryTrainingPath: string;
+}) {
+  if (activeRetrainingAssignment && moduleId === activeRetrainingAssignment.moduleId) {
+    return primaryTrainingPath;
+  }
+
+  return buildTrainingLaunchPath({
+    journeyId: activeJourneyId,
+    moduleId,
+  });
+}
+
+export function buildLearnerInterventionTrainingOptions({
+  activeJourneyId,
+  learnerModules,
+  activeRetrainingAssignment,
+  primaryTrainingPath,
+}: {
+  activeJourneyId: string;
+  learnerModules: any[];
+  activeRetrainingAssignment?: {
+    id: string;
+    moduleId: string;
+    moduleTitle: string;
+    journeyTitle: string;
+    skillFocus: string;
+  } | null;
+  primaryTrainingPath: string;
+}) {
+  return [
+    ...(activeRetrainingAssignment ? [{
+      id: `assignment-${activeRetrainingAssignment.id}`,
+      title: activeRetrainingAssignment.moduleTitle,
+      subtitle: `${activeRetrainingAssignment.journeyTitle} · Assigned retraining`,
+      detail: activeRetrainingAssignment.skillFocus,
+      path: primaryTrainingPath,
+      moduleId: activeRetrainingAssignment.moduleId,
+      isAssigned: true,
+    }] : []),
+    ...learnerModules.map((module: any) => ({
+      id: module.id,
+      title: module.title,
+      subtitle: `${module.format} · ${module.durationMinutes} min`,
+      detail: module.skillFocus,
+      path: buildLearnerJourneyModulePath({
+        activeJourneyId,
+        moduleId: module.id,
+        activeRetrainingAssignment,
+        primaryTrainingPath,
+      }),
+      moduleId: module.id,
+      isAssigned: activeRetrainingAssignment?.moduleId === module.id,
+    })),
+  ].filter((option, index, options) => options.findIndex((candidate) => candidate.moduleId === option.moduleId) === index);
 }
 
 function formatDueWindow(dateValue?: string | null) {
@@ -840,6 +949,20 @@ function isAssessmentQuestionCorrect(question: any, answer?: string) {
   return answer === question.correctOptionId;
 }
 
+export function getAssessmentResultStyles(passed: boolean) {
+  return passed
+    ? {
+      containerClass: "border-emerald-300/35 bg-[linear-gradient(135deg,rgba(6,95,70,0.94),rgba(16,185,129,0.3))] shadow-[0_18px_48px_rgba(5,46,22,0.28)]",
+      scoreClass: "text-emerald-50",
+      bodyClass: "text-emerald-100",
+    }
+    : {
+      containerClass: "border-rose-300/35 bg-[linear-gradient(135deg,rgba(127,29,29,0.94),rgba(244,63,94,0.3))] shadow-[0_18px_48px_rgba(76,5,25,0.28)]",
+      scoreClass: "text-rose-50",
+      bodyClass: "text-rose-100",
+    };
+}
+
 function AssessmentPanel({
   eyebrow,
   assessment,
@@ -883,6 +1006,8 @@ function AssessmentPanel({
     : accent === "amber"
       ? "text-amber-100/80"
       : "text-cyan-100/80";
+
+  const resultStyles = getAssessmentResultStyles(passed);
 
   return (
     <div className={compact ? "space-y-3" : "space-y-4"}>
@@ -1000,9 +1125,9 @@ function AssessmentPanel({
           </div>
         </div>
         {submitted ? (
-          <div className={`mt-4 rounded-2xl border p-4 ${passed ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}>
-            <p className={`text-sm font-medium ${passed ? "text-emerald-200" : "text-rose-200"}`}>Score: {score}/{assessment.questions.length}</p>
-            <p className={`mt-2 text-sm leading-6 ${passed ? "text-emerald-100" : "text-rose-100"}`}>
+          <div className={`mt-4 rounded-2xl border p-4 ${resultStyles.containerClass}`}>
+            <p className={`text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
+            <p className={`mt-2 text-sm leading-6 ${resultStyles.bodyClass}`}>
               {passed ? assessment.passMessage : assessment.failMessage}
             </p>
           </div>
@@ -1325,6 +1450,8 @@ export function TrainingExperienceView() {
   const requestedJourneyId = queryParams.get("journeyId");
   const requestedModuleId = queryParams.get("moduleId");
   const requestedAssignmentId = queryParams.get("assignmentId");
+  const completedAssignmentId = queryParams.get("completedAssignmentId");
+  const requestedLearnerFocus = queryParams.get("focus");
   const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
@@ -1362,6 +1489,7 @@ export function TrainingExperienceView() {
   const restoredTrainingProgressKeyRef = useRef<string | null>(null);
   const trainingProgressRestoreTimeoutRef = useRef<number | null>(null);
   const trainingProgressHydratedRef = useRef(false);
+  const pendingLearnerReturnPathRef = useRef<string | null>(null);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -1792,26 +1920,27 @@ export function TrainingExperienceView() {
 
     try {
       const parsed = JSON.parse(savedProgress) as Partial<PersistedTrainingProgress>;
-      setModuleIndex(clampTrainingProgressIndex(parsed.moduleIndex, modules.length - 1));
-      setStageIndex(clampTrainingProgressIndex(parsed.stageIndex, stages.length - 1));
+      const normalizedProgress = normalizePersistedTrainingProgress(parsed, modules.length - 1, stages.length - 1);
+      setModuleIndex(normalizedProgress.moduleIndex);
+      setStageIndex(normalizedProgress.stageIndex);
       trainingProgressRestoreTimeoutRef.current = window.setTimeout(() => {
-        setLessonPageIndex(Math.max(0, typeof parsed.lessonPageIndex === "number" ? Math.trunc(parsed.lessonPageIndex) : 0));
-        setBriefCheckpointAnswers(parsed.briefCheckpointAnswers ?? {});
-        setBriefCheckpointSubmitted(Boolean(parsed.briefCheckpointSubmitted));
-        setPracticeChoice(parsed.practiceChoice === "coach_first" || parsed.practiceChoice === "peer_shadow" ? parsed.practiceChoice : null);
-        setPracticeCheckpointAnswers(parsed.practiceCheckpointAnswers ?? {});
-        setPracticeCheckpointSubmitted(Boolean(parsed.practiceCheckpointSubmitted));
-        setReflection(parsed.reflection ?? "");
-        setApplicationAnswers(parsed.applicationAnswers ?? {});
-        setApplicationSubmitted(Boolean(parsed.applicationSubmitted));
-        setFinalQuizAnswers(parsed.finalQuizAnswers ?? {});
-        setFinalQuizSubmitted(Boolean(parsed.finalQuizSubmitted));
-        setSelectedDeckVisualIndex(Math.max(0, typeof parsed.selectedDeckVisualIndex === "number" ? Math.trunc(parsed.selectedDeckVisualIndex) : 0));
-        setNarrationRate(parsed.narrationRate ?? "0.95");
-        setDismissedQuizTriggerIds(Array.isArray(parsed.dismissedQuizTriggerIds) ? parsed.dismissedQuizTriggerIds : []);
-        setCompletedQuizTriggerIds(Array.isArray(parsed.completedQuizTriggerIds) ? parsed.completedQuizTriggerIds : []);
-        setCoachCheckpointNote(parsed.coachCheckpointNote ?? "");
-        setCoachCheckpointSubmitted(Boolean(parsed.coachCheckpointSubmitted));
+        setLessonPageIndex(normalizedProgress.lessonPageIndex);
+        setBriefCheckpointAnswers(normalizedProgress.briefCheckpointAnswers);
+        setBriefCheckpointSubmitted(normalizedProgress.briefCheckpointSubmitted);
+        setPracticeChoice(normalizedProgress.practiceChoice);
+        setPracticeCheckpointAnswers(normalizedProgress.practiceCheckpointAnswers);
+        setPracticeCheckpointSubmitted(normalizedProgress.practiceCheckpointSubmitted);
+        setReflection(normalizedProgress.reflection);
+        setApplicationAnswers(normalizedProgress.applicationAnswers);
+        setApplicationSubmitted(normalizedProgress.applicationSubmitted);
+        setFinalQuizAnswers(normalizedProgress.finalQuizAnswers);
+        setFinalQuizSubmitted(normalizedProgress.finalQuizSubmitted);
+        setSelectedDeckVisualIndex(normalizedProgress.selectedDeckVisualIndex);
+        setNarrationRate(normalizedProgress.narrationRate);
+        setDismissedQuizTriggerIds(normalizedProgress.dismissedQuizTriggerIds);
+        setCompletedQuizTriggerIds(normalizedProgress.completedQuizTriggerIds);
+        setCoachCheckpointNote(normalizedProgress.coachCheckpointNote);
+        setCoachCheckpointSubmitted(normalizedProgress.coachCheckpointSubmitted);
         trainingProgressHydratedRef.current = true;
         trainingProgressRestoreTimeoutRef.current = null;
       }, 0);
@@ -2056,12 +2185,18 @@ export function TrainingExperienceView() {
         return;
       }
 
+      const pendingLearnerReturnPath = pendingLearnerReturnPathRef.current;
       await Promise.all([
         utils.demo.secureTraining.invalidate({ tenantId }),
         utils.demo.secureLearner.invalidate({ tenantId }),
         utils.demo.secureCoach.invalidate({ tenantId }),
         utils.demo.secureManager.invalidate({ tenantId }),
       ]);
+
+      if (pendingLearnerReturnPath) {
+        pendingLearnerReturnPathRef.current = null;
+        setLocation(pendingLearnerReturnPath);
+      }
     },
   });
   const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
@@ -2079,6 +2214,15 @@ export function TrainingExperienceView() {
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
   const shouldReturnToLearnerWorkspace = requestedRoleFilter === "learner" || Boolean(requestedAssignmentId);
+
+  useEffect(() => {
+    if (location !== "/learner" || requestedLearnerFocus !== "priority-retraining") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => revealWorkspaceSection("learner-priority-retraining"), 120);
+    return () => window.clearTimeout(timeout);
+  }, [location, requestedLearnerFocus, completedAssignmentId, learner.data?.retrainingAssignments?.length]);
 
   useEffect(() => {
     if (!recentUnlockMoment) {
@@ -2233,14 +2377,24 @@ export function TrainingExperienceView() {
     }
 
     if (shouldReturnToLearnerWorkspace) {
+      const learnerCompletionReturnPath = buildLearnerWorkspaceReturnPath({
+        assignmentId: requestedAssignmentId ?? targetedAssignment?.id ?? null,
+        moduleId: selectedModule?.id ?? requestedModuleId ?? null,
+        focus: requestedAssignmentId ? "priority-retraining" : null,
+      });
+
       if (tenantId && requestedAssignmentId && targetedAssignment?.status !== "completed") {
+        pendingLearnerReturnPathRef.current = learnerCompletionReturnPath;
         completeTrainingAssignment.mutate({
           tenantId,
           assignmentId: requestedAssignmentId,
           status: "completed",
         });
+        return;
       }
-      setLocation("/learner");
+
+      pendingLearnerReturnPathRef.current = null;
+      setLocation(learnerCompletionReturnPath);
     }
   };
 
@@ -5842,43 +5996,25 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       status,
     });
   };
-  const launchTrainingPath = (module: any) => {
-    if (activeRetrainingAssignment && module.id === activeRetrainingAssignment.moduleId) {
-      return primaryTrainingPath;
-    }
-
-    return buildTrainingLaunchPath({
-      journeyId: data.activeJourney.id,
-      moduleId: module.id,
-    });
-  };
-  const interventionTrainingOptions = [
-    ...(activeRetrainingAssignment ? [{
-      id: `assignment-${activeRetrainingAssignment.id}`,
-      title: activeRetrainingAssignment.moduleTitle,
-      subtitle: `${activeRetrainingAssignment.journeyTitle} · Assigned retraining`,
-      detail: activeRetrainingAssignment.skillFocus,
-      path: primaryTrainingPath,
-      moduleId: activeRetrainingAssignment.moduleId,
-      isAssigned: true,
-    }] : []),
-    ...learnerModules.map((module: any) => ({
-      id: module.id,
-      title: module.title,
-      subtitle: `${module.format} · ${module.durationMinutes} min`,
-      detail: module.skillFocus,
-      path: launchTrainingPath(module),
-      moduleId: module.id,
-      isAssigned: activeRetrainingAssignment?.moduleId === module.id,
-    })),
-  ].filter((option, index, options) => options.findIndex((candidate) => candidate.moduleId === option.moduleId) === index);
+  const launchTrainingPath = (module: any) => buildLearnerJourneyModulePath({
+    activeJourneyId: data.activeJourney.id,
+    moduleId: module.id,
+    activeRetrainingAssignment,
+    primaryTrainingPath,
+  });
+  const interventionTrainingOptions = buildLearnerInterventionTrainingOptions({
+    activeJourneyId: data.activeJourney.id,
+    learnerModules,
+    activeRetrainingAssignment,
+    primaryTrainingPath,
+  });
   const activeIntervention = data.assignedInterventions.find((item: any) => item.id === selectedInterventionId) ?? null;
 
   return (
 
     <div className="space-y-6">
       {activeRetrainingAssignment ? (
-        <div className="rounded-[1.8rem] border border-amber-400/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.92))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.24)]">
+        <div id="learner-priority-retraining" className="rounded-[1.8rem] border border-amber-400/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.92))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.24)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <p className="text-[11px] uppercase tracking-[0.24em] text-amber-100/85">Priority retraining notification</p>

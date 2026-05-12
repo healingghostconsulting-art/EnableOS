@@ -277,3 +277,9 @@
 - [x] Review and adjust the learner training brief box experience based on the latest user follow-up, then validate the updated behavior
 - [x] Add a small progress indicator inside the active brief card so learners can see current brief completion status at a glance
 - [x] Fix the learner role access bug so /learner users are restricted to learner-only content and cannot access admin, manager, coach, or executive sections
+- [x] Align the stale learner training layout regression with the current brief-box helper implementation so learner brief navigation feedback can be validated during Google Doc review runs
+- [x] Audit every learner training flow and apply the Google Doc feedback consistently across all trainings so the UI and behavior stay aligned
+- [x] Smooth the post-training completion transition across all trainings and return assigned completions to the learner workspace with the assigned re-engagement state reflected consistently
+- [x] Lock down learner journey click-through and assigned re-engagement training selection so both routes consistently land in the correct training context across all trainings
+- [x] Improve the soft-skills transition color treatment across trainings so white transition states remain readable and visually consistent
+- [x] Expand the in-training slide-content carryover across all trainings so learners see substantially more of the provided source material inside the course flow

@@ -1,20 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { getLessonPageWindowStart, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
+import { getBriefBoxPages, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
 
 describe("learner training layout helpers", () => {
+  const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
+
   it("anchors the first brief window at the start of the stage", () => {
-    expect(getLessonPageWindowStart(0, 8)).toBe(0);
-    expect(getLessonPageWindowStart(1, 8)).toBe(0);
+    const result = getBriefBoxPages(pages, 0);
+
+    expect(result.currentPage).toEqual(pages[0]);
+    expect(result.previousPage).toBeNull();
+    expect(result.nextPage).toEqual(pages[1]);
+    expect(result.boundedIndex).toBe(0);
   });
 
-  it("centers the active brief when there is room in the window", () => {
-    expect(getLessonPageWindowStart(3, 8)).toBe(2);
-    expect(getLessonPageWindowStart(4, 8)).toBe(3);
+  it("keeps the active brief centered between adjacent previews when possible", () => {
+    const result = getBriefBoxPages(pages, 3);
+
+    expect(result.currentPage).toEqual(pages[3]);
+    expect(result.previousPage).toEqual(pages[2]);
+    expect(result.nextPage).toEqual(pages[4]);
+    expect(result.boundedIndex).toBe(3);
   });
 
-  it("pins the window to the final available set of briefs near the end", () => {
-    expect(getLessonPageWindowStart(7, 8)).toBe(5);
-    expect(getLessonPageWindowStart(6, 8)).toBe(5);
+  it("pins the final brief safely when the learner reaches the end of the sequence", () => {
+    const result = getBriefBoxPages(pages, 7);
+
+    expect(result.currentPage).toEqual(pages[7]);
+    expect(result.previousPage).toEqual(pages[6]);
+    expect(result.nextPage).toBeNull();
+    expect(result.boundedIndex).toBe(7);
   });
 
   it("returns the branded stage label for each learner training phase", () => {

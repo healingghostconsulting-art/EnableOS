@@ -1,0 +1,50 @@
+﻿Feedback for Enable OS 
+
+
+
+
+Role
+	Direct link
+	Admin
+	https://chcg-enable-yb9kcvoh.manus.space/chcg-admin
+	Manager
+	https://chcg-enable-yb9kcvoh.manus.space/manager
+	Coaching
+	https://chcg-enable-yb9kcvoh.manus.space/coach
+	Learner
+	https://chcg-enable-yb9kcvoh.manus.space/learner
+	
+
+
+
+Learner 
+All Trainings
+* [Done] If a learner completes a question and clicks the back arrow, we need to still save that progress; if that is not possible we need a yes or no pop up window that states are you sure you what to exit, your progress will not be saved until you complete the module. 
+* The goal of crafting a briefs box is to remove this section of the training to make a more streamline feeling
+   *      * Brief Box 
+   * [Done] Can we combine this into one interactive briefs box that when you hit next brief it shows the brief with a transition animation in the open space, does that makes sense? The next and previous briefs are not clickable.
+   * [Done] I’m getting the 6th brief error on every training this needs to be addressed on every training, I cant complete the module without completing all of the brief this a critical break down 
+   * [Done] If it crashes, when we reload the site needs to remember the exact page the crash happened and reload that page
+   * Practice
+   * [Done] Narration is non functional  in all trainings for mini modules. 
+   * [Done] Can we make the transition for animated for the slide challenge when you pass or need to redo it examples but please expand “Great Job!”, “Amazing answer” or “So close Try again”, “One more time, you got this” 
+   * Got an error after I passed the training for each training instead of a smooth animated transition to the next module or if it was an assigned training then go back to the learner page with the training reflecting being coming in their assigned re-engagement section 
+   *   
+
+ 
+Soft Skills 
+      * The white on transition of colors is difficult to read 
+      *         * Lets make the journey clickable and transition to point in the training that each individual learner is at? - 
+      * For the Assigned interventions 
+         * Change the name to “Assigned Re-engagements” 
+         * Skill gaps to “Skill Opportunities”
+         * Making this button clickable to a selection that the learner can choose which training they have assigned then once they have selected the training they have assigned transition them to the correct module - needed to be addressed 
+
+
+
+
+
+
+QA 
+         *  Theres only one slide from the content provided? We need to pull way more content from the slides I provided. 
+         *

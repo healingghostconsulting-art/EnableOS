@@ -278,7 +278,7 @@ describe("training player helpers", () => {
 
     expect(revealEvaluation.score).toBeLessThan(75);
     expect(revealEvaluation.passed).toBe(false);
-    expect(revealEvaluation.hints[0]).toContain("Open each reveal card");
+    expect(revealEvaluation.hints[0]?.toLowerCase()).toContain("open each reveal card");
     expect(dragEvaluation.score).toBeLessThan(75);
     expect(dragEvaluation.passed).toBe(false);
     expect(dragEvaluation.hints[0]).toContain("Reorder the steps");
