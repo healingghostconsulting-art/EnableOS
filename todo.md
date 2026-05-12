@@ -249,3 +249,7 @@
 - [x] Update workspace navigation so Admin sees all sections, Coaching sees Coach Studio plus learner access, and Manager sees every section except Executive
 - [x] Add route-level access redirects so unauthorized manual navigation returns each role to an allowed home view
 - [x] Add and run regression coverage for role-based navigation and access-control behavior
+- [x] Review whether the CHCG EnableOS Demo can poll a shared feedback source every 2 hours and convert each new feedback line into an actionable implementation prompt
+- [x] Design a scheduled feedback-ingestion workflow that can safely review shared feedback and produce structured next-step prompts or work items
+- [x] Confirm or obtain editable access for the shared Google feedback document so the automation can mark completed lines in the source of truth
+- [x] Configure the recurring feedback workflow to draft prompts, begin implementation work automatically, and mark completed feedback lines after work is finished
