@@ -190,6 +190,27 @@ export function getBriefBoxPages<T>(pages: T[], lessonPageIndex: number) {
   };
 }
 
+export function getBriefCompletionStatus(lessonPageIndex: number, totalPages: number) {
+  if (totalPages <= 0) {
+    return {
+      completedCount: 0,
+      totalCount: 0,
+      percentComplete: 0,
+      statusLabel: "Waiting for brief content",
+    };
+  }
+
+  const completedCount = Math.min(Math.max(lessonPageIndex + 1, 1), totalPages);
+  const percentComplete = Math.round((completedCount / totalPages) * 100);
+
+  return {
+    completedCount,
+    totalCount: totalPages,
+    percentComplete,
+    statusLabel: `${completedCount} of ${totalPages} briefs complete`,
+  };
+}
+
 export function getStageNavigatorLabel(stageId?: string | null) {
   return stageId === "brief"
     ? "Brief walkthrough"
@@ -1736,6 +1757,7 @@ export function TrainingExperienceView() {
         ? (presentation?.applySlides ?? [])
         : [];
   const { currentPage: currentLessonPage, previousPage: previousLessonPage, nextPage: nextLessonPage } = getBriefBoxPages(currentStagePages, lessonPageIndex);
+  const briefCompletionStatus = getBriefCompletionStatus(lessonPageIndex, currentStagePages.length);
   const stageVisuals = currentStage ? trainingVisuals.filter((visual) => visual.stageId === currentStage.id) : [];
   const contextualDeckVisual = stageVisuals[Math.min(lessonPageIndex, Math.max(stageVisuals.length - 1, 0))] ?? featuredDeckVisual;
   const currentSlideInteraction = buildSlideInteraction(currentLessonPage, selectedModule?.skillFocus ?? "", lessonPageIndex);
@@ -2958,6 +2980,21 @@ export function TrainingExperienceView() {
                                     <h5 className="mt-2 text-base font-semibold text-white">{currentLessonPage?.title ?? "Brief loading"}</h5>
                                   </div>
                                   <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Current brief</Badge>
+                                </div>
+                                <div className="mt-4 rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/8 px-4 py-3">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Brief completion status</p>
+                                      <p className="mt-1 text-sm font-medium text-white">{briefCompletionStatus.statusLabel}</p>
+                                    </div>
+                                    <p className="text-sm font-semibold text-cyan-100">{briefCompletionStatus.percentComplete}%</p>
+                                  </div>
+                                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-900/70">
+                                    <div
+                                      className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(125,211,252,0.95))] transition-[width] duration-300 ease-out"
+                                      style={{ width: `${briefCompletionStatus.percentComplete}%` }}
+                                    />
+                                  </div>
                                 </div>
                                 <p className="mt-4 text-sm leading-7 text-slate-200">{currentLessonPage?.narrative ?? "The current brief will appear here once the lesson content is ready."}</p>
                                 <div className="mt-5 grid gap-3 sm:grid-cols-2">

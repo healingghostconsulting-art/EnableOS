@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getBriefBoxPages } from "../client/src/pages/EnableOSViews";
+import { getBriefBoxPages, getBriefCompletionStatus } from "../client/src/pages/EnableOSViews";
 
 describe("getBriefBoxPages", () => {
   const pages = [
@@ -43,5 +43,25 @@ describe("getBriefBoxPages", () => {
     expect(result.previousPage).toBeNull();
     expect(result.nextPage).toBeNull();
     expect(result.boundedIndex).toBe(0);
+  });
+});
+
+describe("getBriefCompletionStatus", () => {
+  it("reports completion progress for the current brief position", () => {
+    expect(getBriefCompletionStatus(1, 4)).toEqual({
+      completedCount: 2,
+      totalCount: 4,
+      percentComplete: 50,
+      statusLabel: "2 of 4 briefs complete",
+    });
+  });
+
+  it("returns a waiting state when no brief pages are available", () => {
+    expect(getBriefCompletionStatus(0, 0)).toEqual({
+      completedCount: 0,
+      totalCount: 0,
+      percentComplete: 0,
+      statusLabel: "Waiting for brief content",
+    });
   });
 });
