@@ -276,3 +276,4 @@
 - [x] Reflect the new feedback states in the shared-document playbook, automation notes, and recurring review behavior
 - [x] Review and adjust the learner training brief box experience based on the latest user follow-up, then validate the updated behavior
 - [x] Add a small progress indicator inside the active brief card so learners can see current brief completion status at a glance
+- [x] Fix the learner role access bug so /learner users are restricted to learner-only content and cannot access admin, manager, coach, or executive sections

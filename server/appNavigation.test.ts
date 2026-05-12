@@ -52,6 +52,11 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "learner" })).toEqual(learnerWorkspaceMenu);
   });
 
+  it("prefers an explicit shell override so the learner route stays learner-scoped even for broader grants", () => {
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", menuItemsOverride: learnerWorkspaceMenu })).toEqual(learnerWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
+  });
+
   it("redirects each role back to its allowed home view when a route is blocked", () => {
     expect(resolveRoleHomePath("platform_admin")).toBe("/chcg-admin");
     expect(resolveRoleHomePath("manager")).toBe("/manager");

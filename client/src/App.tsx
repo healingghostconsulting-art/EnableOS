@@ -153,7 +153,7 @@ function WorkspaceShell({ children, roleLabel, menuItemsOverride }: { children: 
   );
 }
 
-function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.ReactNode; path: string; roleLabel: string }) {
+function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { children: React.ReactNode; path: string; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const [, setLocation] = useLocation();
   const grantRole = access.data?.grant.role ?? null;
@@ -170,7 +170,7 @@ function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.
   }
 
   return (
-    <WorkspaceShell roleLabel={roleLabel}>
+    <WorkspaceShell roleLabel={roleLabel} menuItemsOverride={menuItemsOverride}>
       {children}
     </WorkspaceShell>
   );
@@ -189,21 +189,21 @@ function Router() {
       </Route>
       <Route path="/manager">
         {() => (
-          <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace">
+          <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace" menuItemsOverride={managerWorkspaceMenu}>
             <RoleWorkspace role="manager" />
           </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/coach">
         {() => (
-          <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace">
+          <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace" menuItemsOverride={coachWorkspaceMenu}>
             <RoleWorkspace role="coach" />
           </GuardedWorkspaceShell>
         )}
       </Route>
       <Route path="/learner">
         {() => (
-          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
+          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
             <RoleWorkspace role="learner" />
           </GuardedWorkspaceShell>
         )}
