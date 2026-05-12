@@ -254,3 +254,16 @@
 - [x] Confirm or obtain editable access for the shared Google feedback document so the automation can mark completed lines in the source of truth
 - [x] Configure the recurring feedback workflow to draft prompts, begin implementation work automatically, and mark completed feedback lines after work is finished
 - [x] Run the first manual review of the shared Google feedback doc, implement the safest high-value item from the new feedback, validate it, and mark the source item complete when possible
+- [x] Review the remaining actionable lines in the shared Google feedback doc and organize them into the active implementation queue
+- [x] Implement the remaining reviewed feedback items in priority order, validate each safe completed item, and mark the source lines done when appropriate
+- [x] Preserve learner question progress when leaving a module, or show an exit confirmation when progress cannot yet be saved safely
+- [x] Replace the separate training briefs area with a single interactive brief box that advances through briefs with motion and disables direct brief jumping
+- [x] Fix the recurring sixth-brief training error so every training can be completed end to end
+- [x] Restore learners to the exact training page after a crash or reload
+- [x] Repair non-functional narration in mini-module trainings
+- [x] Improve slide-challenge pass and retry transitions with richer animated feedback states
+- [x] Fix post-training completion transitions so learners smoothly advance to the next module or return to the learner workspace with updated assigned re-engagement status
+- [x] Improve low-contrast white transition text in the Soft Skills training flow
+- [x] Make the learner journey clickable so each learner can jump back to their current training point
+- [x] Make assigned re-engagement actions open a training selector that routes learners into the correct assigned module
+- [x] Expand the QA training so it surfaces more of the provided slide content instead of a single-slide experience

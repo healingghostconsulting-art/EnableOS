@@ -321,8 +321,8 @@ export function buildSlideInteraction(
     id: `${slide.id}-interaction`,
     passingPercent: 75,
     hint: `Return to the lesson and focus on the clearest behavior cue behind ${slide.title.toLowerCase()}.`,
-    successMessage: `Great work. You showed enough mastery of ${slide.title.toLowerCase()} to unlock the next guided moment.`,
-    retryMessage: `Not passed yet. Review the slide cues, use the hint, and try the interaction again.`,
+    successMessage: `Great job! Amazing answer — you showed enough mastery of ${slide.title.toLowerCase()} to unlock the next guided moment.`,
+    retryMessage: `So close. Try again — one more time, you’ve got this. Review the slide cues, use the hint, and take another shot at the interaction.`,
   };
 
   switch (kind) {
@@ -463,9 +463,9 @@ export function evaluateSlideInteraction(
     const revealedCount = attempt.revealedCardIds?.length ?? 0;
     score = totalCards > 0 ? Math.round((revealedCount / totalCards) * 100) : 0;
     if (score >= definition.passingPercent) {
-      strengths.push("You reviewed enough of the slide cues to continue with the behavior in mind.");
+      strengths.push("Great job! You reviewed enough of the slide cues to continue with the behavior clearly in mind.");
     } else {
-      hints.push("Open each reveal card so you see the full behavior cue, proof point, and follow-through detail.");
+      hints.push("So close — open each reveal card so you can see the full behavior cue, proof point, and follow-through detail before you try again.");
     }
   }
 

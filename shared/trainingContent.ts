@@ -1806,44 +1806,95 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
     evidenceLabel: fallbackEvidenceLabel,
     deckVisuals: fallbackDeckVisuals,
     insightCharts: fallbackInsightCharts,
-    slides: [
-      {
-        id: `${module.id}-slide-1`,
-        eyebrow: "Focus",
-        title: module.skillFocus,
-        narrative: `The lesson opens by clarifying why ${module.skillFocus.toLowerCase()} matters inside ${journeyTitle}.`,
-        bullets: [
-          `Clarify the expected behavior for ${module.skillFocus.toLowerCase()}.`,
-          `Connect the skill to the surrounding competency gap: ${competencyGap.toLowerCase()}.`,
-          "Translate the content into an observable performance behavior.",
+    slides: isWorkflowFamily
+      ? [
+          {
+            id: `${module.id}-slide-1`,
+            eyebrow: "QA focus",
+            title: module.skillFocus,
+            narrative: `The lesson opens by clarifying why ${module.skillFocus.toLowerCase()} matters inside ${journeyTitle}, with the QA weighting and workflow consequence made explicit from the first page.`,
+            bullets: [
+              `Clarify the expected behavior for ${module.skillFocus.toLowerCase()}.`,
+              "Name which scored workflow moments carry the greatest audit risk if the behavior is missed.",
+              "Translate the quality standard into an observable performance behavior.",
+            ],
+            visualTone: "Focus frame",
+          },
+          {
+            id: `${module.id}-slide-2`,
+            eyebrow: "Scorecard framing",
+            title: "Read the QA scorecard like an operating model",
+            narrative: "The learner studies how weighted scoring, compliance checkpoints, and reviewer expectations fit together so the deck feels like a live quality rubric instead of a static reference slide.",
+            bullets: [
+              "Identify which scorecard categories drive the biggest weighted impact.",
+              "Translate each category into a behavior a coach or reviewer can actually hear.",
+              "Use QA language consistently so calibration and coaching stay aligned.",
+            ],
+            visualTone: "Deck bridge",
+          },
+          {
+            id: `${module.id}-slide-3`,
+            eyebrow: "Call-flow translation",
+            title: "Map the QA standard into the customer workflow",
+            narrative: "This page turns the deck cues into a call-flow sequence so the learner can picture where the behavior should show up during verification, documentation, and the close rather than only at scoring time.",
+            bullets: [
+              "Pin the behavior to the exact moment in the workflow where QA expects to hear it.",
+              "Show how documentation and verbal behavior should reinforce each other.",
+              "Make the proof point visible before the interaction moves on.",
+            ],
+            visualTone: "Workflow bridge",
+          },
+          {
+            id: `${module.id}-slide-4`,
+            eyebrow: "Calibration transfer",
+            title: "Turn QA findings into coaching action",
+            narrative: "The final brief page keeps more of the source material present by connecting the score, the evidence note, and the coaching conversation the learner should expect after review.",
+            bullets: [
+              "Map the finding into a coaching note that names the behavior clearly.",
+              "Capture the evidence a reviewer should document after the interaction.",
+              "Use the QA signal to drive a specific next coaching action.",
+            ],
+            visualTone: "Application frame",
+          },
+        ]
+      : [
+          {
+            id: `${module.id}-slide-1`,
+            eyebrow: "Focus",
+            title: module.skillFocus,
+            narrative: `The lesson opens by clarifying why ${module.skillFocus.toLowerCase()} matters inside ${journeyTitle}.`,
+            bullets: [
+              `Clarify the expected behavior for ${module.skillFocus.toLowerCase()}.`,
+              `Connect the skill to the surrounding competency gap: ${competencyGap.toLowerCase()}.`,
+              "Translate the content into an observable performance behavior.",
+            ],
+            visualTone: "Focus frame",
+          },
+          {
+            id: `${module.id}-slide-2`,
+            eyebrow: "PowerPoint framing",
+            title: "Read the deck like an operating model",
+            narrative: "The source presentation is now carried deeper into the lesson so the learner studies the original framing, not only a short summary.",
+            bullets: [
+              "Identify what the source deck is emphasizing visually.",
+              "Translate that framing into a work-ready behavior cue.",
+              "Use the deck language to reinforce coaching and review consistency.",
+            ],
+            visualTone: "Deck bridge",
+          },
+          {
+            id: `${module.id}-slide-3`,
+            eyebrow: "Application",
+            title: "Use the content in real work",
+            narrative: "The module is connected to interventions, coaching, and workflow reinforcement so the learner sees where the lesson should appear on the job.",
+            bullets: [
+              "Map the skill into coaching and review conversations.",
+              "Use supporting assets to reinforce the behavior.",
+              "Capture one proof point in the documentation flow.",
+            ],
+            visualTone: "Application frame",
+          },
         ],
-        visualTone: "Focus frame",
-      },
-      {
-        id: `${module.id}-slide-2`,
-        eyebrow: "PowerPoint framing",
-        title: "Read the deck like an operating model",
-        narrative: "The source presentation is now carried deeper into the lesson so the learner studies the original framing, not only a short summary.",
-        bullets: [
-          "Identify what the source deck is emphasizing visually.",
-          "Translate that framing into a work-ready behavior cue.",
-          "Use the deck language to reinforce coaching and review consistency.",
-        ],
-        visualTone: "Deck bridge",
-      },
-      {
-        id: `${module.id}-slide-3`,
-        eyebrow: "Application",
-        title: "Use the content in real work",
-        narrative: "The module is connected to interventions, coaching, and workflow reinforcement so the learner sees where the lesson should appear on the job.",
-        bullets: [
-          "Map the skill into coaching and review conversations.",
-          "Use supporting assets to reinforce the behavior.",
-          "Capture one proof point in the documentation flow.",
-        ],
-        visualTone: "Application frame",
-      },
-    ],
     practiceSlides: [
       {
         id: `${module.id}-practice-1`,

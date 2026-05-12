@@ -69,6 +69,62 @@ export const learnerWorkspaceCopy = {
   assignedReengagementsCardTitle: "Assigned Re-engagements",
 } as const;
 
+type PersistedTrainingProgress = {
+  previewScenarioId: string;
+  moduleIndex: number;
+  stageIndex: number;
+  lessonPageIndex: number;
+  briefCheckpointAnswers: Record<string, string>;
+  briefCheckpointSubmitted: boolean;
+  practiceChoice: "coach_first" | "peer_shadow" | null;
+  practiceCheckpointAnswers: Record<string, string>;
+  practiceCheckpointSubmitted: boolean;
+  reflection: string;
+  applicationAnswers: Record<string, string>;
+  applicationSubmitted: boolean;
+  finalQuizAnswers: Record<string, string>;
+  finalQuizSubmitted: boolean;
+  selectedDeckVisualIndex: number;
+  narrationRate: string;
+  dismissedQuizTriggerIds: string[];
+  completedQuizTriggerIds: string[];
+  coachCheckpointNote: string;
+  coachCheckpointSubmitted: boolean;
+};
+
+const TRAINING_PROGRESS_STORAGE_PREFIX = "chcg-enableos-training-progress";
+
+export function clampTrainingProgressIndex(value: number | null | undefined, upperBound: number) {
+  const numeric = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : 0;
+  return Math.max(0, Math.min(numeric, Math.max(upperBound, 0)));
+}
+
+export function buildTrainingProgressStorageKey({
+  tenantId,
+  requestedRoleFilter,
+  requestedJourneyId,
+  requestedModuleId,
+  requestedAssignmentId,
+  previewScenarioId,
+}: {
+  tenantId?: string | null;
+  requestedRoleFilter?: DemoRole | null;
+  requestedJourneyId?: string | null;
+  requestedModuleId?: string | null;
+  requestedAssignmentId?: string | null;
+  previewScenarioId?: string | null;
+}) {
+  return [
+    TRAINING_PROGRESS_STORAGE_PREFIX,
+    tenantId ?? "tenantless",
+    `scenario=${previewScenarioId ?? "active"}`,
+    `journey=${requestedJourneyId ?? "none"}`,
+    `module=${requestedModuleId ?? "none"}`,
+    `assignment=${requestedAssignmentId ?? "none"}`,
+    `role=${requestedRoleFilter ?? "none"}`,
+  ].join(":");
+}
+
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
     title: "Executive command view",
@@ -1222,7 +1278,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
 export function TrainingExperienceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryParams = useMemo(() => {
     if (typeof window === "undefined") {
       return new URLSearchParams();
@@ -1267,6 +1323,9 @@ export function TrainingExperienceView() {
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
+  const restoredTrainingProgressKeyRef = useRef<string | null>(null);
+  const trainingProgressRestoreTimeoutRef = useRef<number | null>(null);
+  const trainingProgressHydratedRef = useRef(false);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -1349,6 +1408,15 @@ export function TrainingExperienceView() {
       setPreviewScenarioId(TRAINING_PREVIEW_BY_ROLE[requestedRoleFilter] ?? "active");
     }
   }, [requestedRoleFilter]);
+
+  const trainingProgressStorageKey = useMemo(() => buildTrainingProgressStorageKey({
+    tenantId,
+    requestedRoleFilter,
+    requestedJourneyId,
+    requestedModuleId,
+    requestedAssignmentId,
+    previewScenarioId,
+  }), [previewScenarioId, requestedAssignmentId, requestedJourneyId, requestedModuleId, requestedRoleFilter, tenantId]);
 
   useEffect(() => {
     setLessonPageIndex(0);
@@ -1578,20 +1646,41 @@ export function TrainingExperienceView() {
       return;
     }
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(narrationScript);
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("en")) ?? voices[0];
-    utterance.rate = Number(narrationRate);
-    utterance.pitch = 1;
-    utterance.lang = preferredVoice?.lang ?? "en-US";
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+    const speakNarration = () => {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(narrationScript);
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("en")) ?? voices[0];
+      utterance.rate = Number(narrationRate);
+      utterance.pitch = 1;
+      utterance.lang = preferredVoice?.lang ?? "en-US";
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      utterance.onstart = () => setNarrationStatus("playing");
+      utterance.onend = () => setNarrationStatus("ended");
+      utterance.onerror = () => setNarrationStatus("idle");
+      window.speechSynthesis.speak(utterance);
+    };
+
+    const availableVoices = window.speechSynthesis.getVoices();
+    if (availableVoices.length > 0) {
+      speakNarration();
+      return;
     }
-    utterance.onstart = () => setNarrationStatus("playing");
-    utterance.onend = () => setNarrationStatus("ended");
-    utterance.onerror = () => setNarrationStatus("unsupported");
-    window.speechSynthesis.speak(utterance);
+
+    const handleVoicesChanged = () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
+      speakNarration();
+    };
+
+    window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
+    window.setTimeout(() => {
+      window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
+      if (narrationStatus !== "playing") {
+        speakNarration();
+      }
+    }, 250);
   };
 
   const stages = selectedModule
@@ -1642,6 +1731,122 @@ export function TrainingExperienceView() {
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !trainingProgressStorageKey || !modules.length || !stages.length) {
+      return;
+    }
+
+    if (restoredTrainingProgressKeyRef.current === trainingProgressStorageKey) {
+      return;
+    }
+
+    restoredTrainingProgressKeyRef.current = trainingProgressStorageKey;
+    trainingProgressHydratedRef.current = false;
+    if (trainingProgressRestoreTimeoutRef.current !== null) {
+      window.clearTimeout(trainingProgressRestoreTimeoutRef.current);
+      trainingProgressRestoreTimeoutRef.current = null;
+    }
+
+    const savedProgress = window.localStorage.getItem(trainingProgressStorageKey);
+    if (!savedProgress) {
+      trainingProgressHydratedRef.current = true;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedProgress) as Partial<PersistedTrainingProgress>;
+      setModuleIndex(clampTrainingProgressIndex(parsed.moduleIndex, modules.length - 1));
+      setStageIndex(clampTrainingProgressIndex(parsed.stageIndex, stages.length - 1));
+      trainingProgressRestoreTimeoutRef.current = window.setTimeout(() => {
+        setLessonPageIndex(Math.max(0, typeof parsed.lessonPageIndex === "number" ? Math.trunc(parsed.lessonPageIndex) : 0));
+        setBriefCheckpointAnswers(parsed.briefCheckpointAnswers ?? {});
+        setBriefCheckpointSubmitted(Boolean(parsed.briefCheckpointSubmitted));
+        setPracticeChoice(parsed.practiceChoice === "coach_first" || parsed.practiceChoice === "peer_shadow" ? parsed.practiceChoice : null);
+        setPracticeCheckpointAnswers(parsed.practiceCheckpointAnswers ?? {});
+        setPracticeCheckpointSubmitted(Boolean(parsed.practiceCheckpointSubmitted));
+        setReflection(parsed.reflection ?? "");
+        setApplicationAnswers(parsed.applicationAnswers ?? {});
+        setApplicationSubmitted(Boolean(parsed.applicationSubmitted));
+        setFinalQuizAnswers(parsed.finalQuizAnswers ?? {});
+        setFinalQuizSubmitted(Boolean(parsed.finalQuizSubmitted));
+        setSelectedDeckVisualIndex(Math.max(0, typeof parsed.selectedDeckVisualIndex === "number" ? Math.trunc(parsed.selectedDeckVisualIndex) : 0));
+        setNarrationRate(parsed.narrationRate ?? "0.95");
+        setDismissedQuizTriggerIds(Array.isArray(parsed.dismissedQuizTriggerIds) ? parsed.dismissedQuizTriggerIds : []);
+        setCompletedQuizTriggerIds(Array.isArray(parsed.completedQuizTriggerIds) ? parsed.completedQuizTriggerIds : []);
+        setCoachCheckpointNote(parsed.coachCheckpointNote ?? "");
+        setCoachCheckpointSubmitted(Boolean(parsed.coachCheckpointSubmitted));
+        trainingProgressHydratedRef.current = true;
+        trainingProgressRestoreTimeoutRef.current = null;
+      }, 0);
+    } catch {
+      window.localStorage.removeItem(trainingProgressStorageKey);
+      trainingProgressHydratedRef.current = true;
+    }
+  }, [modules.length, stages.length, trainingProgressStorageKey]);
+
+  useEffect(() => {
+    if (lessonPageIndex <= Math.max(currentStagePages.length - 1, 0)) {
+      return;
+    }
+
+    setLessonPageIndex(Math.max(currentStagePages.length - 1, 0));
+  }, [currentStagePages.length, lessonPageIndex]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !trainingProgressStorageKey || !modules.length || !selectedModule || !trainingProgressHydratedRef.current) {
+      return;
+    }
+
+    const persistedProgress: PersistedTrainingProgress = {
+      previewScenarioId,
+      moduleIndex,
+      stageIndex,
+      lessonPageIndex,
+      briefCheckpointAnswers,
+      briefCheckpointSubmitted,
+      practiceChoice,
+      practiceCheckpointAnswers,
+      practiceCheckpointSubmitted,
+      reflection,
+      applicationAnswers,
+      applicationSubmitted,
+      finalQuizAnswers,
+      finalQuizSubmitted,
+      selectedDeckVisualIndex,
+      narrationRate,
+      dismissedQuizTriggerIds,
+      completedQuizTriggerIds,
+      coachCheckpointNote,
+      coachCheckpointSubmitted,
+    };
+
+    window.localStorage.setItem(trainingProgressStorageKey, JSON.stringify(persistedProgress));
+  }, [
+    applicationAnswers,
+    applicationSubmitted,
+    briefCheckpointAnswers,
+    briefCheckpointSubmitted,
+    coachCheckpointNote,
+    coachCheckpointSubmitted,
+    completedQuizTriggerIds,
+    dismissedQuizTriggerIds,
+    finalQuizAnswers,
+    finalQuizSubmitted,
+    lessonPageIndex,
+    moduleIndex,
+    modules.length,
+    narrationRate,
+    practiceCheckpointAnswers,
+    practiceCheckpointSubmitted,
+    practiceChoice,
+    previewScenarioId,
+    reflection,
+    selectedDeckVisualIndex,
+    selectedModule,
+    stageIndex,
+    trainingProgressStorageKey,
+  ]);
+
   const buildInitialSlideInteractionAttempt = () => {
     if (currentSlideInteraction?.kind === "drag_and_drop" && currentSlideInteraction.orderedSteps?.length) {
       return { orderedSteps: [...currentSlideInteraction.orderedSteps].reverse() };
@@ -1669,6 +1874,10 @@ export function TrainingExperienceView() {
 
   useEffect(() => () => {
     clearPendingSlideAutoAdvance();
+    if (typeof window !== "undefined" && trainingProgressRestoreTimeoutRef.current !== null) {
+      window.clearTimeout(trainingProgressRestoreTimeoutRef.current);
+      trainingProgressRestoreTimeoutRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -1780,6 +1989,21 @@ export function TrainingExperienceView() {
   const currentStageQuizGatePassed = currentStageQuizTriggers.every((trigger) => completedQuizTriggerIds.includes(trigger.id));
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
+  const utils = trpc.useUtils();
+  const completeTrainingAssignment = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
+    onSuccess: async () => {
+      if (!tenantId) {
+        return;
+      }
+
+      await Promise.all([
+        utils.demo.secureTraining.invalidate({ tenantId }),
+        utils.demo.secureLearner.invalidate({ tenantId }),
+        utils.demo.secureCoach.invalidate({ tenantId }),
+        utils.demo.secureManager.invalidate({ tenantId }),
+      ]);
+    },
+  });
   const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
   const reflectionWordCount = reflection.trim().length > 0 ? reflection.trim().split(/\s+/).filter(Boolean).length : 0;
   const reflectionReady = reflection.trim().length >= 20;
@@ -1794,6 +2018,7 @@ export function TrainingExperienceView() {
           ? reflectionReady && currentStageQuizGatePassed
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
+  const shouldReturnToLearnerWorkspace = requestedRoleFilter === "learner" || Boolean(requestedAssignmentId);
 
   useEffect(() => {
     if (!recentUnlockMoment) {
@@ -1927,6 +2152,18 @@ export function TrainingExperienceView() {
 
     if (moduleIndex < modules.length - 1) {
       setModuleIndex((value) => value + 1);
+      return;
+    }
+
+    if (shouldReturnToLearnerWorkspace) {
+      if (tenantId && requestedAssignmentId && targetedAssignment?.status !== "completed") {
+        completeTrainingAssignment.mutate({
+          tenantId,
+          assignmentId: requestedAssignmentId,
+          status: "completed",
+        });
+      }
+      setLocation("/learner");
     }
   };
 
@@ -3022,10 +3259,10 @@ export function TrainingExperienceView() {
                                       <div className={`mt-4 rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <div>
-                                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Challenge score</p>
-                                            <p className="mt-2 text-lg font-semibold text-white">{slideInteractionResult.score}% · {slideInteractionPassed ? "Passed" : "Retry required"}</p>
+                                            <p className={`text-[11px] uppercase tracking-[0.22em] ${slideInteractionPassed ? "text-emerald-200/85" : "text-amber-200/85"}`}>Challenge score</p>
+                                            <p className={`mt-2 text-lg font-semibold ${slideInteractionPassed ? "text-emerald-50" : "text-amber-50"}`}>{slideInteractionResult.score}% · {slideInteractionPassed ? "Passed" : "Retry required"}</p>
                                           </div>
-                                          <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-400/20 bg-emerald-400/12 text-emerald-100" : "border-amber-400/20 bg-amber-400/12 text-amber-100"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
+                                          <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-300/30 bg-emerald-300/18 text-emerald-50" : "border-amber-300/30 bg-amber-300/18 text-amber-50"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
                                         </div>
                                         {slideInteractionResult.strengths?.length ? (
                                           <div className="mt-3 space-y-2 text-sm leading-6 text-emerald-100">
@@ -3454,14 +3691,22 @@ export function TrainingExperienceView() {
                       </Button>
                       <div className="flex items-center gap-3">
                         {activeQuizTrigger && !quizTriggerDismissed && !activeModalPassed ? <span className="text-sm text-amber-300">Checkpoint gate active: complete the pop-up quiz to continue.</span> : null}
-                        {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">Training preview complete.</span> : null}
+                        {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">{shouldReturnToLearnerWorkspace ? "Training complete. Return to learner workspace." : "Training preview complete."}</span> : null}
                         <Button
                           type="button"
                           onClick={advanceStage}
-                          disabled={!canAdvance || atJourneyEnd}
+                          disabled={!canAdvance || completeTrainingAssignment.isPending}
                           className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
                         >
-                          {stageIndex === stages.length - 1 && moduleIndex < modules.length - 1 ? "Next module" : atJourneyEnd ? "Preview complete" : "Next step"}
+                          {completeTrainingAssignment.isPending
+                            ? "Saving completion..."
+                            : stageIndex === stages.length - 1 && moduleIndex < modules.length - 1
+                              ? "Next module"
+                              : atJourneyEnd
+                                ? shouldReturnToLearnerWorkspace
+                                  ? "Return to learner workspace"
+                                  : "Preview complete"
+                                : "Next step"}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
@@ -5458,6 +5703,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   const retrainingHistory = data.retrainingHistory ?? [];
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
+  const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
   const utils = trpc.useUtils();
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
@@ -5487,6 +5733,37 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       status,
     });
   };
+  const launchTrainingPath = (module: any) => {
+    if (activeRetrainingAssignment && module.id === activeRetrainingAssignment.moduleId) {
+      return primaryTrainingPath;
+    }
+
+    return buildTrainingLaunchPath({
+      journeyId: data.activeJourney.id,
+      moduleId: module.id,
+    });
+  };
+  const interventionTrainingOptions = [
+    ...(activeRetrainingAssignment ? [{
+      id: `assignment-${activeRetrainingAssignment.id}`,
+      title: activeRetrainingAssignment.moduleTitle,
+      subtitle: `${activeRetrainingAssignment.journeyTitle} · Assigned retraining`,
+      detail: activeRetrainingAssignment.skillFocus,
+      path: primaryTrainingPath,
+      moduleId: activeRetrainingAssignment.moduleId,
+      isAssigned: true,
+    }] : []),
+    ...learnerModules.map((module: any) => ({
+      id: module.id,
+      title: module.title,
+      subtitle: `${module.format} · ${module.durationMinutes} min`,
+      detail: module.skillFocus,
+      path: launchTrainingPath(module),
+      moduleId: module.id,
+      isAssigned: activeRetrainingAssignment?.moduleId === module.id,
+    })),
+  ].filter((option, index, options) => options.findIndex((candidate) => candidate.moduleId === option.moduleId) === index);
+  const activeIntervention = data.assignedInterventions.find((item: any) => item.id === selectedInterventionId) ?? null;
 
   return (
 
@@ -5681,6 +5958,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                           {index === 0 ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Recommended</Badge> : null}
                           {index === 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
                           {module.completionRate >= 80 ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Strong progress</Badge> : null}
+                          {activeRetrainingAssignment?.moduleId === module.id ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 text-amber-100">Assigned</Badge> : null}
                         </div>
                         <h4 className="mt-2 text-lg font-medium text-white">{module.title}</h4>
                         <p className="mt-2 text-sm text-slate-300">Skill focus: {module.skillFocus}</p>
@@ -5693,6 +5971,17 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                         <span>{module.completionRate}%</span>
                       </div>
                       <Progress value={module.completionRate} className="h-2 bg-white/8" />
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <Link href={launchTrainingPath(module)}>
+                        <Button type="button" variant="outline" onClick={() => {
+                          if (activeRetrainingAssignment?.moduleId === module.id && activeRetrainingAssignment.status === "assigned") {
+                            updateActiveAssignmentStatus("in_progress");
+                          }
+                        }} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                          {activeRetrainingAssignment?.moduleId === module.id ? (activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Resume assigned module") : "Open this module"}
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -5723,16 +6012,62 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                   </div>
                   <div className="mt-4 space-y-2 text-sm text-slate-300">
                     {item.assignedActions.map((action: any) => (
-                      <div key={action} className="flex items-start gap-2">
-                        <ChevronRight className="mt-0.5 h-4 w-4 text-slate-500" />
+                      <button
+                        key={action}
+                        type="button"
+                        onClick={() => setSelectedInterventionId(item.id)}
+                        className="flex w-full items-start gap-2 rounded-2xl border border-white/8 bg-slate-950/35 px-3 py-3 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"
+                      >
+                        <ChevronRight className="mt-0.5 h-4 w-4 text-cyan-200" />
                         <span>{action}</span>
-                      </div>
+                      </button>
                     ))}
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button type="button" variant="outline" onClick={() => setSelectedInterventionId(item.id)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                      Choose training for this re-engagement
+                    </Button>
+                    {activeRetrainingAssignment ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 text-amber-100">Assigned module available now</Badge> : null}
                   </div>
                 </div>
               ))}
             </CardContent>
           </PremiumCard>
+          <Dialog open={Boolean(activeIntervention)} onOpenChange={(open) => !open ? setSelectedInterventionId(null) : null}>
+            <DialogContent className="border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Select the training to continue this re-engagement</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  {activeIntervention ? `Route ${activeIntervention.title} into the right module so the learner lands exactly where the assigned re-engagement should continue.` : "Choose a module to continue this re-engagement."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                {interventionTrainingOptions.map((option) => (
+                  <Link key={option.id} href={option.path}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
+                          updateActiveAssignmentStatus("in_progress");
+                        }
+                        setSelectedInterventionId(null);
+                      }}
+                      className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-base font-semibold text-white">{option.title}</h4>
+                          <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
+                          <p className="mt-2 text-sm text-cyan-100/85">{option.detail}</p>
+                        </div>
+                        <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
+                      </div>
+                    </button>
+                  </Link>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
           <WeeklyCoachingLogTimeline
             title="Weekly coaching log and your take-aways"
             description="Review the structured coaching notes your leaders recorded, see which email recipients would receive copies, and add your own response back into the same log."
