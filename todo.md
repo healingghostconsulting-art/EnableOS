@@ -296,5 +296,6 @@
 - [x] Remove the standalone crafting-a-briefs box from the training flow so the learner experience feels more streamlined while preserving the interactive brief sequence and progression behavior.
 - [x] Rename the learner-side assigned-interventions language to "Assigned Re-engagements" wherever the open Google Doc feedback still expects that wording in the learner flow.
 - [x] Replace learner-facing "Skill gaps" wording with "Skill Opportunities" in the relevant learner journey surfaces and validate the updated terminology.
-- [ ] Fix the coaching-log save flow so coach users can submit and persist coaching logs successfully again.
+- [x] Fix the coaching-log save flow so coach users can submit and persist coaching logs successfully again.
+- [x] Re-validate the coach weekly coaching-log save flow in the live preview and confirm the regression is no longer reproducible with a successful persisted submission.
 - [x] Redesign the in-platform training quiz UI to match the structure and feel of the user's newly shared reference video as closely as safely possible within the current app.
