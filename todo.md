@@ -314,3 +314,5 @@
 - [x] Add edit capability for existing weekly coaching logs.
 - [x] Fix the training brief-completion regression so users can complete the brief sequence and advance in every training module.
 - [x] Validate the repaired brief-completion flow across the live training experience and automated tests before checkpointing.
+- [x] Investigate why the published training brief box on the workflow-precision route does not reflect the requested feedback changes.
+- [x] Determine whether the brief-box mismatch is caused by deployment version, route-specific state, or implementation logic, then fix and validate it.

@@ -372,19 +372,20 @@ export function getBriefCompletionStatus(lessonPageIndex: number, totalPages: nu
     completedCount,
     totalCount: totalPages,
     percentComplete,
-    statusLabel: `${completedCount} of ${totalPages} guided pages complete`,
+    statusLabel: `${completedCount} of ${totalPages} lesson steps complete`,
   };
 }
 
 export function getStageNavigatorLabel(stageId?: string | null) {
   return stageId === "brief"
-    ? "Guided lesson flow"
+    ? "Focused lesson path"
     : stageId === "practice"
       ? "Practice walkthrough"
       : stageId === "apply"
-        ? "Application walkthrough"
-        : "Reflection walkthrough";
+        ? "Transfer walkthrough"
+        : "Reflection checkpoint";
 }
+
 
 export function getModalCheckpointResetKey(trigger?: { id?: string | null; assessmentKey?: string | null } | null) {
   return trigger?.id ? `${trigger.id}:${trigger.assessmentKey ?? "unknown"}` : "none";
@@ -2260,9 +2261,9 @@ export function TrainingExperienceView() {
     ? [
         {
           id: "brief",
-          label: "Brief",
-          title: "Frame the learning objective",
-          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a guided practice sequence inside ${effectiveJourneyTitle}.`,
+          label: "Learn",
+          title: "Learn the core workflow behavior",
+          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a focused lesson path inside ${effectiveJourneyTitle}.`,
         },
         {
           id: "practice",
@@ -2511,7 +2512,8 @@ export function TrainingExperienceView() {
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
-  const currentStageItemLabel = `${currentStage?.label ?? "Lesson"} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
+  const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
+  const currentStageItemLabel = `${stageDisplayLabel} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
   const currentStageItemCountLabel = currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "No pages loaded";
   const stageNavigatorLabel = getStageNavigatorLabel(currentStage?.id);
   const briefQuestions = presentation?.briefCheckpoint.questions ?? [];
@@ -2624,6 +2626,7 @@ export function TrainingExperienceView() {
           : true;
   const atJourneyEnd = Boolean(selectedModule) && moduleIndex === modules.length - 1 && stageIndex === stages.length - 1;
   const shouldReturnToLearnerWorkspace = requestedRoleFilter === "learner" || Boolean(requestedAssignmentId);
+  const isDirectModuleLaunch = Boolean(requestedJourneyId || requestedModuleId || requestedAssignmentId);
 
   useEffect(() => {
     if (location !== "/learner" || requestedLearnerFocus !== "priority-retraining") {
@@ -3031,9 +3034,9 @@ export function TrainingExperienceView() {
   return (
     <Surface>
       <SectionShell
-        eyebrow="Interactive Training"
-        title="Interactive training simulator"
-        description="This view shows how CHCG and tenant-specific content are reformatted into a guided learning sequence with briefing, practice, live-work application, and reflection moments."
+        eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
+        title={isDirectModuleLaunch ? (selectedModule?.title ?? "Interactive course player") : "Interactive training simulator"}
+        description={isDirectModuleLaunch ? "This deep link now opens directly into the active course player so the learner lands on the lesson experience itself instead of the broader training-family preview shell." : "This view shows how CHCG and tenant-specific content are reformatted into a guided learning sequence with briefing, practice, live-work application, and reflection moments."}
         actions={
           <>
             {access.data ? (
@@ -3068,7 +3071,7 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
-            <PremiumCard>
+            <PremiumCard className={isDirectModuleLaunch ? "hidden" : undefined}>
               <CardContent className="flex flex-col gap-4 px-6 py-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <div className="max-w-3xl">
@@ -3180,7 +3183,7 @@ export function TrainingExperienceView() {
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                           <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Guided slides</p>
                           <p className="mt-2 text-xl font-semibold text-white">{guidedPlan.slideCount}</p>
-                          <p className="mt-1 text-xs text-slate-400">Brief, practice, and transfer sequence</p>
+                          <p className="mt-1 text-xs text-slate-400">Learn, practice, and transfer sequence</p>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                           <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Quiz moments</p>
@@ -3394,8 +3397,8 @@ export function TrainingExperienceView() {
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="max-w-2xl">
                           <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Focused course visual sync</p>
-                          <h3 className="mt-2 text-lg font-medium text-white">The active brief now drives the visual context</h3>
-                          <p className="mt-3 text-sm leading-6 text-slate-300">The broad brief, practice, and apply gallery has been removed from this area so the learner stays anchored to the focused brief panel. The canvas and supporting visual context now follow the active lesson page instead of asking the learner to scan a second visual list.</p>
+                          <h3 className="mt-2 text-lg font-medium text-white">The active lesson now drives the visual context</h3>
+                          <p className="mt-3 text-sm leading-6 text-slate-300">The broad learn, practice, and apply gallery has been removed from this area so the learner stays anchored to the active lesson surface. The canvas and supporting visual context now follow the current lesson page instead of asking the learner to scan a second visual list.</p>
                         </div>
                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trainingVisuals.length} mapped visuals in course memory</Badge>
                       </div>
@@ -3408,12 +3411,12 @@ export function TrainingExperienceView() {
                         <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
                           <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current stage</p>
                           <p className="mt-2 text-sm font-medium text-white">{currentStage?.label ?? "Stage loading"}</p>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">{currentStage?.title ?? "The focused brief panel controls stage-by-stage movement through the lesson."}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{currentStage?.title ?? "The active lesson surface controls stage-by-stage movement through the training path."}</p>
                         </div>
                         <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                           <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Primary navigation</p>
-                          <p className="mt-2 text-sm font-medium text-white">Use the brief panel and next-step controls</p>
-                          <p className="mt-2 text-sm leading-6 text-slate-100">Learners now move with the focused brief cards and the guided next or previous actions rather than a separate thumbnail gallery.</p>
+                          <p className="mt-2 text-sm font-medium text-white">Use the lesson surface and next-step controls</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-100">Learners now move with the active lesson surface and the guided next or previous actions rather than a separate thumbnail gallery.</p>
                         </div>
                       </div>
                     </div>
@@ -3561,52 +3564,52 @@ export function TrainingExperienceView() {
                                 </div>
                                 <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{lessonPageProgress}% section complete</p>
                                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                                  {Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} guided pages remaining
+                                  {Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} lesson steps remaining
                                 </p>
                                 {activeQuizTrigger ? <p className="text-xs uppercase tracking-[0.2em] text-amber-100/80">Upcoming checkpoint: {activeQuizTrigger.label}</p> : null}
                               </div>
                             </div>
                           </div>
-                          <div className="rounded-[1.9rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] px-5 py-5 shadow-[0_20px_60px_rgba(8,15,35,0.2)]">
+                          <div className="rounded-[1.9rem] border border-stone-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,245,244,0.98))] px-5 py-5 shadow-[0_20px_60px_rgba(148,163,184,0.14)]">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="max-w-2xl">
-                                <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">{stageNavigatorLabel}</p>
-                                <h4 className="mt-2 text-lg font-medium text-white">{currentLessonPage?.title ?? currentStageItemLabel}</h4>
-                                <p className="mt-2 text-sm leading-6 text-slate-300">The opening lesson now stays in the main course flow so learners move through the guidance without stopping at a separate brief-box section.</p>
+                                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{stageNavigatorLabel}</p>
+                                <h4 className="mt-2 text-lg font-medium text-slate-950">{currentLessonPage?.title ?? currentStageItemLabel}</h4>
+                                <p className="mt-2 text-sm leading-6 text-slate-600">This lesson now stays inside the course canvas so the learner reads, checks understanding, and advances without dropping into a separate brief box.</p>
                               </div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStageItemCountLabel}</Badge>
-                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{briefCompletionStatus.statusLabel}</Badge>
+                                <Badge className="rounded-full border-stone-200 bg-white text-slate-700">{currentStageItemCountLabel}</Badge>
+                                <Badge className="rounded-full border-sky-200 bg-sky-50 text-sky-700">{briefCompletionStatus.statusLabel}</Badge>
                               </div>
                             </div>
                             <div
                               key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`}
                               ref={briefCardRef}
-                              className="mt-4 rounded-[1.45rem] border border-cyan-400/30 bg-slate-950/65 px-5 py-5 shadow-[0_22px_48px_rgba(34,211,238,0.12)]"
+                              className="mt-4 rounded-[1.45rem] border border-stone-200 bg-white px-5 py-5 shadow-[0_18px_36px_rgba(148,163,184,0.12)]"
                             >
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="max-w-2xl">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current lesson focus</p>
-                                  <h5 className="mt-2 text-base font-semibold text-white">{currentLessonPage?.title ?? "Lesson loading"}</h5>
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Active lesson</p>
+                                  <h5 className="mt-2 text-base font-semibold text-slate-950">{currentLessonPage?.title ?? "Lesson loading"}</h5>
                                 </div>
-                                <p className="text-sm font-semibold text-cyan-100">{briefCompletionStatus.percentComplete}%</p>
+                                <p className="text-sm font-semibold text-sky-700">{briefCompletionStatus.percentComplete}%</p>
                               </div>
-                              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-900/70">
+                              <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200">
                                 <div
-                                  className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(125,211,252,0.95))] transition-[width] duration-300 ease-out"
+                                  className="h-full rounded-full bg-[linear-gradient(90deg,rgba(14,165,233,0.95),rgba(56,189,248,0.95))] transition-[width] duration-300 ease-out"
                                   style={{ width: `${briefCompletionStatus.percentComplete}%` }}
                                 />
                               </div>
-                              <p className="mt-4 text-sm leading-7 text-slate-200">{currentLessonPage?.narrative ?? "The current lesson page will appear here once the training content is ready."}</p>
+                              <p className="mt-4 text-sm leading-7 text-slate-700">{currentLessonPage?.narrative ?? "The current lesson page will appear here once the training content is ready."}</p>
                               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
-                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Sequence pacing</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-300">Each page advances inside the same course surface so the learner stays oriented instead of bouncing between extra containers.</p>
+                                <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Lesson pacing</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-600">Each step advances in the same course surface so the learner stays oriented instead of bouncing between disconnected containers.</p>
                                 </div>
-                                <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
-                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Up next</p>
-                                  <p className="mt-2 text-sm font-medium text-white">{nextLessonPage?.title ?? "Practice checkpoint coming next"}</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-300">{nextLessonPage?.narrative ?? "You are on the final guided page before the next training moment begins."}</p>
+                                <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Next lesson step</p>
+                                  <p className="mt-2 text-sm font-medium text-slate-900">{nextLessonPage?.title ?? "Knowledge check coming next"}</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-600">{nextLessonPage?.narrative ?? "You are on the final guided page before the next training moment begins."}</p>
                                 </div>
                               </div>
                             </div>
@@ -3616,20 +3619,20 @@ export function TrainingExperienceView() {
                                 variant="outline"
                                 onClick={retreatLessonPage}
                                 disabled={lessonPageIndex === 0}
-                                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                                className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900"
                               >
-                                Previous page
+                                Previous lesson
                               </Button>
                               <Button
                                 type="button"
                                 variant="outline"
                                 onClick={advanceLessonPage}
                                 disabled={lessonPageIndex >= currentStagePages.length - 1}
-                                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                                className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900"
                               >
-                                Next page
+                                Next lesson
                               </Button>
-                              <p className="text-xs leading-5 text-slate-400">The guided opening now lives inside the main lesson canvas while the previous and next controls keep progression straightforward.</p>
+                              <p className="text-xs leading-5 text-slate-500">The focused lesson now lives inside the main course canvas while the previous and next controls keep progression straightforward.</p>
                             </div>
                           </div>
                         </div>
@@ -3810,7 +3813,7 @@ export function TrainingExperienceView() {
                                   <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)]">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Self-guided slide challenge</p>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Knowledge check</p>
                                         <h4 className="mt-2 text-lg font-medium text-white">{currentSlideInteraction.title}</h4>
                                         <p className="mt-2 max-w-none text-sm leading-6 text-slate-200 2xl:max-w-[58rem]">{currentSlideInteraction.prompt}</p>
                                         <p className="mt-2 text-sm leading-6 text-slate-300">{currentSlideInteraction.instructions}</p>
@@ -3949,11 +3952,13 @@ export function TrainingExperienceView() {
                                     ) : null}
                                     <div className="mt-5 flex flex-wrap items-center gap-3">
                                       <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={submitSlideInteraction}>
-                                        {slideInteractionSubmitted ? (slideInteractionPassed ? "Passed" : "Check again") : "Check slide challenge"}
+                                        {slideInteractionSubmitted ? (slideInteractionPassed ? "Passed" : "Check again") : "Check understanding"}
                                       </Button>
+
                                       <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
-                                        Review slide and retry
+                                        Review lesson and retry
                                       </Button>
+
                                       {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? (
                                         <span className="text-sm text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds after your first answer selection.</span>
                                       ) : null}
@@ -3962,7 +3967,7 @@ export function TrainingExperienceView() {
                                       <div className={`mt-4 rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <div>
-                                            <p className={`text-[11px] uppercase tracking-[0.22em] ${slideInteractionPassed ? "text-emerald-200/85" : "text-amber-200/85"}`}>Challenge score</p>
+                                            <p className={`text-[11px] uppercase tracking-[0.22em] ${slideInteractionPassed ? "text-emerald-200/85" : "text-amber-200/85"}`}>Knowledge-check result</p>
                                             <p className={`mt-2 text-lg font-semibold ${slideInteractionPassed ? "text-emerald-50" : "text-amber-50"}`}>{slideInteractionResult.score}% · {slideInteractionPassed ? "Passed" : "Retry required"}</p>
                                           </div>
                                           <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-300/30 bg-emerald-300/18 text-emerald-50" : "border-amber-300/30 bg-amber-300/18 text-amber-50"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
@@ -3980,7 +3985,7 @@ export function TrainingExperienceView() {
                                       </div>
                                     ) : (
                                       <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-300">
-                                        Pass this slide challenge before the next guided page unlocks. If you miss the threshold, use the hint, review the page content, and retry.
+                                        Pass this knowledge check before the next lesson step unlocks. If you miss the threshold, use the hint, review the page content, and retry.
                                       </div>
                                     )}
                                   </div>
@@ -4003,7 +4008,7 @@ export function TrainingExperienceView() {
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
                                       <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
-                                      <p className="mt-2 text-sm text-slate-300">Use the focused brief panel or the previous and next controls to keep the canvas aligned to the active learning moment. The duplicate slide-tile list has been removed so the learner stays in one guided flow.</p>
+                                      <p className="mt-2 text-sm text-slate-300">Use the active lesson surface or the previous and next controls to keep the canvas aligned to the current learning moment. The duplicate slide-tile list has been removed so the learner stays in one guided flow.</p>
                                     </div>
                                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length || 1} guided visuals</Badge>
                                   </div>
@@ -4070,7 +4075,7 @@ export function TrainingExperienceView() {
                                       <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
                                         <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
                                         <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Use the focused brief panel and the previous or next controls above to move the active visual. Open the full-size slide when you want a separate reading view.</p>
+                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Use the active lesson surface and the previous or next controls above to move the active visual. Open the full-size slide when you want a separate reading view.</p>
                                       </div>
                                     </div>
                                   </div>
@@ -4079,7 +4084,7 @@ export function TrainingExperienceView() {
                                       <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div className="max-w-2xl">
                                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Visual focus lock</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">This area no longer repeats the full brief and practice list as slide tiles. The focused brief panel is the main navigator, while this companion card simply confirms where the learner is in the visual sequence.</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-300">This area no longer repeats the full learn and practice list as slide tiles. The active lesson surface is the main navigator, while this companion card simply confirms where the learner is in the visual sequence.</p>
                                         </div>
                                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
                                       </div>

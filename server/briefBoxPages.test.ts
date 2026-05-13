@@ -52,7 +52,7 @@ describe("getBriefCompletionStatus", () => {
       completedCount: 2,
       totalCount: 4,
       percentComplete: 50,
-      statusLabel: "2 of 4 guided pages complete",
+      statusLabel: "2 of 4 lesson steps complete",
     });
   });
 

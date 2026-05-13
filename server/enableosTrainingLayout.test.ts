@@ -32,19 +32,19 @@ describe("learner training layout helpers", () => {
   });
 
   it("returns the branded stage label for each learner training phase", () => {
-    expect(getStageNavigatorLabel("brief")).toBe("Guided lesson flow");
+    expect(getStageNavigatorLabel("brief")).toBe("Focused lesson path");
     expect(getStageNavigatorLabel("practice")).toBe("Practice walkthrough");
-    expect(getStageNavigatorLabel("apply")).toBe("Application walkthrough");
-    expect(getStageNavigatorLabel("reflect")).toBe("Reflection walkthrough");
-    expect(getStageNavigatorLabel()).toBe("Reflection walkthrough");
+    expect(getStageNavigatorLabel("apply")).toBe("Transfer walkthrough");
+    expect(getStageNavigatorLabel("reflect")).toBe("Reflection checkpoint");
+    expect(getStageNavigatorLabel()).toBe("Reflection checkpoint");
   });
 
-  it("uses guided-page completion wording for the streamlined opening lesson", () => {
+  it("uses lesson-step completion wording for the streamlined opening lesson", () => {
     expect(getBriefCompletionStatus(1, 5)).toMatchObject({
       completedCount: 2,
       totalCount: 5,
       percentComplete: 40,
-      statusLabel: "2 of 5 guided pages complete",
+      statusLabel: "2 of 5 lesson steps complete",
     });
   });
 

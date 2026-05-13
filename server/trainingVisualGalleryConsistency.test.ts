@@ -44,7 +44,7 @@ describe("training visual gallery consistency", () => {
     expect(presentation.deckVisuals.length).toBeGreaterThanOrEqual(3);
     expect(visuals.length).toBeGreaterThan(presentation.deckVisuals.length);
     expect(visuals.some((visual) => visual.stageId === "deck" && visual.pageLabel === "Slide 8")).toBe(true);
-    expect(visuals.some((visual) => visual.stageId === "brief" && visual.pageLabel === "Brief 1")).toBe(true);
-    expect(visuals.some((visual) => visual.stageId === "apply" && visual.pageLabel === "Apply 1")).toBe(true);
+    expect(visuals.some((visual) => visual.stageId === "brief" && visual.pageLabel === "Learn 1" && visual.stageLabel === "Learn")).toBe(true);
+    expect(visuals.some((visual) => visual.stageId === "apply" && visual.pageLabel === "Apply in role 1" && visual.stageLabel === "Apply in role")).toBe(true);
   });
 });

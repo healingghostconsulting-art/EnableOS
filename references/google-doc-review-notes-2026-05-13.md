@@ -135,3 +135,7 @@ Opening **Learner Journey** from the signed-in non-learner session still swaps t
 The coach workspace now shows readable weekly coaching log surfaces with stronger dark-form contrast, and the timeline exposes an inline `Edit structured log` action for leadership users reviewing or correcting existing entries.
 
 The learner workspace now preserves the broader reviewer shell instead of collapsing to a learner-only navigation, and the perspective banner explicitly explains that the learner workspace is open while the signed-in session still belongs to the broader reviewer lane.
+
+## Published versus preview check — workflow precision brief box
+
+The published URL provided by the user currently redirects the browser session to the hosted sign-in page, so the deployed brief box cannot be directly inspected there without authentication. The same route on the authenticated preview domain does load, and it still shows the workflow-precision module with the legacy brief framing, including the old reveal-card slide challenge and the `Brief 1` presentation for `Verification confidence`. This strongly suggests the issue is not limited to deployment lag alone: the route-specific workflow-precision module path itself is still rendering an older brief-box experience compared with the intended feedback changes.

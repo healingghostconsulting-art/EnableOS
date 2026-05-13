@@ -25,9 +25,9 @@ export function buildTrainingVisualGallery(presentation: TrainingPresentation): 
   }));
 
   const generatedVisuals: TrainingGalleryVisual[] = [
-    { stageId: "brief" as const, stageLabel: "Brief", slides: presentation.slides },
+    { stageId: "brief" as const, stageLabel: "Learn", slides: presentation.slides },
     { stageId: "practice" as const, stageLabel: "Practice", slides: presentation.practiceSlides },
-    { stageId: "apply" as const, stageLabel: "Apply", slides: presentation.applySlides },
+    { stageId: "apply" as const, stageLabel: "Apply in role", slides: presentation.applySlides },
   ].flatMap(({ stageId, stageLabel, slides }) =>
     slides.map((slide, index) => ({
       id: `generated-${stageId}-${slide.id}`,
