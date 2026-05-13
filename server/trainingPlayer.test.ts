@@ -219,6 +219,29 @@ describe("training player helpers", () => {
     expect(dragEvaluation.passed).toBe(true);
   });
 
+  it("allows a timed slide challenge to pass before the timer has been armed", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-listening-module",
+        title: "Listening with intent",
+        format: "Microlearning",
+        durationMinutes: 8,
+        skillFocus: "Active listening",
+      },
+      "Service Foundations",
+      "Behavior consistency",
+    );
+
+    const timedInteraction = buildSlideInteraction(presentation.slides[7], "Active listening", 7);
+
+    const timedEvaluation = evaluateSlideInteraction(timedInteraction, {
+      selectedChoiceId: timedInteraction?.choices?.find((choice) => choice.correct)?.id,
+    });
+
+    expect(timedEvaluation.passed).toBe(true);
+    expect(timedEvaluation.score).toBe(100);
+  });
+
   it("returns retry guidance when an interaction submission is too weak or too slow", () => {
     const presentation = getTrainingPresentation(
       {

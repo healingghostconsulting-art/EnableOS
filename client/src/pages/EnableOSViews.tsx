@@ -1844,6 +1844,14 @@ export function TrainingExperienceView() {
   const [slideInteractionResult, setSlideInteractionResult] = useState<any | null>(null);
   const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
+
+  const armTimedChallengeWindow = () => {
+    if (currentSlideInteraction?.kind !== "timed_challenge") {
+      return;
+    }
+
+    setTimerStartedAt((current) => current ?? Date.now());
+  };
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
@@ -2436,7 +2444,7 @@ export function TrainingExperienceView() {
     setSlideInteractionResult(null);
     setRevealedCardIds([]);
     setDraggedStepIndex(null);
-    setTimerStartedAt(Date.now());
+    setTimerStartedAt(null);
   }, [selectedModule?.id, stageIndex, lessonPageIndex, currentSlideInteraction?.id]);
 
   useEffect(() => () => {
@@ -2711,7 +2719,7 @@ export function TrainingExperienceView() {
     setSlideInteractionAttempt(buildInitialSlideInteractionAttempt());
     setRevealedCardIds([]);
     setDraggedStepIndex(null);
-    setTimerStartedAt(Date.now());
+    setTimerStartedAt(null);
   };
 
   const goToLessonPage = (nextIndex: number) => {
@@ -3848,7 +3856,10 @@ export function TrainingExperienceView() {
                                             <button
                                               key={choice.id}
                                               type="button"
-                                              onClick={() => setSlideInteractionAttempt((current) => ({ ...current, selectedChoiceId: choice.id }))}
+                                              onClick={() => {
+                                                armTimedChallengeWindow();
+                                                setSlideInteractionAttempt((current) => ({ ...current, selectedChoiceId: choice.id }));
+                                              }}
                                               className={`min-w-0 overflow-hidden rounded-[1.35rem] border p-4 text-left transition ${isSelected ? "border-cyan-400/40 bg-cyan-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
                                             >
                                               <p className="break-words text-sm font-medium text-white">{choice.label}</p>
@@ -3943,7 +3954,9 @@ export function TrainingExperienceView() {
                                       <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
                                         Review slide and retry
                                       </Button>
-                                      {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? <span className="text-sm text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds from page load.</span> : null}
+                                      {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? (
+                                        <span className="text-sm text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds after your first answer selection.</span>
+                                      ) : null}
                                     </div>
                                     {slideInteractionSubmitted && slideInteractionResult ? (
                                       <div className={`mt-4 rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>

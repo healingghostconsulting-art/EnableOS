@@ -481,7 +481,7 @@ export function evaluateSlideInteraction(
 
   if (definition.kind === "timed_challenge") {
     const selectedChoice = definition.choices?.find((choice) => choice.id === attempt.selectedChoiceId) ?? null;
-    const withinTimeLimit = (attempt.elapsedSeconds ?? Number.MAX_SAFE_INTEGER) <= (definition.timeLimitSeconds ?? 20);
+    const withinTimeLimit = attempt.elapsedSeconds === undefined || attempt.elapsedSeconds <= (definition.timeLimitSeconds ?? 20);
     score = selectedChoice?.correct && withinTimeLimit ? 100 : selectedChoice?.correct ? 60 : 0;
     if (selectedChoice?.correct && withinTimeLimit) {
       strengths.push("You responded accurately within the sprint time window.");

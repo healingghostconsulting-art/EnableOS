@@ -312,3 +312,5 @@
 - [x] Restrict or better scope Training Zone content by active role so role-specific users do not see every training surface by default.
 - [x] Add an admin-facing path for defining custom roles within the client administration experience.
 - [x] Add edit capability for existing weekly coaching logs.
+- [x] Fix the training brief-completion regression so users can complete the brief sequence and advance in every training module.
+- [x] Validate the repaired brief-completion flow across the live training experience and automated tests before checkpointing.
