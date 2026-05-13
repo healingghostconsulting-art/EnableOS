@@ -194,8 +194,141 @@ const TRAINING_PREVIEW_BY_ROLE: Partial<Record<DemoRole, string>> = {
   client_admin: "active",
 };
 
+const TRAINING_ROLE_FILTER_OPTIONS: Array<{ value: DemoRole | "all"; label: string }> = [
+  { value: "all", label: "All previews" },
+  { value: "executive", label: "Executive" },
+  { value: "manager", label: "Manager" },
+  { value: "coach", label: "Coach / Supervisor" },
+  { value: "learner", label: "Learner" },
+  { value: "client_admin", label: "Client admin" },
+];
+
+const TRAINING_PREVIEW_IDS_BY_ROLE: Record<DemoRole | "all", string[]> = {
+  all: ["active", "workflow", "coach-supervision", "leadership", "performance", "engagement"],
+  executive: ["leadership"],
+  manager: ["workflow", "performance", "engagement"],
+  coach: ["coach-supervision"],
+  learner: ["active"],
+  client_admin: ["active", "workflow", "coach-supervision", "leadership", "performance", "engagement"],
+};
+
+const FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] outline-none transition focus:border-cyan-300/35 focus:ring-2 focus:ring-cyan-400/10 placeholder:text-slate-500 [color-scheme:dark]";
+const READONLY_FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/10 bg-slate-950/65 px-4 py-3 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none [color-scheme:dark]";
+
 function getRoleLabel(role: string) {
   return role === "all" ? "All roles" : role.replaceAll("_", " ");
+}
+
+function getWorkspaceRoleLabel(role?: string | null) {
+  if (!role) {
+    return null;
+  }
+
+  if (role in roleMeta) {
+    return roleMeta[role as DemoRole].eyebrow;
+  }
+
+  if (role === "platform_admin") {
+    return "Platform Admin";
+  }
+
+  return getRoleLabel(role);
+}
+
+export function getLearnerWorkspacePerspectiveNotice(grantRole?: string | null) {
+  if (!grantRole || grantRole === "learner") {
+    return null;
+  }
+
+  const viewerLabel = getWorkspaceRoleLabel(grantRole) ?? "Current role";
+  const viewerLane = viewerLabel.toLowerCase();
+
+  return {
+    eyebrow: `${viewerLabel} session`,
+    title: `You are reviewing the learner experience from the ${viewerLane} lane.`,
+    description: `The navigation has been narrowed to learner tools for this route, but your signed-in session still belongs to the ${viewerLane}. Use this banner as the role-context handoff so the perspective change feels intentional instead of abrupt.`,
+  };
+}
+
+export function filterTrainingPreviewScenariosByRole<T extends { id: string }>(scenarios: T[], roleFilter: DemoRole | "all") {
+  if (roleFilter === "all") {
+    return scenarios;
+  }
+
+  const allowedScenarioIds = new Set(TRAINING_PREVIEW_IDS_BY_ROLE[roleFilter] ?? TRAINING_PREVIEW_IDS_BY_ROLE.all);
+  return scenarios.filter((scenario) => allowedScenarioIds.has(scenario.id));
+}
+
+export function resolveSelectedAssetWorkflowRoles(linkedRoles: string[]): DemoRole[] {
+  const normalizedRoles: DemoRole[] = linkedRoles.includes("all")
+    ? TRAINING_ROLE_FILTER_OPTIONS.filter((option) => option.value !== "all").map((option) => option.value as DemoRole)
+    : linkedRoles.filter((role): role is DemoRole => role in roleMeta);
+
+  return normalizedRoles.length > 0 ? normalizedRoles : ["learner"];
+}
+
+export function resolveDefaultSelectedAssetRole(linkedRoles: string[], preferredRole?: string | null): DemoRole {
+  const allowedRoles = resolveSelectedAssetWorkflowRoles(linkedRoles);
+
+  if (preferredRole && preferredRole !== "platform_admin" && allowedRoles.includes(preferredRole as DemoRole)) {
+    return preferredRole as DemoRole;
+  }
+
+  return allowedRoles[0] ?? "learner";
+}
+
+export function getOperationalLaunchReadinessBrief(role: DemoRole) {
+  const briefs: Record<DemoRole, {
+    title: string;
+    trainingUse: string;
+    workflowOwner: string;
+    launchAlignment: string;
+    followThrough: string;
+    startLabel: string;
+  }> = {
+    executive: {
+      title: "Executive readiness brief",
+      trainingUse: "Frame this asset as a leadership signal pack tied to readiness movement, KPI interpretation, and intervention decisions.",
+      workflowOwner: "Executive sponsors use it to connect frontline behavior evidence to trend review and investment decisions.",
+      launchAlignment: "The handoff should emphasize outcome visibility, business risk, and the decision-quality lens carried into the training preview.",
+      followThrough: "Success looks like clearer executive review points, better intervention prioritization, and visible readiness-story continuity.",
+      startLabel: "Launch executive preview",
+    },
+    manager: {
+      title: "Manager launch brief",
+      trainingUse: "Position this asset as a workflow, calibration, or coaching execution tool that supports active interventions and learner follow-through.",
+      workflowOwner: "Managers use it to direct retraining, inspect evidence, and tie the content into current team performance gaps.",
+      launchAlignment: "The surrounding copy should speak to coaching cadence, accountability, and the operational lane the manager owns day to day.",
+      followThrough: "Success looks like tighter intervention plans, cleaner coaching documentation, and clearer readiness movement across the team.",
+      startLabel: "Launch manager preview",
+    },
+    coach: {
+      title: "Coach launch brief",
+      trainingUse: "Treat this asset as a live coaching support tool that sharpens observation, rehearsal language, and weekly follow-through.",
+      workflowOwner: "Coaches use it to translate lesson evidence into field conversations, checkpoints, and documented learner commitments.",
+      launchAlignment: "The handoff should foreground learner transfer, observational prompts, and the exact behavior the coach will reinforce next.",
+      followThrough: "Success looks like clearer weekly coaching logs, stronger transfer notes, and tighter coach-to-learner continuity.",
+      startLabel: "Launch coach preview",
+    },
+    learner: {
+      title: "Learner launch brief",
+      trainingUse: "Present this asset as learner-facing context that makes the next module, practice language, and transfer expectations feel concrete.",
+      workflowOwner: "Learners use it to understand what they should practice now, why it matters, and how the content connects to their assigned path.",
+      launchAlignment: "The brief should stay simple, specific, and action-oriented so the learner immediately sees the relevant module lens.",
+      followThrough: "Success looks like a clearer next step, stronger practice transfer, and less confusion about which training matters right now.",
+      startLabel: "Launch learner preview",
+    },
+    client_admin: {
+      title: "Client admin launch brief",
+      trainingUse: "Frame this asset as a governed launch artifact that controls who sees the content, how it is labeled, and where it enters the tenant workflow.",
+      workflowOwner: "Client admins use it to manage readiness rollout, role scoping, and branded content activation across the workspace.",
+      launchAlignment: "The surrounding panels should stress governance, role mapping, and how the asset travels safely into live training routes.",
+      followThrough: "Success looks like clean role alignment, safer launch readiness, and visible tenant-specific governance over the training experience.",
+      startLabel: "Launch client-admin preview",
+    },
+  };
+
+  return briefs[role];
 }
 
 export function getBriefBoxPages<T>(pages: T[], lessonPageIndex: number) {
@@ -1380,6 +1513,9 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
 
   const query = queryMap[role];
   const meta = roleMeta[role];
+  const learnerPerspectiveNotice = role === "learner"
+    ? getLearnerWorkspacePerspectiveNotice(access.data?.grant.role)
+    : null;
   const canAccessRequestedRole = access.data ? access.data.permittedRoles.includes(role) : false;
   const refreshWorkspace = () => {
     void access.refetch();
@@ -1414,6 +1550,18 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
               <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
               <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific workspaces and purchased training access.</CardDescription>
             </CardHeader>
+          </PremiumCard>
+        ) : null}
+        {!access.isLoading && canAccessRequestedRole && learnerPerspectiveNotice ? (
+          <PremiumCard className="border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.96))]">
+            <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-4xl">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">{learnerPerspectiveNotice.eyebrow}</p>
+                <h2 className="mt-3 text-2xl font-semibold text-white">{learnerPerspectiveNotice.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-100">{learnerPerspectiveNotice.description}</p>
+              </div>
+              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Learner shell active</Badge>
+            </CardContent>
           </PremiumCard>
         ) : null}
         {!access.isLoading && access.data && !canAccessRequestedRole ? (
@@ -1484,11 +1632,13 @@ export function TrainingExperienceView() {
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
+  const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
   const restoredTrainingProgressKeyRef = useRef<string | null>(null);
   const trainingProgressRestoreTimeoutRef = useRef<number | null>(null);
   const trainingProgressHydratedRef = useRef(false);
+  const trainingRoleFilterHydratedRef = useRef(false);
   const pendingLearnerReturnPathRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -1572,6 +1722,19 @@ export function TrainingExperienceView() {
       setPreviewScenarioId(TRAINING_PREVIEW_BY_ROLE[requestedRoleFilter] ?? "active");
     }
   }, [requestedRoleFilter]);
+
+  useEffect(() => {
+    if (requestedRoleFilter) {
+      trainingRoleFilterHydratedRef.current = true;
+      setRoleFilter(requestedRoleFilter);
+      return;
+    }
+
+    if (!trainingRoleFilterHydratedRef.current && access.data?.grant.role && access.data.grant.role !== "platform_admin") {
+      trainingRoleFilterHydratedRef.current = true;
+      setRoleFilter(access.data.grant.role as DemoRole);
+    }
+  }, [access.data?.grant.role, requestedRoleFilter]);
 
   const trainingProgressStorageKey = useMemo(() => buildTrainingProgressStorageKey({
     tenantId,
@@ -1701,10 +1864,23 @@ export function TrainingExperienceView() {
       },
     ];
 
-    return access.data?.grant.role === "learner"
+    const basePreviewScenarios = access.data?.grant.role === "learner"
       ? allPreviewScenarios.slice(0, 1)
       : allPreviewScenarios;
-  }, [access.data?.grant.role, liveJourney, learner.data?.nextCoachingSession.title]);
+
+    return filterTrainingPreviewScenariosByRole(basePreviewScenarios, roleFilter);
+  }, [access.data?.grant.role, liveJourney, learner.data?.nextCoachingSession.title, roleFilter]);
+
+  useEffect(() => {
+    if (!previewScenarios.length) {
+      return;
+    }
+
+    if (!previewScenarios.some((scenario) => scenario.id === previewScenarioId)) {
+      setPreviewScenarioId(previewScenarios[0].id);
+    }
+  }, [previewScenarioId, previewScenarios]);
+
   const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
   const targetedAssignment = learner.data?.retrainingAssignments?.find((assignment: any) => {
     if (requestedAssignmentId) {
@@ -2640,7 +2816,20 @@ export function TrainingExperienceView() {
                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
                   </div>
                 </div>
-                <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-5">
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  {TRAINING_ROLE_FILTER_OPTIONS.map((option) => (
+                    <Button
+                      key={`training-role-filter-${option.value}`}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setRoleFilter(option.value)}
+                      className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-5">
                   {previewScenarios.map((scenario) => (
                     <button
                       key={scenario.id}
@@ -4122,6 +4311,7 @@ export function ContentLibraryView() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [selectedAssetRole, setSelectedAssetRole] = useState<DemoRole>("learner");
   const [, setLocation] = useLocation();
 
   const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
@@ -4187,6 +4377,32 @@ export function ContentLibraryView() {
     () => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null,
     [assets, selectedAssetId],
   );
+  const selectedAssetRoleOptions = useMemo(
+    () => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [],
+    [selectedAsset],
+  );
+  const selectedAssetWorkflowBrief = useMemo(
+    () => getOperationalLaunchReadinessBrief(selectedAssetRole),
+    [selectedAssetRole],
+  );
+
+  useEffect(() => {
+    if (!selectedAsset) {
+      return;
+    }
+
+    setSelectedAssetRole((currentRole) => {
+      if (selectedAssetRoleOptions.includes(currentRole)) {
+        return currentRole;
+      }
+
+      const preferredRole = roleFilter !== "all"
+        ? roleFilter
+        : access.data?.grant.role;
+
+      return resolveDefaultSelectedAssetRole(selectedAsset.linkedRoles, preferredRole);
+    });
+  }, [access.data?.grant.role, roleFilter, selectedAsset, selectedAssetRoleOptions]);
 
   function handleStartTraining(asset?: any, role?: DemoRole, journeyId?: string, moduleId?: string, assignmentId?: string) {
     setLocation(buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId }));
@@ -4365,8 +4581,8 @@ export function ContentLibraryView() {
                       <Button type="button" variant="outline" onClick={() => setLocation("/learner")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
                         Open learner journey
                       </Button>
-                      <Button type="button" onClick={() => handleStartTraining(selectedAsset)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                        Start training from this asset
+                      <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                        {selectedAssetWorkflowBrief.startLabel}
                       </Button>
                     </div>
                   </div>
@@ -4389,29 +4605,40 @@ export function ContentLibraryView() {
                     </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
-                      <p className="mt-2.5 text-white">This asset can be framed as lesson context, practice language, or reflection evidence inside the training simulator.</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Source label</p>
-                      <p className="mt-2.5 text-white">{selectedAsset.sourceLabel}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300 sm:col-span-2">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Role relevance</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedAsset.linkedRoles.map((linked: string) => (
+                    <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100 sm:col-span-2">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Operational launch readiness brief</p>
+                      <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
+                      <p className="mt-3 text-sm leading-6 text-slate-100">Use the role chips to align this handoff with the exact workspace lens that should receive the asset first.</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {selectedAssetRoleOptions.map((linkedRole) => (
                           <Button
-                            key={`selected-role-${selectedAsset.id}-${linked}`}
+                            key={`selected-role-${selectedAsset.id}-${linkedRole}`}
                             type="button"
                             variant="outline"
-                            onClick={() => handleStartTraining(selectedAsset, linked === "all" ? undefined : linked as DemoRole)}
-                            className="rounded-full border-white/10 bg-slate-950/60 px-4 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white"
+                            onClick={() => setSelectedAssetRole(linkedRole)}
+                            className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}
                           >
-                            {getRoleLabel(linked)}
+                            {getRoleLabel(linkedRole)}
                           </Button>
                         ))}
                       </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-200">Source label · <span className="font-medium text-white">{selectedAsset.sourceLabel}</span></p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
+                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.trainingUse}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Workflow owner</p>
+                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.workflowOwner}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Launch alignment</p>
+                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.launchAlignment}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Follow-through proof</p>
+                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.followThrough}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -4614,7 +4841,7 @@ function DocumentationFeed({ entries }: { entries: any[] }) {
   return (
     <div className="space-y-3">
       {entries.map((entry: any) => (
-        <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 shadow-[0_16px_40px_rgba(2,8,23,0.18)]">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.sourceType.replaceAll("_", " ")}</p>
@@ -4971,7 +5198,7 @@ function ReviewLogComposer({
   });
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
+    <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.24)]">
       <div className="mb-4 space-y-1">
         <p className="text-sm font-medium text-white">{title}</p>
         <p className="text-sm leading-6 text-slate-400">Capture one-on-ones, quarterly reviews, and annual summaries while the platform keeps learning evidence attached.</p>
@@ -4980,7 +5207,7 @@ function ReviewLogComposer({
         <label className="space-y-2 text-sm text-slate-300">
           <span>Review type</span>
           <Select value={reviewType} onValueChange={(value) => setReviewType(value as "one_on_one" | "quarterly_check_in" | "annual_review")}>
-            <SelectTrigger className="border-white/10 bg-slate-950/80 text-slate-100">
+            <SelectTrigger className="border-white/10 bg-slate-950/80 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] [color-scheme:dark]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -4992,15 +5219,15 @@ function ReviewLogComposer({
         </label>
         <label className="space-y-2 text-sm text-slate-300">
           <span>Title</span>
-          <input value={reviewTitle} onChange={(event) => setReviewTitle(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+          <input value={reviewTitle} onChange={(event) => setReviewTitle(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Documentation notes</span>
-          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Next step</span>
-          <input value={nextStep} onChange={(event) => setNextStep(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+          <input value={nextStep} onChange={(event) => setNextStep(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
         </label>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -5073,7 +5300,7 @@ function WeeklyCoachingLogComposer({
   ].filter(Boolean) as { key: string; label: string }[];
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
+    <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.24)]">
       <div className="mb-4 space-y-2">
         <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Weekly coaching log</p>
         <h3 className="text-xl font-semibold text-white">{title}</h3>
@@ -5087,39 +5314,39 @@ function WeeklyCoachingLogComposer({
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm text-slate-300">
           <span>Date</span>
-          <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+          <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
         </label>
         <label className="space-y-2 text-sm text-slate-300">
           <span>Coach</span>
-          <input value={`${coachName} (${coachRole.replaceAll("_", " ")})`} readOnly className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-200 outline-none" />
+          <input value={`${coachName} (${coachRole.replaceAll("_", " ")})`} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
         </label>
         <label className="space-y-2 text-sm text-slate-300">
           <span>Employee</span>
-          <input value={employeeName} readOnly className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-200 outline-none" />
+          <input value={employeeName} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
         </label>
         <label className="space-y-2 text-sm text-slate-300">
           <span>Attendance</span>
-          <input value={attendance} onChange={(event) => setAttendance(event.target.value)} placeholder="Document where the agent stands for attendance." className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <input value={attendance} onChange={(event) => setAttendance(event.target.value)} placeholder="Document where the agent stands for attendance." className={FORM_INPUT_SURFACE_CLASS} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Follow-up from previous coaching</span>
-          <textarea value={followUpFromPrevious} onChange={(event) => setFollowUpFromPrevious(event.target.value)} rows={4} placeholder="Progress on the prior SMART goal — did the agent meet it, and how or how not?" className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <textarea value={followUpFromPrevious} onChange={(event) => setFollowUpFromPrevious(event.target.value)} rows={4} placeholder="Progress on the prior SMART goal — did the agent meet it, and how or how not?" className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Coaching comments</span>
-          <textarea value={coachingComments} onChange={(event) => setCoachingComments(event.target.value)} rows={4} placeholder="Behavior discussed and actions the agent will take." className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <textarea value={coachingComments} onChange={(event) => setCoachingComments(event.target.value)} rows={4} placeholder="Behavior discussed and actions the agent will take." className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>SMART Goal Coaching Commitment</span>
-          <textarea value={smartGoalCommitment} onChange={(event) => setSmartGoalCommitment(event.target.value)} rows={4} placeholder="How behavior will change, metric impact, timeline, and follow-up date." className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <textarea value={smartGoalCommitment} onChange={(event) => setSmartGoalCommitment(event.target.value)} rows={4} placeholder="How behavior will change, metric impact, timeline, and follow-up date." className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Additional support</span>
-          <textarea value={additionalSupport} onChange={(event) => setAdditionalSupport(event.target.value)} rows={3} placeholder="What the leader can do to remove barriers." className="min-h-[96px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <textarea value={additionalSupport} onChange={(event) => setAdditionalSupport(event.target.value)} rows={3} placeholder="What the leader can do to remove barriers." className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
         <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
           <span>Agent take-aways</span>
-          <textarea value={agentTakeaways} onChange={(event) => setAgentTakeaways(event.target.value)} rows={3} placeholder="The agent's own response or take-aways can be entered now or added later from the learner view." className="min-h-[96px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500" />
+          <textarea value={agentTakeaways} onChange={(event) => setAgentTakeaways(event.target.value)} rows={3} placeholder="The agent's own response or take-aways can be entered now or added later from the learner view." className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
