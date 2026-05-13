@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getBriefBoxPages, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
+import { getBriefBoxPages, getBriefCompletionStatus, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
 
 describe("learner training layout helpers", () => {
   const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
@@ -32,11 +32,20 @@ describe("learner training layout helpers", () => {
   });
 
   it("returns the branded stage label for each learner training phase", () => {
-    expect(getStageNavigatorLabel("brief")).toBe("Brief walkthrough");
+    expect(getStageNavigatorLabel("brief")).toBe("Guided lesson flow");
     expect(getStageNavigatorLabel("practice")).toBe("Practice walkthrough");
     expect(getStageNavigatorLabel("apply")).toBe("Application walkthrough");
     expect(getStageNavigatorLabel("reflect")).toBe("Reflection walkthrough");
     expect(getStageNavigatorLabel()).toBe("Reflection walkthrough");
+  });
+
+  it("uses guided-page completion wording for the streamlined opening lesson", () => {
+    expect(getBriefCompletionStatus(1, 5)).toMatchObject({
+      completedCount: 2,
+      totalCount: 5,
+      percentComplete: 40,
+      statusLabel: "2 of 5 guided pages complete",
+    });
   });
 
   it("creates a stable modal reset key from trigger identity instead of object reference", () => {

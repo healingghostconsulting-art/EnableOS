@@ -1,0 +1,9 @@
+# Google Doc Implementation Prompts — 2026-05-13
+
+## Open actionable lines translated into implementation prompts
+
+| Google Doc feedback line | Implementation prompt | Priority | Notes |
+| --- | --- | --- | --- |
+| The goal of crafting a briefs box is to remove this section of the training to make a more streamline feeling | Remove the standalone brief-stage presentation layer from the learner training flow in `client/src/pages/EnableOSViews.tsx` so the course no longer pauses on a separate crafting-a-briefs box before practice. Preserve the underlying slide progression, checkpoint gating, saved progress behavior, and existing stage sequencing constraints. Validation must confirm that learners can still move through the opening instructional content without a redundant brief-only container and that training progress, back navigation, and stage transitions still compile and behave correctly. | High | Specific enough to implement safely. |
+| Change the name to “Assigned Re-engagements” | Audit learner-facing terminology in the learner workspace and any connected training-entry surfaces, then ensure the assigned-intervention label is consistently rendered as `Assigned Re-engagements` wherever this feedback still applies. Validation must confirm the updated wording in the live learner flow and ensure no regressions in related metrics or cards. | Medium | Partial implementation already appears present, so this item needs exact verification and any remaining cleanup. |
+| Skill gaps to “Skill Opportunities” | Replace learner-facing `skill gap` terminology with `Skill Opportunities` in the relevant learner journey, retraining, and training-entry descriptions without changing data behavior. Validation must confirm that the visible learner copy now uses the requested phrase consistently and still reads naturally in context. | Medium | Partial implementation already appears present, so this item needs targeted copy cleanup and validation. |

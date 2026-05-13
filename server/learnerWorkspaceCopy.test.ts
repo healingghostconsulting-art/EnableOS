@@ -8,5 +8,6 @@ describe("learner workspace copy", () => {
     expect(learnerWorkspaceCopy.assignedReengagementsMetricLabel).toBe("Assigned Re-engagements");
     expect(learnerWorkspaceCopy.assignedReengagementsMetricSupporting).toContain("Skill-opportunity");
     expect(learnerWorkspaceCopy.assignedReengagementsCardTitle).toBe("Assigned Re-engagements");
+    expect(learnerWorkspaceCopy.activeJourneyDescription).toContain("Skill Opportunities");
   });
 });

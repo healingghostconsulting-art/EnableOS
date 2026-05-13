@@ -67,6 +67,7 @@ export const learnerWorkspaceCopy = {
   assignedReengagementsMetricLabel: "Assigned Re-engagements",
   assignedReengagementsMetricSupporting: "Skill-opportunity actions linked to manager workflows",
   assignedReengagementsCardTitle: "Assigned Re-engagements",
+  activeJourneyDescription: "Role-based learning mapped directly to your Skill Opportunities across Service Foundations and Workflow Precision tracks.",
 } as const;
 
 type PersistedTrainingProgress = {
@@ -368,13 +369,13 @@ export function getBriefCompletionStatus(lessonPageIndex: number, totalPages: nu
     completedCount,
     totalCount: totalPages,
     percentComplete,
-    statusLabel: `${completedCount} of ${totalPages} briefs complete`,
+    statusLabel: `${completedCount} of ${totalPages} guided pages complete`,
   };
 }
 
 export function getStageNavigatorLabel(stageId?: string | null) {
   return stageId === "brief"
-    ? "Brief walkthrough"
+    ? "Guided lesson flow"
     : stageId === "practice"
       ? "Practice walkthrough"
       : stageId === "apply"
@@ -3304,63 +3305,44 @@ export function TrainingExperienceView() {
                           </div>
                           <div className="rounded-[1.9rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] px-5 py-5 shadow-[0_20px_60px_rgba(8,15,35,0.2)]">
                             <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div className="max-w-lg">
+                              <div className="max-w-2xl">
                                 <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">{stageNavigatorLabel}</p>
-                                <h4 className="mt-2 text-lg font-medium text-white">{currentStageItemLabel}</h4>
-                                <p className="mt-2 text-sm leading-6 text-slate-300">Move through this section one focused brief at a time so the learner stays centered on the current card instead of scanning a long scrolling list.</p>
+                                <h4 className="mt-2 text-lg font-medium text-white">{currentLessonPage?.title ?? currentStageItemLabel}</h4>
+                                <p className="mt-2 text-sm leading-6 text-slate-300">The opening lesson now stays in the main course flow so learners move through the guidance without stopping at a separate brief-box section.</p>
                               </div>
-                              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStageItemCountLabel}</Badge>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStageItemCountLabel}</Badge>
+                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{briefCompletionStatus.statusLabel}</Badge>
+                              </div>
                             </div>
-                            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-                              <div
-                                key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`}
-                                ref={briefCardRef}
-                                className="rounded-[1.45rem] border border-cyan-400/30 bg-slate-950/65 px-5 py-5 shadow-[0_22px_48px_rgba(34,211,238,0.12)]"
-                              >
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                  <div className="max-w-2xl">
-                                    <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current brief focus</p>
-                                    <h5 className="mt-2 text-base font-semibold text-white">{currentLessonPage?.title ?? "Brief loading"}</h5>
-                                  </div>
-                                  <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Current brief</Badge>
+                            <div
+                              key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`}
+                              ref={briefCardRef}
+                              className="mt-4 rounded-[1.45rem] border border-cyan-400/30 bg-slate-950/65 px-5 py-5 shadow-[0_22px_48px_rgba(34,211,238,0.12)]"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="max-w-2xl">
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current lesson focus</p>
+                                  <h5 className="mt-2 text-base font-semibold text-white">{currentLessonPage?.title ?? "Lesson loading"}</h5>
                                 </div>
-                                <div className="mt-4 rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/8 px-4 py-3">
-                                  <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                      <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Brief completion status</p>
-                                      <p className="mt-1 text-sm font-medium text-white">{briefCompletionStatus.statusLabel}</p>
-                                    </div>
-                                    <p className="text-sm font-semibold text-cyan-100">{briefCompletionStatus.percentComplete}%</p>
-                                  </div>
-                                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-900/70">
-                                    <div
-                                      className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(125,211,252,0.95))] transition-[width] duration-300 ease-out"
-                                      style={{ width: `${briefCompletionStatus.percentComplete}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                <p className="mt-4 text-sm leading-7 text-slate-200">{currentLessonPage?.narrative ?? "The current brief will appear here once the lesson content is ready."}</p>
-                                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                  <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
-                                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Transition behavior</p>
-                                    <p className="mt-2 text-sm leading-6 text-slate-300">Each brief now advances inside this same open space so the learner sees one focused card at a time with a directional transition.</p>
-                                  </div>
-                                  <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
-                                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Navigation rule</p>
-                                    <p className="mt-2 text-sm leading-6 text-slate-300">Adjacent brief previews are context only. Use the previous and next controls below to move through the sequence.</p>
-                                  </div>
-                                </div>
+                                <p className="text-sm font-semibold text-cyan-100">{briefCompletionStatus.percentComplete}%</p>
                               </div>
-                              <div className="grid gap-3">
-                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Previous brief</p>
-                                  <p className="mt-2 text-sm font-medium text-white">{previousLessonPage?.title ?? "Start of sequence"}</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-300">{previousLessonPage?.narrative ?? "There is no earlier brief before this one."}</p>
+                              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-900/70">
+                                <div
+                                  className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(125,211,252,0.95))] transition-[width] duration-300 ease-out"
+                                  style={{ width: `${briefCompletionStatus.percentComplete}%` }}
+                                />
+                              </div>
+                              <p className="mt-4 text-sm leading-7 text-slate-200">{currentLessonPage?.narrative ?? "The current lesson page will appear here once the training content is ready."}</p>
+                              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Sequence pacing</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-300">Each page advances inside the same course surface so the learner stays oriented instead of bouncing between extra containers.</p>
                                 </div>
-                                <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next brief</p>
-                                  <p className="mt-2 text-sm font-medium text-white">{nextLessonPage?.title ?? "End of sequence"}</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-300">{nextLessonPage?.narrative ?? "You are on the final brief for this stage."}</p>
+                                <div className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Up next</p>
+                                  <p className="mt-2 text-sm font-medium text-white">{nextLessonPage?.title ?? "Practice checkpoint coming next"}</p>
+                                  <p className="mt-2 text-sm leading-6 text-slate-300">{nextLessonPage?.narrative ?? "You are on the final guided page before the next training moment begins."}</p>
                                 </div>
                               </div>
                             </div>
@@ -3372,7 +3354,7 @@ export function TrainingExperienceView() {
                                 disabled={lessonPageIndex === 0}
                                 className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
                               >
-                                Previous brief
+                                Previous page
                               </Button>
                               <Button
                                 type="button"
@@ -3381,9 +3363,9 @@ export function TrainingExperienceView() {
                                 disabled={lessonPageIndex >= currentStagePages.length - 1}
                                 className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
                               >
-                                Next brief
+                                Next page
                               </Button>
-                              <p className="text-xs leading-5 text-slate-400">The brief box now keeps only one active card in the open space while the next and previous controls guide the learner through the sequence.</p>
+                              <p className="text-xs leading-5 text-slate-400">The guided opening now lives inside the main lesson canvas while the previous and next controls keep progression straightforward.</p>
                             </div>
                           </div>
                         </div>
@@ -6360,7 +6342,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Active enablement journey</CardTitle>
-              <CardDescription className="text-slate-400">Role-based learning mapped directly to your skill gap across Service Foundations and Workflow Precision tracks.</CardDescription>
+              <CardDescription className="text-slate-400">{learnerWorkspaceCopy.activeJourneyDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {activeRetrainingAssignment ? (

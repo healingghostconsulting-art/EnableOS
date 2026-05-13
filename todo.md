@@ -292,3 +292,6 @@
 - [x] Improve the coach-to-learner navigation transition so role context feels preserved or clearly switched instead of abruptly changing perspective
 - [x] Filter the Training Zone so it reflects the relevant learner or assigned-training context instead of appearing to show everything
 - [x] Fix operational launch readiness role-selection alignment so each selected role updates the surrounding content panels correctly
+- [x] Remove the standalone crafting-a-briefs box from the training flow so the learner experience feels more streamlined while preserving the interactive brief sequence and progression behavior.
+- [x] Rename the learner-side assigned-interventions language to "Assigned Re-engagements" wherever the open Google Doc feedback still expects that wording in the learner flow.
+- [x] Replace learner-facing "Skill gaps" wording with "Skill Opportunities" in the relevant learner journey surfaces and validate the updated terminology.
