@@ -284,9 +284,9 @@
 - [x] Improve the soft-skills transition color treatment across trainings so white transition states remain readable and visually consistent
 - [x] Expand the in-training slide-content carryover across all trainings so learners see substantially more of the provided source material inside the course flow
 - [x] Fix the learner page so learner users only see learner-scoped navigation and determine whether a separate clean test learner account is needed for validation
-- [ ] Perform an overall CHCG EnableOS UI review and improve consistency, polish, and smooth animated transitions across key click and state-change interactions
-- [ ] Review the user-provided screen recording, extract the highest-priority UI and interaction issues, and implement the safest shared CHCG EnableOS fixes with validation before marking any Google Doc lines done
-- [ ] Present the proposed list of video-derived UI and interaction edits for approval before implementing the next CHCG EnableOS refinement pass
+- [x] Perform an overall CHCG EnableOS UI review and improve consistency, polish, and smooth animated transitions across key click and state-change interactions
+- [x] Review the user-provided screen recording, extract the highest-priority UI and interaction issues, and implement the safest shared CHCG EnableOS fixes with validation before marking any Google Doc lines done
+- [x] Present the proposed list of video-derived UI and interaction edits for approval before implementing the next CHCG EnableOS refinement pass
 - [x] Fix coaching-log form readability so typed text and placeholders remain legible against their input backgrounds
 - [x] Correct white-text-on-light-background panels in lower coach workspace sections so surfaces and typography use consistent readable contrast
 - [x] Improve the coach-to-learner navigation transition so role context feels preserved or clearly switched instead of abruptly changing perspective

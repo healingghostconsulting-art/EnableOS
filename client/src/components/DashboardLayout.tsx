@@ -250,15 +250,15 @@ function DashboardLayoutContent({
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5">
+                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Mode</p>
                         <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Live</p>
                       </div>
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5">
+                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Focus</p>
                         <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Readiness</p>
                       </div>
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5">
+                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Motion</p>
                         <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Active</p>
                       </div>
@@ -293,12 +293,14 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className="h-auto min-h-13 rounded-2xl border border-transparent px-2.5 py-3 text-[14px] font-medium text-[#1B303C] transition-all hover:bg-[#F7F8FA] data-[active=true]:border-[#FCBC34]/40 data-[active=true]:bg-[#1B303C] data-[active=true]:text-white data-[active=true]:shadow-[0_18px_48px_rgba(27,48,60,0.18)]"
+                      className="h-auto min-h-13 rounded-2xl border border-transparent px-2.5 py-3 text-[14px] font-medium text-[#1B303C] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#1B303C]/10 hover:bg-[#F7F8FA] hover:shadow-[0_14px_34px_rgba(27,48,60,0.08)] data-[active=true]:border-[#FCBC34]/40 data-[active=true]:bg-[#1B303C] data-[active=true]:text-white data-[active=true]:shadow-[0_18px_48px_rgba(27,48,60,0.18)]"
                     >
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-white/12" : "bg-[#F7F8FA]"}`}>
-                        <item.icon className={`h-4 w-4 ${isActive ? "text-white" : "text-[#4A6373]"}`} />
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 ease-out ${isActive ? "bg-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" : "bg-[#F7F8FA] group-hover:bg-white group-hover:shadow-[0_10px_24px_rgba(27,48,60,0.08)]"}`}>
+
+                          <item.icon className={`h-4 w-4 transition-all duration-300 ease-out ${isActive ? "text-white" : "text-[#4A6373] group-hover:text-[#1B303C]"}`} />
+
                       </div>
-                      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-1 items-center justify-between gap-3 transition-all duration-300 ease-out">
                         <span className="min-w-0 leading-5 whitespace-normal">{item.label}</span>
                         {!isCollapsed ? (
                           isActive ? <Badge className="rounded-full border-none bg-white/15 text-[11px] uppercase tracking-[0.18em] text-white">live</Badge> : <span className="text-xs text-[#4A6373]">{String(index + 1).padStart(2, "0")}</span>
