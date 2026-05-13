@@ -139,3 +139,27 @@ The learner workspace now preserves the broader reviewer shell instead of collap
 ## Published versus preview check — workflow precision brief box
 
 The published URL provided by the user currently redirects the browser session to the hosted sign-in page, so the deployed brief box cannot be directly inspected there without authentication. The same route on the authenticated preview domain does load, and it still shows the workflow-precision module with the legacy brief framing, including the old reveal-card slide challenge and the `Brief 1` presentation for `Verification confidence`. This strongly suggests the issue is not limited to deployment lag alone: the route-specific workflow-precision module path itself is still rendering an older brief-box experience compared with the intended feedback changes.
+
+## 2026-05-13 source-of-truth review refresh
+
+The shared Google Doc remains accessible in edit view and is still the standing source of truth for feedback. The top visible learner section confirms existing `[Done]` prefixes are present, while deeper extraction still requires targeted in-document review because the Google Docs DOM is noisy and not cleanly article-structured.
+
+## Learner-section review after in-document paging
+
+A deeper Google Docs page-down moved into the later learner section. The visible feedback in this region confirms several items are already marked `[Done]`, including crash recovery, narration repair, richer animated slide-challenge transitions, and smoother post-training completion return behavior. The viewport also now reaches the **Soft Skills** heading, which suggests the next still-open learner items likely begin at or below that section rather than in the earlier all-trainings block.
+
+## Later learner-section viewport findings
+
+The current visible Google Doc viewport is now on page 3 of 4 and still shows learner-focused items that are already marked `[Done]`, including the color-transition readability note, the request to make the learner journey clickable into the exact learner training point, and the assigned-interventions terminology updates to **Assigned Re-engagements** and **Skill Opportunities**. This visible region does not yet expose a clearly new open line, so the next step is to continue deeper into later sections of the document.
+
+## Final-page viewport finding
+
+The current visible Google Doc viewport is now on page 4 of 4. The visible QA section currently shows a single learner-training content note that is already prefixed with `[Done]`: the request to pull more content from the provided slides rather than showing only one slide. This means the visible final-page region still does not expose a clearly open actionable line, so the next review step should inspect surrounding content on this page more closely rather than assuming the remaining visible feedback is open.
+
+## Page-3 learner journey revisit
+
+Returning to page 3 confirms that the currently visible learner-journey items in this region are also already marked `[Done]`, including the readability note about white transition text, the request to make the learner journey clickable into the learner’s exact training point, and the assigned-intervention terminology and clickable-selection behavior updates. The visible part of this page still does not expose a fresh open line in the viewport.
+
+## Plain-text export audit result
+
+A direct plain-text export of the shared Google Doc succeeded and exposed the full visible feedback body outside the Google Docs canvas. The exported content shows that every currently listed actionable learner, soft-skills, and QA line is already prefixed with `[Done]`, including progress preservation, immersive brief-box removal, interactive brief flow, sixth-brief completion fix, crash recovery, narration repair, animated transition copy, smooth post-completion return behavior, readability contrast, learner-journey deep-linking, assigned-intervention terminology, assigned-training module launch, and the request to pull more content from the provided QA slides. Based on the current document export, no new open actionable line remains for safe implementation in this pass.
