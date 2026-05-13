@@ -12,6 +12,7 @@ describe("learner completion return routing", () => {
       assignmentId: "assignment-1",
       moduleId: "module-2",
       focus: "priority-retraining",
-    })).toBe("/learner?completedAssignmentId=assignment-1&completedModuleId=module-2&focus=priority-retraining");
+      freshStart: true,
+    })).toBe("/learner?completedAssignmentId=assignment-1&completedModuleId=module-2&focus=priority-retraining&freshStart=1");
   });
 });

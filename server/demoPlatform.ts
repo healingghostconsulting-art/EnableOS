@@ -2372,11 +2372,99 @@ export function getCoachDashboard(tenantId?: string) {
   };
 }
 
-export function getLearnerDashboard(tenantId?: string) {
+type LearnerDashboardOptions = {
+  freshStart?: boolean;
+  viewerName?: string | null;
+  viewerOpenId?: string | null;
+};
+
+function buildFreshLearnerIdentity(tenantId: string, viewerName?: string | null, viewerOpenId?: string | null) {
+  const baseLearner = getUser("learner", tenantId);
+  const normalizedName = viewerName?.trim();
+  const safeIdSuffix = (viewerOpenId ?? normalizedName ?? "fresh-learner")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48) || "fresh-learner";
+  const avatarFallback = (normalizedName ?? "Fresh Learner")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((segment) => segment[0]?.toUpperCase() ?? "")
+    .join("") || "FL";
+
+  return {
+    ...baseLearner,
+    id: `fresh-learner-${safeIdSuffix}`,
+    name: normalizedName && normalizedName.length > 0 ? normalizedName : "Fresh Learner",
+    email: `${safeIdSuffix}@fresh-learner.demo`,
+    avatarFallback,
+    readinessScore: 0,
+  };
+}
+
+function buildFreshLearnerJourney(tenantId: string) {
+  const journey = structuredClone(getTenantJourneys(tenantId, "learner"));
+  return {
+    ...journey,
+    progress: 0,
+    modules: journey.modules.map((module) => ({
+      ...module,
+      completionRate: 0,
+    })),
+  };
+}
+
+export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboardOptions) {
   const tenant = getTenant(tenantId);
   const learner = getUser("learner", tenant.id);
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "learner");
+
+  if (options?.freshStart) {
+    const freshLearner = buildFreshLearnerIdentity(tenant.id, options.viewerName, options.viewerOpenId);
+    const freshJourney = buildFreshLearnerJourney(tenant.id);
+    const createdAt = new Date().toISOString();
+    const baseCoachingSession = getTenantCoachingSessions(tenant.id).find((session) => session.learnerUserId === learner.id) ?? coachingSessions[0];
+
+    return {
+      tenant,
+      branding,
+      learner: freshLearner,
+      activeJourney: freshJourney,
+      assignedInterventions: [],
+      currentRetrainingAssignment: null,
+      retrainingAssignments: [],
+      retrainingHistory: [],
+      methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "learner" || asset.linkedRole === "all"),
+      methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
+      documentationEntries: [],
+      reviewLogs: [],
+      weeklyCoachingLogs: [],
+      notifications: [{
+        id: `note-fresh-learner-${freshLearner.id}`,
+        tenantId: tenant.id,
+        audience: "learner",
+        title: "Fresh learner session ready",
+        detail: "This learner view starts at 0% progress so you can test the full journey from the beginning without inherited completions or retraining history.",
+        priority: "info",
+        createdAt,
+      }],
+      nextCoachingSession: {
+        ...baseCoachingSession,
+        id: `coaching-fresh-${freshLearner.id}`,
+        tenantId: tenant.id,
+        learnerUserId: freshLearner.id,
+        title: "Initial coaching touchpoint",
+        dueDate: new Date(Date.now() + (3 * 24 * 60 * 60 * 1000)).toISOString(),
+        status: "scheduled",
+        notes: "Fresh learner test path created so the end-to-end learner flow can be exercised from the beginning.",
+        auditTrail: [{ at: createdAt, detail: "Fresh learner test session created for end-to-end validation." }],
+      },
+      workflowLibraryMix,
+    };
+  }
+
   const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
   const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
   const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);

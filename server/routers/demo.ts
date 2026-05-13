@@ -32,6 +32,7 @@ import {
 
 const tenantInput = z.object({
   tenantId: z.string().optional(),
+  freshStart: z.boolean().optional(),
 });
 
 const chcgTenantInput = z.object({
@@ -188,11 +189,19 @@ export const demoRouter = router({
   }),
   secureLearner: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "learner");
-    return getLearnerDashboard(tenantId);
+    return getLearnerDashboard(tenantId, {
+      freshStart: input.freshStart,
+      viewerName: ctx.user.name,
+      viewerOpenId: ctx.user.openId,
+    });
   }),
   secureTraining: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const { tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
-    return getLearnerDashboard(tenantId);
+    return getLearnerDashboard(tenantId, {
+      freshStart: input.freshStart,
+      viewerName: ctx.user.name,
+      viewerOpenId: ctx.user.openId,
+    });
   }),
   secureAdmin: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");

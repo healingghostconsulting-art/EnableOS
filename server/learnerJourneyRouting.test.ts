@@ -20,14 +20,16 @@ describe("learner journey routing", () => {
       activeJourneyId: "journey-service-foundations",
       moduleId: "mod-sf-3",
       activeRetrainingAssignment: { moduleId: "mod-sf-2" },
-      primaryTrainingPath: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1",
-    })).toBe("/training?journeyId=journey-service-foundations&moduleId=mod-sf-3");
+      primaryTrainingPath: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1&freshStart=1",
+      freshStart: true,
+    })).toBe("/training?journeyId=journey-service-foundations&moduleId=mod-sf-3&freshStart=1");
   });
 
   it("builds de-duplicated assigned re-engagement training options with the assigned module pinned first", () => {
     expect(buildLearnerInterventionTrainingOptions({
       activeJourneyId: "journey-service-foundations",
-      primaryTrainingPath: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1",
+      primaryTrainingPath: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1&freshStart=1",
+      freshStart: true,
       activeRetrainingAssignment: {
         id: "assignment-1",
         moduleId: "mod-sf-2",
@@ -57,7 +59,7 @@ describe("learner journey routing", () => {
         title: "Workflow reset",
         subtitle: "Service Foundations · Assigned retraining",
         detail: "Process accuracy",
-        path: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1",
+        path: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1&freshStart=1",
         moduleId: "mod-sf-2",
         isAssigned: true,
       },
@@ -66,7 +68,7 @@ describe("learner journey routing", () => {
         title: "Escalation timing",
         subtitle: "Mini module · 8 min",
         detail: "Escalation judgment",
-        path: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-3",
+        path: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-3&freshStart=1",
         moduleId: "mod-sf-3",
         isAssigned: false,
       },

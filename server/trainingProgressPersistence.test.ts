@@ -15,8 +15,9 @@ describe("training progress persistence helpers", () => {
       requestedModuleId: "module-2",
       requestedAssignmentId: "assignment-3",
       requestedRoleFilter: "learner",
+      requestedFreshStart: true,
     })).toBe(
-      "chcg-enableos-training-progress:atlas-operations:scenario=active:journey=journey-1:module=module-2:assignment=assignment-3:role=learner",
+      "chcg-enableos-training-progress:atlas-operations:scenario=active:journey=journey-1:module=module-2:assignment=assignment-3:role=learner:fresh=1",
     );
   });
 

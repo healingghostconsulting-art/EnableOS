@@ -107,6 +107,7 @@ export function buildTrainingProgressStorageKey({
   requestedModuleId,
   requestedAssignmentId,
   previewScenarioId,
+  requestedFreshStart,
 }: {
   tenantId?: string | null;
   requestedRoleFilter?: DemoRole | null;
@@ -114,6 +115,7 @@ export function buildTrainingProgressStorageKey({
   requestedModuleId?: string | null;
   requestedAssignmentId?: string | null;
   previewScenarioId?: string | null;
+  requestedFreshStart?: boolean;
 }) {
   return [
     TRAINING_PROGRESS_STORAGE_PREFIX,
@@ -123,6 +125,7 @@ export function buildTrainingProgressStorageKey({
     `module=${requestedModuleId ?? "none"}`,
     `assignment=${requestedAssignmentId ?? "none"}`,
     `role=${requestedRoleFilter ?? "none"}`,
+    `fresh=${requestedFreshStart ? "1" : "0"}`,
   ].join(":");
 }
 
@@ -526,12 +529,14 @@ function buildTrainingLaunchPath({
   journeyId,
   moduleId,
   assignmentId,
+  freshStart,
 }: {
   asset?: any;
   role?: DemoRole;
   journeyId?: string;
   moduleId?: string;
   assignmentId?: string;
+  freshStart?: boolean;
 }) {
   const params = new URLSearchParams();
   if (asset?.id) params.set("assetId", asset.id);
@@ -540,6 +545,7 @@ function buildTrainingLaunchPath({
   if (journeyId) params.set("journeyId", journeyId);
   if (moduleId) params.set("moduleId", moduleId);
   if (assignmentId) params.set("assignmentId", assignmentId);
+  if (freshStart) params.set("freshStart", "1");
   return params.toString() ? `/training?${params.toString()}` : "/training";
 }
 
@@ -547,15 +553,18 @@ export function buildLearnerWorkspaceReturnPath({
   assignmentId,
   moduleId,
   focus,
+  freshStart,
 }: {
   assignmentId?: string | null;
   moduleId?: string | null;
   focus?: "priority-retraining" | null;
+  freshStart?: boolean;
 }) {
   const params = new URLSearchParams();
   if (assignmentId) params.set("completedAssignmentId", assignmentId);
   if (moduleId) params.set("completedModuleId", moduleId);
   if (focus) params.set("focus", focus);
+  if (freshStart) params.set("freshStart", "1");
   return params.toString() ? `/learner?${params.toString()}` : "/learner";
 }
 
@@ -564,11 +573,13 @@ export function buildLearnerJourneyModulePath({
   moduleId,
   activeRetrainingAssignment,
   primaryTrainingPath,
+  freshStart,
 }: {
   activeJourneyId: string;
   moduleId: string;
   activeRetrainingAssignment?: { moduleId: string } | null;
   primaryTrainingPath: string;
+  freshStart?: boolean;
 }) {
   if (activeRetrainingAssignment && moduleId === activeRetrainingAssignment.moduleId) {
     return primaryTrainingPath;
@@ -577,6 +588,7 @@ export function buildLearnerJourneyModulePath({
   return buildTrainingLaunchPath({
     journeyId: activeJourneyId,
     moduleId,
+    freshStart,
   });
 }
 
@@ -585,6 +597,7 @@ export function buildLearnerInterventionTrainingOptions({
   learnerModules,
   activeRetrainingAssignment,
   primaryTrainingPath,
+  freshStart,
 }: {
   activeJourneyId: string;
   learnerModules: any[];
@@ -596,6 +609,7 @@ export function buildLearnerInterventionTrainingOptions({
     skillFocus: string;
   } | null;
   primaryTrainingPath: string;
+  freshStart?: boolean;
 }) {
   return [
     ...(activeRetrainingAssignment ? [{
@@ -617,6 +631,7 @@ export function buildLearnerInterventionTrainingOptions({
         moduleId: module.id,
         activeRetrainingAssignment,
         primaryTrainingPath,
+        freshStart,
       }),
       moduleId: module.id,
       isAssigned: activeRetrainingAssignment?.moduleId === module.id,
@@ -1692,11 +1707,19 @@ export function LandingView() {
 export function RoleWorkspace({ role }: { role: DemoRole }) {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
+  const [location] = useLocation();
+  const requestedFreshStart = useMemo(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return new URLSearchParams(window.location.search).get("freshStart") === "1";
+  }, [location]);
   const queryMap: Record<DemoRole, any> = {
     executive: trpc.demo.secureExecutive.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
     manager: trpc.demo.secureManager.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
     coach: trpc.demo.secureCoach.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
-    learner: trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
+    learner: trpc.demo.secureLearner.useQuery(tenantId ? { tenantId, freshStart: requestedFreshStart } : { freshStart: requestedFreshStart }, { enabled: Boolean(tenantId) }),
     client_admin: trpc.demo.secureAdmin.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
   };
 
@@ -1764,7 +1787,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         {!query.isLoading && canAccessRequestedRole && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && canAccessRequestedRole && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
         {!query.isLoading && canAccessRequestedRole && role === "coach" && query.data ? <CoachPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && canAccessRequestedRole && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!query.isLoading && canAccessRequestedRole && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} freshStart={requestedFreshStart} /> : null}
         {!query.isLoading && canAccessRequestedRole && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
       </SectionShell>
     </Surface>
@@ -1789,7 +1812,8 @@ export function TrainingExperienceView() {
   const requestedAssignmentId = queryParams.get("assignmentId");
   const completedAssignmentId = queryParams.get("completedAssignmentId");
   const requestedLearnerFocus = queryParams.get("focus");
-  const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
+  const requestedFreshStart = queryParams.get("freshStart") === "1";
+  const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId, freshStart: requestedFreshStart } : { freshStart: requestedFreshStart }, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
@@ -1933,7 +1957,8 @@ export function TrainingExperienceView() {
     requestedModuleId,
     requestedAssignmentId,
     previewScenarioId,
-  }), [previewScenarioId, requestedAssignmentId, requestedJourneyId, requestedModuleId, requestedRoleFilter, tenantId]);
+    requestedFreshStart,
+  }), [previewScenarioId, requestedAssignmentId, requestedFreshStart, requestedJourneyId, requestedModuleId, requestedRoleFilter, tenantId]);
 
   useEffect(() => {
     setLessonPageIndex(0);
@@ -2745,11 +2770,13 @@ export function TrainingExperienceView() {
     }
 
     if (shouldReturnToLearnerWorkspace) {
-      const learnerCompletionReturnPath = buildLearnerWorkspaceReturnPath({
-        assignmentId: requestedAssignmentId ?? targetedAssignment?.id ?? null,
-        moduleId: selectedModule?.id ?? requestedModuleId ?? null,
-        focus: requestedAssignmentId ? "priority-retraining" : null,
-      });
+        const learnerCompletionReturnPath = buildLearnerWorkspaceReturnPath({
+          assignmentId: requestedAssignmentId ?? targetedAssignment?.id ?? null,
+          moduleId: selectedModule?.id ?? requestedModuleId ?? null,
+          focus: requestedAssignmentId ? "priority-retraining" : null,
+          freshStart: requestedFreshStart,
+        });
+
 
       if (tenantId && requestedAssignmentId && targetedAssignment?.status !== "completed") {
         pendingLearnerReturnPathRef.current = learnerCompletionReturnPath;
@@ -2995,7 +3022,7 @@ export function TrainingExperienceView() {
                 {access.data.tenant.name}
               </Badge>
             ) : null}
-            <Link href="/learner">
+            <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })}>
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                 Back to learner
               </Button>
@@ -6354,7 +6381,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   );
 }
 
-function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUpdated?: () => void; freshStart?: boolean }) {
   const learnerModules = data.activeJourney.modules;
   const primaryLearnerModule = learnerModules[0] ?? null;
   const activeRetrainingAssignment = data.currentRetrainingAssignment ?? data.retrainingAssignments?.[0] ?? null;
@@ -6366,7 +6393,7 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
       await Promise.all([
-        utils.demo.secureLearner.invalidate({ tenantId: data.tenant.id }),
+        utils.demo.secureLearner.invalidate({ tenantId: data.tenant.id, freshStart }),
         utils.demo.secureCoach.invalidate({ tenantId: data.tenant.id }),
         utils.demo.secureManager.invalidate({ tenantId: data.tenant.id }),
       ]);
@@ -6378,8 +6405,9 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       journeyId: activeRetrainingAssignment.journeyId,
       moduleId: activeRetrainingAssignment.moduleId,
       assignmentId: activeRetrainingAssignment.id,
+      freshStart,
     })
-    : "/training";
+    : buildTrainingLaunchPath({ freshStart });
   const updateActiveAssignmentStatus = (status: "assigned" | "in_progress" | "completed") => {
     if (!activeRetrainingAssignment) {
       return;
@@ -6396,12 +6424,14 @@ function LearnerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
     moduleId: module.id,
     activeRetrainingAssignment,
     primaryTrainingPath,
+    freshStart,
   });
   const interventionTrainingOptions = buildLearnerInterventionTrainingOptions({
     activeJourneyId: data.activeJourney.id,
     learnerModules,
     activeRetrainingAssignment,
     primaryTrainingPath,
+    freshStart,
   });
   const activeIntervention = data.assignedInterventions.find((item: any) => item.id === selectedInterventionId) ?? null;
 

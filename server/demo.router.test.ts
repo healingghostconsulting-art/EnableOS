@@ -674,6 +674,29 @@ it("maps a signed-in default user role to learner access in the default tenant w
   await expect(caller.demo.secureTraining({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
 });
 
+it("returns a clean learner dashboard when a fresh-start learner session is requested", async () => {
+  const caller = appRouter.createCaller(
+    createContext({
+      openId: "fresh-learner-user",
+      role: "user",
+      name: "Fresh Learner Tester",
+    }),
+  );
+
+  const freshTraining = await caller.demo.secureTraining({ tenantId: "atlas-operations", freshStart: true });
+
+  expect(freshTraining.learner.name).toBe("Fresh Learner Tester");
+  expect(freshTraining.activeJourney.progress).toBe(0);
+  expect(freshTraining.activeJourney.modules.every((module) => module.completionRate === 0)).toBe(true);
+  expect(freshTraining.retrainingAssignments).toEqual([]);
+  expect(freshTraining.weeklyCoachingLogs).toEqual([]);
+  expect(freshTraining.notifications).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ title: "Fresh learner session ready" }),
+    ]),
+  );
+});
+
 it("denies secure training access outside the signed-in viewer's client workspace", async () => {
   const caller = appRouter.createCaller(
     createContext({

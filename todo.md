@@ -299,3 +299,5 @@
 - [x] Fix the coaching-log save flow so coach users can submit and persist coaching logs successfully again.
 - [x] Re-validate the coach weekly coaching-log save flow in the live preview and confirm the regression is no longer reproducible with a successful persisted submission.
 - [x] Redesign the in-platform training quiz UI to match the structure and feel of the user's newly shared reference video as closely as safely possible within the current app.
+- [x] Create or enable a fresh learner login path so the user can test the full learner flow from the beginning with a clean learner state.
+- [x] Validate the fresh learner access path in the live preview and provide the exact login or entry instructions.
