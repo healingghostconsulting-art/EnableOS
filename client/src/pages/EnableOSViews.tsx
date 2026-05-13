@@ -1271,6 +1271,194 @@ function AssessmentPanel({
   );
 }
 
+function InlineAssessmentShell({
+  moduleTitle,
+  stageLabel,
+  stagePages,
+  trigger,
+  assessment,
+  answers,
+  submitted,
+  score,
+  passed,
+  activeQuestionIndex,
+  disabled,
+  onAnswer,
+  onSubmit,
+  onRetry,
+  onReturn,
+}: {
+  moduleTitle: string;
+  stageLabel: string;
+  stagePages: Array<{ id: string; title: string }>;
+  trigger: { id: string; label: string; assessmentKey: string } | null;
+  assessment: any;
+  answers: Record<string, string>;
+  submitted: boolean;
+  score: number;
+  passed: boolean;
+  activeQuestionIndex: number;
+  disabled?: boolean;
+  onAnswer: (questionId: string, value: string) => void;
+  onSubmit: () => void;
+  onRetry: () => void;
+  onReturn: () => void;
+}) {
+  if (!trigger || !assessment) {
+    return null;
+  }
+
+  const questions = assessment.questions ?? [];
+  if (!questions.length) {
+    return null;
+  }
+
+  const boundedQuestionIndex = Math.max(0, Math.min(activeQuestionIndex, Math.max(questions.length - 1, 0)));
+  const activeQuestion = questions[boundedQuestionIndex];
+  const activeAnswerValue = activeQuestion ? answers[activeQuestion.id] ?? "" : "";
+  const currentQuestionAnswered = activeQuestion ? hasAssessmentAnswer(activeQuestion, { [activeQuestion.id]: activeAnswerValue }) : false;
+  const isFinalQuiz = trigger.assessmentKey === "finalQuiz";
+  const title = isFinalQuiz ? "Final Quiz" : assessment.title;
+  const outlineEntries = [
+    ...stagePages.map((page, index) => ({
+      id: page.id,
+      label: page.title,
+      meta: `${index + 1}`,
+      active: false,
+      complete: true,
+    })),
+    {
+      id: `${trigger.id}-assessment`,
+      label: title,
+      meta: `${stagePages.length + 1}`,
+      active: true,
+      complete: submitted && passed,
+    },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-[2rem] border border-[#c9d4af] bg-[#eef4df] shadow-[0_28px_70px_rgba(15,23,42,0.16)]">
+      <div className="grid gap-0 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="border-b border-[#c9d4af] bg-[#dfe8c5] px-5 py-6 xl:border-b-0 xl:border-r">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[#667353]">{stageLabel}</p>
+          <h3 className="mt-3 text-lg font-semibold text-[#243018]">{moduleTitle}</h3>
+          <p className="mt-2 text-sm leading-6 text-[#586648]">The assessment now stays inside the course shell so the learner keeps the same navigation frame while answering each question.</p>
+          <div className="mt-5 rounded-[1.4rem] border border-[#c3cfaa] bg-[#f6faec] p-4">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Table of Contents</p>
+            <div className="mt-3 max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+              {outlineEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className={`rounded-[1.15rem] border px-3 py-2.5 text-sm transition ${entry.active ? "border-[#2b3750] bg-[#2b3750] text-white shadow-[0_12px_28px_rgba(43,55,80,0.24)]" : entry.complete ? "border-[#c5d0ae] bg-[#edf3dc] text-[#4f5e40]" : "border-[#d6dfc0] bg-[#f8fbf1] text-[#5c694d]"}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${entry.active ? "border-white/30 bg-white/10 text-white" : entry.complete ? "border-[#9eac87] bg-[#dfe8c9] text-[#3f4d31]" : "border-[#c4d0ab] bg-white text-[#71805e]"}`}>
+                      {entry.complete ? <CheckCircle2 className="h-3.5 w-3.5" /> : entry.meta}
+                    </span>
+                    <span className="min-w-0 break-words leading-5">{entry.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Passing score</p>
+              <p className="mt-2 text-sm font-medium text-[#243018]">{assessment.passingScore}/{questions.length}{assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}</p>
+            </div>
+            <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Question status</p>
+              <p className="mt-2 text-sm font-medium text-[#243018]">Question {boundedQuestionIndex + 1} of {questions.length}</p>
+            </div>
+          </div>
+        </aside>
+        <div className="bg-[#eef4df] px-6 py-8 lg:px-8 xl:px-10">
+          <div className="mx-auto max-w-2xl">
+            <p className="text-center text-[11px] uppercase tracking-[0.3em] text-[#6b7857]">{isFinalQuiz ? "Knowledge validation" : "Knowledge check"}</p>
+            <h3 className="mt-3 text-center text-[2rem] font-semibold tracking-[-0.02em] text-[#243018] sm:text-[2.35rem]">{title}</h3>
+            <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-6 text-[#586648]">{assessment.instructions}</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {questions.map((question: any, index: number) => {
+                const answered = hasAssessmentAnswer(question, answers);
+                const active = index === boundedQuestionIndex;
+                return (
+                  <span
+                    key={question.id}
+                    className={`h-2.5 w-2.5 rounded-full transition ${active ? "bg-[#2b3750]" : answered ? "bg-[#7b8b63]" : "bg-[#ccd6b6]"}`}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-10 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
+              <p className="text-sm font-medium leading-7 text-white">{activeQuestion.prompt}</p>
+            </div>
+            <div className="rounded-b-[1.6rem] border-x border-b border-[#c9d4af] bg-[#f8fbf1] px-5 py-6 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:px-6">
+              {activeQuestion.type === "short_answer" ? (
+                <div className="space-y-4">
+                  <Textarea
+                    value={activeAnswerValue}
+                    onChange={(event) => onAnswer(activeQuestion.id, event.target.value)}
+                    rows={4}
+                    className="min-h-[150px] rounded-[1.2rem] border-[#c4d0ac] bg-white text-[#243018] placeholder:text-[#8a9577]"
+                    placeholder={activeQuestion.placeholder ?? "Type your answer"}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {(activeQuestion.options ?? []).map((option: any) => {
+                    const selected = activeAnswerValue === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => onAnswer(activeQuestion.id, option.id)}
+                        className={`w-full rounded-[1.15rem] border px-4 py-3 text-left transition ${selected ? "border-[#2b3750] bg-[#eff3e4] shadow-[0_10px_24px_rgba(43,55,80,0.12)]" : "border-[#d2dbbf] bg-white hover:border-[#b8c4a0] hover:bg-[#fbfcf7]"}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selected ? "border-[#2b3750] bg-[#2b3750] text-white" : "border-[#9faf8a] bg-white text-transparent"}`}>
+                            <CheckCircle2 className="h-3 w-3" />
+                          </span>
+                          <span className="break-words text-sm leading-6 text-[#243018]">{option.label}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {submitted ? (
+                  passed ? (
+                    <Button type="button" onClick={onReturn} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
+                      Continue lesson
+                    </Button>
+                  ) : (
+                    <Button type="button" onClick={onRetry} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
+                      Retry quiz
+                    </Button>
+                  )
+                ) : (
+                  <Button type="button" onClick={onSubmit} disabled={!currentQuestionAnswered || disabled} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40] disabled:bg-[#b9c4a3] disabled:text-[#f6faec]">
+                    Submit
+                  </Button>
+                )}
+              </div>
+              {submitted ? (
+                <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                  <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                    {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
+                    <span className={passed ? "text-emerald-700" : "text-rose-700"}>Score: {score}/{questions.length}</span>
+                  </div>
+                  <p className={`mt-2 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LandingView() {
   const landing = trpc.demo.landing.useQuery();
   const viewer = trpc.auth.me.useQuery();
@@ -1620,6 +1808,7 @@ export function TrainingExperienceView() {
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
   const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
   const [activeQuizTriggerId, setActiveQuizTriggerId] = useState<string | null>(null);
+  const [activeQuizQuestionIndex, setActiveQuizQuestionIndex] = useState(0);
   const [dismissedQuizTriggerIds, setDismissedQuizTriggerIds] = useState<string[]>([]);
   const [completedQuizTriggerIds, setCompletedQuizTriggerIds] = useState<string[]>([]);
   const [recentUnlockMoment, setRecentUnlockMoment] = useState<{ title: string; detail: string } | null>(null);
@@ -2423,6 +2612,8 @@ export function TrainingExperienceView() {
       return;
     }
 
+    setActiveQuizQuestionIndex(0);
+
     if (activeModalQuizTrigger.assessmentKey === "briefCheckpoint") {
       setBriefCheckpointAnswers({});
       setBriefCheckpointSubmitted(false);
@@ -2743,6 +2934,33 @@ export function TrainingExperienceView() {
     retryFinalQuiz();
   };
 
+  const handleInlineAssessmentSubmit = () => {
+    if (!activeModalQuizTrigger || !activeModalAssessment) {
+      return;
+    }
+
+    const questions = activeModalAssessment.questions ?? [];
+    const boundedQuestionIndex = Math.max(0, Math.min(activeQuizQuestionIndex, Math.max(questions.length - 1, 0)));
+    const currentQuestion = questions[boundedQuestionIndex];
+    const currentAnswer = currentQuestion ? activeModalAnswers[currentQuestion.id] ?? "" : "";
+
+    if (!currentQuestion || !hasAssessmentAnswer(currentQuestion, { [currentQuestion.id]: currentAnswer })) {
+      return;
+    }
+
+    if (boundedQuestionIndex < questions.length - 1) {
+      setActiveQuizQuestionIndex(boundedQuestionIndex + 1);
+      return;
+    }
+
+    handleModalSubmit();
+  };
+
+  const handleInlineAssessmentRetry = () => {
+    setActiveQuizQuestionIndex(0);
+    handleModalRetry();
+  };
+
   const dismissActiveQuizTrigger = () => {
     if (!activeModalQuizTrigger) {
       setActiveQuizTriggerId(null);
@@ -2756,8 +2974,8 @@ export function TrainingExperienceView() {
     setRecentUnlockMoment({
       title: `${activeModalQuizTrigger.label} cleared`,
       detail: activeModalQuizTrigger.assessmentKey === "finalQuiz"
-        ? "The final knowledge sprint is complete, so the learner can close the module with a documented transfer commitment."
-        : `The learner has cleared this comprehension gate and can continue through the guided ${currentStage?.title?.toLowerCase() ?? "training"} flow.`,
+        ? "The final quiz is complete, so the learner can close the module with a documented transfer commitment."
+        : `The learner has cleared this inline knowledge check and can continue through the guided ${currentStage?.title?.toLowerCase() ?? "training"} flow.`,
     });
     setCompletedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
     setDismissedQuizTriggerIds((current) => current.includes(activeModalQuizTrigger.id) ? current : [...current, activeModalQuizTrigger.id]);
@@ -2853,7 +3071,7 @@ export function TrainingExperienceView() {
                     </div>
                     <div className={`rounded-[1.35rem] border px-4 py-4 text-sm ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-100" : "border-white/10 bg-white/5 text-slate-300"}`}>
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest unlock moment</p>
-                      <p className="mt-2 font-medium text-white">{recentUnlockMoment?.title ?? "Pass a modal quiz gate to surface the next module achievement signal."}</p>
+                      <p className="mt-2 font-medium text-white">{recentUnlockMoment?.title ?? "Complete the next inline knowledge check to surface the next module achievement signal."}</p>
                       <p className={`mt-2 leading-6 ${recentUnlockMoment ? "text-emerald-100" : "text-slate-400"}`}>{recentUnlockMoment?.detail ?? "This panel gives the guided training flow a more presentation-ready sense of momentum after each comprehension checkpoint is cleared."}</p>
                     </div>
                   </div>
@@ -2929,9 +3147,9 @@ export function TrainingExperienceView() {
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next unlock</p>
                         <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : currentStage?.title}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{activeQuizTrigger ? activeQuizTrigger.modalPrompt : "Advance through the narrated lesson pages to unlock the next guided checkpoint."}</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-400">{activeQuizTrigger ? activeQuizTrigger.modalPrompt : "Advance through the narrated lesson pages to unlock the next inline knowledge check."}</p>
                         <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">
-                          {activeQuizTrigger ? `Opens on page ${activeQuizTrigger.pageIndex + 1} of ${activeQuizTrigger.pageCount}` : currentStagePages.length > 0 ? `Current stage spans ${currentStagePages.length} guided pages` : "Stage pacing will appear when the lesson loads"}
+                          {activeQuizTrigger ? `Attached to page ${activeQuizTrigger.pageIndex + 1} of ${activeQuizTrigger.pageCount}` : currentStagePages.length > 0 ? `Current stage spans ${currentStagePages.length} guided pages` : "Stage pacing will appear when the lesson loads"}
                         </p>
                       </div>
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
@@ -2941,7 +3159,7 @@ export function TrainingExperienceView() {
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Certification signal</p>
                         <p className="mt-2 text-sm font-medium text-white">{atJourneyEnd ? "Final reflection is available once your current entry is complete." : "Progress is being tracked toward the next coaching-ready milestone."}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">Each passed modal checkpoint strengthens completion confidence before the module closes.</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-400">Each passed inline knowledge check strengthens completion confidence before the module closes.</p>
                       </div>
                       <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 sm:col-span-2 xl:col-span-2">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Presentation-quality pacing</p>
@@ -3934,7 +4152,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {currentStage?.id === "brief" ? (
+                    {!activeModalQuizTrigger && currentStage?.id === "brief" ? (
                       <div className="space-y-5">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -3954,13 +4172,13 @@ export function TrainingExperienceView() {
                             <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Checkpoint pacing</p>
                             <Badge className={`rounded-full ${briefPassed ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{briefPassed ? "Knowledge gate passed" : "Knowledge gate pending"}</Badge>
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Knowledge checks now open as pop-up quiz gates while the learner moves through the guided lesson. Continue through the narrated pages to trigger the next comprehension checkpoint.</p>
-                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Continue through the remaining lesson pages to reach the next gated quiz moment.</p> : null}
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Knowledge checks now appear in the lesson shell itself while the learner moves through the guided content. Continue through the narrated pages to trigger the next comprehension checkpoint.</p>
+                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Continue through the remaining lesson pages to reach the next inline knowledge check.</p> : null}
                         </div>
                       </div>
                     ) : null}
 
-                    {currentStage?.id === "practice" ? (
+                    {!activeModalQuizTrigger && currentStage?.id === "practice" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Practice scenario</p>
@@ -3997,21 +4215,21 @@ export function TrainingExperienceView() {
                             <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/70">Practice gate</p>
                             <Badge className={`rounded-full ${practicePassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{practicePassed ? "Rehearsal gate passed" : "Rehearsal gate pending"}</Badge>
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">The rehearsal checkpoint now appears as a modal quiz inside the guided practice flow, keeping the learner focused on one decision at a time before continuing.</p>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">The rehearsal checkpoint now appears inline inside the guided practice flow, keeping the learner focused on one question at a time before continuing.</p>
                           {!practiceChoice ? <p className="mt-3 text-sm text-amber-200">Choose a rehearsal mode before the next step can unlock.</p> : null}
-                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Review each practice page to trigger the next gated quiz moment.</p> : null}
+                          {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Review each practice page to trigger the next inline knowledge check.</p> : null}
                         </div>
                       </div>
                     ) : null}
 
-                    {currentStage?.id === "apply" ? (
+                    {!activeModalQuizTrigger && currentStage?.id === "apply" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Transfer gate</p>
                             <Badge className={`rounded-full ${applicationPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{applicationPassed ? "Transfer gate passed" : "Transfer gate pending"}</Badge>
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Application checks now surface as pop-up quiz gates so the learner proves they can transfer the lesson into live work before the module advances.</p>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Application checks now surface inline so the learner proves they can transfer the lesson into live work before the module advances.</p>
                           {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Finish the current guided page to unlock the application checkpoint.</p> : null}
                         </div>
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
@@ -4034,7 +4252,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {currentStage?.id === "reflect" ? (
+                    {!activeModalQuizTrigger && currentStage?.id === "reflect" ? (
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
@@ -4086,7 +4304,7 @@ export function TrainingExperienceView() {
                               </div>
                               <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
                                 <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Module close state</p>
-                                <p className="mt-2 font-medium text-white">{finalQuizPassed ? "Knowledge sprint complete." : "Final sprint still gated."}</p>
+                                <p className="mt-2 font-medium text-white">{finalQuizPassed ? "Final quiz complete." : "Final quiz still pending."}</p>
                                 <p className="mt-1 text-xs leading-5 text-slate-400">Both the reflection pledge and the final quiz are required before the lesson closes.</p>
                               </div>
                             </div>
@@ -4095,17 +4313,17 @@ export function TrainingExperienceView() {
                           <div className="space-y-4">
                             <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-400/10 p-5">
                               <div className="flex flex-wrap items-center justify-between gap-3">
-                                <p className="text-xs uppercase tracking-[0.22em] text-amber-100/70">Final knowledge sprint</p>
-                                <Badge className={`rounded-full ${finalQuizPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{finalQuizPassed ? "Final sprint passed" : "Final sprint pending"}</Badge>
+                                <p className="text-xs uppercase tracking-[0.22em] text-amber-100/70">Final quiz</p>
+                                <Badge className={`rounded-full ${finalQuizPassed ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{finalQuizPassed ? "Final quiz passed" : "Final quiz pending"}</Badge>
                               </div>
-                              <p className="mt-3 text-sm leading-6 text-slate-100">The end-of-module quiz now launches as a modal knowledge sprint, giving the module a cleaner finish and keeping the reflection space focused on commitment and transfer.</p>
+                              <p className="mt-3 text-sm leading-6 text-slate-100">The end-of-module quiz now appears as an inline final quiz, giving the module a cleaner finish and keeping the reflection space focused on commitment and transfer.</p>
                               <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-200">
-                                {finalQuizPassed ? "The learner has cleared the final knowledge check and only needs a presentation-ready transfer commitment to close the module." : "Once the learner passes the final knowledge sprint, this reflection step becomes the proof that the lesson can transfer into coached behavior."}
+                                {finalQuizPassed ? "The learner has cleared the final knowledge check and only needs a presentation-ready transfer commitment to close the module." : "Once the learner passes the final quiz, this reflection step becomes the proof that the lesson can transfer into coached behavior."}
                               </div>
                             </div>
                             <div className={`rounded-[1.6rem] border p-5 ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10" : "border-white/10 bg-white/5"}`}>
                               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Progression cue</p>
-                              <p className="mt-3 text-sm font-medium text-white">{recentUnlockMoment?.title ?? "Clear a quiz gate to surface the next achievement cue here."}</p>
+                              <p className="mt-3 text-sm font-medium text-white">{recentUnlockMoment?.title ?? "Clear the active inline quiz to surface the next achievement cue here."}</p>
                               <p className={`mt-3 text-sm leading-6 ${recentUnlockMoment ? "text-emerald-100" : "text-slate-300"}`}>{recentUnlockMoment?.detail ?? "This gives the reflection stage a visible sense of accomplishment instead of ending only with a static pass/fail state."}</p>
                             </div>
                           </div>
@@ -4124,7 +4342,7 @@ export function TrainingExperienceView() {
                         Previous step
                       </Button>
                       <div className="flex items-center gap-3">
-                        {activeQuizTrigger && !quizTriggerDismissed && !activeModalPassed ? <span className="text-sm text-amber-300">Checkpoint gate active: complete the pop-up quiz to continue.</span> : null}
+                        {activeQuizTrigger && !quizTriggerDismissed && !activeModalPassed ? <span className="text-sm text-amber-300">Assessment active: complete the inline quiz to continue.</span> : null}
                         {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">{shouldReturnToLearnerWorkspace ? "Training complete. Return to learner workspace." : "Training preview complete."}</span> : null}
                         <Button
                           type="button"
@@ -4145,57 +4363,25 @@ export function TrainingExperienceView() {
                         </Button>
                       </div>
                     </div>
-                    <Dialog open={Boolean(activeModalQuizTrigger)} onOpenChange={(open) => {
-                      if (!open) {
-                        dismissActiveQuizTrigger();
-                      }
-                    }}>
-                      <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950/95 text-white sm:max-w-4xl">
-                        <DialogHeader>
-                          <DialogTitle>{activeModalQuizTrigger?.modalTitle ?? "Guided checkpoint"}</DialogTitle>
-                          <DialogDescription className="text-slate-300">
-                            {activeModalQuizTrigger?.modalPrompt ?? "Complete this checkpoint to continue the guided training flow."}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-1">
-                          <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Guided checkpoint gate</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-100">This quiz appears inside the module flow so learners confirm comprehension before they continue through the narrated experience.</p>
-                            <p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">
-                              {activeModalQuizTrigger
-                                ? `${activeModalQuizTrigger.stageId === "brief" ? "Brief walkthrough" : activeModalQuizTrigger.stageId === "practice" ? "Practice rehearsal" : activeModalQuizTrigger.stageId === "apply" ? "Live-work transfer" : "Reflection sprint"} • page ${activeModalQuizTrigger.pageIndex + 1} of ${activeModalQuizTrigger.pageCount}`
-                                : "Checkpoint location loading"}
-                            </p>
-                          </div>
-                          <AssessmentPanel
-                            eyebrow={activeModalQuizTrigger?.label ?? "Guided checkpoint"}
-                            assessment={activeModalAssessment}
-                            answers={activeModalAnswers}
-                            submitted={activeModalQuizTrigger?.assessmentKey === "briefCheckpoint" ? briefCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint" ? practiceCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "applicationActivity" ? applicationSubmitted : finalQuizSubmitted}
-                            answeredCount={activeModalAnsweredCount}
-                            score={activeModalScore}
-                            passed={activeModalPassed}
-                            onAnswer={handleModalAnswer}
-                            onSubmit={handleModalSubmit}
-                            onRetry={handleModalRetry}
-                            disabled={false}
-                            accent={activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint" ? "emerald" : activeModalQuizTrigger?.assessmentKey === "finalQuiz" ? "amber" : "cyan"}
-                            compact
-                          />
-                        </div>
-                        <DialogFooter>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={dismissActiveQuizTrigger}
-                            disabled={!activeModalPassed}
-                            className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500"
-                          >
-                            {activeModalPassed ? "Return to module" : "Pass quiz to return"}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                    {activeModalQuizTrigger ? (
+                      <InlineAssessmentShell
+                        moduleTitle={selectedModule?.title ?? currentStage?.title ?? "Training module"}
+                        stageLabel={currentStage?.label ?? "Guided lesson"}
+                        stagePages={currentStagePages.map((page: any) => ({ id: page.id, title: page.title }))}
+                        trigger={activeModalQuizTrigger}
+                        assessment={activeModalAssessment}
+                        answers={activeModalAnswers}
+                        submitted={activeModalQuizTrigger?.assessmentKey === "briefCheckpoint" ? briefCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "practiceCheckpoint" ? practiceCheckpointSubmitted : activeModalQuizTrigger?.assessmentKey === "applicationActivity" ? applicationSubmitted : finalQuizSubmitted}
+                        score={activeModalScore}
+                        passed={activeModalPassed}
+                        activeQuestionIndex={activeQuizQuestionIndex}
+                        disabled={false}
+                        onAnswer={handleModalAnswer}
+                        onSubmit={handleInlineAssessmentSubmit}
+                        onRetry={handleInlineAssessmentRetry}
+                        onReturn={dismissActiveQuizTrigger}
+                      />
+                    ) : null}
                   </CardContent>
                 </PremiumCard>
 

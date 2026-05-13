@@ -33,12 +33,24 @@ describe("buildGuidedTrainingPlan", () => {
       expect.objectContaining({ stageId: "brief", label: "Brief + narrated walkthrough", minutes: 50, durationLabel: "50 min guided experience" }),
       expect.objectContaining({ stageId: "practice", label: "Practice + coached rehearsal", minutes: 40, durationLabel: "40 min guided experience" }),
       expect.objectContaining({ stageId: "apply", label: "Application + transfer proof", minutes: 40, durationLabel: "40 min guided experience" }),
-      expect.objectContaining({ stageId: "reflect", label: "Reflection + final sprint", minutes: 35, durationLabel: "35 min guided experience" }),
+      expect.objectContaining({ stageId: "reflect", label: "Reflection + final quiz", minutes: 35, durationLabel: "35 min guided experience" }),
     ]);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "brief" && trigger.assessmentKey === "briefCheckpoint")).toBe(true);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "practice" && trigger.assessmentKey === "practiceCheckpoint")).toBe(true);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "apply" && trigger.assessmentKey === "applicationActivity")).toBe(true);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "reflect" && trigger.assessmentKey === "finalQuiz")).toBe(true);
+    expect(plan.quizTriggers.find((trigger) => trigger.assessmentKey === "briefCheckpoint")).toEqual(
+      expect.objectContaining({
+        label: "Knowledge review",
+        modalTitle: "Knowledge check: Active Listening",
+      }),
+    );
+    expect(plan.quizTriggers.at(-1)).toEqual(
+      expect.objectContaining({
+        label: "Final Quiz",
+        modalPrompt: expect.stringContaining("80%"),
+      }),
+    );
   });
 
   it("calibrates leadership modules to deeper workshop-style runtimes", () => {
@@ -69,13 +81,13 @@ describe("buildGuidedTrainingPlan", () => {
       expect.objectContaining({ stageId: "brief", label: "Brief + narrated walkthrough", minutes: 70, durationLabel: "1.2 hr guided experience" }),
       expect.objectContaining({ stageId: "practice", label: "Practice + coached rehearsal", minutes: 55, durationLabel: "55 min guided experience" }),
       expect.objectContaining({ stageId: "apply", label: "Application + transfer proof", minutes: 50, durationLabel: "50 min guided experience" }),
-      expect.objectContaining({ stageId: "reflect", label: "Reflection + final sprint", minutes: 50, durationLabel: "50 min guided experience" }),
+      expect.objectContaining({ stageId: "reflect", label: "Reflection + final quiz", minutes: 50, durationLabel: "50 min guided experience" }),
     ]);
     expect(plan.quizTriggers.at(-1)).toEqual(
       expect.objectContaining({
         stageId: "reflect",
         assessmentKey: "finalQuiz",
-        label: "Final sprint",
+        label: "Final Quiz",
       }),
     );
   });

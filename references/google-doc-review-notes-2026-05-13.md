@@ -81,3 +81,35 @@ A direct page scroll hit the document edge because Google Docs is using its inte
 - "Change the name to “Assigned Re-engagements”" is now prefixed with `[Done]`.
 - "Skill gaps to “Skill Opportunities”" is now prefixed with `[Done]`.
 - The Google Doc now reflects all three verified learner/training feedback items from this pass as completed, with unrelated open lines left unchanged.
+
+The newly shared quiz-reference video shows a compact LMS-style final-quiz layout with a persistent left navigation rail, a visible lesson count near the top of that rail, a centered page title reading "Final Quiz," a row of progress dots beneath the title, and a narrow question panel with simple radio-style answer options plus a small submit button. The visual treatment is restrained and instructional rather than gamified: pale background canvas, strong hierarchy, minimal chrome around the question itself, and a clear sense that the quiz sits inside the broader course shell instead of opening as a separate modal experience.
+
+## Live reproduction — weekly coaching log save
+
+A direct reproduction test in the signed-in coach workspace succeeded. After entering valid values in the weekly coaching-log form and submitting, the UI incremented the weekly-log count from 1 to 2, reset the fields, displayed the success message `Weekly coaching log saved with learner and supervisor copy details.`, and inserted a new dated coaching-log card into the history list. This means the current preview build can persist a weekly coaching log through the coach-facing form path, so the previously reported save failure is either intermittent, role-specific, or tied to an earlier build state rather than the presently running code.
+
+
+## Live training-shell inspection — current quiz state
+
+The current training route already includes a more persistent learning rail and embedded lesson shell, but the checkpoint experience is still only partially aligned with the new reference. The visible course shell shows a stronger LMS-style frame around the lesson path, yet the active checkpoint in the current stage is still presented as an expandable side-panel prompt and the deeper graded quiz flow remains wired to the separate modal dialog in code. In other words, the shell has moved toward the desired pattern, but the final graded assessment experience still needs to be pulled fully into the inline lesson canvas with the lighter, more restrained quiz treatment from the reference video.
+
+
+## Live inline-assessment validation — trigger state after first page advance
+
+After the first in-browser attempt to advance the training lesson, the brief page remained in place because the page-level slide interaction still needed to be satisfied before the lesson could progress to the first quiz trigger. The visible state changed from the original slide-check prompt to a retry-oriented control, which confirms that the page gate is still enforced ahead of the inline assessment. This means the new quiz shell has not yet been visually exercised in-browser, and the next validation step is to clear the reveal-card interaction so the lesson can move forward to the first inline knowledge check.
+
+### Brief-page gate progress
+
+Two of the three reveal cards are now unlocked on the first brief-page slide interaction. The page is still blocked from advancing because the final reveal card remains hidden, and the challenge score still shows 0% with a retry prompt. This confirms that the new inline quiz state will not appear until the final reveal card is opened and the slide gate is rechecked successfully.
+
+### Slide challenge outcome after full reveal
+
+After unlocking all three reveal cards and rechecking the challenge, the brief-page interaction moved into a scored multiple-choice state instead of immediately unlocking the next lesson page. The page now shows the answer options inline and still requires a successful challenge submission before the learner can reach the first knowledge-check trigger. This confirms that the slide-interaction layer remains active ahead of the new quiz shell and must be passed before the KnowBe4-style assessment can be viewed live.
+
+### Slide challenge submission result
+
+Submitting the chosen slide-challenge answer advanced the interaction to a fresh question state rather than opening the next guided page or exposing the inline quiz. The brief-page challenge engine is therefore still active and likely requires one or more successful knowledge checks before the lesson can move to the first assessment trigger. This means the current live validation session has confirmed the new inline shell compiles and the course flow remains intact, but a deeper browser pass is still needed to reach the first embedded quiz instance visually.
+
+## KnowBe4-style quiz refactor validation summary
+
+The training player now compiles with the inline assessment shell in place, the related final-quiz and guided-trigger copy has been updated away from modal and sprint framing, and the lesson-stage panels are suppressed while an assessment is active so the quiz becomes the primary in-shell surface. Automated validation also passed after the refactor: the full Vitest suite completed with 20 passing test files and 117 passing tests. The separate coaching-log persistence issue still was not reproducible in the live coach preview during this pass, so that tracker item remains open pending a failing case or a more specific reproduction path.

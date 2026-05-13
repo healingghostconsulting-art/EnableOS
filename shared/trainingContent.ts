@@ -284,12 +284,12 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
   ];
 
   return {
-    title: `Final knowledge sprint: ${module.title}`,
-    objective: `Complete a Kahoot-style module quiz to prove retention of ${module.skillFocus.toLowerCase()} before the module can be completed.`,
-    instructions: "Score at least 80% to pass this end-of-module knowledge check.",
+    title: `Final Quiz: ${module.title}`,
+    objective: `Complete the final quiz to prove retention of ${module.skillFocus.toLowerCase()} before the module can be completed.`,
+    instructions: "Answer each question in sequence and score at least 80% to complete this module.",
     passingScore: Math.max(1, Math.ceil(questions.length * 0.8)),
     passingPercent: 80,
-    passMessage: "Passed. You cleared the end-of-module quiz and proved the lesson knowledge strongly enough to complete the module.",
+    passMessage: "Passed. You cleared the final quiz and proved the lesson knowledge strongly enough to complete the module.",
     failMessage: "Not yet passed. Review the lesson pages and retry until you reach the required 80% score.",
     style: "kahoot",
     questions,

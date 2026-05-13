@@ -61,7 +61,7 @@ function buildStageDurations(family: TrainingTrackFamily) {
     { stageId: "brief" as const, label: "Brief + narrated walkthrough", minutes: minutes.brief, durationLabel: buildDurationLabel(minutes.brief) },
     { stageId: "practice" as const, label: "Practice + coached rehearsal", minutes: minutes.practice, durationLabel: buildDurationLabel(minutes.practice) },
     { stageId: "apply" as const, label: "Application + transfer proof", minutes: minutes.apply, durationLabel: buildDurationLabel(minutes.apply) },
-    { stageId: "reflect" as const, label: "Reflection + final sprint", minutes: minutes.reflect, durationLabel: buildDurationLabel(minutes.reflect) },
+    { stageId: "reflect" as const, label: "Reflection + final quiz", minutes: minutes.reflect, durationLabel: buildDurationLabel(minutes.reflect) },
   ];
 }
 
@@ -89,7 +89,7 @@ function buildStageTriggers(
     stageId,
     pageIndex,
     pageCount,
-    label: triggerIndex === checkpointPageIndexes.length - 1 ? `${label} gate` : `${label} pulse check`,
+    label: triggerIndex === checkpointPageIndexes.length - 1 ? `${label} check` : `${label} review`,
     assessmentKey,
     modalTitle,
     modalPrompt,
@@ -120,23 +120,23 @@ export function buildGuidedTrainingPlan({
           presentation.slides.length,
           "briefCheckpoint",
           "Knowledge",
-          `Checkpoint: ${moduleTitle}`,
-          "Pause the guided walkthrough and confirm the learner understands the key lesson before moving forward.",
+          `Knowledge check: ${moduleTitle}`,
+          "Complete this inline knowledge check before moving deeper into the lesson.",
         ),
         ...buildStageTriggers(
           "practice",
           presentation.practiceSlides.length,
           "practiceCheckpoint",
           "Practice",
-          `Rehearsal check: ${moduleTitle}`,
-          "Use this popup checkpoint to confirm the learner can apply the behavior in a realistic rehearsal moment.",
+          `Practice check: ${moduleTitle}`,
+          "Use this inline practice check to confirm the learner can apply the behavior in a realistic rehearsal moment.",
         ),
         ...buildStageTriggers(
           "apply",
           presentation.applySlides.length,
           "applicationActivity",
           "Transfer",
-          `Transfer gate: ${moduleTitle}`,
+          `Transfer check: ${moduleTitle}`,
           "Confirm the learner can carry the guided lesson into live work before the module advances.",
         ),
         {
@@ -144,10 +144,10 @@ export function buildGuidedTrainingPlan({
           stageId: "reflect",
           pageIndex: 0,
           pageCount: 1,
-          label: "Final sprint",
+          label: "Final Quiz",
           assessmentKey: "finalQuiz",
-          modalTitle: `Final knowledge sprint: ${moduleTitle}`,
-          modalPrompt: "Finish the module with a scored end-of-module quiz that proves retention before completion is awarded.",
+          modalTitle: `Final Quiz: ${moduleTitle}`,
+          modalPrompt: "Finish the module with the inline final quiz and score at least 80% before completion is awarded.",
         },
       ]
     : [];

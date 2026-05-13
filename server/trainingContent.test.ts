@@ -37,6 +37,8 @@ describe("getTrainingPresentation", () => {
     expect(presentation.applicationActivity.passingScore).toBe(2);
     expect(presentation.applicationActivity.questions).toHaveLength(2);
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("listen-q1-b");
+    expect(presentation.finalQuiz.title).toBe("Final Quiz: Active listening in high-friction interactions");
+    expect(presentation.finalQuiz.instructions).toContain("Answer each question in sequence");
     expect(presentation.finalQuiz.passingPercent).toBe(80);
     expect(presentation.finalQuiz.passingScore).toBe(4);
     expect(presentation.finalQuiz.questions).toHaveLength(5);
@@ -127,6 +129,7 @@ describe("getTrainingPresentation", () => {
     expect(presentation.practiceCheckpoint.questions[0]?.type).toBe("multiple_choice");
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-workflow-module-q1-a");
     expect(presentation.finalQuiz.style).toBe("kahoot");
+    expect(presentation.finalQuiz.title).toBe("Final Quiz: Workflow verification essentials");
     expect(presentation.finalQuiz.passingScore).toBe(4);
   });
 
@@ -237,6 +240,7 @@ describe("getTrainingPresentation", () => {
     expect(presentation.applicationActivity.questions).toHaveLength(2);
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-module-q1-a");
     expect(presentation.finalQuiz.questions).toHaveLength(5);
+    expect(presentation.finalQuiz.passMessage).toContain("final quiz");
     expect(presentation.finalQuiz.passingPercent).toBe(80);
     expect(presentation.coachPrompts[0]).toContain("behavior");
   });

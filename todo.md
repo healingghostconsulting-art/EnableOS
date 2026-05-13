@@ -258,6 +258,7 @@
 - [x] Implement the remaining reviewed feedback items in priority order, validate each safe completed item, and mark the source lines done when appropriate
 - [x] Preserve learner question progress when leaving a module, or show an exit confirmation when progress cannot yet be saved safely
 - [x] Replace the separate training briefs area with a single interactive brief box that advances through briefs with motion and disables direct brief jumping
+- [x] Refine the training quiz redesign so the inline assessment experience matches the KnowBe4 reference structure and visual treatment as closely as possible, including the persistent left rail, centered title treatment, progress dots, narrow question panel, restrained pale background, and in-shell presentation.
 - [x] Fix the recurring sixth-brief training error so every training can be completed end to end
 - [x] Restore learners to the exact training page after a crash or reload
 - [x] Repair non-functional narration in mini-module trainings
@@ -295,3 +296,5 @@
 - [x] Remove the standalone crafting-a-briefs box from the training flow so the learner experience feels more streamlined while preserving the interactive brief sequence and progression behavior.
 - [x] Rename the learner-side assigned-interventions language to "Assigned Re-engagements" wherever the open Google Doc feedback still expects that wording in the learner flow.
 - [x] Replace learner-facing "Skill gaps" wording with "Skill Opportunities" in the relevant learner journey surfaces and validate the updated terminology.
+- [ ] Fix the coaching-log save flow so coach users can submit and persist coaching logs successfully again.
+- [x] Redesign the in-platform training quiz UI to match the structure and feel of the user's newly shared reference video as closely as safely possible within the current app.
