@@ -301,3 +301,14 @@
 - [x] Redesign the in-platform training quiz UI to match the structure and feel of the user's newly shared reference video as closely as safely possible within the current app.
 - [x] Create or enable a fresh learner login path so the user can test the full learner flow from the beginning with a clean learner state.
 - [x] Validate the fresh learner access path in the live preview and provide the exact login or entry instructions.
+- [ ] Review the newly shared Google Drive reference and identify the exact changes it requests for the CHCG EnableOS Demo.
+- [ ] Implement the reference-driven fixes or UI updates and validate them in the live preview.
+- [ ] Review the shared Google Doc source of truth for all feedback not already marked [Done], extract the highest-priority specific open item, and translate it into an implementation plan for this run.
+- [ ] Implement the highest-priority safe Google Doc feedback item, validate it with targeted tests and project checks, and mark the source line [Done] only after completion.
+- [x] Review the latest shared feedback video directly and extract a clean list of requested action items without relying on the Google Doc.
+- [x] Improve weekly coaching log readability and contrast in the coach-facing experience, especially where light text currently sits on light or low-contrast backgrounds.
+- [x] Strengthen contrast and readability across coach-facing documentation and dark-card surfaces that currently use hard-to-read white-on-navy or white-on-gray treatments.
+- [x] Preserve coach role context when a coach navigates into Learner Zone so the role-specific shell and navigation do not disappear unexpectedly.
+- [x] Restrict or better scope Training Zone content by active role so role-specific users do not see every training surface by default.
+- [x] Add an admin-facing path for defining custom roles within the client administration experience.
+- [x] Add edit capability for existing weekly coaching logs.

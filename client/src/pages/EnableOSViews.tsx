@@ -216,8 +216,8 @@ const TRAINING_PREVIEW_IDS_BY_ROLE: Record<DemoRole | "all", string[]> = {
   client_admin: ["active", "workflow", "coach-supervision", "leadership", "performance", "engagement"],
 };
 
-const FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] outline-none transition focus:border-cyan-300/35 focus:ring-2 focus:ring-cyan-400/10 placeholder:text-slate-500 [color-scheme:dark]";
-const READONLY_FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/10 bg-slate-950/65 px-4 py-3 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none [color-scheme:dark]";
+const FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/14 bg-slate-950 px-4 py-3 text-slate-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none transition focus:border-cyan-300/45 focus:ring-2 focus:ring-cyan-400/12 placeholder:text-slate-400 [color-scheme:dark]";
+const READONLY_FORM_INPUT_SURFACE_CLASS = "w-full rounded-2xl border border-white/14 bg-slate-950/88 px-4 py-3 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] outline-none [color-scheme:dark]";
 
 function getRoleLabel(role: string) {
   return role === "all" ? "All roles" : role.replaceAll("_", " ");
@@ -250,7 +250,7 @@ export function getLearnerWorkspacePerspectiveNotice(grantRole?: string | null) 
   return {
     eyebrow: `${viewerLabel} session`,
     title: `You are reviewing the learner experience from the ${viewerLane} lane.`,
-    description: `The navigation has been narrowed to learner tools for this route, but your signed-in session still belongs to the ${viewerLane}. Use this banner as the role-context handoff so the perspective change feels intentional instead of abrupt.`,
+    description: `The learner workspace is open, but your signed-in session still belongs to the ${viewerLane}. Keep using the surrounding shell and this banner as the role-context handoff so the perspective change feels intentional instead of abrupt.`,
   };
 }
 
@@ -1950,6 +1950,16 @@ export function TrainingExperienceView() {
     }
   }, [access.data?.grant.role, requestedRoleFilter]);
 
+  const viewerGrantRole = access.data?.grant.role;
+  const canBrowseAllTrainingFamilies = viewerGrantRole === "platform_admin" || viewerGrantRole === "client_admin";
+  const pinnedTrainingRole = requestedRoleFilter ?? (!canBrowseAllTrainingFamilies && viewerGrantRole ? viewerGrantRole as DemoRole : null);
+  const effectiveTrainingRoleFilter = pinnedTrainingRole ?? roleFilter;
+  const availableTrainingRoleFilterOptions = pinnedTrainingRole
+    ? TRAINING_ROLE_FILTER_OPTIONS.filter((option) => option.value === pinnedTrainingRole)
+    : canBrowseAllTrainingFamilies
+      ? TRAINING_ROLE_FILTER_OPTIONS
+      : TRAINING_ROLE_FILTER_OPTIONS.filter((option) => option.value !== "all");
+
   const trainingProgressStorageKey = useMemo(() => buildTrainingProgressStorageKey({
     tenantId,
     requestedRoleFilter,
@@ -2079,12 +2089,12 @@ export function TrainingExperienceView() {
       },
     ];
 
-    const basePreviewScenarios = access.data?.grant.role === "learner"
+    const basePreviewScenarios = viewerGrantRole === "learner" && !requestedRoleFilter
       ? allPreviewScenarios.slice(0, 1)
       : allPreviewScenarios;
 
-    return filterTrainingPreviewScenariosByRole(basePreviewScenarios, roleFilter);
-  }, [access.data?.grant.role, liveJourney, learner.data?.nextCoachingSession.title, roleFilter]);
+    return filterTrainingPreviewScenariosByRole(basePreviewScenarios, effectiveTrainingRoleFilter);
+  }, [effectiveTrainingRoleFilter, liveJourney, learner.data?.nextCoachingSession.title, requestedRoleFilter, viewerGrantRole]);
 
   useEffect(() => {
     if (!previewScenarios.length) {
@@ -2591,6 +2601,7 @@ export function TrainingExperienceView() {
     },
   });
   const requestedRoleLabel = requestedRoleFilter ? getRoleLabel(requestedRoleFilter) : null;
+  const effectiveTrainingRoleLabel = getRoleLabel(effectiveTrainingRoleFilter);
   const reflectionWordCount = reflection.trim().length > 0 ? reflection.trim().split(/\s+/).filter(Boolean).length : 0;
   const reflectionReady = reflection.trim().length >= 20;
   const requiresSlideInteraction = currentStage?.id === "brief" || currentStage?.id === "practice" || currentStage?.id === "apply";
@@ -3054,8 +3065,8 @@ export function TrainingExperienceView() {
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <div className="max-w-3xl">
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training family preview</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">Review every module family directly in the course player</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">Use these preview states to inspect the richer workflow, leadership, performance, and engagement visuals in the same training shell instead of validating only the default learner path.</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">{canBrowseAllTrainingFamilies ? "Review every module family directly in the course player" : `${effectiveTrainingRoleLabel} Training Zone`}</h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "Use these preview states to inspect the richer workflow, leadership, performance, and engagement visuals in the same training shell instead of validating only the default learner path." : `This training route is now scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so role-specific users stay inside the content that matches their current workspace responsibilities.`}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
@@ -3063,13 +3074,13 @@ export function TrainingExperienceView() {
                   </div>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
-                  {TRAINING_ROLE_FILTER_OPTIONS.map((option) => (
+                  {availableTrainingRoleFilterOptions.map((option) => (
                     <Button
                       key={`training-role-filter-${option.value}`}
                       type="button"
                       variant="outline"
                       onClick={() => setRoleFilter(option.value)}
-                      className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                      className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
                     >
                       {option.label}
                     </Button>
@@ -4878,7 +4889,7 @@ export function ContentLibraryView() {
                                 <CardContent className="space-y-4">
                                   <div className="flex flex-wrap gap-2">
                                     {asset.linkedRoles.map((linked: string) => (
-                                      <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">
+                                      <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/5 text-slate-300">
                                         {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
                                       </Badge>
                                     ))}
@@ -5036,10 +5047,10 @@ function DocumentationFeed({ entries }: { entries: any[] }) {
   return (
     <div className="space-y-3">
       {entries.map((entry: any) => (
-        <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 shadow-[0_16px_40px_rgba(2,8,23,0.18)]">
+        <div key={entry.id} className="rounded-2xl border border-white/12 bg-slate-950/82 p-4 shadow-[0_18px_44px_rgba(2,8,23,0.22)]">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.sourceType.replaceAll("_", " ")}</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-300">{entry.sourceType.replaceAll("_", " ")}</p>
               <h4 className="mt-2 text-lg font-medium text-white">{entry.title}</h4>
             </div>
             <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.authoredByRole.replaceAll("_", " ")}</Badge>
@@ -5564,6 +5575,7 @@ function WeeklyCoachingLogTimeline({
   tenantId,
   logs,
   allowTakeawayEditing = false,
+  allowLogEditing = false,
   onUpdated,
 }: {
   title: string;
@@ -5571,101 +5583,263 @@ function WeeklyCoachingLogTimeline({
   tenantId: string;
   logs: any[];
   allowTakeawayEditing?: boolean;
+  allowLogEditing?: boolean;
   onUpdated?: () => void;
 }) {
+  const buildStructuredLogDrafts = (entries: any[]) => Object.fromEntries(entries.map((log: any) => [log.id, {
+    sessionDate: log.sessionDate,
+    attendance: log.attendance,
+    followUpFromPrevious: log.followUpFromPrevious,
+    coachingComments: log.coachingComments,
+    smartGoalCommitment: log.smartGoalCommitment,
+    additionalSupport: log.additionalSupport,
+    agentTakeaways: log.agentTakeaways ?? "",
+  }]));
+
   const [takeawayDrafts, setTakeawayDrafts] = useState<Record<string, string>>(() => Object.fromEntries(logs.map((log: any) => [log.id, log.agentTakeaways ?? ""])));
+  const [structuredLogDrafts, setStructuredLogDrafts] = useState<Record<string, {
+    sessionDate: string;
+    attendance: string;
+    followUpFromPrevious: string;
+    coachingComments: string;
+    smartGoalCommitment: string;
+    additionalSupport: string;
+    agentTakeaways: string;
+  }>>(() => buildStructuredLogDrafts(logs));
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const updateTakeaways = trpc.demo.previewUpdateWeeklyCoachingTakeaways.useMutation({
     onSuccess: () => {
+      onUpdated?.();
+    },
+  });
+  const updateStructuredLog = trpc.demo.secureUpdateWeeklyCoachingLog.useMutation({
+    onSuccess: () => {
+      setEditingLogId(null);
       onUpdated?.();
     },
   });
 
   useEffect(() => {
     setTakeawayDrafts(Object.fromEntries(logs.map((log: any) => [log.id, log.agentTakeaways ?? ""])));
+    setStructuredLogDrafts(buildStructuredLogDrafts(logs));
   }, [logs]);
 
   return (
     <PremiumCard>
       <CardHeader>
         <CardTitle className="text-white">{title}</CardTitle>
-        <CardDescription className="text-slate-300/76">{description}</CardDescription>
+        <CardDescription className="text-slate-200/82">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {logs.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-400">No weekly coaching logs have been captured for this learner yet.</div>
+          <div className="rounded-2xl border border-dashed border-white/12 bg-slate-950/72 p-4 text-sm leading-6 text-slate-200">No weekly coaching logs have been captured for this learner yet.</div>
         ) : null}
-        {logs.map((log: any) => (
-          <div key={log.id} className="rounded-[1.7rem] border border-white/10 bg-slate-950/60 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{new Date(log.sessionDate).toLocaleDateString()}</p>
-                <h4 className="mt-2 text-lg font-medium text-white">{log.employeeName} · coached by {log.coachName}</h4>
-                <p className="mt-2 text-sm text-slate-400">Coach role: {log.coachRole.replaceAll("_", " ")}</p>
+        {logs.map((log: any) => {
+          const isEditing = allowLogEditing && editingLogId === log.id;
+          const structuredDraft = structuredLogDrafts[log.id] ?? {
+            sessionDate: log.sessionDate,
+            attendance: log.attendance,
+            followUpFromPrevious: log.followUpFromPrevious,
+            coachingComments: log.coachingComments,
+            smartGoalCommitment: log.smartGoalCommitment,
+            additionalSupport: log.additionalSupport,
+            agentTakeaways: log.agentTakeaways ?? "",
+          };
+          const canSaveStructuredLog = structuredDraft.attendance.trim().length >= 5
+            && structuredDraft.followUpFromPrevious.trim().length >= 10
+            && structuredDraft.coachingComments.trim().length >= 10
+            && structuredDraft.smartGoalCommitment.trim().length >= 10
+            && structuredDraft.additionalSupport.trim().length >= 5;
+
+          return (
+            <div key={log.id} className="rounded-[1.7rem] border border-white/12 bg-slate-950/82 p-5 shadow-[0_22px_55px_rgba(2,8,23,0.28)]">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-300">{new Date(log.sessionDate).toLocaleDateString()}</p>
+                  <h4 className="mt-2 text-lg font-medium text-white">{log.employeeName} · coached by {log.coachName}</h4>
+                  <p className="mt-2 text-sm text-slate-200">Coach role: {log.coachRole.replaceAll("_", " ")}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {log.updatedAt !== log.createdAt ? <Badge className="rounded-full border-white/12 bg-white/8 text-slate-100">Updated {new Date(log.updatedAt).toLocaleDateString()}</Badge> : null}
+                  <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Linked review: {log.linkedReviewLogId ?? "Pending"}</Badge>
+                  {allowLogEditing ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                      onClick={() => {
+                        setStructuredLogDrafts((current) => ({
+                          ...current,
+                          [log.id]: {
+                            sessionDate: log.sessionDate,
+                            attendance: log.attendance,
+                            followUpFromPrevious: log.followUpFromPrevious,
+                            coachingComments: log.coachingComments,
+                            smartGoalCommitment: log.smartGoalCommitment,
+                            additionalSupport: log.additionalSupport,
+                            agentTakeaways: log.agentTakeaways ?? "",
+                          },
+                        }));
+                        setEditingLogId((current) => current === log.id ? null : log.id);
+                      }}
+                    >
+                      {isEditing ? "Cancel edit" : "Edit structured log"}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Linked review: {log.linkedReviewLogId ?? "Pending"}</Badge>
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Attendance</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{log.attendance}</p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Additional support</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{log.additionalSupport}</p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/5 p-4 md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Follow-up from previous coaching</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{log.followUpFromPrevious}</p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/5 p-4 md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coaching comments</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{log.coachingComments}</p>
-              </div>
-              <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/5 p-4 md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">SMART Goal Coaching Commitment</p>
-                <p className="mt-2 text-sm leading-6 text-slate-100">{log.smartGoalCommitment}</p>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {([
-                { key: `employee-${log.id}-${log.employeeEmail}`, label: `Employee copy · ${log.employeeEmail}` },
-                { key: `coach-${log.id}-${log.coachEmail}`, label: `Coach copy · ${log.coachEmail}` },
-                { key: `supervisor-${log.id}-${log.supervisorEmail}`, label: `Supervisor copy · ${log.supervisorEmail}` },
-                log.managerOfSupervisorEmail
-                  ? { key: `leadership-${log.id}-${log.managerOfSupervisorEmail}`, label: `Optional leadership copy · ${log.managerOfSupervisorEmail}` }
-                  : null,
-              ].filter(Boolean) as { key: string; label: string }[]).map((recipient) => (
-                <Badge key={recipient.key} variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{recipient.label}</Badge>
-              ))}
-            </div>
-            <div className="mt-4 rounded-2xl border border-white/8 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Agent take-aways</p>
-              {allowTakeawayEditing ? (
-                <div className="mt-3 space-y-3">
-                  <textarea
-                    value={takeawayDrafts[log.id] ?? ""}
-                    onChange={(event) => setTakeawayDrafts((current) => ({ ...current, [log.id]: event.target.value }))}
-                    rows={4}
-                    className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20 placeholder:text-slate-500"
-                    placeholder="Add the learner's own take-aways from the coaching conversation."
-                  />
-                  <div className="flex flex-wrap items-center gap-3">
+              {isEditing ? (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2 text-sm font-medium text-slate-200">
+                    <span>Date</span>
+                    <input
+                      type="date"
+                      value={structuredDraft.sessionDate}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, sessionDate: event.target.value } }))}
+                      className={FORM_INPUT_SURFACE_CLASS}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200">
+                    <span>Attendance</span>
+                    <input
+                      value={structuredDraft.attendance}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, attendance: event.target.value } }))}
+                      className={FORM_INPUT_SURFACE_CLASS}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>Follow-up from previous coaching</span>
+                    <textarea
+                      value={structuredDraft.followUpFromPrevious}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, followUpFromPrevious: event.target.value } }))}
+                      rows={4}
+                      className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>Coaching comments</span>
+                    <textarea
+                      value={structuredDraft.coachingComments}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, coachingComments: event.target.value } }))}
+                      rows={4}
+                      className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>SMART Goal Coaching Commitment</span>
+                    <textarea
+                      value={structuredDraft.smartGoalCommitment}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, smartGoalCommitment: event.target.value } }))}
+                      rows={4}
+                      className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>Additional support</span>
+                    <textarea
+                      value={structuredDraft.additionalSupport}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, additionalSupport: event.target.value } }))}
+                      rows={3}
+                      className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>Agent take-aways</span>
+                    <textarea
+                      value={structuredDraft.agentTakeaways}
+                      onChange={(event) => setStructuredLogDrafts((current) => ({ ...current, [log.id]: { ...structuredDraft, agentTakeaways: event.target.value } }))}
+                      rows={3}
+                      className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`}
+                    />
+                  </label>
+                  <div className="md:col-span-2 flex flex-wrap items-center gap-3">
                     <Button
                       className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
-                      disabled={updateTakeaways.isPending || (takeawayDrafts[log.id] ?? "").trim().length < 3}
-                      onClick={() => updateTakeaways.mutate({ tenantId, weeklyCoachingLogId: log.id, agentTakeaways: (takeawayDrafts[log.id] ?? "").trim() })}
+                      disabled={updateStructuredLog.isPending || !canSaveStructuredLog}
+                      onClick={() => updateStructuredLog.mutate({
+                        tenantId,
+                        weeklyCoachingLogId: log.id,
+                        sessionDate: structuredDraft.sessionDate,
+                        attendance: structuredDraft.attendance.trim(),
+                        followUpFromPrevious: structuredDraft.followUpFromPrevious.trim(),
+                        coachingComments: structuredDraft.coachingComments.trim(),
+                        smartGoalCommitment: structuredDraft.smartGoalCommitment.trim(),
+                        additionalSupport: structuredDraft.additionalSupport.trim(),
+                        agentTakeaways: structuredDraft.agentTakeaways.trim() || undefined,
+                      })}
                     >
-                      {updateTakeaways.isPending ? "Saving..." : "Save agent take-aways"}
+                      {updateStructuredLog.isPending ? "Saving..." : "Save updated coaching log"}
                     </Button>
-                    <span className="text-sm text-slate-400">Your response is written back into the same coaching record.</span>
+                    <span className="text-sm text-slate-300">Updates refresh the same coaching record, linked review, and downstream documentation summary.</span>
                   </div>
                 </div>
               ) : (
-                <p className="mt-2 text-sm leading-6 text-slate-300">{log.agentTakeaways || "The learner has not added take-aways yet."}</p>
+                <>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Attendance</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100">{log.attendance}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Additional support</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100">{log.additionalSupport}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Follow-up from previous coaching</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100">{log.followUpFromPrevious}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Coaching comments</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100">{log.coachingComments}</p>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/8 p-4 md:col-span-2">
+                      <p className="text-xs uppercase tracking-[0.2em] text-emerald-100">SMART Goal Coaching Commitment</p>
+                      <p className="mt-2 text-sm leading-6 text-white">{log.smartGoalCommitment}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {([
+                      { key: `employee-${log.id}-${log.employeeEmail}`, label: `Employee copy · ${log.employeeEmail}` },
+                      { key: `coach-${log.id}-${log.coachEmail}`, label: `Coach copy · ${log.coachEmail}` },
+                      { key: `supervisor-${log.id}-${log.supervisorEmail}`, label: `Supervisor copy · ${log.supervisorEmail}` },
+                      log.managerOfSupervisorEmail
+                        ? { key: `leadership-${log.id}-${log.managerOfSupervisorEmail}`, label: `Optional leadership copy · ${log.managerOfSupervisorEmail}` }
+                        : null,
+                    ].filter(Boolean) as { key: string; label: string }[]).map((recipient) => (
+                      <Badge key={recipient.key} variant="outline" className="rounded-full border-white/12 bg-slate-900/90 text-slate-100">{recipient.label}</Badge>
+                    ))}
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Agent take-aways</p>
+                    {allowTakeawayEditing ? (
+                      <div className="mt-3 space-y-3">
+                        <textarea
+                          value={takeawayDrafts[log.id] ?? ""}
+                          onChange={(event) => setTakeawayDrafts((current) => ({ ...current, [log.id]: event.target.value }))}
+                          rows={4}
+                          className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`}
+                          placeholder="Add the learner's own take-aways from the coaching conversation."
+                        />
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Button
+                            className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                            disabled={updateTakeaways.isPending || (takeawayDrafts[log.id] ?? "").trim().length < 3}
+                            onClick={() => updateTakeaways.mutate({ tenantId, weeklyCoachingLogId: log.id, agentTakeaways: (takeawayDrafts[log.id] ?? "").trim() })}
+                          >
+                            {updateTakeaways.isPending ? "Saving..." : "Save agent take-aways"}
+                          </Button>
+                          <span className="text-sm text-slate-200">Your response is written back into the same coaching record.</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm leading-6 text-slate-100">{log.agentTakeaways || "The learner has not added take-aways yet."}</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </PremiumCard>
   );
@@ -5837,6 +6011,8 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
             description="Executives can review the exact attendance, SMART-goal follow-up, coaching comments, support requests, and learner take-aways tied to each coaching cycle."
             tenantId={data.tenant.id}
             logs={data.weeklyCoachingLogs}
+            allowLogEditing
+            onUpdated={onUpdated}
           />
           <ReviewLogComposer
             tenantId={data.tenant.id}
@@ -5998,6 +6174,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record."
               tenantId={data.tenant.id}
               logs={data.weeklyCoachingLogs}
+              allowLogEditing
+              onUpdated={onUpdated}
             />
           </div>
         </TabsContent>
@@ -6241,6 +6419,8 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               description="Managers can review every structured coaching field, confirm the simulated email-copy list, and track how the learner responds over time."
               tenantId={data.tenant.id}
               logs={data.weeklyCoachingLogs}
+              allowLogEditing
+              onUpdated={onUpdated}
             />
             <PremiumCard className="scroll-mt-24" id="manager-coach-oversight">
               <CardHeader>
@@ -6308,6 +6488,8 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                   description="This mirrored timeline lets managers review the same direct-report coaching history the coach is working from without leaving the manager workspace."
                   tenantId={data.tenant.id}
                   logs={data.coachCoverage.flatMap((coverage: any) => coverage.weeklyCoachingLogs)}
+                  allowLogEditing
+                  onUpdated={onUpdated}
                 />
               </CardContent>
             </PremiumCard>
@@ -6788,8 +6970,19 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   const [accent, setAccent] = useState(data.branding.accent);
   const [logoMark, setLogoMark] = useState(data.branding.logoMark);
   const [heroStatement, setHeroStatement] = useState(data.branding.heroStatement);
+  const [customRoleName, setCustomRoleName] = useState("");
+  const [customRoleDescription, setCustomRoleDescription] = useState("");
+  const [customRoleBase, setCustomRoleBase] = useState<DemoRole>("manager");
   const updateBranding = trpc.demo.previewUpdateBranding.useMutation({
     onSuccess: () => {
+      onUpdated?.();
+    },
+  });
+  const createCustomRole = trpc.demo.secureCreateTenantCustomRole.useMutation({
+    onSuccess: () => {
+      setCustomRoleName("");
+      setCustomRoleDescription("");
+      setCustomRoleBase("manager");
       onUpdated?.();
     },
   });
@@ -6922,11 +7115,69 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               ))}
             </CardContent>
           </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Custom role definitions</CardTitle>
+              <CardDescription className="text-slate-300/80">Add tenant-specific job families while still mapping each role to one of the core CHCG permission lanes.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm font-medium text-slate-200">
+                  <span>Role name</span>
+                  <input value={customRoleName} onChange={(event) => setCustomRoleName(event.target.value)} placeholder="Example: Workflow Quality Lead" className={FORM_INPUT_SURFACE_CLASS} />
+                </label>
+                <label className="space-y-2 text-sm font-medium text-slate-200">
+                  <span>Base permission lane</span>
+                  <Select value={customRoleBase} onValueChange={(value) => setCustomRoleBase(value as DemoRole)}>
+                    <SelectTrigger className="border-white/12 bg-slate-950 text-slate-50 [color-scheme:dark]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="executive">Executive</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="coach">Coach</SelectItem>
+                      <SelectItem value="learner">Learner</SelectItem>
+                      <SelectItem value="client_admin">Client admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </label>
+                <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                  <span>Role description</span>
+                  <textarea value={customRoleDescription} onChange={(event) => setCustomRoleDescription(event.target.value)} rows={4} placeholder="Describe the tenant-specific responsibilities this custom role should cover." className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                  disabled={createCustomRole.isPending || customRoleName.trim().length < 3 || customRoleDescription.trim().length < 12}
+                  onClick={() => createCustomRole.mutate({ tenantId: data.tenant.id, name: customRoleName.trim(), description: customRoleDescription.trim(), inheritsFrom: customRoleBase })}
+                >
+                  {createCustomRole.isPending ? "Saving..." : "Add custom role"}
+                </Button>
+                <span className="text-sm text-slate-300">Every custom role stays anchored to a core permission lane so role-scoped views and governance rules remain predictable.</span>
+              </div>
+              <div className="space-y-3">
+                {(data.customRoles ?? []).map((role: any) => (
+                  <div key={role.id} className="rounded-2xl border border-white/12 bg-slate-950/78 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-base font-semibold text-white">{role.name}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-200">{role.description}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/12 bg-white/8 text-slate-100">Mapped to {getRoleLabel(role.inheritsFrom)}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </PremiumCard>
           <WeeklyCoachingLogTimeline
             title="Tenant weekly coaching governance"
             description="Client admins can audit who was coached, who would receive the simulated copies, and whether learner take-aways have been written back into each record."
             tenantId={data.tenant.id}
             logs={data.weeklyCoachingLogs}
+            allowLogEditing
+            onUpdated={onUpdated}
           />
           <PremiumCard>
             <CardHeader>

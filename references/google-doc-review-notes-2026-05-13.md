@@ -113,3 +113,25 @@ Submitting the chosen slide-challenge answer advanced the interaction to a fresh
 ## KnowBe4-style quiz refactor validation summary
 
 The training player now compiles with the inline assessment shell in place, the related final-quiz and guided-trigger copy has been updated away from modal and sprint framing, and the lesson-stage panels are suppressed while an assessment is active so the quiz becomes the primary in-shell surface. Automated validation also passed after the refactor: the full Vitest suite completed with 20 passing test files and 117 passing tests. The separate coaching-log persistence issue still was not reproducible in the live coach preview during this pass, so that tracker item remains open pending a failing case or a more specific reproduction path.
+
+## Source-of-truth document review — current visible section
+
+The shared Google Doc is open again and currently shows the top **Learner / All Trainings** section. The visible learner items at this scroll position include two lines already prefixed with **[Done]**: the training-progress preservation item and the immersive-brief-box removal item. The document also still shows the nested **Brief Box** subsection beneath those lines, indicating that the next open actionable items likely sit further down in that same learner block.
+
+A direct DOM extraction attempt from the Google Docs canvas did not yet expose the editable body text cleanly, so deeper review will continue by navigating within the document surface itself rather than relying on a simple page-text scrape.
+
+## Direct video access status
+
+The direct Google Drive download confirmation path for `Enable OS feedback Content and UI .mp4` now resolves to a bare media-view state rather than the warning page, indicating that the file is accessible for direct playback or download after confirmation. The next step is to confirm the local download artifact or analyze the resolved media source directly so the spoken feedback can be converted into concrete action items.
+
+## Live preview findings — coach readability and learner handoff
+
+The coach workspace remains functional, but the weekly coaching and related dark-card surfaces still rely heavily on muted slate labels and body copy over deep navy gradients. The form fields themselves are readable, yet the surrounding descriptive copy and card metadata still read as lower-contrast than the brighter learner-history surfaces called out in the feedback video.
+
+Opening **Learner Journey** from the signed-in non-learner session still swaps the sidebar to the learner-only shell. The learner page does show the existing perspective banner, but the shell itself no longer reflects the originating reviewer role, which matches the feedback that the coach context feels lost during the handoff.
+
+## Live validation — video-feedback implementation pass
+
+The coach workspace now shows readable weekly coaching log surfaces with stronger dark-form contrast, and the timeline exposes an inline `Edit structured log` action for leadership users reviewing or correcting existing entries.
+
+The learner workspace now preserves the broader reviewer shell instead of collapsing to a learner-only navigation, and the perspective banner explicitly explains that the learner workspace is open while the signed-in session still belongs to the broader reviewer lane.

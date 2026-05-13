@@ -203,7 +203,7 @@ function Router() {
       </Route>
       <Route path="/learner">
         {() => (
-          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
+          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
             <RoleWorkspace role="learner" />
           </GuardedWorkspaceShell>
         )}

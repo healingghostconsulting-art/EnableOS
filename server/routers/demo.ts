@@ -8,6 +8,7 @@ import {
   createClientContent,
   createReviewLog,
   createWeeklyCoachingLog,
+  createTenantCustomRole,
   canAccessWorkspace,
   getAccessGrant,
   getAdminDashboard,
@@ -26,6 +27,7 @@ import {
   updateRetrainingAssignmentStatus,
   updateTenantBranding,
   updateTenantTrainingAccess,
+  updateWeeklyCoachingLog,
   updateWeeklyCoachingLogTakeaways,
   type DemoRole,
 } from "../demoPlatform";
@@ -93,6 +95,25 @@ const weeklyCoachingTakeawaysInput = z.object({
   tenantId: z.string(),
   weeklyCoachingLogId: z.string(),
   agentTakeaways: z.string().min(3).max(800),
+});
+
+const weeklyCoachingLogEditInput = z.object({
+  tenantId: z.string(),
+  weeklyCoachingLogId: z.string(),
+  sessionDate: z.string().min(8).max(40),
+  attendance: z.string().min(5).max(240),
+  followUpFromPrevious: z.string().min(10).max(1200),
+  coachingComments: z.string().min(10).max(1600),
+  smartGoalCommitment: z.string().min(10).max(800),
+  additionalSupport: z.string().min(5).max(800),
+  agentTakeaways: z.string().max(800).optional(),
+});
+
+const customTenantRoleInput = z.object({
+  tenantId: z.string(),
+  name: z.string().min(3).max(60),
+  description: z.string().min(12).max(240),
+  inheritsFrom: z.enum(["executive", "manager", "coach", "learner", "client_admin"]),
 });
 
 const coachingGuidanceInput = z.object({
@@ -313,6 +334,20 @@ export const demoRouter = router({
     }
 
     return updateWeeklyCoachingLogTakeaways({ ...input, tenantId });
+  }),
+  previewUpdateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogEditInput).mutation(({ input }) => updateWeeklyCoachingLog(input)),
+  secureUpdateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogEditInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+
+    if (!["manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can edit weekly coaching logs." });
+    }
+
+    return updateWeeklyCoachingLog({ ...input, tenantId });
+  }),
+  secureCreateTenantCustomRole: protectedProcedure.input(customTenantRoleInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return createTenantCustomRole({ ...input, tenantId });
   }),
   secureApplyCoachingGuidance: protectedProcedure.input(coachingGuidanceInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);

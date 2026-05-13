@@ -241,6 +241,34 @@ export type UpdateWeeklyCoachingTakeawaysInput = {
   agentTakeaways: string;
 };
 
+export type UpdateWeeklyCoachingLogInput = {
+  tenantId: string;
+  weeklyCoachingLogId: string;
+  sessionDate: string;
+  attendance: string;
+  followUpFromPrevious: string;
+  coachingComments: string;
+  smartGoalCommitment: string;
+  additionalSupport: string;
+  agentTakeaways?: string;
+};
+
+export type TenantCustomRole = {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string;
+  inheritsFrom: DemoRole;
+  createdAt: string;
+};
+
+export type CreateTenantCustomRoleInput = {
+  tenantId: string;
+  name: string;
+  description: string;
+  inheritsFrom: DemoRole;
+};
+
 export type ApplyCoachingGuidanceInput = {
   tenantId: string;
   suggestionId: string;
@@ -1253,13 +1281,25 @@ const weeklyCoachingLogs: WeeklyCoachingLog[] = [
     smartGoalCommitment: "By 2026-04-27, Nina will use the approved concise summary statement on 90% of monitored calls and reduce closing-script variance to fewer than one miss across five scored interactions. Follow-up date: 2026-04-27.",
     additionalSupport: "Manager will provide two annotated call examples and complete one live side-by-side review before the next coaching touchpoint.",
     agentTakeaways: "I need to keep the closing summary short and consistent so I can confirm next steps without sounding rushed.",
-    createdAt: "2026-04-20T13:15:00Z",
-    updatedAt: "2026-04-20T13:30:00Z",
+    createdAt: "2026-04-20T14:30:00.000Z",
+    updatedAt: "2026-04-20T14:30:00.000Z",
     linkedReviewLogId: "review-1",
   },
 ];
 
+const tenantCustomRoles: TenantCustomRole[] = [
+  {
+    id: "custom-role-1",
+    tenantId: "atlas-operations",
+    name: "Quality Assurance Analyst",
+    description: "Tenant-defined role for analysts who review scored interactions and coordinate workflow reliability follow-up before coaching actions are assigned.",
+    inheritsFrom: "manager",
+    createdAt: "2026-04-18T13:00:00.000Z",
+  },
+];
+
 const accessGrants: DemoAccessGrant[] = [
+
   { openId: "atlas-exec", tenantId: "atlas-operations", role: "executive", name: "Enterprise Executive" },
   { openId: "atlas-manager", tenantId: "atlas-operations", role: "manager", name: "Enterprise Manager" },
   { openId: "atlas-coach", tenantId: "atlas-operations", role: "coach", name: "Enterprise Coach Supervisor" },
@@ -2003,6 +2043,64 @@ export function updateWeeklyCoachingLogTakeaways(input: UpdateWeeklyCoachingTake
   return existing;
 }
 
+export function updateWeeklyCoachingLog(input: UpdateWeeklyCoachingLogInput) {
+  const existing = weeklyCoachingLogs.find((entry) => entry.tenantId === input.tenantId && entry.id === input.weeklyCoachingLogId);
+
+  if (!existing) {
+    throw new Error(`Weekly coaching log not found for ${input.weeklyCoachingLogId}`);
+  }
+
+  existing.sessionDate = input.sessionDate;
+  existing.attendance = input.attendance;
+  existing.followUpFromPrevious = input.followUpFromPrevious;
+  existing.coachingComments = input.coachingComments;
+  existing.smartGoalCommitment = input.smartGoalCommitment;
+  existing.additionalSupport = input.additionalSupport;
+  existing.agentTakeaways = input.agentTakeaways ?? existing.agentTakeaways;
+  existing.updatedAt = new Date().toISOString();
+
+  const linkedReview = existing.linkedReviewLogId
+    ? reviewLogs.find((entry) => entry.tenantId === input.tenantId && entry.id === existing.linkedReviewLogId)
+    : null;
+
+  if (linkedReview) {
+    linkedReview.notes = `${input.coachingComments}\n\nFollow-up from previous coaching: ${input.followUpFromPrevious}`;
+    linkedReview.nextStep = input.smartGoalCommitment;
+  }
+
+  documentationEntries.unshift({
+    id: `doc-weekly-log-edit-${documentationEntries.length + 1}`,
+    tenantId: input.tenantId,
+    subjectUserId: existing.subjectUserId,
+    sourceType: "coaching_summary",
+    title: `Weekly coaching log updated for ${existing.employeeName}`,
+    summary: input.coachingComments,
+    createdAt: existing.updatedAt,
+    authoredByRole: existing.coachRole,
+    evidencePoints: [
+      `Attendance: ${input.attendance}`,
+      `SMART goal: ${input.smartGoalCommitment}`,
+      `Additional support: ${input.additionalSupport}`,
+    ],
+  });
+
+  return existing;
+}
+
+export function createTenantCustomRole(input: CreateTenantCustomRoleInput) {
+  const created: TenantCustomRole = {
+    id: `custom-role-${tenantCustomRoles.length + 1}`,
+    tenantId: input.tenantId,
+    name: input.name,
+    description: input.description,
+    inheritsFrom: input.inheritsFrom,
+    createdAt: new Date().toISOString(),
+  };
+
+  tenantCustomRoles.unshift(created);
+  return created;
+}
+
 export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
   const suggestion = aiSuggestions.find((entry) => entry.tenantId === input.tenantId && entry.id === input.suggestionId);
 
@@ -2512,6 +2610,7 @@ export function getAdminDashboard(tenantId?: string) {
       { key: "humanOverride", label: "Human override controls", value: "Enabled" },
       { key: "sanitizedContent", label: "Client-specific content removed", value: "Verified in demo seed layer" },
     ],
+    customRoles: tenantCustomRoles.filter((role) => role.tenantId === tenant.id),
     workflowLibraryMix,
   };
 }

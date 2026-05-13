@@ -13,7 +13,7 @@ describe("training role context helpers", () => {
     expect(getLearnerWorkspacePerspectiveNotice("coach")).toEqual({
       eyebrow: "Coach / Supervisor session",
       title: "You are reviewing the learner experience from the coach / supervisor lane.",
-      description: "The navigation has been narrowed to learner tools for this route, but your signed-in session still belongs to the coach / supervisor. Use this banner as the role-context handoff so the perspective change feels intentional instead of abrupt.",
+      description: "The learner workspace is open, but your signed-in session still belongs to the coach / supervisor. Keep using the surrounding shell and this banner as the role-context handoff so the perspective change feels intentional instead of abrupt.",
     });
   });
 

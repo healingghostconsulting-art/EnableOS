@@ -173,6 +173,11 @@ describe("demo router", () => {
     );
     expect(admin.tenantUsers.every((user) => user.tenantId === "atlas-operations")).toBe(true);
     expect(admin.weeklyCoachingLogs.length).toBeGreaterThan(0);
+    expect(admin.customRoles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Quality Assurance Analyst", inheritsFrom: "manager" }),
+      ]),
+    );
     expect(admin.workflowLibraryMix.documentationResources.some((asset) => asset.sourceKind === "client_upload")).toBe(true);
   });
 
@@ -314,6 +319,72 @@ describe("demo router", () => {
     });
 
     expect(updated.agentTakeaways).toContain("verification language");
+  });
+
+  it("allows leadership to edit a secure weekly coaching log and propagates the updated structure", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    const updated = await caller.demo.secureUpdateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      weeklyCoachingLogId: "weekly-log-1",
+      sessionDate: "2026-05-03",
+      attendance: "Present, prepared, and ready to review side-by-side examples.",
+      followUpFromPrevious: "The learner met the prior goal on four monitored contacts and now needs to stabilize escalation openings.",
+      coachingComments: "Manager updated the weekly record to emphasize a shorter recap, better escalation framing, and cleaner confirmation language.",
+      smartGoalCommitment: "Use the new escalation opening on every monitored escalation call this week and review it again on 2026-05-10.",
+      additionalSupport: "Supervisor will join one calibration review and provide two fresh call examples before the next check-in.",
+      agentTakeaways: "I need to keep the new escalation opener consistent before I move into the recap.",
+    });
+
+    expect(updated.sessionDate).toBe("2026-05-03");
+    expect(updated.smartGoalCommitment).toContain("escalation opening");
+
+    const manager = await caller.demo.secureManager({ tenantId: "atlas-operations" });
+    expect(manager.weeklyCoachingLogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sessionDate: "2026-05-03",
+          agentTakeaways: expect.stringContaining("escalation opener"),
+        }),
+      ]),
+    );
+    expect(manager.reviewLogs.some((entry: any) => entry.nextStep.includes("escalation opening"))).toBe(true);
+  });
+
+  it("allows tenant client admins to create custom roles that appear in secure admin data", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-admin",
+        role: "user",
+        name: "Enterprise Client Admin",
+      }),
+    );
+
+    const created = await caller.demo.secureCreateTenantCustomRole({
+      tenantId: "atlas-operations",
+      name: "Workflow Quality Lead",
+      description: "Owns tenant workflow audits, training follow-through, and readiness checks before new coaching requests are opened.",
+      inheritsFrom: "manager",
+    });
+
+    expect(created).toMatchObject({
+      tenantId: "atlas-operations",
+      name: "Workflow Quality Lead",
+      inheritsFrom: "manager",
+    });
+
+    const admin = await caller.demo.secureAdmin({ tenantId: "atlas-operations" });
+    expect(admin.customRoles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Workflow Quality Lead", inheritsFrom: "manager" }),
+      ]),
+    );
   });
 
   it("denies secure weekly coaching log creation outside the granted tenant", async () => {
