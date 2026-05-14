@@ -3057,7 +3057,7 @@ export function TrainingExperienceView() {
       <SectionShell
         eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
         title={isDirectModuleLaunch ? (selectedModule?.title ?? "Interactive course player") : "Interactive training simulator"}
-        description={isDirectModuleLaunch ? "This deep link now opens directly into the active course player so the learner lands on the lesson experience itself instead of the broader training-family preview shell." : "This view shows how CHCG and tenant-specific content are reformatted into a guided learning sequence with briefing, practice, live-work application, and reflection moments."}
+        description={isDirectModuleLaunch ? "This deep link opens straight into the active course player so the learner lands on the lesson itself." : "This route turns CHCG and tenant content into one guided lesson flow with learn, practice, apply, and reflection checkpoints."}
         actions={
           <>
             {access.data ? (
@@ -3097,8 +3097,8 @@ export function TrainingExperienceView() {
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <div className="max-w-3xl">
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training family preview</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">{canBrowseAllTrainingFamilies ? "Review every module family directly in the course player" : `${effectiveTrainingRoleLabel} Training Zone`}</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "Use these preview states to inspect the richer workflow, leadership, performance, and engagement visuals in the same training shell instead of validating only the default learner path." : `This training route is now scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so role-specific users stay inside the content that matches their current workspace responsibilities.`}</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">{canBrowseAllTrainingFamilies ? "Review every module family in one guided course player" : `${effectiveTrainingRoleLabel} Training Zone`}</h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "Switch between learner, workflow, leadership, performance, and engagement previews without leaving the course shell." : `This training route stays scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so the lesson context matches the current workspace responsibility.`}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
@@ -3118,26 +3118,38 @@ export function TrainingExperienceView() {
                     </Button>
                   ))}
                 </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-[1.35rem] border border-cyan-400/16 bg-cyan-400/8 px-4 py-4 text-sm text-slate-200 shadow-[0_16px_40px_rgba(34,211,238,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Human-in-the-loop cue</p>
+                    <p className="mt-2 font-medium text-white">Agent-assist tools can accelerate preparation, but the human still owns judgment, empathy, and the final response.</p>
+                    <p className="mt-2 leading-6 text-slate-300">Use the prompts to think faster, then confirm the coaching move, customer language, and documentation choice yourself.</p>
+                  </div>
+                  <div className="rounded-[1.35rem] border border-white/12 bg-white/8 px-4 py-4 text-sm text-slate-200 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Cleaner lesson flow</p>
+                    <p className="mt-2 font-medium text-white">Shorter context panels and brighter surfaces keep the next learner action easier to spot.</p>
+                    <p className="mt-2 leading-6 text-slate-300">The top shell now focuses on what to do next instead of asking the learner to scan long setup copy before starting.</p>
+                  </div>
+                </div>
                 <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-5">
                   {previewScenarios.map((scenario) => (
                     <button
                       key={scenario.id}
                       type="button"
                       onClick={() => setPreviewScenarioId(scenario.id)}
-                      className={`flex h-full min-h-[14.5rem] flex-col rounded-[1.5rem] border p-5 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      className={`flex h-full min-h-[14.5rem] flex-col rounded-[1.5rem] border p-5 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/30 bg-cyan-400/12 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/8 hover:bg-white/12"}`}
                     >
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{scenario.eyebrow}</p>
                       <p className="mt-3 text-base font-medium leading-7 text-white">{scenario.label}</p>
-                      <p className="mt-3 break-words text-sm leading-7 text-slate-300">{scenario.description}</p>
+                      <p className="mt-3 break-words text-sm leading-6 text-slate-300">{scenario.description}</p>
                     </button>
                   ))}
                 </div>
                 {requestedRoleLabel || recentUnlockMoment ? (
                   <div className="grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/55 px-4 py-4 text-sm text-slate-300">
+                    <div className="rounded-[1.35rem] border border-white/10 bg-white/8 px-4 py-4 text-sm text-slate-300">
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Active training launch filter</p>
                       <p className="mt-2 font-medium text-white">{requestedRoleLabel ? `${requestedRoleLabel} context is pinned into this preview.` : "Current preview is being reviewed without a role-chip launch filter."}</p>
-                      <p className="mt-2 leading-6 text-slate-400">{requestedRoleLabel ? "This makes the role-chip handoff from the content library visible in the course player so stakeholders can see exactly which audience lens shaped the module preview." : "Use a role chip from the content library to show which audience lens carried into the guided training preview."}</p>
+                      <p className="mt-2 leading-6 text-slate-400">{requestedRoleLabel ? "This shows which audience lens shaped the module preview before the learner enters the lesson." : "Use a role chip from the content library to show which audience lens carried into this guided preview."}</p>
                     </div>
                     <div className={`rounded-[1.35rem] border px-4 py-4 text-sm ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-100" : "border-white/10 bg-white/5 text-slate-300"}`}>
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest unlock moment</p>
@@ -3151,7 +3163,7 @@ export function TrainingExperienceView() {
 
             <PremiumCard className="overflow-hidden">
               <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-                <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
+                <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(224,242,254,0.18),rgba(34,211,238,0.14),rgba(15,23,42,0.82))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.22)]">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Continue learning</Badge>
                     <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModule.format}</Badge>
@@ -3160,11 +3172,11 @@ export function TrainingExperienceView() {
                   <div className="mt-5 max-w-3xl">
                     <p className="text-sm uppercase tracking-[0.26em] text-cyan-100/70">Current learning path</p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">{selectedModule.title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-slate-200">{presentation?.heroSummary ?? `Continue progressing through ${selectedModule.title} so the learner can connect course content, workflow evidence, and coaching action without leaving the platform.`}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-100">{`Use ${selectedModule.title} to connect the active lesson, the live-work cue, and the next checkpoint without leaving the course player.`}</p>
                   </div>
                   <label className="mt-6 block max-w-2xl space-y-2 text-sm text-slate-200">
                     <span>Search this training path</span>
-                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3">
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3">
                       <Search className="h-4 w-4 text-cyan-100/70" />
                       <input
                         value={trainingSearchQuery}
@@ -3175,7 +3187,7 @@ export function TrainingExperienceView() {
                     </div>
                   </label>
                   <div className="mt-6 space-y-4">
-                    <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-slate-950/50 p-5">
+                    <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(15,23,42,0.68))] p-5">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Journey momentum</p>
@@ -3226,10 +3238,15 @@ export function TrainingExperienceView() {
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
                         <p className="mt-2 text-sm font-medium text-white">{nextRecommendedModule?.title ?? "Complete the current module to unlock the next guided lesson."}</p>
                       </div>
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/8 px-4 py-4 sm:col-span-2 xl:col-span-1">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Certification signal</p>
                         <p className="mt-2 text-sm font-medium text-white">{atJourneyEnd ? "Final reflection is available once your current entry is complete." : "Progress is being tracked toward the next coaching-ready milestone."}</p>
                         <p className="mt-2 text-xs leading-5 text-slate-400">Each passed inline knowledge check strengthens completion confidence before the module closes.</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/8 px-4 py-4 sm:col-span-2 xl:col-span-1">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Human-in-the-loop cue</p>
+                        <p className="mt-2 text-sm font-medium text-white">Use agent-assist prompts to prepare faster, then keep the final tone, decision, and documentation choice with the human.</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-300">The lesson keeps the AI support visible without letting it replace judgment, empathy, or coaching accountability.</p>
                       </div>
                       <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 sm:col-span-2 xl:col-span-2">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">Presentation-quality pacing</p>
@@ -3243,7 +3260,7 @@ export function TrainingExperienceView() {
                           ))}
                         </div>
                       </div>
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4 sm:col-span-2 xl:col-span-1">
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/8 px-4 py-4 sm:col-span-2 xl:col-span-1">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Narration mode</p>
                         <p className="mt-2 text-sm font-medium text-white">Voice guidance stays aligned to the active guided page instead of acting as a separate audio-only track.</p>
                       </div>

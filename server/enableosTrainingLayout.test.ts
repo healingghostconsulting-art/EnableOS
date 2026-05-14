@@ -73,4 +73,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("text-slate-300");
     expect(trainingViewSource).toContain("bg-slate-950/68");
   });
+
+  it("keeps the learner training shell concise, brighter, and explicit about human-in-the-loop behavior", () => {
+    expect(trainingViewSource).toContain("Human-in-the-loop cue");
+    expect(trainingViewSource).toContain("Agent-assist tools can accelerate preparation, but the human still owns judgment, empathy, and the final response.");
+    expect(trainingViewSource).toContain("Shorter context panels and brighter surfaces keep the next learner action easier to spot.");
+    expect(trainingViewSource).toContain("bg-cyan-400/8");
+    expect(trainingViewSource).toContain("bg-white/8");
+  });
 });

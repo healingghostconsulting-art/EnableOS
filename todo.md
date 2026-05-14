@@ -323,3 +323,8 @@
 - [x] Improve readability on the learner journey cards and related learner-facing training surfaces by preserving the current palette while increasing text contrast and content legibility
 - [x] Reconcile the last two direct user prompts by confirming the learner readability update is fully validated, checkpointed, and reported alongside the standing Google Doc source-of-truth workflow
 - [x] Export the latest project status update as an HTML file for the user
+- [ ] Review the shared Google Doc for this run, translate each newly open actionable line into an implementation-ready prompt, implement the highest-priority safe item(s), validate them, and only then mark completed lines as [Done] in the source document
+- [x] Add concise learner-facing human-in-the-loop guidance to the training route so agent-assist tools are framed as support, not replacement
+- [x] Reduce text density and brighten the top learner training preview and active-module context panels while preserving the existing palette direction
+- [x] Add targeted regression coverage for the learner training copy and presentation refinements from the 2026-05-14 Google Doc feedback
+- [ ] Follow the shared Google Doc as the standing source of truth for every EnableOS run, translate each newly open actionable line into an implementation-ready prompt, implement only the safest specific items, validate them before claiming completion, and mark lines as [Done] in the same document only after verified delivery

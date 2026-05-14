@@ -47,4 +47,37 @@ Soft Skills
 
 QA 
          *  [Done] Theres only one slide from the content provided? We need to pull way more content from the slides I provided. 
-         *
+Feedback from 5/14/26
+         * How to be the human in the loop to work with agent assist tools 
+         * To many words for the content 
+         * To dark-mark it happy
+
+
+Branding it to be it’s own business EnableOS powered by CHC
+
+
+How can we show ROI - Backend Reporting 
+         * Questions Reporting 
+         * Agent lifecycle with tenure 
+         * Give % based on peers 
+         * High-alert for questions that are low 
+         * How do you prove that it’s working 
+         * This is the 3 time you’ve sent the module 
+         * Measureing coaching consistent 
+         * Behavior analysis 
+         * Dashboard 
+         * Error rate
+Agent Profile 
+         * Name 
+         * Avatar 
+         * Start date 
+         * Ranking score vs time completed 
+         * Module History 
+         * When did I trainged
+         * Skill 
+The coaching log screen can be separate screen or pop up box 
+Give the ability to import their corprate training 
+Make a Develoopment & Launch Roadmap 
+LEAN Methodolog - Wayne 
+How to demonstrate more gamification and engagement
+How
