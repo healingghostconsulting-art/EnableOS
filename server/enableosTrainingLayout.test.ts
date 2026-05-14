@@ -64,4 +64,13 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Match bank");
     expect(trainingViewSource).toContain("Passing threshold");
   });
+
+  it("preserves the stronger learner readability treatments on the assignment and banner cards", () => {
+    expect(trainingViewSource).toContain("Learner shell active");
+    expect(trainingViewSource).toContain("Priority retraining notification");
+    expect(trainingViewSource).toContain("text-cyan-50");
+    expect(trainingViewSource).toContain("text-slate-50");
+    expect(trainingViewSource).toContain("text-slate-300");
+    expect(trainingViewSource).toContain("bg-slate-950/68");
+  });
 });

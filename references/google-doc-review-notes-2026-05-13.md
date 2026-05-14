@@ -191,3 +191,7 @@ The latest plain-text export of the shared Google Doc again shows that every act
 ## Fresh audit run result
 
 The latest plain-text export of the shared Google Doc again shows that every actionable feedback request is already prefixed with `[Done]`. The remaining unprefixed lines visible in the export are structural labels such as `Brief Box`, `Practice`, and `For the Assigned interventions`, not standalone actionable requests. No new implementation prompt was warranted in this run.
+
+## 2026-05-14 source-of-truth audit
+
+Exported the shared Google Doc from `https://docs.google.com/document/d/1mjW0vcjqU6BdNhSd1H3ycBm5ur-bZmyX/edit` as plain text and re-audited all current learner, soft-skills, and QA lines. Every actionable feedback line in the current export is already prefixed with `[Done]`, so this pass produced no newly open implementation item, no safe follow-up prompt to prioritize, and no Google Doc line eligible for an additional completion edit.

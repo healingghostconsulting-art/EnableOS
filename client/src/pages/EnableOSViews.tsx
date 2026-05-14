@@ -1786,14 +1786,14 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           </PremiumCard>
         ) : null}
         {!access.isLoading && canAccessRequestedRole && learnerPerspectiveNotice ? (
-          <PremiumCard className="border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.96))]">
-            <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-start lg:justify-between">
+          <PremiumCard className="overflow-hidden border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.16),transparent_34%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] shadow-[0_24px_72px_rgba(8,15,35,0.28)]">
+            <CardContent className="flex flex-col gap-4 px-6 py-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-4xl">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">{learnerPerspectiveNotice.eyebrow}</p>
-                <h2 className="mt-3 text-2xl font-semibold text-white">{learnerPerspectiveNotice.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-100">{learnerPerspectiveNotice.description}</p>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-50">{learnerPerspectiveNotice.eyebrow}</p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">{learnerPerspectiveNotice.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-50">{learnerPerspectiveNotice.description}</p>
               </div>
-              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Learner shell active</Badge>
+              <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50 shadow-[0_10px_24px_rgba(8,145,178,0.18)]">Learner shell active</Badge>
             </CardContent>
           </PremiumCard>
         ) : null}
@@ -6716,16 +6716,16 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
 
     <div className="space-y-6">
       {activeRetrainingAssignment ? (
-        <div id="learner-priority-retraining" className="rounded-[1.8rem] border border-amber-400/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.92))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.24)]">
+        <div id="learner-priority-retraining" className="rounded-[1.8rem] border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(253,224,71,0.18),transparent_34%),linear-gradient(135deg,rgba(69,26,3,0.92),rgba(15,23,42,0.98))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.26)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-100/85">Priority retraining notification</p>
+              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-50">Priority retraining notification</p>
               <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{activeRetrainingAssignment.status === "completed" ? `${activeRetrainingAssignment.moduleTitle} is complete` : `${activeRetrainingAssignment.moduleTitle} has been assigned to you`}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-100/92">{activeRetrainingAssignment.status === "completed" ? `You finished this targeted retraining from ${activeRetrainingAssignment.journeyTitle}. Your manager and coach can now see the completed chip in their oversight lanes.` : `Complete this targeted refresher from ${activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.`}</p>
+              <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment.status === "completed" ? `You finished this targeted retraining from ${activeRetrainingAssignment.journeyTitle}. Your manager and coach can now see the completed chip in their oversight lanes.` : `Complete this targeted refresher from ${activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.`}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge value={activeRetrainingAssignment.status} />
-              <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 px-3 py-1 text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
+              <Badge className="rounded-full border-amber-200/25 bg-amber-300/16 px-3 py-1 text-amber-50 shadow-[0_10px_24px_rgba(180,83,9,0.18)]">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
@@ -6740,11 +6740,11 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
               </Button>
             </Link>
             {activeRetrainingAssignment.status !== "completed" ? (
-              <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+              <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
                 {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark retraining complete"}
               </Button>
             ) : null}
-            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
+            <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/28 px-3 py-1 text-slate-50">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
           </div>
         </div>
       ) : null}
@@ -6763,28 +6763,28 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
       </div>
       <PremiumCard className="overflow-hidden">
         <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
-          <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.1),rgba(15,23,42,0.92))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.24)]">
+          <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
+              <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
+              <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
             </div>
             <div className="mt-5 max-w-3xl">
-              <p className="text-sm uppercase tracking-[0.24em] text-cyan-100/75">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
+              <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
               <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{activeRetrainingAssignment?.moduleTitle ?? primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-200">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
+              <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Modules completed</p>
+              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Modules completed</p>
                 <p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{activeRetrainingAssignment ? "Assigned module" : "Recommended next"}</p>
+              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">{activeRetrainingAssignment ? "Assigned module" : "Recommended next"}</p>
                 <p className="mt-2 text-sm font-medium text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach milestone</p>
+              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Coach milestone</p>
                 <p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p>
               </div>
             </div>
@@ -6800,7 +6800,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                 </Button>
               </Link>
               {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
-                <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
                   {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark module complete"}
                 </Button>
               ) : null}
@@ -6812,18 +6812,18 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
             </div>
           </div>
           <div className="grid gap-4">
-            <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.82))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Learning signals</p>
+            <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Learning signals</p>
               <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
-              <p className="mt-3 text-sm leading-7 text-slate-300">The learner workspace now mirrors modern LMS discovery patterns by surfacing a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
+              <p className="mt-3 text-sm leading-7 text-slate-100">The learner workspace now mirrors modern LMS discovery patterns by surfacing a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Achievement layer</p>
+              <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Achievement layer</p>
                 <p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p>
               </div>
-              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Recommendation framing</p>
+              <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Recommendation framing</p>
                 <p className="mt-2 text-sm font-medium text-white">Use the training route for the immersive lesson player and the learner workspace for high-level progress, continuation, and next-step discovery.</p>
               </div>
             </div>
@@ -6860,7 +6860,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                       }}>{activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Open assigned module"}</Button>
                     </Link>
                     {activeRetrainingAssignment.status !== "completed" ? (
-                      <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                      <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
                         {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark complete"}
                       </Button>
                     ) : null}
