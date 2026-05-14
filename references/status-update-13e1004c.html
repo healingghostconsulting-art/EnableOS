@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CHCG EnableOS Demo Status Update</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f8fb;
+        --surface: #ffffff;
+        --text: #1f2937;
+        --muted: #5b6472;
+        --border: #d9e1ea;
+        --accent: #234e7d;
+        --accent-soft: #eaf2fb;
+        --success: #0f766e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 24px 64px;
+      }
+
+      .hero,
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+      }
+
+      .hero {
+        padding: 36px;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        margin-top: 16px;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      p {
+        margin: 0 0 16px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .card {
+        padding: 28px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        width: 32%;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: var(--success);
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 10px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      .footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <span class="eyebrow">Status Update</span>
+        <h1>CHCG EnableOS Demo</h1>
+        <p>
+          This HTML report summarizes the latest validated project update. The recent pass
+          finalized learner readability refinements, preserved the current color direction,
+          confirmed quiz-formatting and navigator improvements remain intact, and verified that
+          the application is still healthy after testing.
+        </p>
+        <p>
+          The current production checkpoint is <strong>13e1004c</strong>, and the live deployment
+          remains available at
+          <a href="https://chcg-enable-yb9kcvoh.manus.space">chcg-enable-yb9kcvoh.manus.space</a>.
+        </p>
+      </section>
+
+      <section class="grid two">
+        <article class="card">
+          <h2>Summary of Completed Work</h2>
+          <p>
+            The latest refinement pass focused on improving learner-facing clarity without changing
+            the established visual palette. Contrast was strengthened on the learner banner and key
+            assignment-card surfaces so the interface reads more clearly while remaining visually
+            consistent with the existing design system.
+          </p>
+          <p>
+            This update also carries forward the earlier improvements that cleaned up quiz and
+            knowledge-check formatting, including more readable content widths, better spacing, and
+            clearer control presentation. The collapsible learning-path navigator remains in place so
+            learners can reclaim screen space while still keeping progress context visible.
+          </p>
+        </article>
+
+        <article class="card">
+          <h2>Validation Status</h2>
+          <p>
+            The project state was revalidated after the readability pass. Regression tests for the
+            learner training experience remain passing, and the application health check was reported
+            as healthy. The current known development-only issue is still the non-blocking Fast
+            Refresh export warning tied to <code>adminWorkspaceMenu</code> in <code>App.tsx</code>.
+          </p>
+          <p><span class="pill">Tests Passing</span></p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top: 24px;">
+        <h2>Current Project Snapshot</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th>Latest checkpoint</th>
+              <td><strong>13e1004c</strong></td>
+            </tr>
+            <tr>
+              <th>Production site</th>
+              <td>
+                <a href="https://chcg-enable-yb9kcvoh.manus.space">https://chcg-enable-yb9kcvoh.manus.space</a>
+              </td>
+            </tr>
+            <tr>
+              <th>Development preview</th>
+              <td>
+                <a href="https://3000-io3w3lh7gagqmn4c8xyz1-0d1d39c7.us2.manus.computer">https://3000-io3w3lh7gagqmn4c8xyz1-0d1d39c7.us2.manus.computer</a>
+              </td>
+            </tr>
+            <tr>
+              <th>Project health</th>
+              <td>Healthy and running</td>
+            </tr>
+            <tr>
+              <th>Google Doc source-of-truth audit</th>
+              <td>No newly open actionable feedback lines were identified in the latest pass.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card" style="margin-top: 24px;">
+        <h2>Recommended Next Steps</h2>
+        <ul>
+          <li>Add a persistent learner preference so the training navigator remembers its collapsed state between sessions.</li>
+          <li>Add visual regression coverage for the updated learner cards and quiz surfaces.</li>
+          <li>Resolve the remaining Fast Refresh export warning in <code>App.tsx</code> to reduce development noise.</li>
+        </ul>
+      </section>
+
+      <p class="footer">
+        Prepared as an HTML version of the latest project status update for the CHCG EnableOS Demo.
+      </p>
+    </main>
+  </body>
+</html>
