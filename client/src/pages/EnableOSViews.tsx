@@ -1389,10 +1389,26 @@ function InlineAssessmentShell({
           </div>
         </aside>
         <div className="bg-[#eef4df] px-6 py-8 lg:px-8 xl:px-10">
-          <div className="mx-auto max-w-2xl">
-            <p className="text-center text-[11px] uppercase tracking-[0.3em] text-[#6b7857]">{isFinalQuiz ? "Knowledge validation" : "Knowledge check"}</p>
-            <h3 className="mt-3 text-center text-[2rem] font-semibold tracking-[-0.02em] text-[#243018] sm:text-[2.35rem]">{title}</h3>
-            <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-6 text-[#586648]">{assessment.instructions}</p>
+          <div className="mx-auto max-w-3xl">
+            <div className="space-y-4 text-center">
+              <p className="text-center text-[11px] uppercase tracking-[0.3em] text-[#6b7857]">{isFinalQuiz ? "Knowledge validation" : "Knowledge check"}</p>
+              <h3 className="text-center text-[2rem] font-semibold tracking-[-0.02em] text-[#243018] sm:text-[2.35rem]">{title}</h3>
+              <p className="mx-auto max-w-2xl text-sm leading-6 text-[#586648]">{assessment.instructions}</p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3 text-left">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Assessment type</p>
+                <p className="mt-2 text-sm font-medium text-[#243018]">{isFinalQuiz ? "Final quiz" : "Inline checkpoint"}</p>
+              </div>
+              <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3 text-left">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Question progress</p>
+                <p className="mt-2 text-sm font-medium text-[#243018]">Question {boundedQuestionIndex + 1} of {questions.length}</p>
+              </div>
+              <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3 text-left">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Passing score</p>
+                <p className="mt-2 text-sm font-medium text-[#243018]">{assessment.passingScore}/{questions.length}{assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}</p>
+              </div>
+            </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               {questions.map((question: any, index: number) => {
                 const answered = hasAssessmentAnswer(question, answers);
@@ -1405,8 +1421,9 @@ function InlineAssessmentShell({
                 );
               })}
             </div>
-            <div className="mt-10 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
-              <p className="text-sm font-medium leading-7 text-white">{activeQuestion.prompt}</p>
+            <div className="mt-8 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Active prompt</p>
+              <p className="mt-3 text-base font-medium leading-7 text-white">{activeQuestion.prompt}</p>
             </div>
             <div className="rounded-b-[1.6rem] border-x border-b border-[#c9d4af] bg-[#f8fbf1] px-5 py-6 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:px-6">
               {activeQuestion.type === "short_answer" ? (
@@ -1441,22 +1458,25 @@ function InlineAssessmentShell({
                   })}
                 </div>
               )}
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                {submitted ? (
-                  passed ? (
-                    <Button type="button" onClick={onReturn} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
-                      Continue lesson
-                    </Button>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm leading-6 text-[#5d694d]">{submitted ? (passed ? "This assessment is complete. Return to the lesson when you are ready to continue." : "Review the feedback below, then retry the quiz to clear this checkpoint.") : "Answer the active question, then submit to keep the learner moving through the lesson."}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {submitted ? (
+                    passed ? (
+                      <Button type="button" onClick={onReturn} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
+                        Continue lesson
+                      </Button>
+                    ) : (
+                      <Button type="button" onClick={onRetry} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
+                        Retry quiz
+                      </Button>
+                    )
                   ) : (
-                    <Button type="button" onClick={onRetry} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
-                      Retry quiz
+                    <Button type="button" onClick={onSubmit} disabled={!currentQuestionAnswered || disabled} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40] disabled:bg-[#b9c4a3] disabled:text-[#f6faec]">
+                      Submit
                     </Button>
-                  )
-                ) : (
-                  <Button type="button" onClick={onSubmit} disabled={!currentQuestionAnswered || disabled} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40] disabled:bg-[#b9c4a3] disabled:text-[#f6faec]">
-                    Submit
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
               {submitted ? (
                 <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
@@ -1818,6 +1838,7 @@ export function TrainingExperienceView() {
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
+  const [navigatorCollapsed, setNavigatorCollapsed] = useState(false);
   const [briefCheckpointAnswers, setBriefCheckpointAnswers] = useState<Record<string, string>>({});
   const [briefCheckpointSubmitted, setBriefCheckpointSubmitted] = useState(false);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
@@ -3455,29 +3476,41 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
-            <div className="grid gap-6 2xl:grid-cols-[340px_minmax(0,1fr)]">
+            <div className={`grid gap-6 ${navigatorCollapsed ? "2xl:grid-cols-[112px_minmax(0,1fr)]" : "2xl:grid-cols-[340px_minmax(0,1fr)]"}`}>
               <PremiumCard className="2xl:sticky 2xl:top-6">
-                <CardHeader>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                <CardHeader className={navigatorCollapsed ? "pb-4" : undefined}>
+                  <div className={`flex gap-3 ${navigatorCollapsed ? "flex-col items-center text-center" : "flex-wrap items-center justify-between"}`}>
                     <div>
-                      <CardTitle className="text-white">Learning path navigator</CardTitle>
-                      <CardDescription className="text-slate-400">A more persistent LMS-style rail keeps the journey sequence, completion status, and next recommendation visible while the learner moves through the module.</CardDescription>
+                      <CardTitle className="text-white">{navigatorCollapsed ? "Path" : "Learning path navigator"}</CardTitle>
+                      <CardDescription className="text-slate-400">{navigatorCollapsed ? "Collapse the rail until you need the full path view again." : "A more persistent LMS-style rail keeps the journey sequence, completion status, and next recommendation visible while the learner moves through the module."}</CardDescription>
                     </div>
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
+                    <div className={`flex gap-2 ${navigatorCollapsed ? "flex-col items-center" : "items-center"}`}>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                        onClick={() => setNavigatorCollapsed((current) => !current)}
+                      >
+                        <ChevronRight className={`mr-1 h-4 w-4 transition-transform ${navigatorCollapsed ? "-rotate-180" : "rotate-180"}`} />
+                        {navigatorCollapsed ? "Expand" : "Minimize"}
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto pr-1">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-sm text-slate-400">Competency gap</p>
-                    <p className="mt-2 text-xl font-semibold text-white">{learner.data.activeJourney.competencyGap}</p>
+                <CardContent className={`max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 ${navigatorCollapsed ? "space-y-3" : "space-y-4"}`}>
+                  <div className={`rounded-3xl border border-white/10 bg-white/5 ${navigatorCollapsed ? "p-3" : "p-4"}`}>
+                    <p className="text-sm text-slate-400">{navigatorCollapsed ? "Gap" : "Competency gap"}</p>
+                    <p className={`mt-2 font-semibold text-white ${navigatorCollapsed ? "text-base leading-6" : "text-xl"}`}>{learner.data.activeJourney.competencyGap}</p>
                     <Progress value={learner.data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <div className={`mt-4 grid gap-3 ${navigatorCollapsed ? "grid-cols-1" : "sm:grid-cols-2 xl:grid-cols-1"}`}>
                       <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{navigatorCollapsed ? "Next" : "Recommended next"}</p>
                         <p className="mt-2 text-sm font-medium text-white">{nextRecommendedModule?.title ?? "Stay focused on the current module until the final reflection is complete."}</p>
                       </div>
                       <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current checkpoint</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{navigatorCollapsed ? "Checkpoint" : "Current checkpoint"}</p>
                         <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
                         <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-100/80">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibration loading"}</p>
                       </div>
@@ -3488,26 +3521,40 @@ export function TrainingExperienceView() {
                       key={module.id}
                       type="button"
                       onClick={() => setModuleIndex(module.originalIndex)}
-                      className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${module.originalIndex === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+                      className={`w-full rounded-[1.6rem] border text-left transition ${module.originalIndex === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"} ${navigatorCollapsed ? "px-3 py-3" : "px-4 py-4"}`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
-                            {module.originalIndex === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
-                            {module.originalIndex < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
-                            {module.originalIndex === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
+                      {navigatorCollapsed ? (
+                        <>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{module.originalIndex + 1}</span>
+                            <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes}m</Badge>
                           </div>
-                          <h3 className="mt-2 line-clamp-2 text-lg font-medium text-white">{module.title}</h3>
-                          <p className="mt-2 line-clamp-3 text-sm text-slate-300">{module.skillFocus}</p>
-                        </div>
-                        <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                        <span>{module.originalIndex === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
-                        <span>{module.completionRate}%</span>
-                      </div>
-                      <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
+                          <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-white">{module.title}</p>
+                          <p className="mt-2 text-xs text-slate-400">{module.completionRate}% complete</p>
+                          <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
+                                {module.originalIndex === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
+                                {module.originalIndex < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
+                                {module.originalIndex === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
+                              </div>
+                              <h3 className="mt-2 line-clamp-2 text-lg font-medium text-white">{module.title}</h3>
+                              <p className="mt-2 line-clamp-3 text-sm text-slate-300">{module.skillFocus}</p>
+                            </div>
+                            <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+                            <span>{module.originalIndex === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
+                            <span>{module.completionRate}%</span>
+                          </div>
+                          <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
+                        </>
+                      )}
                     </button>
                   )) : (
                     <div className="rounded-[1.6rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">
@@ -3810,18 +3857,32 @@ export function TrainingExperienceView() {
                                   ))}
                                 </div>
                                 {currentSlideInteraction ? (
-                                  <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)]">
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Knowledge check</p>
-                                        <h4 className="mt-2 text-lg font-medium text-white">{currentSlideInteraction.title}</h4>
-                                        <p className="mt-2 max-w-none text-sm leading-6 text-slate-200 2xl:max-w-[58rem]">{currentSlideInteraction.prompt}</p>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">{currentSlideInteraction.instructions}</p>
+                                  <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)] sm:p-6">
+                                    <div className="gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+                                      <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Knowledge check</p>
+                                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentSlideInteraction.kind.replaceAll("_", " ")}</Badge>
+                                        </div>
+                                        <h4 className="mt-3 text-lg font-medium text-white sm:text-[1.35rem]">{currentSlideInteraction.title}</h4>
+                                        <div className="mt-3 max-w-3xl space-y-2">
+                                          <p className="text-sm leading-6 text-slate-100">{currentSlideInteraction.prompt}</p>
+                                          <p className="text-sm leading-6 text-slate-300">{currentSlideInteraction.instructions}</p>
+                                        </div>
                                       </div>
-                                      <div className="flex flex-wrap gap-2">
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentSlideInteraction.kind.replaceAll("_", " ")}</Badge>
-                                        <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Pass at {currentSlideInteraction.passingPercent}%</Badge>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Progress {slideInteractionProgress}%</Badge>
+                                      <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Passing threshold</p>
+                                          <p className="mt-2 text-sm font-medium text-white">Pass at {currentSlideInteraction.passingPercent}%</p>
+                                        </div>
+                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Progress</p>
+                                          <p className="mt-2 text-sm font-medium text-white">{slideInteractionProgress}% complete</p>
+                                        </div>
+                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Interaction style</p>
+                                          <p className="mt-2 text-sm font-medium text-white">{currentSlideInteraction.kind.replaceAll("_", " ")}</p>
+                                        </div>
                                       </div>
                                     </div>
                                     {currentSlideInteraction.kind === "click_to_reveal" ? (
@@ -3887,36 +3948,50 @@ export function TrainingExperienceView() {
                                       </div>
                                     ) : null}
                                     {currentSlideInteraction.kind === "match_the_term" ? (
-                                      <div className="mt-4 grid gap-3 md:grid-cols-3">
-                                        {[
-                                          { key: "cue", label: "Behavior cue" },
-                                          { key: "proof", label: "Proof point" },
-                                          { key: "timing", label: "Timing cue" },
-                                        ].map((matchField) => (
-                                          <div key={matchField.key} className="rounded-[1.35rem] border border-white/10 bg-slate-950/65 p-4">
-                                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{matchField.label}</p>
-                                            <Select
-                                              value={slideInteractionAttempt.matchedPairs?.[matchField.key] ?? "unselected"}
-                                              onValueChange={(value) => setSlideInteractionAttempt((current) => ({
-                                                ...current,
-                                                matchedPairs: {
-                                                  ...(current.matchedPairs ?? {}),
-                                                  [matchField.key]: value === "unselected" ? undefined : value,
-                                                },
-                                              }))}
-                                            >
-                                              <SelectTrigger className="mt-3 border-white/10 bg-slate-950/80 text-slate-100">
-                                                <SelectValue placeholder="Choose a matching card" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                <SelectItem value="unselected">Choose a matching card</SelectItem>
-                                                {currentSlideInteraction.choices?.map((choice) => (
-                                                  <SelectItem key={choice.id} value={choice.id}>{choice.detail}</SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
+                                      <div className="mt-5 space-y-4">
+                                        <div className="rounded-[1.35rem] border border-cyan-400/20 bg-slate-950/45 p-4">
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Match bank</p>
+                                          <p className="mt-2 text-sm leading-6 text-slate-300">Review the available training terms first, then assign the right explanation to each field below.</p>
+                                          <div className="mt-3 grid gap-3 lg:grid-cols-3">
+                                            {currentSlideInteraction.choices?.map((choice) => (
+                                              <div key={choice.id} className="rounded-[1.2rem] border border-white/10 bg-white/6 p-4">
+                                                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">{choice.label}</p>
+                                                <p className="mt-2 text-sm leading-6 text-white">{choice.detail}</p>
+                                              </div>
+                                            ))}
                                           </div>
-                                        ))}
+                                        </div>
+                                        <div className="grid gap-3 lg:grid-cols-3">
+                                          {[
+                                            { key: "cue", label: "Behavior cue" },
+                                            { key: "proof", label: "Proof point" },
+                                            { key: "timing", label: "Timing cue" },
+                                          ].map((matchField) => (
+                                            <div key={matchField.key} className="rounded-[1.35rem] border border-white/10 bg-slate-950/65 p-4">
+                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{matchField.label}</p>
+                                              <Select
+                                                value={slideInteractionAttempt.matchedPairs?.[matchField.key] ?? "unselected"}
+                                                onValueChange={(value) => setSlideInteractionAttempt((current) => ({
+                                                  ...current,
+                                                  matchedPairs: {
+                                                    ...(current.matchedPairs ?? {}),
+                                                    [matchField.key]: value === "unselected" ? undefined : value,
+                                                  },
+                                                }))}
+                                              >
+                                                <SelectTrigger className="mt-3 min-h-[3rem] border-white/10 bg-slate-950/80 text-slate-100">
+                                                  <SelectValue placeholder="Choose a matching card" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="unselected">Choose a matching card</SelectItem>
+                                                  {currentSlideInteraction.choices?.map((choice) => (
+                                                    <SelectItem key={choice.id} value={choice.id}>{choice.label} — {choice.detail}</SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                          ))}
+                                        </div>
                                       </div>
                                     ) : null}
                                     {currentSlideInteraction.kind === "drag_and_drop" ? (
@@ -3950,17 +4025,19 @@ export function TrainingExperienceView() {
                                         ))}
                                       </div>
                                     ) : null}
-                                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                                      <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={submitSlideInteraction}>
-                                        {slideInteractionSubmitted ? (slideInteractionPassed ? "Passed" : "Check again") : "Check understanding"}
-                                      </Button>
+                                    <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                                      <div className="flex flex-wrap items-center gap-3">
+                                        <Button type="button" className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100" onClick={submitSlideInteraction}>
+                                          {slideInteractionSubmitted ? (slideInteractionPassed ? "Passed" : "Check again") : "Check understanding"}
+                                        </Button>
 
-                                      <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
-                                        Review lesson and retry
-                                      </Button>
+                                        <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
+                                          Review lesson and retry
+                                        </Button>
+                                      </div>
 
                                       {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? (
-                                        <span className="text-sm text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds after your first answer selection.</span>
+                                        <span className="text-sm leading-6 text-slate-300">Timer limit: {currentSlideInteraction.timeLimitSeconds} seconds after your first answer selection.</span>
                                       ) : null}
                                     </div>
                                     {slideInteractionSubmitted && slideInteractionResult ? (
@@ -3984,7 +4061,7 @@ export function TrainingExperienceView() {
                                         ) : null}
                                       </div>
                                     ) : (
-                                      <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-300">
+                                      <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4 text-sm leading-6 text-slate-300">
                                         Pass this knowledge check before the next lesson step unlocks. If you miss the threshold, use the hint, review the page content, and retry.
                                       </div>
                                     )}

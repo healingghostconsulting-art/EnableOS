@@ -316,3 +316,7 @@
 - [x] Validate the repaired brief-completion flow across the live training experience and automated tests before checkpointing.
 - [x] Investigate why the published training brief box on the workflow-precision route does not reflect the requested feedback changes.
 - [x] Determine whether the brief-box mismatch is caused by deployment version, route-specific state, or implementation logic, then fix and validate it.
+- [x] Audit and improve quiz formatting across learner knowledge-check and quiz interfaces using the latest screenshot as the visual reference
+- [x] Make the learner training-path navigator collapsible or horizontally compact so lesson content has more usable screen space while preserving orientation and progress visibility
+- [x] Reformat learner knowledge-check and quiz surfaces so headers, chips, controls, and match-the-term inputs use cleaner spacing and preserve more readable content width
+- [x] Add a space-saving learner path navigator mode that can collapse or compact into a horizontal summary while keeping progress and orientation visible

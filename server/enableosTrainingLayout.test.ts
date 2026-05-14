@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { getBriefBoxPages, getBriefCompletionStatus, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
 
 describe("learner training layout helpers", () => {
   const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
+  const trainingViewSource = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
 
   it("anchors the first brief window at the start of the stage", () => {
     const result = getBriefBoxPages(pages, 0);
@@ -53,5 +56,12 @@ describe("learner training layout helpers", () => {
     expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6:briefCheckpoint");
     expect(getModalCheckpointResetKey({ id: "apply-2", assessmentKey: "applicationActivity" })).toBe("apply-2:applicationActivity");
     expect(getModalCheckpointResetKey(null)).toBe("none");
+  });
+
+  it("keeps learner-facing affordances for collapsing the path navigator and scanning quiz match banks", () => {
+    expect(trainingViewSource).toContain("setNavigatorCollapsed");
+    expect(trainingViewSource).toContain('navigatorCollapsed ? "Expand" : "Minimize"');
+    expect(trainingViewSource).toContain("Match bank");
+    expect(trainingViewSource).toContain("Passing threshold");
   });
 });
