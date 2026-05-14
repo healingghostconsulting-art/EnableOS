@@ -321,4 +321,4 @@
 - [x] Reformat learner knowledge-check and quiz surfaces so headers, chips, controls, and match-the-term inputs use cleaner spacing and preserve more readable content width
 - [x] Add a space-saving learner path navigator mode that can collapse or compact into a horizontal summary while keeping progress and orientation visible
 - [x] Improve readability on the learner journey cards and related learner-facing training surfaces by preserving the current palette while increasing text contrast and content legibility
-- [ ] Reconcile the last two direct user prompts by confirming the learner readability update is fully validated, checkpointed, and reported alongside the standing Google Doc source-of-truth workflow
+- [x] Reconcile the last two direct user prompts by confirming the learner readability update is fully validated, checkpointed, and reported alongside the standing Google Doc source-of-truth workflow
