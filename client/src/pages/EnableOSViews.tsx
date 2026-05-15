@@ -1560,15 +1560,20 @@ export function LandingView() {
           <div className="grid gap-10 px-8 py-10 xl:grid-cols-[minmax(0,1.28fr)_minmax(21rem,0.72fr)] md:px-12 md:py-14">
             <div className="space-y-8">
               <div className="space-y-5">
-                <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
-                  CHCG EnableOS mission hub
-                </Badge>
+                <div className="space-y-3">
+                  <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
+                    EnableOS mission hub
+                  </Badge>
+                  <p className="text-[12px] font-medium uppercase tracking-[0.28em] text-[#6B7E8A]">
+                    Powered by CHCG performance methodology
+                  </p>
+                </div>
                 <div className="max-w-[56rem] space-y-4">
                   <h1 className="max-w-[12ch] text-[2.95rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.95rem] md:leading-[1.04] xl:text-[4.45rem]">
                     Turn enablement into a live performance mission, not a static training portal.
                   </h1>
                   <p className="max-w-3xl text-base leading-8 text-[#4A6373] md:text-[1.14rem]">
-                    CHCG EnableOS now frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace.
+                    EnableOS frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace, while CHCG powers the underlying methodology and execution discipline.
                   </p>
                 </div>
                 <div className="space-y-5 rounded-[1.9rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-5 xl:p-6">
@@ -6368,6 +6373,21 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
   const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
+  const [managerCoachingDialogOpen, setManagerCoachingDialogOpen] = useState(false);
+
+  const managerWeeklyCoachingLogProps = {
+    tenantId: data.tenant.id,
+    subjectUserId: data.directReport.id,
+    coachRole: "manager" as const,
+    title: "Capture this week's coaching log",
+    employeeName: data.directReport.name,
+    employeeEmail: data.directReport.email,
+    coachName: data.manager.name,
+    coachEmail: data.manager.email,
+    supervisorName: data.manager.name,
+    supervisorEmail: data.manager.email,
+    managerOfSupervisorEmail: data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail,
+  };
 
   const openManagerView = (tab: "interventions" | "coaching" | "documentation" | "notifications", sectionId: string) => {
     setActiveTab(tab);
@@ -6512,18 +6532,38 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             ))}
           </div>
           <div className="space-y-6">
+            <PremiumCard className="border-cyan-400/20 bg-cyan-400/8">
+              <CardHeader>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <CardTitle className="text-white">Open the coaching log in a focused pop-up</CardTitle>
+                    <CardDescription className="mt-2 text-slate-300">Managers can launch the same weekly coaching log in a separate dialog when they want a cleaner writing surface without leaving the coaching lane.</CardDescription>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => setManagerCoachingDialogOpen(true)} className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white">
+                    Launch coaching log pop-up
+                  </Button>
+                </div>
+              </CardHeader>
+            </PremiumCard>
+            <Dialog open={managerCoachingDialogOpen} onOpenChange={setManagerCoachingDialogOpen}>
+              <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Weekly coaching log pop-up</DialogTitle>
+                  <DialogDescription className="text-slate-400">
+                    Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.
+                  </DialogDescription>
+                </DialogHeader>
+                <WeeklyCoachingLogComposer
+                  {...managerWeeklyCoachingLogProps}
+                  onCreated={() => {
+                    setManagerCoachingDialogOpen(false);
+                    onUpdated?.();
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
             <WeeklyCoachingLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={data.directReport.id}
-              coachRole="manager"
-              title="Capture this week's coaching log"
-              employeeName={data.directReport.name}
-              employeeEmail={data.directReport.email}
-              coachName={data.manager.name}
-              coachEmail={data.manager.email}
-              supervisorName={data.manager.name}
-              supervisorEmail={data.manager.email}
-              managerOfSupervisorEmail={data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail}
+              {...managerWeeklyCoachingLogProps}
               onCreated={onUpdated}
             />
             <WeeklyCoachingLogTimeline

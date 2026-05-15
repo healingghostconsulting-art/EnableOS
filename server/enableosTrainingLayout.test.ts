@@ -81,4 +81,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("bg-cyan-400/8");
     expect(trainingViewSource).toContain("bg-white/8");
   });
+
+  it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
+    expect(trainingViewSource).toContain("EnableOS mission hub");
+    expect(trainingViewSource).toContain("Powered by CHCG performance methodology");
+    expect(trainingViewSource).toContain("EnableOS frames learning, coaching, and governance as one connected operating system");
+    expect(trainingViewSource).toContain("CHCG powers the underlying methodology and execution discipline");
+  });
+
+  it("gives managers a focused coaching-log pop-up path without removing the inline workflow", () => {
+    expect(trainingViewSource).toContain("Open the coaching log in a focused pop-up");
+    expect(trainingViewSource).toContain("Launch coaching log pop-up");
+    expect(trainingViewSource).toContain("Weekly coaching log pop-up");
+    expect(trainingViewSource).toContain("setManagerCoachingDialogOpen(true)");
+    expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+  });
 });

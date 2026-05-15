@@ -327,4 +327,10 @@
 - [x] Add concise learner-facing human-in-the-loop guidance to the training route so agent-assist tools are framed as support, not replacement
 - [x] Reduce text density and brighten the top learner training preview and active-module context panels while preserving the existing palette direction
 - [x] Add targeted regression coverage for the learner training copy and presentation refinements from the 2026-05-14 Google Doc feedback
-- [ ] Follow the shared Google Doc as the standing source of truth for every EnableOS run, translate each newly open actionable line into an implementation-ready prompt, implement only the safest specific items, validate them before claiming completion, and mark lines as [Done] in the same document only after verified delivery
+- [x] Follow the shared Google Doc as the standing source of truth for every EnableOS run, translate each newly open actionable line into an implementation-ready prompt, implement only the safest specific items, validate them before claiming completion, and mark lines as [Done] in the same document only after verified delivery
+- [ ] Resume the Google-Doc-driven EnableOS run: review open non-[Done] feedback lines, refresh implementation prompts, implement the highest-priority safe items, validate them, and only then mark completed lines as [Done] in the source document
+- [x] Refine the most visible public-facing EnableOS brand hierarchy so the experience reads as EnableOS first with CHCG presented as the supporting organization through a secondary powered-by treatment
+- [x] Add or update targeted regression coverage for the public-facing EnableOS brand-hierarchy refinement selected from the resumed Google Doc audit
+- [ ] Continue the standing Google-Doc-driven workflow for this resumed EnableOS pass: treat every non-[Done] actionable line as open work, refresh implementation prompts, implement only the highest-priority safe items, validate them, and mark lines in the source document only after verified completion
+- [x] Add a manager-facing coaching-log dialog launch path that opens the existing weekly coaching log in a focused pop-up while preserving the current inline workflow and data behavior
+- [x] Add targeted regression coverage for the manager coaching-log dialog launch path selected from the refreshed Google Doc audit

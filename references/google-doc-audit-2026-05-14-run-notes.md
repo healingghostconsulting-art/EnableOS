@@ -60,3 +60,11 @@ A follow-up editor inspection showed that refocusing the document body did not p
 ## Standing workflow instruction from the user
 
 For every future EnableOS run, the shared Google Doc at `https://docs.google.com/document/d/1mjW0vcjqU6BdNhSd1H3ycBm5ur-bZmyX/edit` is the source of truth for feedback. Any actionable line without a `[Done]` prefix must be treated as open work, translated into an implementation-ready prompt, implemented only when the scope is specific and safe, validated through targeted tests and project checks, and marked `[Done]` in the same document only after the work is genuinely complete and verified. Ambiguous, blocked, duplicate, risky, or overly broad lines must remain unmarked and be documented as blockers instead.
+
+## Resumed run — brand-hierarchy completion update state
+
+The landing-page brand-hierarchy refinement is now implemented and validated in the project. The public hero reads **EnableOS mission hub** with a secondary **Powered by CHCG performance methodology** line, and the updated explanatory paragraph keeps CHCG in a supporting role. Targeted validation passed in `server/enableosTrainingLayout.test.ts`, the broader suite passed with 20 test files and 125 tests, and the live preview shows the revised hierarchy correctly. The remaining blocker is the same Google Docs editor limitation: the document can be reopened and focused, but the line-level editing target for safely prefixing the completed branding feedback line with `[Done]` is still not reliably exposed for automation.
+
+## Validation findings for the manager coaching-log pop-up refinement
+
+The refreshed Google Doc audit was translated into a focused manager-workflow prompt, and the selected safe implementation is now complete. The manager coaching lane includes a visible **Open the coaching log in a focused pop-up** card with a **Launch coaching log pop-up** button, while the original inline weekly coaching log composer remains in place below it. Live UI validation on `/manager` confirmed that the button is visible in the coaching tab and opens a working dialog titled **Weekly coaching log pop-up** that reuses the same structured weekly coaching form. Targeted regression coverage passed in `server/enableosTrainingLayout.test.ts`, and the broader Vitest run passed with 20 test files and 126 tests.
