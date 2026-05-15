@@ -71,6 +71,21 @@ describe("demo router", () => {
         }),
       ]),
     );
+    expect(executive.lifecycleReporting).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stage: "Early stage",
+          tenureRange: "0-30 days",
+          readiness: 68,
+          interventionCloseRate: 82,
+        }),
+        expect.objectContaining({
+          stage: "Tenured stage",
+          tenureRange: "91+ days",
+          qaScore: 91,
+        }),
+      ]),
+    );
   });
 
   it("returns manager data with explainable AI rationale and intervention workflow data", async () => {

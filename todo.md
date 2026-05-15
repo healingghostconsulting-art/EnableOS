@@ -336,3 +336,6 @@
 - [x] Add targeted regression coverage for the manager coaching-log dialog launch path selected from the refreshed Google Doc audit
 - [x] Add a focused executive questions-reporting panel that surfaces the most-missed assessment questions, miss rate, affected module, and a clear high-alert state for the lowest-performing items
 - [x] Add targeted regression coverage for the executive questions-reporting and high-alert refinement selected from the refreshed Google Doc audit
+- [ ] Use the shared Google Doc as the standing source of truth for every EnableOS run, treat each actionable line without a [Done] prefix as open work, translate new items into implementation-ready prompts, implement only the highest-priority safe items, validate them before claiming completion, and mark original lines as [Done] only after verified delivery
+- [x] Add a tenure-aware executive lifecycle reporting panel that shows how readiness or performance changes across early, developing, and tenured employee stages using the seeded demo data model
+- [x] Add targeted regression coverage for the tenure-aware executive lifecycle reporting refinement selected from the 2026-05-15 Google Doc audit

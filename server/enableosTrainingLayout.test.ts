@@ -104,4 +104,14 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Peer percentile");
     expect(trainingViewSource).toContain("High alert");
   });
+
+  it("keeps tenure-aware lifecycle reporting visible for staged cohort comparison", () => {
+    expect(trainingViewSource).toContain("Tenure-aware lifecycle reporting");
+    expect(trainingViewSource).toContain("employee lifecycle");
+    expect(trainingViewSource).toContain("specialists");
+    expect(trainingViewSource).toContain("Readiness");
+    expect(trainingViewSource).toContain("QA score");
+    expect(trainingViewSource).toContain("Intervention close rate");
+    expect(trainingViewSource).toContain("Coaching focus:");
+  });
 });

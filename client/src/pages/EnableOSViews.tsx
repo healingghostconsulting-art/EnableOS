@@ -6123,6 +6123,41 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
         <PremiumCard>
           <CardHeader>
+            <CardTitle className="text-white">Tenure-aware lifecycle reporting</CardTitle>
+            <CardDescription className="text-slate-400">Executives can compare how early, developing, and tenured specialists move through readiness, quality, and intervention follow-through across the employee lifecycle.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {data.lifecycleReporting.map((entry: any) => (
+              <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.tenureRange}</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{entry.stage}</h3>
+                  </div>
+                  <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.population} specialists</Badge>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Readiness</p>
+                    <p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">QA score</p>
+                    <p className="mt-2 text-lg font-semibold text-white">{entry.qaScore}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Intervention close rate</p>
+                    <p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Coaching focus:</span> {entry.coachingFocus}</p>
+              </div>
+            ))}
+          </CardContent>
+        </PremiumCard>
+        <PremiumCard>
+          <CardHeader>
             <CardTitle className="text-white">Executive methodology references</CardTitle>
             <CardDescription className="text-slate-400">CHCG governance assets from Data-Led Leadership, Performance Leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
           </CardHeader>
