@@ -96,4 +96,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("setManagerCoachingDialogOpen(true)");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
   });
+
+  it("keeps executive question reporting visible with peer comparison and high-alert language", () => {
+    expect(trainingViewSource).toContain("Assessment question reporting");
+    expect(trainingViewSource).toContain("Miss rate");
+    expect(trainingViewSource).toContain("Peer baseline");
+    expect(trainingViewSource).toContain("Peer percentile");
+    expect(trainingViewSource).toContain("High alert");
+  });
 });

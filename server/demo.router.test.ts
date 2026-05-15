@@ -61,6 +61,16 @@ describe("demo router", () => {
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
     );
+    expect(executive.questionReporting).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          module: "Workflow verification essentials",
+          alert: "high",
+          missRate: 42,
+          peerPercentile: 18,
+        }),
+      ]),
+    );
   });
 
   it("returns manager data with explainable AI rationale and intervention workflow data", async () => {

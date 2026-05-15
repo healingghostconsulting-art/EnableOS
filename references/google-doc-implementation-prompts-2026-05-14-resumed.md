@@ -37,3 +37,11 @@ A fresh code audit shows that the product already has a substantial weekly coach
 ### Implementation-ready prompt
 
 **Add a clear manager-facing coaching-log launch path that opens the weekly coaching log in a focused dialog while preserving the existing inline coaching workflow and data behavior.** Scope the change to the manager flow so the request is satisfied through a visible, testable entry point without broad restructuring. Reuse the current structured coaching-log components and keep permissions, save behavior, and existing tabs intact. Validation expectation: add targeted regression coverage for the new dialog-launch affordance, run the relevant Vitest coverage, and confirm in the live manager workspace that the dialog entry point is visible and usable.
+
+## Next safe implementation scope after the coaching-log pop-up refinement
+
+A fresh review of the current reporting surfaces shows that the executive dashboard already contains ROI and readiness cards, while the training content already defines structured assessment questions and score expectations. The next highest-priority safe item is therefore to **add assessment-question reporting to the executive ROI surface**, with a visible **high-alert treatment for low-performing questions**. This keeps the scope inside an existing reporting lane and avoids inventing a broad new analytics subsystem.
+
+### Implementation-ready prompt
+
+**Add a focused executive questions-reporting panel that surfaces the most-missed assessment questions, their miss rate, affected module, and a clear high-alert state for the lowest-performing items.** Reuse seeded demo reporting data and keep the change inside the executive ROI/reporting experience. The panel should read as a backend-reporting proof point rather than a learner-facing feature, and it should preserve the current enterprise visual language. Validation expectation: add targeted regression coverage for the new reporting data and UI labels, run the relevant Vitest suite, and confirm in the live executive workspace that the questions-reporting panel is visible and coherent.

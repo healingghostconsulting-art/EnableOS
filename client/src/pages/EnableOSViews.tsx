@@ -6076,6 +6076,53 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
         <PremiumCard>
           <CardHeader>
+            <CardTitle className="text-white">Assessment question reporting</CardTitle>
+            <CardDescription className="text-slate-400">Executives can see which assessment prompts miss most often, how each result compares with peers, and where coaching attention should intensify first.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {data.questionReporting.map((entry: any) => {
+              const alertStyles = entry.alert === "high"
+                ? "border-rose-500/25 bg-rose-500/10 text-rose-200"
+                : entry.alert === "medium"
+                  ? "border-amber-500/25 bg-amber-500/10 text-amber-100"
+                  : "border-cyan-500/25 bg-cyan-500/10 text-cyan-100";
+              const alertLabel = entry.alert === "high"
+                ? "High alert"
+                : entry.alert === "medium"
+                  ? "Watch closely"
+                  : "Monitor";
+
+              return (
+                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.module}</p>
+                      <h3 className="mt-2 text-base font-medium text-white">{entry.question}</h3>
+                    </div>
+                    <Badge className={`rounded-full border ${alertStyles}`}>{alertLabel}</Badge>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Miss rate</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer baseline</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.peerMissRate}%</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-300">{entry.coachingAction}</p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </PremiumCard>
+        <PremiumCard>
+          <CardHeader>
             <CardTitle className="text-white">Executive methodology references</CardTitle>
             <CardDescription className="text-slate-400">CHCG governance assets from Data-Led Leadership, Performance Leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
           </CardHeader>

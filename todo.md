@@ -334,3 +334,5 @@
 - [ ] Continue the standing Google-Doc-driven workflow for this resumed EnableOS pass: treat every non-[Done] actionable line as open work, refresh implementation prompts, implement only the highest-priority safe items, validate them, and mark lines in the source document only after verified completion
 - [x] Add a manager-facing coaching-log dialog launch path that opens the existing weekly coaching log in a focused pop-up while preserving the current inline workflow and data behavior
 - [x] Add targeted regression coverage for the manager coaching-log dialog launch path selected from the refreshed Google Doc audit
+- [x] Add a focused executive questions-reporting panel that surfaces the most-missed assessment questions, miss rate, affected module, and a clear high-alert state for the lowest-performing items
+- [x] Add targeted regression coverage for the executive questions-reporting and high-alert refinement selected from the refreshed Google Doc audit
