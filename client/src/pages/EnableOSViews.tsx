@@ -1924,13 +1924,24 @@ export function LandingView() {
     () => filterTrainingRecords(landingTrainingRecords, landingSearchQuery).slice(0, 6),
     [landingSearchQuery, landingTrainingRecords],
   );
+  const landingMetricHighlights = landing.data?.featuredMetrics ?? [
+    { label: "Active interventions", value: 18 },
+    { label: "Avg. readiness uplift", value: "+9 pts" },
+    { label: "Documented coaching cycles", value: "94%" },
+    { label: "Intervention-to-impact confidence", value: "High" },
+  ];
+  const landingProofPoints = [
+    "Search-first mission entry",
+    "Role-tuned workspace launchers",
+    "Visible coaching and readiness movement",
+  ];
 
   return (
     <Surface>
       <div className="workspace-stack">
         <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-[#1B303C]/10 bg-white shadow-[0_32px_120px_rgba(27,48,60,0.12)]">
-          <div className="grid gap-8 px-6 py-7 md:px-8 md:py-8 xl:grid-cols-[minmax(0,1.22fr)_minmax(20rem,0.78fr)] xl:items-start xl:px-10 xl:py-10">
-            <div className="space-y-6">
+          <div className="grid gap-6 px-6 py-7 md:px-8 md:py-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,0.85fr)] xl:items-start xl:px-10 xl:py-10">
+            <div className="space-y-5">
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
@@ -1938,68 +1949,90 @@ export function LandingView() {
                   </Badge>
                   <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.24em] text-[#4A6373]">Guided by CHCG performance methodology</span>
                 </div>
-                <div className="max-w-[56rem] space-y-4">
-                  <h1 className="max-w-[12ch] text-[2.65rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.6rem] md:leading-[1.04] xl:text-[4.1rem]">
+                <div className="max-w-[54rem] space-y-4">
+                  <h1 className="max-w-[12ch] text-[2.65rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.55rem] md:leading-[1.02] xl:text-[4rem]">
                     Turn enablement into a live performance mission, not a static training portal.
                   </h1>
-                  <p className="max-w-3xl text-base leading-8 text-[#4A6373] md:text-[1.08rem]">
+                  <p className="max-w-3xl text-[1.02rem] leading-7 text-[#4A6373] md:text-[1.05rem]">
                     EnableOS frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace, while CHCG powers the underlying methodology and execution discipline.
                   </p>
                 </div>
-              </div>
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,0.62fr)]">
-                <div className="guide-card p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Guide cue</p>
-                  <h2 className="mt-3 text-xl font-semibold text-[#1B303C]">Show the user the next best route, then reveal everything else on demand.</h2>
-                  <p className="mt-3 text-sm leading-7 text-[#4A6373]">This front door now prioritizes one clear mission, one search surface, and one mode switch for overview, workspace entry, and learning architecture.</p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="trophy-card px-4 py-3.5">
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current mode</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{missionHubMode === "overview" ? "Command overview" : missionHubMode === "workspaces" ? "Workspace launcher" : "Learning tracks"}</p>
-                  </div>
-                  <div className="trophy-card px-4 py-3.5">
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{viewer.data ? "Resume assigned mission" : "Launch sign-in or preview training"}</p>
-                  </div>
-                  <div className="trophy-card px-4 py-3.5">
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">Role-aligned clarity</p>
-                  </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {landingProofPoints.map((point) => (
+                    <span key={point} className="command-pill px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">
+                      {point}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="grid gap-3 xl:grid-cols-2">
-                <Link href="/learner" className="min-w-0">
-                  <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
-                    <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
-                    <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
-                  </Button>
-                </Link>
-                <Link href="/training" className="min-w-0">
-                  <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
-                    <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
-                  </Button>
-                </Link>
-              </div>
-              <div className="glass-panel max-w-4xl space-y-3 rounded-[1.8rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
-                <label className="block space-y-2 text-sm text-[#1B303C]">
-                  <span>Search missions, training tracks, and workspaces</span>
-                  <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
-                    <Search className="h-4 w-4 text-[#4A6373]" />
-                    <input
-                      value={landingSearchQuery}
-                      onChange={(event) => setLandingSearchQuery(event.target.value)}
-                      placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
-                      className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
-                    />
+              <div className="rounded-[2rem] border border-[#1B303C]/8 bg-[linear-gradient(135deg,rgba(27,48,60,0.04),rgba(252,188,52,0.08))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] md:p-5">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(15rem,0.52fr)] xl:items-start">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">One-screen proof</p>
+                      <Badge className="mission-chip rounded-full text-[#1B303C]">Browse less. Launch faster. Prove movement.</Badge>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {landingMetricHighlights.map((item: any) => (
+                        <div key={item.label} className="rounded-[1.45rem] bg-[#1B303C] px-4 py-4 text-white shadow-[0_18px_48px_rgba(27,48,60,0.18)]">
+                          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-300">{item.label}</p>
+                          <p className="mt-3 text-2xl font-semibold tracking-tight">{String(item.value)}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </label>
-                <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
-                  <p className="max-w-[62rem] text-[15px] leading-7 text-[#4A6373] xl:text-[1.02rem]">
-                    {viewerAccess.data
-                      ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                      : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
-                  </p>
+                  <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                    <div className="trophy-card px-4 py-3.5">
+                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current mode</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{missionHubMode === "overview" ? "Command overview" : missionHubMode === "workspaces" ? "Workspace launcher" : "Learning tracks"}</p>
+                    </div>
+                    <div className="trophy-card px-4 py-3.5">
+                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{viewer.data ? "Resume assigned mission" : "Launch sign-in or preview training"}</p>
+                    </div>
+                    <div className="trophy-card px-4 py-3.5">
+                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">Role-aligned clarity</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="glass-panel max-w-5xl space-y-4 rounded-[1.9rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,0.46fr)] xl:items-start">
+                  <div className="space-y-3">
+                    <label className="block space-y-2 text-sm text-[#1B303C]">
+                      <span>Search missions, training tracks, and workspaces</span>
+                      <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                        <Search className="h-4 w-4 text-[#4A6373]" />
+                        <input
+                          value={landingSearchQuery}
+                          onChange={(event) => setLandingSearchQuery(event.target.value)}
+                          placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
+                          className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
+                        />
+                      </div>
+                    </label>
+                    <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
+                      <p className="text-[14px] leading-6 text-[#4A6373]">
+                        {viewerAccess.data
+                          ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                          : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <Link href="/learner" className="min-w-0">
+                      <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
+                        <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
+                        <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
+                      </Button>
+                    </Link>
+                    <Link href="/training" className="min-w-0">
+                      <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
+                        <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
                 {landingSearchQuery.trim() ? (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -2020,17 +2053,24 @@ export function LandingView() {
                 ) : null}
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              {featuredTenants.map((tenant: any) => (
-                <div key={tenant.id} className="guide-card p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="command-pill px-3 py-1.5 text-sm font-medium text-[#1B303C]">{tenant.logoMark}</div>
-                    <Badge className="mission-chip rounded-full text-[#1B303C]">{tenant.industry}</Badge>
+            <div className="space-y-3">
+              <div className="guide-card p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Smooth launch rhythm</p>
+                <h2 className="mt-3 text-xl font-semibold text-[#1B303C]">Keep proof, launch, and search above the fold.</h2>
+                <p className="mt-3 text-sm leading-7 text-[#4A6373]">The homepage now front-loads proof, mission entry, and workspace orientation so users do not have to scroll through multiple explanation bands before they can act.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                {featuredTenants.map((tenant: any) => (
+                  <div key={tenant.id} className="rounded-[1.7rem] border border-[#1B303C]/8 bg-white/92 p-4 shadow-[0_18px_48px_rgba(27,48,60,0.08)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="command-pill px-3 py-1.5 text-sm font-medium text-[#1B303C]">{tenant.logoMark}</div>
+                      <Badge className="mission-chip rounded-full text-[#1B303C]">{tenant.industry}</Badge>
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-[#1B303C]">{tenant.name}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">{tenant.description}</p>
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold text-[#1B303C]">{tenant.name}</h3>
-                  <p className="mt-3 text-sm leading-7 text-[#4A6373]">{tenant.description}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -2051,43 +2091,46 @@ export function LandingView() {
           </div>
 
           <TabsContent value="overview" className="mt-0 space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-              {landing.data?.featuredMetrics.map((item: any) => (
-                <MetricCard
-                  key={item.label}
-                  label={item.label}
-                  value={String(item.value)}
-                  supporting="Grounded in the CHCG methodology and intervention model."
-                  icon={<Sparkles className="h-4 w-4" />}
-                />
-              ))}
-            </div>
-            <div className="grid gap-5 lg:grid-cols-3">
-              {[
-                {
-                  title: "Signal-to-action missions",
-                  description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
-                  icon: <Gauge className="h-5 w-5" />,
-                },
-                {
-                  title: "Role-tuned command views",
-                  description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
-                  icon: <Users2 className="h-5 w-5" />,
-                },
-                {
-                  title: "Guided coaching intelligence",
-                  description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
-                  icon: <Bot className="h-5 w-5" />,
-                },
-              ].map((item: any) => (
-                <PremiumCard key={item.title}>
-                  <CardHeader>
-                    <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
-                    <CardTitle className="text-white">{item.title}</CardTitle>
-                    <CardDescription className="text-slate-300">{item.description}</CardDescription>
-                  </CardHeader>
-                </PremiumCard>
-              ))}
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
+              <div className="grid gap-4 lg:grid-cols-3">
+                {[
+                  {
+                    title: "Signal-to-action missions",
+                    description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
+                    icon: <Gauge className="h-5 w-5" />,
+                  },
+                  {
+                    title: "Role-tuned command views",
+                    description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
+                    icon: <Users2 className="h-5 w-5" />,
+                  },
+                  {
+                    title: "Guided coaching intelligence",
+                    description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
+                    icon: <Bot className="h-5 w-5" />,
+                  },
+                ].map((item: any) => (
+                  <PremiumCard key={item.title} className="h-full">
+                    <CardHeader>
+                      <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
+                      <CardTitle className="text-white">{item.title}</CardTitle>
+                      <CardDescription className="text-slate-300">{item.description}</CardDescription>
+                    </CardHeader>
+                  </PremiumCard>
+                ))}
+              </div>
+              <div className="guide-card p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Scrolling guardrail</p>
+                <h3 className="mt-3 text-xl font-semibold text-[#1B303C]">Proof, launch, and search now lead the page.</h3>
+                <p className="mt-3 text-sm leading-7 text-[#4A6373]">The densest evidence and the primary calls to action now sit inside the hero so the overview tab can stay focused on operating principles instead of repeating another full metric band.</p>
+                <div className="mt-4 flex flex-wrap gap-2.5">
+                  {landingProofPoints.map((point) => (
+                    <span key={point} className="command-pill px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">
+                      {point}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </TabsContent>
 

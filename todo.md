@@ -376,3 +376,5 @@
 - [x] Add regression coverage for the cleaned-up flash-card composition and tighter brief layout
 - [x] Add an inline card-index jump strip to the shared flash-card deck so longer brief sequences are easier to navigate in Training Zone and Content Missions
 - [x] Add regression coverage for the inline card-index jump strip navigation in the shared flash-card experience
+- [x] Study KnowBe4 interface patterns for stronger visual pop, smoother transitions, and reduced scrolling, then adapt the most relevant ideas to CHCG EnableOS
+- [x] Add regression coverage for the KnowBe4-inspired density and navigation refinements after implementation

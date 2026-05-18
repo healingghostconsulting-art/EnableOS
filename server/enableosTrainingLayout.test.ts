@@ -89,6 +89,17 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("CHCG powers the underlying methodology and execution discipline");
   });
 
+  it("keeps the landing page denser and more proof-led after the KnowBe4-inspired cleanup", () => {
+    expect(trainingViewSource).toContain("One-screen proof");
+    expect(trainingViewSource).toContain("Browse less. Launch faster. Prove movement.");
+    expect(trainingViewSource).toContain("Smooth launch rhythm");
+    expect(trainingViewSource).toContain("Keep proof, launch, and search above the fold.");
+    expect(trainingViewSource).toContain("Scrolling guardrail");
+    expect(trainingViewSource).toContain("Proof, launch, and search now lead the page.");
+    expect(trainingViewSource).toContain("The densest evidence and the primary calls to action now sit inside the hero");
+    expect(trainingViewSource).toContain("Search-first mission entry");
+  });
+
   it("gives managers a focused coaching-log pop-up path without removing the inline workflow", () => {
     expect(trainingViewSource).toContain("Open the coaching log in a focused pop-up");
     expect(trainingViewSource).toContain("Launch coaching log pop-up");

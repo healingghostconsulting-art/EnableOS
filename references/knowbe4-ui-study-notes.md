@@ -1,0 +1,11 @@
+# KnowBe4 UI study notes
+
+Initial homepage review shows several patterns that create more pop while reducing perceived scrolling. The hero compresses a large amount of meaning into one immediate screen by combining a bold headline, short proof-point bullets, a primary CTA, and a supporting product image. A horizontal customer-logo strip appears immediately below, which gives visual variety and social proof without forcing a deep vertical commitment.
+
+Mid-page sections continue the same pattern: a concise section heading is followed by a short explanatory paragraph and then a small set of large, visually distinct cards instead of long stacked text blocks. The cards use strong color blocking, generous radii, and restrained copy, which makes each section feel easier to scan. The interface also relies on repeated modular structures, so a user learns the page rhythm quickly and does not have to decode a new layout pattern in every section.
+
+The most relevant adaptation opportunities for CHCG EnableOS are to compress each route into a stronger top summary band, reduce the number of simultaneously visible helper panels, convert long vertical sequences into horizontally grouped cards or tabs, and reserve secondary detail for progressive reveal instead of showing everything at once.
+
+Current CHCG homepage comparison shows that the product already has stronger structure than before, but it still spends too much vertical space on helper copy, separated support panels, and repeated explanation blocks. The hero gives the headline strong presence, yet the supporting guidance, status tiles, search, tabs, and workspace cards are stacked more sequentially than the KnowBe4 reference. That increases page height and makes the experience feel longer before the user reaches the strongest proof and action areas.
+
+The most obvious reduction opportunities are to merge adjacent support panels into one tighter summary rail, shrink explanatory copy in the hero and mission-mode sections, and convert lower metric cards into denser grouped modules that reveal detail only when selected. Compared with KnowBe4, CHCG can benefit from more immediate contrast blocks, more horizontal grouping, and fewer full-width explanatory rows between action zones.
