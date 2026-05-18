@@ -86,6 +86,32 @@ describe("demo router", () => {
         }),
       ]),
     );
+    expect(executive.proofOfImpact).toMatchObject({
+      headline: expect.stringContaining("targeted retraining"),
+      interventionCorrelation: expect.objectContaining({
+        value: "0.78",
+        label: "Positive intervention/readiness relationship",
+      }),
+      evidenceNote: expect.stringContaining("do not isolate EnableOS as the only cause"),
+    });
+    expect(executive.proofOfImpact.beforeAfter).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Targeted readiness cohort",
+          before: 71,
+          after: 83,
+          delta: "+12 pts",
+        }),
+      ]),
+    );
+    expect(executive.proofOfImpact.sustainedReadiness).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "60-day sustain rate",
+          value: "82%",
+        }),
+      ]),
+    );
   });
 
   it("returns manager data with explainable AI rationale and intervention workflow data", async () => {

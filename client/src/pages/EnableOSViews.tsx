@@ -6158,6 +6158,73 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
         <PremiumCard>
           <CardHeader>
+            <CardTitle className="text-white">Executive proof of impact</CardTitle>
+            <CardDescription className="text-slate-400">Before/after movement, intervention correlation, and sustained-readiness checks give leaders evidence that the operating model is working without overstating causation.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Directional evidence summary</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{data.proofOfImpact.headline}</h3>
+              <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.proofOfImpact.summary}</p>
+            </div>
+            <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Before / after movement</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Two seeded cohorts show how readiness and workflow precision moved after targeted intervention plans closed.</p>
+                </div>
+                {data.proofOfImpact.beforeAfter.map((entry: any) => (
+                  <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-medium text-white">{entry.label}</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{entry.evidence}</p>
+                      </div>
+                      <Badge className="rounded-full border border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{entry.delta}</Badge>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Before</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{entry.before}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">After</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{entry.after}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Intervention correlation</p>
+                  <p className="mt-3 text-3xl font-semibold text-white">{data.proofOfImpact.interventionCorrelation.value}</p>
+                  <p className="mt-2 text-sm font-medium text-white">{data.proofOfImpact.interventionCorrelation.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">{data.proofOfImpact.interventionCorrelation.detail}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Sustained readiness evidence</p>
+                  <div className="mt-4 space-y-3">
+                    {data.proofOfImpact.sustainedReadiness.map((entry: any) => (
+                      <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-white">{entry.label}</p>
+                          <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.value}</Badge>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-sm leading-6 text-slate-300">
+              <span className="font-medium text-white">Evidence note:</span> {data.proofOfImpact.evidenceNote}
+            </div>
+          </CardContent>
+        </PremiumCard>
+        <PremiumCard>
+          <CardHeader>
             <CardTitle className="text-white">Executive methodology references</CardTitle>
             <CardDescription className="text-slate-400">CHCG governance assets from Data-Led Leadership, Performance Leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
           </CardHeader>

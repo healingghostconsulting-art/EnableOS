@@ -20,3 +20,7 @@ This run re-audited the shared Google Doc and treated every actionable line with
 | `How to demonstrate more gamification and engagement` | Add or refine lightweight engagement cues such as progress framing, achievement treatment, or motivation copy without turning the enterprise product into a consumer-style game. Validate with targeted layout tests and live learner review. | Open, but broader than the lifecycle reporting item. |
 
 The next safest implementation candidate is **`Agent lifecycle with tenure`** because it fits the existing executive reporting surface, reuses seeded demo-data patterns, aligns with the already-added question-reporting enhancement, and can be validated with focused server and layout tests plus a live executive-route review.
+
+## Refreshed next-scope decision after lifecycle reporting
+
+The next highest-priority safe candidate is **`How do you prove that it’s working`**. A focused implementation prompt is: add an executive proof-of-impact panel that summarizes before/after movement, intervention correlation, and sustained-readiness evidence using seeded demo metrics already present in the executive analytics surface. Keep the language evidence-based rather than causal, avoid introducing unsupported claims, and validate with targeted server and layout tests plus a live executive-route review before any source-document update.

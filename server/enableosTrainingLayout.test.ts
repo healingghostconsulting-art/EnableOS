@@ -114,4 +114,13 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Intervention close rate");
     expect(trainingViewSource).toContain("Coaching focus:");
   });
+
+  it("keeps executive proof-of-impact evidence visible without causal overclaiming", () => {
+    expect(trainingViewSource).toContain("Executive proof of impact");
+    expect(trainingViewSource).toContain("Before / after movement");
+    expect(trainingViewSource).toContain("Intervention correlation");
+    expect(trainingViewSource).toContain("Sustained readiness evidence");
+    expect(trainingViewSource).toContain("Evidence note:");
+    expect(trainingViewSource).toContain("without overstating causation");
+  });
 });

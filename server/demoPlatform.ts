@@ -2403,6 +2403,44 @@ export function getExecutiveDashboard(tenantId?: string) {
         coachingFocus: "Use brief reinforcement sprints after policy updates so experienced staff do not drift from the current standard.",
       },
     ],
+    proofOfImpact: {
+      headline: "Program evidence is strongest where targeted retraining and coaching cadence stay tightly aligned.",
+      summary: "The executive scorecard combines before-and-after movement, intervention-volume correlation, and sustained-readiness checks to show directional proof that the operating model is working.",
+      beforeAfter: [
+        {
+          label: "Targeted readiness cohort",
+          before: 71,
+          after: 83,
+          delta: "+12 pts",
+          evidence: "Measured 45 days after intervention launch for specialists who completed the assigned coaching loop and module follow-through.",
+        },
+        {
+          label: "Workflow precision cohort",
+          before: 78,
+          after: 88,
+          delta: "+10 pts",
+          evidence: "Observed after the same cohort closed workflow-verification retraining and moved back into live quality review.",
+        },
+      ],
+      interventionCorrelation: {
+        value: "0.78",
+        label: "Positive intervention/readiness relationship",
+        detail: "Across the current four-week trend, higher intervention volume tracks with stronger readiness movement, which supports attribution review but not a sole-cause claim.",
+      },
+      sustainedReadiness: [
+        {
+          label: "60-day sustain rate",
+          value: "82%",
+          detail: "Share of improved specialists still holding at least 80% of their readiness gain after intervention closeout.",
+        },
+        {
+          label: "Coaching cadence adherence",
+          value: "94%",
+          detail: "Teams above the coaching-cadence target show the most stable post-intervention readiness in the seeded review set.",
+        },
+      ],
+      evidenceNote: "These measures show evidence consistent with program effectiveness, but they do not isolate EnableOS as the only cause of movement.",
+    },
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "executive" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     documentationEntries: getDocumentationEntries(tenant.id),
