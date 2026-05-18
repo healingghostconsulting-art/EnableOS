@@ -158,8 +158,9 @@ describe("learner training layout helpers", () => {
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
-    expect(trainingViewSource).toContain("The lesson brief now reads like a guided flash-card deck");
-    expect(trainingViewSource).toContain("Tap, click, or press Enter to flip");
+    expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
+    expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");
+    expect(trainingViewSource).toContain("Inline lesson flash cards");
     expect(trainingViewSource).toContain("Previous card");
     expect(trainingViewSource).toContain("Show front");
     expect(trainingViewSource).toContain("All lesson flash cards reviewed. Move into the knowledge gate when ready.");
@@ -167,10 +168,10 @@ describe("learner training layout helpers", () => {
 
   it("keeps the content-library launch brief in the same flash-card pattern", () => {
     expect(trainingViewSource).toContain("Launch brief card");
-    expect(trainingViewSource).toContain("flip through the brief cards to guide the launch conversation");
+    expect(trainingViewSource).toContain("Set the receiving role, confirm the source context, and use the flash cards as one compact launch handoff instead of separate brief tiles.");
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
-    expect(trainingViewSource).toContain("Receiving lane ·");
-    expect(trainingViewSource).toContain("Launch action");
+    expect(trainingViewSource).toContain("Source label ·");
+    expect(trainingViewSource).toContain("Current launch lane");
   });
 
   it("keeps client control and content library in the mission-control pattern", () => {

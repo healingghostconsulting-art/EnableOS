@@ -372,3 +372,5 @@
 - [x] Add targeted regression coverage for the new product-wide layout system, navigation behavior, and guided interaction patterns
 - [x] Redesign the briefs section so it looks and feels like interactive flash cards within the mission-control UI system
 - [x] Add targeted regression coverage for the flash-card briefs presentation and interaction copy
+- [x] Refine the flash-card briefs layout to combine fragmented sections, remove excess empty space, and reduce duplicated cues in Training Zone and Content Missions
+- [x] Add regression coverage for the cleaned-up flash-card composition and tighter brief layout
