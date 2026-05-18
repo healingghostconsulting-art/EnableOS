@@ -361,3 +361,5 @@
 - [x] Add interactive ROI trend charts to the dedicated Reporting workspace so leaders can inspect movement over time across the core proof metrics
 - [x] Add interactive error-rate trend charts to the dedicated Reporting workspace so leaders can compare baseline, current movement, and severity-related changes over time
 - [x] Add targeted regression coverage for the dedicated Reporting workspace navigation, route access, and interactive chart surfaces
+- [x] Generate a reusable coaching log pop-up box component that can open from dashboard workflows without leaving the current workspace
+- [x] Add targeted regression coverage for the reusable coaching log pop-up component and its launch copy

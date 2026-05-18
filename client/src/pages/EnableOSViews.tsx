@@ -5614,6 +5614,21 @@ function ReviewLogComposer({
   );
 }
 
+type WeeklyCoachingLogComposerProps = {
+  tenantId: string;
+  subjectUserId: string;
+  coachRole: "manager" | "coach" | "executive" | "client_admin";
+  title: string;
+  employeeName: string;
+  employeeEmail: string;
+  coachName: string;
+  coachEmail: string;
+  supervisorName: string;
+  supervisorEmail: string;
+  managerOfSupervisorEmail?: string;
+  onCreated?: () => void;
+};
+
 function WeeklyCoachingLogComposer({
   tenantId,
   subjectUserId,
@@ -5627,20 +5642,7 @@ function WeeklyCoachingLogComposer({
   supervisorEmail,
   managerOfSupervisorEmail,
   onCreated,
-}: {
-  tenantId: string;
-  subjectUserId: string;
-  coachRole: "manager" | "coach" | "executive" | "client_admin";
-  title: string;
-  employeeName: string;
-  employeeEmail: string;
-  coachName: string;
-  coachEmail: string;
-  supervisorName: string;
-  supervisorEmail: string;
-  managerOfSupervisorEmail?: string;
-  onCreated?: () => void;
-}) {
+}: WeeklyCoachingLogComposerProps) {
   const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [attendance, setAttendance] = useState("");
   const [followUpFromPrevious, setFollowUpFromPrevious] = useState("");
@@ -5730,6 +5732,45 @@ function WeeklyCoachingLogComposer({
         {createWeeklyCoachingLog.isSuccess ? <span className="text-sm text-emerald-300">Weekly coaching log saved with learner and supervisor copy details.</span> : null}
       </div>
     </div>
+  );
+}
+
+function WeeklyCoachingLogPopupBox({
+  buttonLabel = "Launch coaching log pop-up",
+  dialogTitle = "Weekly coaching log pop-up",
+  dialogDescription = "Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.",
+  buttonClassName = "rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white",
+  composerProps,
+  onCreated,
+}: {
+  buttonLabel?: string;
+  dialogTitle?: string;
+  dialogDescription?: string;
+  buttonClassName?: string;
+  composerProps: WeeklyCoachingLogComposerProps;
+  onCreated?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
+        {buttonLabel}
+      </Button>
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription className="text-slate-400">{dialogDescription}</DialogDescription>
+        </DialogHeader>
+        <WeeklyCoachingLogComposer
+          {...composerProps}
+          onCreated={() => {
+            setOpen(false);
+            onCreated?.();
+          }}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -6897,8 +6938,6 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
   const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
-  const [managerCoachingDialogOpen, setManagerCoachingDialogOpen] = useState(false);
-
   const managerWeeklyCoachingLogProps = {
     tenantId: data.tenant.id,
     subjectUserId: data.directReport.id,
@@ -7063,29 +7102,13 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                     <CardTitle className="text-white">Open the coaching log in a focused pop-up</CardTitle>
                     <CardDescription className="mt-2 text-slate-300">Managers can launch the same weekly coaching log in a separate dialog when they want a cleaner writing surface without leaving the coaching lane.</CardDescription>
                   </div>
-                  <Button type="button" variant="outline" onClick={() => setManagerCoachingDialogOpen(true)} className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white">
-                    Launch coaching log pop-up
-                  </Button>
+                  <WeeklyCoachingLogPopupBox
+                    composerProps={managerWeeklyCoachingLogProps}
+                    onCreated={onUpdated}
+                  />
                 </div>
               </CardHeader>
             </PremiumCard>
-            <Dialog open={managerCoachingDialogOpen} onOpenChange={setManagerCoachingDialogOpen}>
-              <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>Weekly coaching log pop-up</DialogTitle>
-                  <DialogDescription className="text-slate-400">
-                    Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.
-                  </DialogDescription>
-                </DialogHeader>
-                <WeeklyCoachingLogComposer
-                  {...managerWeeklyCoachingLogProps}
-                  onCreated={() => {
-                    setManagerCoachingDialogOpen(false);
-                    onUpdated?.();
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
             <WeeklyCoachingLogComposer
               {...managerWeeklyCoachingLogProps}
               onCreated={onUpdated}

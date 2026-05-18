@@ -93,7 +93,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open the coaching log in a focused pop-up");
     expect(trainingViewSource).toContain("Launch coaching log pop-up");
     expect(trainingViewSource).toContain("Weekly coaching log pop-up");
-    expect(trainingViewSource).toContain("setManagerCoachingDialogOpen(true)");
+    expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
+    expect(trainingViewSource).toContain("composerProps: WeeklyCoachingLogComposerProps");
+    expect(trainingViewSource).toContain("<WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
   });
 
