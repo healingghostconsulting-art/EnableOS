@@ -1820,6 +1820,53 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
   );
 }
 
+export function ReportingWorkspaceView() {
+  const access = trpc.demo.viewerAccess.useQuery();
+  const tenantId = access.data?.tenant.id;
+  const query = trpc.demo.secureExecutive.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
+  const canAccessReporting = access.data ? access.data.permittedRoles.includes("executive") : false;
+  const refreshWorkspace = () => {
+    void access.refetch();
+    void query.refetch();
+  };
+
+  return (
+    <Surface>
+      <SectionShell
+        eyebrow="Reporting"
+        title="Client reporting workspace"
+        description="Explore ROI movement, question risk, benchmark context, and error-rate trends in a dedicated reporting section."
+        actions={
+          access.data ? (
+            <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+              {access.data.tenant.name}
+            </Badge>
+          ) : null
+        }
+      >
+        {access.isLoading || query.isLoading ? <LoadingState /> : null}
+        {!access.isLoading && !access.data ? (
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
+              <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific reporting workspaces.</CardDescription>
+            </CardHeader>
+          </PremiumCard>
+        ) : null}
+        {!access.isLoading && access.data && !canAccessReporting ? (
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">This reporting workspace is outside your current entitlement.</CardTitle>
+              <CardDescription className="text-slate-300">Use a client role with executive reporting access to open this workspace for {access.data.tenant.name}.</CardDescription>
+            </CardHeader>
+          </PremiumCard>
+        ) : null}
+        {!query.isLoading && canAccessReporting && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+      </SectionShell>
+    </Surface>
+  );
+}
+
 export function TrainingExperienceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
@@ -6003,6 +6050,21 @@ function WorkflowLibraryPanel({
 }
 
 function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+  const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
+  const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
+  const roiTrendConfig = {
+    readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
+    qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
+    csat: { label: "CSAT", valueKey: "csat", benchmarkKey: "benchmarkCsat", benchmarkLabel: "Peer CSAT", color: "#C084FC" },
+  } as const;
+  const errorTrendConfig = {
+    total: { label: "Total error rate", color: "#F97316" },
+    critical: { label: "Critical errors", color: "#FB7185" },
+    moderate: { label: "Moderate errors", color: "#F59E0B" },
+    minor: { label: "Minor errors", color: "#38BDF8" },
+  } as const;
+  const selectedRoiTrendConfig = roiTrendConfig[selectedRoiTrendMetric];
+  const selectedErrorTrendConfig = errorTrendConfig[selectedErrorTrendMetric];
   const coachingSubject = data.weeklyCoachingLogs[0] ?? {
     subjectUserId: data.reviewLogs[0]?.subjectUserId ?? data.executive.id,
     employeeName: data.executive.name,
@@ -6096,6 +6158,106 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
             </div>
           </CardContent>
         </PremiumCard>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <PremiumCard>
+            <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <CardTitle className="text-white">Interactive ROI trend explorer</CardTitle>
+                <CardDescription className="text-slate-400">Inspect how core proof metrics move over time against the peer line without leaving the reporting workspace.</CardDescription>
+              </div>
+              <div className="w-full max-w-[220px]">
+                <Select value={selectedRoiTrendMetric} onValueChange={(value) => setSelectedRoiTrendMetric(value as "readiness" | "qaScore" | "csat")}>
+                  <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="readiness">Readiness</SelectItem>
+                    <SelectItem value="qaScore">QA score</SelectItem>
+                    <SelectItem value="csat">CSAT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected ROI proof metric</p>
+                    <p className="mt-2 text-xl font-semibold text-white">{selectedRoiTrendConfig.label}</p>
+                  </div>
+                  <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">Interactive ROI trend</Badge>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-300">Use the selector to compare movement in readiness, QA score, or CSAT against the peer benchmark across the current reporting window.</p>
+              </div>
+              <ChartFrame title="ROI trend over time" description={`Current series: ${selectedRoiTrendConfig.label} against ${selectedRoiTrendConfig.benchmarkLabel}.`}>
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data.roiTrendSeries}>
+                      <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                      <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                      <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                      <Line type="monotone" dataKey={selectedRoiTrendConfig.valueKey} name={selectedRoiTrendConfig.label} stroke={selectedRoiTrendConfig.color} strokeWidth={3} dot={{ r: 4, fill: selectedRoiTrendConfig.color }} activeDot={{ r: 5 }} />
+                      <Line type="monotone" dataKey={selectedRoiTrendConfig.benchmarkKey} name={selectedRoiTrendConfig.benchmarkLabel} stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartFrame>
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <CardTitle className="text-white">Interactive error-rate trend explorer</CardTitle>
+                <CardDescription className="text-slate-400">Switch between total and severity-specific error movement to see where operational risk is actually improving.</CardDescription>
+              </div>
+              <div className="w-full max-w-[220px]">
+                <Select value={selectedErrorTrendMetric} onValueChange={(value) => setSelectedErrorTrendMetric(value as "total" | "critical" | "moderate" | "minor")}>
+                  <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="total">Total error rate</SelectItem>
+                    <SelectItem value="critical">Critical errors</SelectItem>
+                    <SelectItem value="moderate">Moderate errors</SelectItem>
+                    <SelectItem value="minor">Minor errors</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected error signal</p>
+                    <p className="mt-2 text-xl font-semibold text-white">{selectedErrorTrendConfig.label}</p>
+                  </div>
+                  <Badge className="rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-100">Interactive error-rate trend</Badge>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-300">Compare the current slope of {selectedErrorTrendConfig.label.toLowerCase()} across the reporting window so leaders can decide whether coaching, process fixes, or retraining should intensify next.</p>
+              </div>
+              <ChartFrame title="Error-rate movement over time" description={`Current series: ${selectedErrorTrendConfig.label}.`}>
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data.errorRateReporting.trendSeries}>
+                      <defs>
+                        <linearGradient id="reporting-error-trend" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.45} />
+                          <stop offset="95%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                      <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                      <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                      <Area type="monotone" dataKey={selectedErrorTrendMetric} name={selectedErrorTrendConfig.label} stroke={selectedErrorTrendConfig.color} fill="url(#reporting-error-trend)" strokeWidth={3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartFrame>
+            </CardContent>
+          </PremiumCard>
+        </div>
         <PremiumCard>
           <CardHeader>
             <CardTitle className="text-white">Assessment question reporting</CardTitle>

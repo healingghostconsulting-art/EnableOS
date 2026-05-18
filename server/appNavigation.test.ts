@@ -33,7 +33,7 @@ describe("workspace navigation resolution", () => {
     ]);
   });
 
-  it("removes executive access from the manager workspace while preserving the remaining sections", () => {
+  it("keeps reporting as an executive-only top-level section while removing it from the manager workspace", () => {
     expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
       "/",
       "/manager",
@@ -43,6 +43,7 @@ describe("workspace navigation resolution", () => {
       "/admin",
       "/library",
     ]);
+    expect(adminWorkspaceMenu.map((item) => item.path)).toEqual(expect.arrayContaining(["/reporting", "/executive"]));
   });
 
   it("adds CHCG command only for platform admins when no override is supplied", () => {
@@ -66,6 +67,8 @@ describe("workspace navigation resolution", () => {
 
   it("enforces route access by workspace role", () => {
     expect(canAccessWorkspacePath("/executive", "manager")).toBe(false);
+    expect(canAccessWorkspacePath("/reporting", "manager")).toBe(false);
+    expect(canAccessWorkspacePath("/reporting", "executive")).toBe(true);
     expect(canAccessWorkspacePath("/admin", "manager")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "coach")).toBe(true);
     expect(canAccessWorkspacePath("/manager", "coach")).toBe(false);

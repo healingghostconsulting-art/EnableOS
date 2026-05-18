@@ -132,4 +132,14 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Evidence note:");
     expect(trainingViewSource).toContain("without overstating causation");
   });
+
+  it("keeps reporting available as a dedicated workspace with interactive trend charts", () => {
+    expect(trainingViewSource).toContain("Client reporting workspace");
+    expect(trainingViewSource).toContain("Interactive ROI trend explorer");
+    expect(trainingViewSource).toContain("Interactive error-rate trend explorer");
+    expect(trainingViewSource).toContain("ROI trend over time");
+    expect(trainingViewSource).toContain("Error-rate movement over time");
+    expect(trainingViewSource).toContain("Interactive ROI trend");
+    expect(trainingViewSource).toContain("Interactive error-rate trend");
+  });
 });

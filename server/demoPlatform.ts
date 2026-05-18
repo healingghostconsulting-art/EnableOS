@@ -2325,6 +2325,13 @@ export function getExecutiveDashboard(tenantId?: string) {
       { label: "CSAT", before: 4.1, after: 4.6, delta: "+0.5" },
       { label: "Adherence", before: 86, after: 92, delta: "+6 pts" },
     ],
+    roiTrendSeries: [
+      { period: "Jan", qaScore: 80, csat: 4.0, readiness: 70, benchmarkQa: 78, benchmarkCsat: 3.9, benchmarkReadiness: 69 },
+      { period: "Feb", qaScore: 82, csat: 4.1, readiness: 72, benchmarkQa: 79, benchmarkCsat: 4.0, benchmarkReadiness: 70 },
+      { period: "Mar", qaScore: 84, csat: 4.2, readiness: 75, benchmarkQa: 80, benchmarkCsat: 4.0, benchmarkReadiness: 71 },
+      { period: "Apr", qaScore: 86, csat: 4.4, readiness: 79, benchmarkQa: 81, benchmarkCsat: 4.1, benchmarkReadiness: 73 },
+      { period: "May", qaScore: 89, csat: 4.6, readiness: 84, benchmarkQa: 82, benchmarkCsat: 4.2, benchmarkReadiness: 75 },
+    ],
     correlationSeries: [
       { week: "W1", interventions: 3, readiness: 69 },
       { week: "W2", interventions: 5, readiness: 73 },
@@ -2540,6 +2547,13 @@ export function getExecutiveDashboard(tenantId?: string) {
       currentErrorRate: "7.8%",
       baselineErrorRate: "12.4%",
       delta: "-4.6 pts",
+      trendSeries: [
+        { period: "Jan", total: 12.4, critical: 3.1, moderate: 5.3, minor: 4.0 },
+        { period: "Feb", total: 11.3, critical: 2.8, moderate: 4.9, minor: 3.6 },
+        { period: "Mar", total: 10.1, critical: 2.6, moderate: 4.3, minor: 3.2 },
+        { period: "Apr", total: 8.8, critical: 2.3, moderate: 3.9, minor: 2.6 },
+        { period: "May", total: 7.8, critical: 2.1, moderate: 3.4, minor: 2.3 },
+      ],
       severityMix: [
         { label: "Critical", value: "2.1%", detail: "Identity, compliance, or documentation misses with direct operational risk." },
         { label: "Moderate", value: "3.4%", detail: "Workflow and transfer misses that create avoidable rework or repeat contact." },

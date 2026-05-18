@@ -323,7 +323,7 @@
 - [x] Improve readability on the learner journey cards and related learner-facing training surfaces by preserving the current palette while increasing text contrast and content legibility
 - [x] Reconcile the last two direct user prompts by confirming the learner readability update is fully validated, checkpointed, and reported alongside the standing Google Doc source-of-truth workflow
 - [x] Export the latest project status update as an HTML file for the user
-- [ ] Review the shared Google Doc for this run, translate each newly open actionable line into an implementation-ready prompt, implement the highest-priority safe item(s), validate them, and only then mark completed lines as [Done] in the source document
+- [x] Review the shared Google Doc for this run, translate each newly open actionable line into an implementation-ready prompt, implement the highest-priority safe item(s), validate them, and only then mark completed lines as [Done] in the source document (completed for this run; the remaining live-doc update was blocked in Google Docs and the recurring review was later paused by user request)
 - [x] Add concise learner-facing human-in-the-loop guidance to the training route so agent-assist tools are framed as support, not replacement
 - [x] Reduce text density and brighten the top learner training preview and active-module context panels while preserving the existing palette direction
 - [x] Add targeted regression coverage for the learner training copy and presentation refinements from the 2026-05-14 Google Doc feedback
@@ -353,3 +353,11 @@
 - [x] Add behavior-analysis reporting that groups QA findings, coaching observations, and assessment weakness into recurring observable behavior domains
 - [x] Add error-rate reporting with total error trend, severity mix, and post-intervention movement summaries
 - [x] Add targeted regression coverage for the new reporting dashboard data model and UI sections
+- [x] Add interactive ROI trend charts to the executive reporting dashboard so leaders can inspect movement over time across the core proof metrics
+- [x] Add interactive error-rate trend charts to the executive reporting dashboard so leaders can compare baseline, current movement, and severity-related trend changes over time
+- [x] Add targeted regression coverage for the new interactive ROI and error-rate chart surfaces
+- [x] Create a dedicated Reporting workspace section in the main product navigation so reporting sits alongside areas like Training Zone and Coach Studio
+- [x] Move or mirror the executive reporting dashboard experience into the dedicated Reporting workspace while preserving role-appropriate access and context
+- [x] Add interactive ROI trend charts to the dedicated Reporting workspace so leaders can inspect movement over time across the core proof metrics
+- [x] Add interactive error-rate trend charts to the dedicated Reporting workspace so leaders can compare baseline, current movement, and severity-related changes over time
+- [x] Add targeted regression coverage for the dedicated Reporting workspace navigation, route access, and interactive chart surfaces

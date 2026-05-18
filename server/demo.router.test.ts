@@ -51,6 +51,12 @@ describe("demo router", () => {
     expect(executive.roiMetrics).toEqual(
       expect.arrayContaining([expect.objectContaining({ label: "QA score", delta: "+8 pts" })]),
     );
+    expect(executive.roiTrendSeries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ period: "Jan", readiness: 70, benchmarkReadiness: 69 }),
+        expect.objectContaining({ period: "May", qaScore: 89, benchmarkQa: 82 }),
+      ]),
+    );
     expect(executive.methodologyAssets).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "CHCG KPI Mastery Framework" })]),
     );
@@ -140,6 +146,10 @@ describe("demo router", () => {
       currentErrorRate: "7.8%",
       baselineErrorRate: "12.4%",
       delta: "-4.6 pts",
+      trendSeries: expect.arrayContaining([
+        expect.objectContaining({ period: "Jan", total: 12.4, critical: 3.1 }),
+        expect.objectContaining({ period: "May", total: 7.8, moderate: 3.4, minor: 2.3 }),
+      ]),
       severityMix: expect.arrayContaining([
         expect.objectContaining({ label: "Critical", value: "2.1%" }),
       ]),

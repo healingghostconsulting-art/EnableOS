@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { BarChart3, BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
@@ -8,13 +8,14 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
-import { ChcgAdminView, ContentLibraryView, LandingView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { ChcgAdminView, ContentLibraryView, LandingView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/" },
   { icon: Gauge, label: "Executive Command", path: "/executive" },
+  { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
   { icon: BookOpen, label: "Learner Journey", path: "/learner" },
@@ -28,7 +29,7 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
   { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
 ];
 
-export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/executive");
+export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/executive" && item.path !== "/reporting");
 
 export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
   item.path === "/coach"
@@ -91,6 +92,8 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
 
   switch (path) {
     case "/executive":
+      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
+    case "/reporting":
       return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
     case "/manager":
       return normalizedRole !== "coach" && normalizedRole !== "learner";
@@ -184,6 +187,13 @@ function Router() {
         {() => (
           <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">
             <RoleWorkspace role="executive" />
+          </GuardedWorkspaceShell>
+        )}
+      </Route>
+      <Route path="/reporting">
+        {() => (
+          <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace">
+            <ReportingWorkspaceView />
           </GuardedWorkspaceShell>
         )}
       </Route>
