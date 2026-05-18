@@ -52,10 +52,10 @@ describe("learner training layout helpers", () => {
   });
 
   it("creates a stable modal reset key from trigger identity instead of object reference", () => {
-    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6:briefCheckpoint");
-    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6:briefCheckpoint");
-    expect(getModalCheckpointResetKey({ id: "apply-2", assessmentKey: "applicationActivity" })).toBe("apply-2:applicationActivity");
-    expect(getModalCheckpointResetKey(null)).toBe("none");
+    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6-briefCheckpoint");
+    expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6-briefCheckpoint");
+    expect(getModalCheckpointResetKey({ id: "apply-2", assessmentKey: "applicationActivity" })).toBe("apply-2-applicationActivity");
+    expect(getModalCheckpointResetKey(null)).toBe("default-none");
   });
 
   it("keeps learner-facing affordances for collapsing the path navigator and scanning quiz match banks", () => {
@@ -84,7 +84,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
     expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("Powered by CHCG performance methodology");
+    expect(trainingViewSource).toContain("Guided by CHCG performance methodology");
     expect(trainingViewSource).toContain("EnableOS frames learning, coaching, and governance as one connected operating system");
     expect(trainingViewSource).toContain("CHCG powers the underlying methodology and execution discipline");
   });
@@ -100,12 +100,12 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps executive question reporting visible with peer comparison and high-alert language", () => {
-    expect(trainingViewSource).toContain("Client reporting command center");
+    expect(trainingViewSource).toContain("Client reporting workspace");
     expect(trainingViewSource).toContain("Assessment question reporting");
     expect(trainingViewSource).toContain("Miss rate");
-    expect(trainingViewSource).toContain("Peer baseline");
+    expect(trainingViewSource).toContain("Peer readiness");
     expect(trainingViewSource).toContain("Peer percentile");
-    expect(trainingViewSource).toContain("First-pass success");
+    expect(trainingViewSource).toContain("Recommended coaching action:");
     expect(trainingViewSource).toContain("Retry dependency");
     expect(trainingViewSource).toContain("High alert");
   });
@@ -116,19 +116,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("specialists");
     expect(trainingViewSource).toContain("Readiness");
     expect(trainingViewSource).toContain("QA score");
-    expect(trainingViewSource).toContain("Intervention close rate");
-    expect(trainingViewSource).toContain("Error rate");
-    expect(trainingViewSource).toContain("Coaching focus:");
+    expect(trainingViewSource).toContain("Close rate");
+    expect(trainingViewSource).toContain("error pressure");
+    expect(trainingViewSource).toContain("peer position");
   });
 
   it("keeps executive proof-of-impact evidence visible without causal overclaiming", () => {
-    expect(trainingViewSource).toContain("Peer benchmark reporting");
+    expect(trainingViewSource).not.toContain("Peer benchmark watch");
     expect(trainingViewSource).toContain("Repeat-module escalation watch");
     expect(trainingViewSource).toContain("Coaching consistency reporting");
     expect(trainingViewSource).toContain("Behavior analysis");
     expect(trainingViewSource).toContain("Error-rate reporting");
     expect(trainingViewSource).toContain("Executive proof of impact");
-    expect(trainingViewSource).toContain("Before / after movement");
+    expect(trainingViewSource).toContain("Before/after movement");
     expect(trainingViewSource).toContain("Intervention correlation");
     expect(trainingViewSource).toContain("Sustained readiness evidence");
     expect(trainingViewSource).toContain("Evidence note:");
@@ -143,5 +143,34 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Error-rate movement over time");
     expect(trainingViewSource).toContain("Interactive ROI trend");
     expect(trainingViewSource).toContain("Interactive error-rate trend");
+  });
+
+  it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
+    expect(trainingViewSource).toContain("Coach studio mission");
+    expect(trainingViewSource).toContain("Coach modes");
+    expect(trainingViewSource).toContain("Coaching lane");
+    expect(trainingViewSource).toContain("Training transfer");
+    expect(trainingViewSource).toContain("Learner journey");
+    expect(trainingViewSource).toContain("Learner modes");
+    expect(trainingViewSource).toContain("Re-engagements");
+    expect(trainingViewSource).toContain("One clear next step at a time");
+  });
+
+  it("keeps client control and content library in the mission-control pattern", () => {
+    expect(trainingViewSource).toContain("Client control");
+    expect(trainingViewSource).toContain("Client control modes");
+    expect(trainingViewSource).toContain("Action launcher");
+    expect(trainingViewSource).toContain("Content mission control");
+    expect(trainingViewSource).toContain("Library modes");
+    expect(trainingViewSource).toContain("Switch between launcher, explore, and ingest");
+    expect(trainingViewSource).toContain("Open asset explorer");
+    expect(trainingViewSource).toContain("Ingestion checklist");
+  });
+
+  it("keeps the shared mission-control shell animated and reward-aware without overwhelming the workflow", () => {
+    expect(trainingViewSource).toContain("Mascot cue active");
+    expect(trainingViewSource).toContain("Mascot moment");
+    expect(trainingViewSource).toContain("Celebration ready");
+    expect(trainingViewSource).toContain("🎈");
   });
 });

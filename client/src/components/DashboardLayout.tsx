@@ -39,6 +39,96 @@ const DEFAULT_WIDTH = 348;
 const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
 
+const workspaceMissionSignals: Record<string, {
+  eyebrow: string;
+  headline: string;
+  focus: string;
+  next: string;
+  reward: string;
+}> = {
+  "/": {
+    eyebrow: "Mission control",
+    headline: "Guide the user with the clearest next move.",
+    focus: "Priority path",
+    next: "Review urgent movement, recent wins, and the strongest next workspace jump.",
+    reward: "Momentum visible",
+  },
+  "/executive": {
+    eyebrow: "Executive command",
+    headline: "Translate movement into confident decisions.",
+    focus: "Readiness proof",
+    next: "Scan program lift, intervention correlation, and the biggest current performance risk.",
+    reward: "ROI story live",
+  },
+  "/reporting": {
+    eyebrow: "Reporting hub",
+    headline: "Turn dense reporting into guided evidence.",
+    focus: "Trend intelligence",
+    next: "Use charts and proof summaries to isolate what improved, what slipped, and where to drill in.",
+    reward: "Proof ready",
+  },
+  "/manager": {
+    eyebrow: "Manager ops",
+    headline: "Keep interventions moving without losing the case context.",
+    focus: "Case action",
+    next: "Work the current learner queue, launch coaching, and review the selected intervention trail.",
+    reward: "Actions aligned",
+  },
+  "/coach": {
+    eyebrow: "Coach studio",
+    headline: "Coach from one focused workspace instead of stacked history.",
+    focus: "Guided coaching",
+    next: "Open the current learner, review evidence, and launch the coaching log without leaving context.",
+    reward: "Support visible",
+  },
+  "/learner": {
+    eyebrow: "Learner journey",
+    headline: "Show the next mission first and celebrate movement.",
+    focus: "Progress path",
+    next: "Resume the current mission, unlock the next milestone, and keep the journey rewarding.",
+    reward: "Wins earned",
+  },
+  "/training": {
+    eyebrow: "Training zone",
+    headline: "Make training feel like progression, not a content wall.",
+    focus: "Checkpoint flow",
+    next: "Keep the learner inside the current stage and surface only the guidance needed right now.",
+    reward: "Milestones unlocked",
+  },
+  "/admin": {
+    eyebrow: "Client control",
+    headline: "Turn setup work into guided completion steps.",
+    focus: "System health",
+    next: "Resolve the most urgent setup item and keep the remaining controls grouped by task.",
+    reward: "Governance clear",
+  },
+  "/library": {
+    eyebrow: "Content missions",
+    headline: "Help users discover content without losing the thread.",
+    focus: "Search-first browse",
+    next: "Use focused filters, preview details on demand, and keep assignment actions close to the content.",
+    reward: "Assets ready",
+  },
+  "/chcg-admin": {
+    eyebrow: "CHCG command",
+    headline: "Keep platform oversight compact, guided, and auditable.",
+    focus: "Platform control",
+    next: "Review the most important governance status first, then open the deeper admin surfaces only as needed.",
+    reward: "Oversight active",
+  },
+};
+
+function resolveWorkspaceMissionSignal(path: string, fallbackTitle: string) {
+  return workspaceMissionSignals[path] ?? {
+    eyebrow: fallbackTitle,
+    headline: "Keep the current workspace focused, guided, and easy to navigate.",
+    focus: "Guided flow",
+    next: "Show the most important action first and keep details in progressive layers.",
+    reward: "Progress visible",
+  };
+}
+
+
 export function getDesktopSidebarUiState({
   isMobile,
   isCollapsed,
@@ -172,6 +262,7 @@ function DashboardLayoutContent({
   const activeMenuItem = menuItems.find((item) => item.path === location);
   const isMobile = useIsMobile();
   const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
+  const commandSignal = resolveWorkspaceMissionSignal(activeMenuItem?.path ?? location, activeMenuItem?.label ?? title);
   const profileName = user?.name || demoProfile?.name || "CHCG Demo";
   const profileEmail = user?.email || demoProfile?.email || demoProfile?.roleLabel || "Demo workspace";
   const profileFallback = profileName
@@ -386,12 +477,58 @@ function DashboardLayoutContent({
               <SidebarTrigger className="h-9 w-9 rounded-xl border border-[#1B303C]/10 bg-[#F7F8FA] text-[#1B303C]" />
               <div>
                 <p className="text-sm font-medium text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
-                <p className="text-xs text-[#4A6373]">{subtitle}</p>
+                <p className="text-xs text-[#4A6373]">{commandSignal.focus}</p>
               </div>
             </div>
           </div>
-        ) : null}
-        <main className={`flex-1 p-4 md:p-7 xl:p-8 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>
+        ) : (
+          <div className="sticky top-0 z-30 px-4 pt-4 md:px-7 xl:px-8">
+            <div className="command-band px-4 py-4 md:px-5 md:py-5">
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.8fr)] xl:items-center">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
+                    <span className="command-pill px-3 py-1 text-xs font-medium text-[#4A6373]">{commandSignal.focus}</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="reward-ring celebration-glow mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(252,188,52,0.2),rgba(74,99,115,0.08))] text-[#1B303C]">
+                      <Trophy className="float-trophy h-5 w-5" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
+                      <h1 className="max-w-3xl text-[1.55rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.8rem]">{commandSignal.headline}</h1>
+                      <p className="max-w-3xl text-sm leading-6 text-[#4A6373] md:text-[15px]">{commandSignal.next}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="trophy-card px-4 py-3.5">
+                    <div className="flex items-center gap-2 text-[#4A6373]">
+                      <Compass className="h-4 w-4" />
+                      <p className="text-[10px] uppercase tracking-[0.22em]">Current mode</p>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
+                  </div>
+                  <div className="trophy-card px-4 py-3.5">
+                    <div className="flex items-center gap-2 text-[#4A6373]">
+                      <Target className="h-4 w-4" />
+                      <p className="text-[10px] uppercase tracking-[0.22em]">Next focus</p>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.focus}</p>
+                  </div>
+                  <div className="trophy-card px-4 py-3.5">
+                    <div className="flex items-center gap-2 text-[#4A6373]">
+                      <Sparkles className="h-4 w-4" />
+                      <p className="text-[10px] uppercase tracking-[0.22em]">Momentum</p>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.reward}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <main className={`flex-1 p-4 pt-5 md:p-7 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>
       </SidebarInset>
     </>
   );

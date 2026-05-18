@@ -113,6 +113,42 @@
   --sidebar-ring: oklch(0.77 0.16 82);
 }
 
+@keyframes trophy-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes soft-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(252, 188, 52, 0.12);
+  }
+
+  50% {
+    box-shadow: 0 0 0 12px rgba(252, 188, 52, 0);
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.35;
+  }
+
+  100% {
+    transform: translateX(160%);
+    opacity: 0;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -126,9 +162,10 @@
     @apply bg-background text-foreground antialiased;
     font-family: "Montserrat", sans-serif;
     background-image:
-      radial-gradient(circle at top left, rgba(252, 188, 52, 0.16), transparent 24%),
-      radial-gradient(circle at top right, rgba(74, 99, 115, 0.12), transparent 28%),
-      linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(247,248,250,1) 52%, rgba(240,243,245,1) 100%);
+      radial-gradient(circle at top left, rgba(252, 188, 52, 0.18), transparent 22%),
+      radial-gradient(circle at top right, rgba(74, 99, 115, 0.14), transparent 24%),
+      radial-gradient(circle at bottom left, rgba(103, 232, 249, 0.12), transparent 18%),
+      linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(247,248,250,0.98) 52%, rgba(239,243,247,0.98) 100%);
     min-height: 100vh;
   }
 
@@ -165,10 +202,10 @@
   }
 
   .glass-panel {
-    background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,250,252,0.88) 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,250,252,0.9) 100%);
     border: 1px solid rgba(27,48,60,0.1);
-    box-shadow: 0 22px 70px rgba(27,48,60,0.1);
-    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 80px rgba(27,48,60,0.1);
+    backdrop-filter: blur(20px);
   }
 
   .energy-frame {
@@ -205,10 +242,134 @@
     background-position: center center;
   }
 
+  .mission-shell {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2.5rem;
+    border: 1px solid rgba(27,48,60,0.08);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(247,248,250,0.95) 100%);
+    box-shadow: 0 30px 120px rgba(27,48,60,0.1);
+  }
+
+  .mission-shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at top right, rgba(252,188,52,0.08), transparent 18%),
+      radial-gradient(circle at bottom left, rgba(103,232,249,0.08), transparent 20%);
+  }
+
+  .command-band {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.9rem;
+    border: 1px solid rgba(27,48,60,0.08);
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(247,248,250,0.92));
+    box-shadow: 0 24px 70px rgba(27,48,60,0.09);
+    backdrop-filter: blur(18px);
+  }
+
+  .command-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.28) 40%, transparent 80%);
+    opacity: 0;
+  }
+
+  .command-band:hover::after {
+    opacity: 1;
+    animation: shimmer-sweep 1.6s ease;
+  }
+
+  .command-pill {
+    border-radius: 9999px;
+    border: 1px solid rgba(27,48,60,0.1);
+    background: rgba(255,255,255,0.72);
+    color: #1b303c;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .mission-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    border: 1px solid rgba(27,48,60,0.08);
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(245,247,250,0.94));
+    box-shadow: 0 22px 70px rgba(27,48,60,0.08);
+    padding: 1.4rem;
+  }
+
+  .mission-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at top left, rgba(252,188,52,0.14), transparent 24%),
+      radial-gradient(circle at bottom right, rgba(74,99,115,0.1), transparent 28%);
+  }
+
+  .guide-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(252,188,52,0.26);
+    background: linear-gradient(135deg, rgba(255,251,240,0.94), rgba(255,255,255,0.92));
+    box-shadow: 0 20px 50px rgba(252,188,52,0.12);
+  }
+
+  .trophy-card {
+    border-radius: 1.4rem;
+    border: 1px solid rgba(27,48,60,0.08);
+    background: rgba(255,255,255,0.82);
+    box-shadow: 0 16px 44px rgba(27,48,60,0.08);
+    transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
+  }
+
+  .trophy-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(252,188,52,0.4);
+    box-shadow: 0 22px 54px rgba(27,48,60,0.12);
+  }
+
+  .focus-stack {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .workspace-stack {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .context-rail-card {
+    border-radius: 1.4rem;
+    border: 1px solid rgba(27,48,60,0.08);
+    background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(247,248,250,0.9));
+    box-shadow: 0 18px 52px rgba(27,48,60,0.08);
+  }
+
+  .celebration-glow {
+    animation: soft-pulse 2.8s ease-in-out infinite;
+  }
+
+  .float-trophy {
+    animation: trophy-float 4s ease-in-out infinite;
+  }
+
   @media (min-width: 640px) {
     .container {
       padding-left: 1.5rem;
       padding-right: 1.5rem;
+    }
+
+    .mission-hero {
+      padding: 1.75rem;
     }
   }
 
@@ -217,6 +378,10 @@
       padding-left: 2.25rem;
       padding-right: 2.25rem;
       max-width: 1460px;
+    }
+
+    .mission-hero {
+      padding: 2rem;
     }
   }
 

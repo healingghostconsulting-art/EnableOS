@@ -363,3 +363,10 @@
 - [x] Add targeted regression coverage for the dedicated Reporting workspace navigation, route access, and interactive chart surfaces
 - [x] Generate a reusable coaching log pop-up box component that can open from dashboard workflows without leaving the current workspace
 - [x] Add targeted regression coverage for the reusable coaching log pop-up component and its launch copy
+- [x] Redesign the global product experience into a low-scroll mission-control system with progressive disclosure across all primary workspaces
+- [x] Create a shared interaction framework with hero summary bands, segmented work modes, drawers, modals, split views, and sticky context rails
+- [x] Create a shared motion and motivation system with purposeful micro-animations, guide-character moments, trophy states, and celebration cues that remain premium and role-appropriate
+- [x] Redesign Mission Hub, Reporting Hub, and Manager Ops around guided decision flows with less scrolling and clearer next actions
+- [x] Redesign Coach Studio, Learner Journey, and Training Zone around focused task flows, pop-up interactions, and motivational progress feedback
+- [x] Redesign Client Control and Content Missions using compact step-based layouts and search-first drill-down interactions
+- [x] Add targeted regression coverage for the new product-wide layout system, navigation behavior, and guided interaction patterns

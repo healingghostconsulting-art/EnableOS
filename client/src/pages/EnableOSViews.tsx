@@ -388,10 +388,92 @@ export function getStageNavigatorLabel(stageId?: string | null) {
 
 
 export function getModalCheckpointResetKey(trigger?: { id?: string | null; assessmentKey?: string | null } | null) {
-  return trigger?.id ? `${trigger.id}:${trigger.assessmentKey ?? "unknown"}` : "none";
+  return `${trigger?.id ?? "default"}-${trigger?.assessmentKey ?? "none"}`;
+}
+
+const sectionMissionNarratives: Record<string, {
+  focus: string;
+  next: string;
+  reward: string;
+  guide: string;
+}> = {
+  Mission: {
+    focus: "Daily command",
+    next: "Open the highest-value workspace and act on the most urgent opportunity first.",
+    reward: "Momentum visible",
+    guide: "Use this hub as the front door to the operating system rather than a page that forces you to scan everything at once.",
+  },
+  Executive: {
+    focus: "Program proof",
+    next: "Review movement, coaching impact, and the strongest risk signal before opening deeper analytics.",
+    reward: "ROI visible",
+    guide: "Executives should be able to understand the story of performance quickly, then drill into evidence only when needed.",
+  },
+  Reporting: {
+    focus: "Trend analysis",
+    next: "Move from the headline chart to the outlier, then open the detailed proof surface on demand.",
+    reward: "Evidence ready",
+    guide: "This workspace should feel like an analytics studio with a clear narrative, not a long static report.",
+  },
+  Manager: {
+    focus: "Intervention queue",
+    next: "Select the current learner or case, launch the right action, and keep the rest of the page secondary.",
+    reward: "Case control",
+    guide: "Managers should work a guided queue and selected detail view instead of scrolling through every signal at once.",
+  },
+  Coach: {
+    focus: "Coaching flow",
+    next: "Start with the active learner, review the coaching prompts, and open the pop-up log when ready.",
+    reward: "Support active",
+    guide: "Coaches need a focused workspace with fast access to evidence, prompts, and documentation tools.",
+  },
+  Learner: {
+    focus: "Next mission",
+    next: "Show the next step, recent win, and current streak before revealing optional history or side content.",
+    reward: "Progress celebrated",
+    guide: "Learners should feel guided and rewarded, with one clear mission and visible progress cues.",
+  },
+  Training: {
+    focus: "Checkpoint flow",
+    next: "Keep the current lesson stage dominant and move supporting materials into secondary reveal patterns.",
+    reward: "Milestones unlocked",
+    guide: "Training should feel cinematic and progressive, with clean stage changes and meaningful completion moments.",
+  },
+  Client: {
+    focus: "Setup progress",
+    next: "Surface the most urgent admin action and keep the rest grouped into manageable completion steps.",
+    reward: "Control clearer",
+    guide: "Administrative work should feel structured and guided instead of sprawling across one long page.",
+  },
+  Content: {
+    focus: "Search and assign",
+    next: "Lead with discovery and preview, then open metadata or assignment workflows only when needed.",
+    reward: "Content ready",
+    guide: "Content tools should feel search-first and preview-friendly rather than list-heavy and difficult to scan.",
+  },
+  CHCG: {
+    focus: "Platform oversight",
+    next: "Keep the riskiest system signal or governance item above the fold, with everything else available on demand.",
+    reward: "Oversight active",
+    guide: "Platform control works best when the most important status is visible immediately and secondary detail stays compact.",
+  },
+};
+
+function resolveSectionMissionNarrative(eyebrow: string, title: string) {
+  const matchingKey = Object.keys(sectionMissionNarratives).find((key) => eyebrow.includes(key) || title.includes(key));
+
+  return matchingKey
+    ? sectionMissionNarratives[matchingKey]
+    : {
+      focus: "Guided workspace",
+      next: "Surface the clearest next action first and keep supporting detail in progressive layers.",
+      reward: "Momentum ready",
+      guide: "This workspace is being redesigned to guide attention, reduce scrolling, and keep users oriented.",
+    };
 }
 
 function SectionShell({
+
   eyebrow,
   title,
   description,
@@ -404,21 +486,61 @@ function SectionShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const narrative = resolveSectionMissionNarrative(eyebrow, title);
+
   return (
-    <div className="space-y-8 xl:space-y-9">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="space-y-4">
-          <Badge variant="outline" className="mission-chip rounded-full px-3.5 py-1.5 text-[12px] uppercase tracking-[0.24em]">
-            {eyebrow}
-          </Badge>
-          <div className="max-w-[54rem] space-y-3 xl:max-w-[60rem]">
-            <h1 className="max-w-[16ch] text-[2.45rem] font-semibold leading-[1.06] tracking-tight text-[#1B303C] sm:text-[2.95rem] xl:max-w-[17ch] xl:text-[3.1rem]">{title}</h1>
-            <p className="max-w-[56rem] text-base leading-8 text-[#4A6373] xl:text-[1.08rem]">{description}</p>
+    <div className="workspace-stack">
+      <div className="mission-hero">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.16fr)_minmax(20rem,0.84fr)] xl:items-start">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="outline" className="mission-chip rounded-full px-3.5 py-1.5 text-[12px] uppercase tracking-[0.24em]">
+                {eyebrow}
+              </Badge>
+              <span className="command-pill px-3 py-1 text-[12px] font-medium text-[#4A6373]">{narrative.focus}</span>
+              <span className="command-pill px-3 py-1 text-[12px] font-medium text-[#4A6373]">{narrative.reward}</span>
+              <span className="command-pill px-3 py-1 text-[12px] font-medium text-[#4A6373]">Mascot cue active</span>
+            </div>
+            <div className="max-w-[54rem] space-y-3 xl:max-w-[60rem]">
+              <h1 className="max-w-[16ch] text-[2.35rem] font-semibold leading-[1.04] tracking-tight text-[#1B303C] sm:text-[2.85rem] xl:max-w-[18ch] xl:text-[3rem]">{title}</h1>
+              <p className="max-w-[56rem] text-base leading-8 text-[#4A6373] xl:text-[1.04rem]">{description}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3.5">
+              {actions}
+              <div className="command-pill px-3 py-1.5 text-[12px] font-medium text-[#1B303C]">Next: {narrative.next}</div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="guide-card px-5 py-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#1B303C]/12 bg-white/80 text-lg shadow-[0_14px_30px_rgba(15,23,42,0.08)]">🎈</span>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Guide cue</p>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-[#8AA4B4]">Mascot moment</p>
+                </div>
+              </div>
+              <p className="mt-3 text-[15px] font-semibold leading-6 text-[#1B303C]">{narrative.guide}</p>
+              <p className="mt-3 text-sm leading-6 text-[#4A6373]">Reward state: {narrative.reward}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+              <div className="trophy-card px-4 py-3.5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Focus</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.focus}</p>
+              </div>
+              <div className="trophy-card px-4 py-3.5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.next}</p>
+              </div>
+              <div className="trophy-card px-4 py-3.5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.reward}</p>
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[#8AA4B4]">Celebration ready</p>
+              </div>
+            </div>
           </div>
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-3.5 xl:justify-end">{actions}</div> : null}
       </div>
-      {children}
+      <div className="focus-stack">{children}</div>
     </div>
   );
 }
@@ -955,8 +1077,8 @@ function LoadingState() {
 function Surface({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen text-[#1B303C]">
-      <div className="container py-10 sm:py-12">
-        <div className="grid-noise rounded-[2.25rem] border border-[#1B303C]/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(247,248,250,0.92))] p-0 sm:p-1">
+      <div className="container py-6 sm:py-8 xl:py-10">
+        <div className="mission-shell grid-noise p-2 sm:p-3">
           {children}
         </div>
       </div>
@@ -1501,6 +1623,7 @@ export function LandingView() {
   const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
   const featuredTenants = landing.data?.tenants ?? [];
   const [landingSearchQuery, setLandingSearchQuery] = useState("");
+  const [missionHubMode, setMissionHubMode] = useState<"overview" | "workspaces" | "tracks">("overview");
   const landingTrainingRecords = useMemo(
     () => [
       {
@@ -1555,176 +1678,221 @@ export function LandingView() {
 
   return (
     <Surface>
-            <div className="space-y-10">
+      <div className="workspace-stack">
         <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-[#1B303C]/10 bg-white shadow-[0_32px_120px_rgba(27,48,60,0.12)]">
-          <div className="grid gap-10 px-8 py-10 xl:grid-cols-[minmax(0,1.28fr)_minmax(21rem,0.72fr)] md:px-12 md:py-14">
-            <div className="space-y-8">
-              <div className="space-y-5">
-                <div className="space-y-3">
+          <div className="grid gap-8 px-6 py-7 md:px-8 md:py-8 xl:grid-cols-[minmax(0,1.22fr)_minmax(20rem,0.78fr)] xl:items-start xl:px-10 xl:py-10">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
                   <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
                     EnableOS mission hub
                   </Badge>
-                  <p className="text-[12px] font-medium uppercase tracking-[0.28em] text-[#6B7E8A]">
-                    Powered by CHCG performance methodology
-                  </p>
+                  <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.24em] text-[#4A6373]">Guided by CHCG performance methodology</span>
                 </div>
                 <div className="max-w-[56rem] space-y-4">
-                  <h1 className="max-w-[12ch] text-[2.95rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.95rem] md:leading-[1.04] xl:text-[4.45rem]">
+                  <h1 className="max-w-[12ch] text-[2.65rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.6rem] md:leading-[1.04] xl:text-[4.1rem]">
                     Turn enablement into a live performance mission, not a static training portal.
                   </h1>
-                  <p className="max-w-3xl text-base leading-8 text-[#4A6373] md:text-[1.14rem]">
+                  <p className="max-w-3xl text-base leading-8 text-[#4A6373] md:text-[1.08rem]">
                     EnableOS frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace, while CHCG powers the underlying methodology and execution discipline.
                   </p>
                 </div>
-                <div className="space-y-5 rounded-[1.9rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-5 xl:p-6">
-                  <div className="grid gap-3 xl:grid-cols-2">
-                    <Link href="/learner" className="min-w-0">
-                      <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
-                        <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
-                        <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
-                      </Button>
-                    </Link>
-                    <Link href="/training" className="min-w-0">
-                      <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
-                        <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
-                    <p className="max-w-[62rem] text-[15px] leading-7 text-[#4A6373] xl:text-[1.02rem]">
-                      {viewerAccess.data
-                        ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                        : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
-                    </p>
-                  </div>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,0.62fr)]">
+                <div className="guide-card p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Guide cue</p>
+                  <h2 className="mt-3 text-xl font-semibold text-[#1B303C]">Show the user the next best route, then reveal everything else on demand.</h2>
+                  <p className="mt-3 text-sm leading-7 text-[#4A6373]">This front door now prioritizes one clear mission, one search surface, and one mode switch for overview, workspace entry, and learning architecture.</p>
                 </div>
-                <div className="glass-panel max-w-3xl space-y-3 rounded-[1.8rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
-                  <label className="block space-y-2 text-sm text-[#1B303C]">
-                    <span>Search missions, training tracks, and workspaces</span>
-                    <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
-                      <Search className="h-4 w-4 text-[#4A6373]" />
-                      <input
-                        value={landingSearchQuery}
-                        onChange={(event) => setLandingSearchQuery(event.target.value)}
-                        placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
-                        className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
-                      />
-                    </div>
-                  </label>
-                  {landingSearchQuery.trim() ? (
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {landingSearchResults.length > 0 ? landingSearchResults.map((result) => (
-                        <Link key={`${result.href}-${result.title}`} href={result.href}>
-                          <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-left transition hover:border-[#FCBC34]/30 hover:bg-white">
-                            <p className="text-sm font-medium text-[#1B303C]">{result.title}</p>
-                            <p className="mt-2 text-xs leading-5 text-[#4A6373]">{result.subtitle}</p>
-                            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{result.cta}</p>
-                          </button>
-                        </Link>
-                      )) : (
-                        <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-sm text-[#4A6373] md:col-span-2">
-                          No training or workspace results match that search yet. Try a track name, role, or skill keyword.
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                  {Object.values(roleMeta).map((item: any) => (
-                    <Link key={item.route} href={item.route} className="min-w-0">
-                      <Button variant="outline" className="min-h-[3.75rem] h-auto w-full justify-center rounded-[1.25rem] border-white/12 bg-white/6 px-3.5 py-3 text-center text-[12.5px] font-medium leading-[1.35] text-white hover:bg-white/12 hover:text-white xl:px-4 xl:text-[13px] 2xl:text-[13.5px]">
-                        <span className="min-w-0 whitespace-normal">Secure {item.eyebrow} workspace</span>
-                      </Button>
-                    </Link>
-                  ))}
+                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                  <div className="trophy-card px-4 py-3.5">
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current mode</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{missionHubMode === "overview" ? "Command overview" : missionHubMode === "workspaces" ? "Workspace launcher" : "Learning tracks"}</p>
+                  </div>
+                  <div className="trophy-card px-4 py-3.5">
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{viewer.data ? "Resume assigned mission" : "Launch sign-in or preview training"}</p>
+                  </div>
+                  <div className="trophy-card px-4 py-3.5">
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">Role-aligned clarity</p>
+                  </div>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-                {landing.data?.featuredMetrics.map((item: any) => (
-                  <MetricCard
-                    key={item.label}
-                    label={item.label}
-                    value={String(item.value)}
-                    supporting="Grounded in the CHCG methodology and intervention model."
-                    icon={<Sparkles className="h-4 w-4" />}
-                  />
-                ))}
+              <div className="grid gap-3 xl:grid-cols-2">
+                <Link href="/learner" className="min-w-0">
+                  <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
+                    <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
+                    <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
+                  </Button>
+                </Link>
+                <Link href="/training" className="min-w-0">
+                  <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
+                    <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
+                  </Button>
+                </Link>
+              </div>
+              <div className="glass-panel max-w-4xl space-y-3 rounded-[1.8rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
+                <label className="block space-y-2 text-sm text-[#1B303C]">
+                  <span>Search missions, training tracks, and workspaces</span>
+                  <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                    <Search className="h-4 w-4 text-[#4A6373]" />
+                    <input
+                      value={landingSearchQuery}
+                      onChange={(event) => setLandingSearchQuery(event.target.value)}
+                      placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
+                      className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
+                    />
+                  </div>
+                </label>
+                <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
+                  <p className="max-w-[62rem] text-[15px] leading-7 text-[#4A6373] xl:text-[1.02rem]">
+                    {viewerAccess.data
+                      ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                      : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
+                  </p>
+                </div>
+                {landingSearchQuery.trim() ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {landingSearchResults.length > 0 ? landingSearchResults.map((result) => (
+                      <Link key={`${result.href}-${result.title}`} href={result.href}>
+                        <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-left transition hover:border-[#FCBC34]/30 hover:bg-white">
+                          <p className="text-sm font-medium text-[#1B303C]">{result.title}</p>
+                          <p className="mt-2 text-xs leading-5 text-[#4A6373]">{result.subtitle}</p>
+                          <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{result.cta}</p>
+                        </button>
+                      </Link>
+                    )) : (
+                      <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-sm text-[#4A6373] md:col-span-2">
+                        No training or workspace results match that search yet. Try a track name, role, or skill keyword.
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
               {featuredTenants.map((tenant: any) => (
-                <PremiumCard key={tenant.id} className="relative overflow-hidden">
-                  <CardHeader className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2 text-sm font-medium text-white">
-                        {tenant.logoMark}
-                      </div>
-                      <Badge className="mission-chip rounded-full border-white/10 bg-white/8 text-slate-200">{tenant.industry}</Badge>
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl text-white">{tenant.name}</CardTitle>
-                      <CardDescription className="mt-2 text-slate-300">{tenant.description}</CardDescription>
-                    </div>
-                  </CardHeader>
-                </PremiumCard>
+                <div key={tenant.id} className="guide-card p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="command-pill px-3 py-1.5 text-sm font-medium text-[#1B303C]">{tenant.logoMark}</div>
+                    <Badge className="mission-chip rounded-full text-[#1B303C]">{tenant.industry}</Badge>
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold text-[#1B303C]">{tenant.name}</h3>
+                  <p className="mt-3 text-sm leading-7 text-[#4A6373]">{tenant.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-3">
-          {[
-            {
-              title: "Signal-to-action missions",
-              description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
-              icon: <Gauge className="h-5 w-5" />,
-            },
-            {
-              title: "Role-tuned command views",
-              description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
-              icon: <Users2 className="h-5 w-5" />,
-            },
-            {
-              title: "Guided coaching intelligence",
-              description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
-              icon: <Bot className="h-5 w-5" />,
-            },
-          ].map((item: any) => (
-            <PremiumCard key={item.title}>
-              <CardHeader>
-                <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
-                <CardTitle className="text-white">{item.title}</CardTitle>
-                <CardDescription className="text-slate-300">{item.description}</CardDescription>
-              </CardHeader>
-            </PremiumCard>
-          ))}
-        </div>
-
-        <PremiumCard>
-          <CardHeader className="space-y-4">
-            <Badge className="mission-chip w-fit rounded-full text-slate-200">CHCG learning architecture</Badge>
-            <div className="max-w-3xl space-y-3">
-              <CardTitle className="text-2xl text-white">Five mission-ready learning tracks now power the EnableOS story.</CardTitle>
-              <CardDescription className="text-base leading-7 text-slate-300">The experience is now framed around original CHCG mission tracks for frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-4 lg:grid-cols-5">
-            {filterTrainingRecords([
-              { title: "Soft Skills & Customer/Patient Service Foundation", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
-              { title: "Quality Assurance Essentials", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
-              { title: "Unlocking the power of date", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
-              { title: "Maximizing performance through performance management", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
-              { title: "Gamification & Work From Home", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
-            ], landingSearchQuery).map((track: any) => (
-              <div key={track.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
-                <h3 className="mt-3 text-lg font-semibold text-white">{track.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{track.subtitle}</p>
+        <Tabs value={missionHubMode} onValueChange={(value) => setMissionHubMode(value as "overview" | "workspaces" | "tracks")} className="space-y-4">
+          <div className="command-band px-4 py-4 md:px-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Mission modes</p>
+                <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between the core command summary, workspace launcher, and CHCG learning architecture instead of scrolling through every block in sequence.</p>
               </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
+              <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
+                <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
+                <TabsTrigger value="workspaces" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Workspaces</TabsTrigger>
+                <TabsTrigger value="tracks" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Learning tracks</TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
+
+          <TabsContent value="overview" className="mt-0 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+              {landing.data?.featuredMetrics.map((item: any) => (
+                <MetricCard
+                  key={item.label}
+                  label={item.label}
+                  value={String(item.value)}
+                  supporting="Grounded in the CHCG methodology and intervention model."
+                  icon={<Sparkles className="h-4 w-4" />}
+                />
+              ))}
+            </div>
+            <div className="grid gap-5 lg:grid-cols-3">
+              {[
+                {
+                  title: "Signal-to-action missions",
+                  description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
+                  icon: <Gauge className="h-5 w-5" />,
+                },
+                {
+                  title: "Role-tuned command views",
+                  description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
+                  icon: <Users2 className="h-5 w-5" />,
+                },
+                {
+                  title: "Guided coaching intelligence",
+                  description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
+                  icon: <Bot className="h-5 w-5" />,
+                },
+              ].map((item: any) => (
+                <PremiumCard key={item.title}>
+                  <CardHeader>
+                    <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
+                    <CardTitle className="text-white">{item.title}</CardTitle>
+                    <CardDescription className="text-slate-300">{item.description}</CardDescription>
+                  </CardHeader>
+                </PremiumCard>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="workspaces" className="mt-0 space-y-4">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+                {Object.values(roleMeta).map((item: any) => (
+                  <Link key={item.route} href={item.route} className="min-w-0">
+                    <button type="button" className="trophy-card flex h-full w-full flex-col items-start gap-3 p-5 text-left">
+                      <span className="command-pill px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-[#4A6373]">{item.eyebrow}</span>
+                      <div>
+                        <p className="text-base font-semibold text-[#1B303C]">{item.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">Open workspace</span>
+                    </button>
+                  </Link>
+                ))}
+              </div>
+              <div className="guide-card p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Workspace logic</p>
+                <h3 className="mt-3 text-xl font-semibold text-[#1B303C]">Every role gets a guided surface, not the same long dashboard.</h3>
+                <p className="mt-3 text-sm leading-7 text-[#4A6373]">Executives see proof and exceptions. Managers see case action. Coaches see focused support tools. Learners see the next mission. Admins see grouped setup steps.</p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tracks" className="mt-0 space-y-4">
+            <PremiumCard>
+              <CardHeader className="space-y-4">
+                <Badge className="mission-chip w-fit rounded-full text-slate-200">CHCG learning architecture</Badge>
+                <div className="max-w-3xl space-y-3">
+                  <CardTitle className="text-2xl text-white">Five mission-ready learning tracks now power the EnableOS story.</CardTitle>
+                  <CardDescription className="text-base leading-7 text-slate-300">The experience is now framed around original CHCG mission tracks for frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-5">
+                {filterTrainingRecords([
+                  { title: "Soft Skills & Customer/Patient Service Foundation", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
+                  { title: "Quality Assurance Essentials", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
+                  { title: "Unlocking the power of date", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
+                  { title: "Maximizing performance through performance management", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
+                  { title: "Gamification & Work From Home", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
+                ], landingSearchQuery).map((track: any) => (
+                  <div key={track.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                    <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
+                    <h3 className="mt-3 text-lg font-semibold text-white">{track.title}</h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">{track.subtitle}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+          </TabsContent>
+        </Tabs>
       </div>
     </Surface>
   );
@@ -4670,6 +4838,7 @@ export function ContentLibraryView() {
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
+  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("launcher");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -4696,6 +4865,7 @@ export function ContentLibraryView() {
       setTags("implementation, client import");
       setSourceLabel("Client enablement team");
       setSelectedFile(null);
+      setLibraryMode("explore");
       await library.refetch();
     },
     onError: (error) => {
@@ -4738,22 +4908,29 @@ export function ContentLibraryView() {
     });
   }, [assetView, library.data, searchQuery, trackFilter]);
 
-  const groupedAssets = useMemo(
-    () => groupAssetsByTargetDemographic(assets),
-    [assets],
-  );
-
-  const selectedAsset = useMemo(
-    () => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null,
-    [assets, selectedAssetId],
-  );
-  const selectedAssetRoleOptions = useMemo(
-    () => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [],
-    [selectedAsset],
-  );
-  const selectedAssetWorkflowBrief = useMemo(
-    () => getOperationalLaunchReadinessBrief(selectedAssetRole),
-    [selectedAssetRole],
+  const groupedAssets = useMemo(() => groupAssetsByTargetDemographic(assets), [assets]);
+  const selectedAsset = useMemo(() => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null, [assets, selectedAssetId]);
+  const selectedAssetRoleOptions = useMemo(() => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [], [selectedAsset]);
+  const selectedAssetWorkflowBrief = useMemo(() => getOperationalLaunchReadinessBrief(selectedAssetRole), [selectedAssetRole]);
+  const launchSummaryCards = useMemo(
+    () => [
+      {
+        label: "Visible assets",
+        value: String(library.data?.stats.totalAssets ?? 0),
+        support: "Filtered by tenant, role, and search intent.",
+      },
+      {
+        label: "Selected lane",
+        value: roleFilter === "all" ? "All roles" : getRoleLabel(roleFilter),
+        support: "Use role lenses to reduce noise before launching training.",
+      },
+      {
+        label: "Focus track",
+        value: trackFilter === "all" ? "All tracks" : library.data?.tracks.find((track: any) => track.id === trackFilter)?.title ?? "All tracks",
+        support: "Pinned to the current methodology stream.",
+      },
+    ],
+    [library.data?.stats.totalAssets, library.data?.tracks, roleFilter, trackFilter],
   );
 
   useEffect(() => {
@@ -4766,10 +4943,7 @@ export function ContentLibraryView() {
         return currentRole;
       }
 
-      const preferredRole = roleFilter !== "all"
-        ? roleFilter
-        : access.data?.grant.role;
-
+      const preferredRole = roleFilter !== "all" ? roleFilter : access.data?.grant.role;
       return resolveDefaultSelectedAssetRole(selectedAsset.linkedRoles, preferredRole);
     });
   }, [access.data?.grant.role, roleFilter, selectedAsset, selectedAssetRoleOptions]);
@@ -4820,12 +4994,17 @@ export function ContentLibraryView() {
     await uploadMutation.mutateAsync(payload);
   }
 
+  const jumpToLibraryMode = (mode: "launcher" | "explore" | "ingest", sectionId: string) => {
+    setLibraryMode(mode);
+    window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
+  };
+
   return (
     <Surface>
       <SectionShell
         eyebrow="Content Library"
         title="CHCG methodology assets and tenant-scoped imports"
-        description="Browse the CHCG core library by learning track, then blend in client-provided materials with clear source labeling, role alignment, and tenant-safe visibility."
+        description="Move from discovery to launch to upload through guided library modes instead of scrolling through one long content catalog."
         actions={
           <>
             {access.data ? (
@@ -4846,7 +5025,81 @@ export function ContentLibraryView() {
       >
         {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
-          <div className="space-y-8">
+          <div className="space-y-6">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)]">
+              <PremiumCard className="overflow-hidden">
+                <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+                  <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.18),transparent_38%),linear-gradient(135deg,rgba(7,31,54,0.96),rgba(15,23,42,0.98))] p-6 shadow-[0_28px_85px_rgba(8,15,35,0.3)]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Content mission control</Badge>
+                      <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{library.data.branding.preferredLabel}</Badge>
+                      <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{assetView === "all" ? "Blended view" : assetView === "chcg" ? "CHCG core" : "Client imports"}</Badge>
+                    </div>
+                    <div className="mt-5 max-w-3xl">
+                      <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">Guided library flow</p>
+                      <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">Find the right asset, launch it fast, and only open deeper controls when you need them.</h3>
+                      <p className="mt-3 text-sm leading-7 text-slate-50">The library now force-feeds discovery, workflow handoff, and ingestion as separate modes so users stop getting lost inside long catalog pages.</p>
+                    </div>
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      {launchSummaryCards.map((card) => (
+                        <div key={card.label} className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">{card.label}</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{card.value}</p>
+                          <p className="mt-1 text-xs text-slate-300">{card.support}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-4">
+                    <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-300">What matters now</p>
+                      <h4 className="mt-3 text-xl font-semibold text-white">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
+                      <p className="mt-3 text-sm leading-7 text-slate-100">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                        <p className="mt-2 text-base font-semibold text-white">Open asset explorer</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Filter by role, track, and source until you have one clear launch candidate.</p>
+                      </button>
+                      <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Upload lane</p>
+                        <p className="mt-2 text-base font-semibold text-white">Add a tenant-specific asset</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+
+              <div className="command-band px-4 py-4 md:px-5">
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Library cues</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Assets stay tenant-safe, role-aware, and launch-ready. Each mode reveals just enough information to move forward confidently.</p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
               <MetricCard label="Total assets" value={String(library.data.stats.totalAssets)} supporting="Visible under the current tenant, role, and search filters." icon={<Layers3 className="h-4 w-4" />} />
               <MetricCard label="CHCG core assets" value={String(library.data.stats.chcgAssets)} supporting="Sanitized CHCG methodology assets ready for reuse." icon={<BookOpen className="h-4 w-4" />} />
@@ -4854,358 +5107,374 @@ export function ContentLibraryView() {
               <MetricCard label="Mapped journeys" value={String(library.data.stats.mappedJourneys)} supporting="Assets already connected to enablement journeys." icon={<Target className="h-4 w-4" />} />
             </div>
 
-            <PremiumCard className="overflow-hidden">
-              <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${library.data.branding.accent}, rgba(255,255,255,0.08))` }} />
-              <CardContent className="flex flex-col gap-6 px-7 py-7 lg:flex-row lg:items-center lg:justify-between xl:px-8 xl:py-8">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="flex h-16 w-16 items-center justify-center rounded-[1.4rem] border text-xl font-semibold text-white shadow-[0_20px_40px_rgba(8,15,30,0.35)]"
-                    style={{ borderColor: `${library.data.branding.accent}55`, backgroundColor: `${library.data.branding.accent}22` }}
-                  >
-                    {library.data.branding.logoMark}
+            <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
+              <div className="command-band px-4 py-4 md:px-5">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Library modes</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between launcher, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-[12px] uppercase tracking-[0.22em] text-slate-500">White-label library view</p>
-                    <h2 className="text-[2rem] font-semibold leading-tight tracking-tight text-white xl:text-[2.2rem]">{library.data.branding.preferredLabel}</h2>
-                    <p className="max-w-3xl text-base leading-7 text-slate-300">{library.data.branding.heroStatement}</p>
-                  </div>
+                  <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
+                    <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Launcher</TabsTrigger>
+                    <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Explore</TabsTrigger>
+                    <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
+                  </TabsList>
                 </div>
-                <div className="max-w-xl rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-[15px] leading-7 text-slate-300 xl:px-6 xl:py-5">
-                  <p className="font-medium text-white">Tenant-safe presentation</p>
-                  <p className="mt-1.5">Imported assets inherit this tenant context while CHCG core materials remain visibly labeled as shared methodology content.</p>
-                </div>
-              </CardContent>
-            </PremiumCard>
+              </div>
 
-            <PremiumCard>
-              <CardHeader className="space-y-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <CardTitle className="text-[1.65rem] text-white">Track explorer</CardTitle>
-                      <CardDescription className="max-w-3xl text-base leading-7 text-slate-400">Filter by CHCG learning track and role relevance to inspect how methodology assets and client imports align.</CardDescription>
-                    </div>
-                    <label className="block max-w-2xl space-y-2 text-[15px] text-slate-200">
-                      <span>Search assets</span>
-                      <input
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                        className="h-13 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4.5 text-[15px] text-white outline-none placeholder:text-slate-500 xl:text-base"
-                        placeholder="Search by title, category, tag, or source label"
-                      />
-                    </label>
+              <TabsContent value="launcher" className="mt-0 space-y-6" id="library-launcher-mode">
+                {selectedAsset ? (
+                  <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                    <PremiumCard>
+                      <CardHeader className="space-y-3">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                          <div>
+                            <CardTitle className="text-white">Selected asset workflow handoff</CardTitle>
+                            <CardDescription className="text-slate-400">Inspect one asset deeply, then launch the right training view without leaving the library.</CardDescription>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="outline" onClick={() => setLocation("/learner")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                              Open learner journey
+                            </Button>
+                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                              {selectedAssetWorkflowBrief.startLabel}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
+                        </div>
+                        <div>
+                          <h3 className="text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
+                          <p className="mt-3 text-base leading-7 text-slate-300">{selectedAsset.summary}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedAsset.tags.map((tag: string) => (
+                            <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5 text-sm text-slate-300">#{tag}</span>
+                          ))}
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4.5 text-[15px] leading-7 text-slate-300">
+                          <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
+                          <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
+                    <PremiumCard>
+                      <CardHeader>
+                        <CardTitle className="text-white">Operational launch readiness brief</CardTitle>
+                        <CardDescription className="text-slate-400">Choose the receiving role and see how this asset should be introduced.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid gap-4 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100 sm:col-span-2">
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Launch brief</p>
+                          <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Use the role chips to align this handoff with the exact workspace lens that should receive the asset first.</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {selectedAssetRoleOptions.map((linkedRole) => (
+                              <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
+                                {getRoleLabel(linkedRole)}
+                              </Button>
+                            ))}
+                          </div>
+                          <p className="mt-4 text-sm leading-6 text-slate-200">Source label · <span className="font-medium text-white">{selectedAsset.sourceLabel}</span></p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
+                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.trainingUse}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Workflow owner</p>
+                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.workflowOwner}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Launch alignment</p>
+                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.launchAlignment}</p>
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Follow-through proof</p>
+                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.followThrough}</p>
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
                   </div>
-                  <div className="flex max-w-3xl flex-wrap gap-2.5 xl:justify-end">
-                    {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
-                      <Button
-                        key={option.value}
-                        type="button"
-                        variant="outline"
-                        onClick={() => setRoleFilter(option.value as DemoRole | "all")}
-                        className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setTrackFilter("all")}
-                    className={`h-auto rounded-3xl border-white/10 px-5 py-5 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
-                  >
-                    <div>
-                      <p className="text-base font-semibold leading-6">All tracks</p>
-                      <p className={`mt-2 text-sm leading-6 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
-                    </div>
-                  </Button>
-                  {library.data.tracks.map((track: any) => (
-                    <Button
-                      key={track.id}
-                      type="button"
-                      variant="outline"
-                      onClick={() => setTrackFilter(track.id)}
-                      className={`h-auto rounded-3xl border-white/10 px-5 py-5 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
-                    >
-                      <div>
-                        <p className="text-base font-semibold leading-6">{track.title}</p>
-                        <p className={`mt-2 text-sm leading-6 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
+                ) : (
+                  <PremiumCard>
+                    <CardContent className="py-12 text-center text-slate-300">
+                      Select an asset in Explore mode to activate the launcher panel.
+                    </CardContent>
+                  </PremiumCard>
+                )}
+              </TabsContent>
+
+              <TabsContent value="explore" className="mt-0 space-y-6" id="library-explore-mode">
+                <PremiumCard>
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                      <div className="space-y-2">
+                        <CardTitle className="text-[1.65rem] text-white">Track explorer</CardTitle>
+                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-400">Filter by role, track, and source so users see only the asset lanes that matter before they drill down.</CardDescription>
                       </div>
-                    </Button>
-                  ))}
-                </div>
-              </CardHeader>
-            </PremiumCard>
-
-            {selectedAsset ? (
-              <PremiumCard>
-                <CardHeader className="space-y-3">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <CardTitle className="text-white">Selected asset workflow handoff</CardTitle>
-                      <CardDescription className="text-slate-400">Use the library to inspect an asset, then jump directly into the guided training experience with that content in mind.</CardDescription>
+                      <label className="block w-full max-w-xl space-y-2 text-[15px] text-slate-200">
+                        <span>Search assets</span>
+                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} placeholder="Search by title, category, tag, or source label" />
+                      </label>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" onClick={() => setLocation("/learner")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                        Open learner journey
-                      </Button>
-                      <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                        {selectedAssetWorkflowBrief.startLabel}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] xl:gap-7">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
-                    </div>
-                    <div>
-                      <h3 className="text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
-                      <p className="mt-3 text-base leading-7 text-slate-300">{selectedAsset.summary}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedAsset.tags.map((tag: string) => (
-                        <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5 text-sm text-slate-300">#{tag}</span>
+                    <div className="flex max-w-4xl flex-wrap gap-2.5">
+                      {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
+                        <Button key={option.value} type="button" variant="outline" onClick={() => setRoleFilter(option.value as DemoRole | "all")} className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
+                          {option.label}
+                        </Button>
                       ))}
                     </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100 sm:col-span-2">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Operational launch readiness brief</p>
-                      <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
-                      <p className="mt-3 text-sm leading-6 text-slate-100">Use the role chips to align this handoff with the exact workspace lens that should receive the asset first.</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {selectedAssetRoleOptions.map((linkedRole) => (
-                          <Button
-                            key={`selected-role-${selectedAsset.id}-${linkedRole}`}
-                            type="button"
-                            variant="outline"
-                            onClick={() => setSelectedAssetRole(linkedRole)}
-                            className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}
-                          >
-                            {getRoleLabel(linkedRole)}
-                          </Button>
-                        ))}
-                      </div>
-                      <p className="mt-4 text-sm leading-6 text-slate-200">Source label · <span className="font-medium text-white">{selectedAsset.sourceLabel}</span></p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
-                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.trainingUse}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Workflow owner</p>
-                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.workflowOwner}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Launch alignment</p>
-                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.launchAlignment}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                      <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Follow-through proof</p>
-                      <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.followThrough}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
-
-            <Tabs value={assetView} onValueChange={(value) => setAssetView(value as "all" | "chcg" | "imported")} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 rounded-3xl border border-white/10 bg-white/6 p-1">
-                <TabsTrigger value="all" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Blended library</TabsTrigger>
-                <TabsTrigger value="chcg" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">CHCG core</TabsTrigger>
-                <TabsTrigger value="imported" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Client imports</TabsTrigger>
-              </TabsList>
-              <TabsContent value={assetView} className="mt-0 space-y-6">
-                {groupedAssets.length > 0 ? (
-                  <div className="space-y-6">
-                    {groupedAssets.map((group) => (
-                      <PremiumCard key={group.id} className="overflow-hidden border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(15,23,42,0.82))]">
-                        <CardHeader className="space-y-3 border-b border-white/8 bg-white/[0.03]">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <CardTitle className="text-white">{group.title}</CardTitle>
-                              <CardDescription className="mt-2 max-w-3xl text-base leading-7 text-slate-300">{group.description}</CardDescription>
-                            </div>
-                            <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length} asset{group.assets.length === 1 ? "" : "s"}</Badge>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+                      <Button type="button" variant="outline" onClick={() => setTrackFilter("all")} className={`h-auto rounded-3xl border-white/10 px-5 py-4 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
+                        <div>
+                          <p className="text-base font-semibold leading-6">All tracks</p>
+                          <p className={`mt-2 text-sm leading-6 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
+                        </div>
+                      </Button>
+                      {library.data.tracks.map((track: any) => (
+                        <Button key={track.id} type="button" variant="outline" onClick={() => setTrackFilter(track.id)} className={`h-auto rounded-3xl border-white/10 px-5 py-4 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
+                          <div>
+                            <p className="text-base font-semibold leading-6">{track.title}</p>
+                            <p className={`mt-2 text-sm leading-6 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
                           </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </CardHeader>
+                </PremiumCard>
+
+                <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                  <Tabs value={assetView} onValueChange={(value) => setAssetView(value as "all" | "chcg" | "imported")} className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-3 rounded-3xl border border-white/10 bg-white/6 p-1">
+                      <TabsTrigger value="all" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Blended library</TabsTrigger>
+                      <TabsTrigger value="chcg" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">CHCG core</TabsTrigger>
+                      <TabsTrigger value="imported" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Client imports</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value={assetView} className="mt-0">
+                      <PremiumCard>
+                        <CardHeader>
+                          <CardTitle className="text-white">Audience groups</CardTitle>
+                          <CardDescription className="text-slate-400">Choose one asset from a grouped audience lane to preview it in the launcher.</CardDescription>
                         </CardHeader>
-                        <CardContent className="px-6 py-6">
-                          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                            {group.assets.map((asset: any) => (
-                              <PremiumCard key={asset.id} className={`h-full transition-all ${selectedAsset?.id === asset.id ? "ring-1 ring-white/30" : ""}`}>
-                                <CardHeader className="space-y-4">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{asset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
-                                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.category}</Badge>
-                                  </div>
-                                  <div className="space-y-3">
-                                    <CardTitle className="text-[1.4rem] leading-tight text-white">{asset.title}</CardTitle>
-                                    <CardDescription className="text-base leading-7 text-slate-300">{asset.summary}</CardDescription>
-                                  </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                  <div className="flex flex-wrap gap-2">
-                                    {asset.linkedRoles.map((linked: string) => (
-                                      <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/5 text-slate-300">
-                                        {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                  <div className="flex flex-wrap gap-2.5 text-sm text-slate-300">
-                                    {asset.tags.map((tag: string) => (
-                                      <span key={`${asset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5">#{tag}</span>
-                                    ))}
-                                  </div>
-                                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4.5 text-[15px] leading-7 text-slate-300">
-                                    <p><span className="text-slate-500">Source</span> · {asset.sourceLabel}</p>
-                                    <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(asset.createdAt).toLocaleDateString()}</p>
-                                  </div>
-                                  <div className="flex flex-wrap gap-2">
-                                    <Button type="button" variant="outline" onClick={() => setSelectedAssetId(asset.id)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                                      {selectedAsset?.id === asset.id ? "Selected for training" : "Preview in workflow"}
-                                    </Button>
-                                    <Button type="button" onClick={() => handleStartTraining(asset)} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">
-                                      Start training
-                                      <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                    {asset.fileUrl ? (
-                                      <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
-                                        Open stored asset
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                      </a>
-                                    ) : null}
-                                  </div>
-                                </CardContent>
-                              </PremiumCard>
+                        <CardContent className="max-h-[880px] space-y-5 overflow-auto pr-1">
+                          {groupedAssets.length > 0 ? groupedAssets.map((group) => (
+                            <div key={group.id} className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-base font-semibold text-white">{group.title}</p>
+                                  <p className="mt-1 text-sm leading-6 text-slate-300">{group.description}</p>
+                                </div>
+                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length}</Badge>
+                              </div>
+                              <div className="space-y-2">
+                                {group.assets.map((asset: any) => (
+                                  <button key={asset.id} type="button" onClick={() => { setSelectedAssetId(asset.id); setLibraryMode("launcher"); }} className={`flex w-full items-start justify-between rounded-2xl border px-4 py-4 text-left transition ${selectedAsset?.id === asset.id ? "border-cyan-400/30 bg-cyan-400/12" : "border-white/10 bg-slate-950/50 hover:bg-white/8"}`}>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-white">{asset.title}</p>
+                                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
+                                    </div>
+                                    <ChevronRight className="ml-3 h-4 w-4 shrink-0 text-slate-500" />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )) : (
+                            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-8 text-center text-slate-300">
+                              No assets match the current search, track, and role filters yet.
+                            </div>
+                          )}
+                        </CardContent>
+                      </PremiumCard>
+                    </TabsContent>
+                  </Tabs>
+
+                  <div className="space-y-6">
+                    {selectedAsset ? (
+                      <PremiumCard>
+                        <CardHeader>
+                          <CardTitle className="text-white">Active selection</CardTitle>
+                          <CardDescription className="text-slate-400">The side panel keeps detail close without forcing a separate full-page scroll.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-semibold leading-tight text-white">{selectedAsset.title}</h3>
+                            <p className="mt-3 text-sm leading-7 text-slate-300">{selectedAsset.summary}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedAsset.linkedRoles.map((linked: string) => (
+                              <Badge key={`${selectedAsset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/5 text-slate-300">
+                                {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
+                              </Badge>
                             ))}
+                          </div>
+                          <div className="flex flex-wrap gap-2.5 text-sm text-slate-300">
+                            {selectedAsset.tags.map((tag: string) => (
+                              <span key={`${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5">#{tag}</span>
+                            ))}
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
+                            <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
+                            <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Open launcher</Button>
+                            <Button type="button" variant="outline" onClick={() => handleStartTraining(selectedAsset)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                              Start training
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                            {selectedAsset.fileUrl ? (
+                              <a href={selectedAsset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
+                                Open stored asset
+                                <ChevronRight className="ml-1 h-4 w-4" />
+                              </a>
+                            ) : null}
                           </div>
                         </CardContent>
                       </PremiumCard>
-                    ))}
+                    ) : null}
+                    <WorkflowLibraryPanel
+                      title="Blended workflow library governance"
+                      description="Client admins and operators can still see how tenant-uploaded materials are mixed with CHCG assets across journeys, interventions, and documentation support."
+                      resources={[
+                        ...(library.data.importedAssets ?? []),
+                        ...(library.data.chcgAssets ?? []),
+                      ].filter((asset: any, index: number, collection: any[]) => collection.findIndex((candidate: any) => candidate.id === asset.id) === index).slice(0, 4)}
+                    />
                   </div>
-                ) : null}
-                {assets.length === 0 ? (
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ingest" className="mt-0 grid gap-6 xl:grid-cols-[1.06fr_0.94fr]" id="library-ingest-mode">
+                <PremiumCard>
+                  <CardHeader>
+                    <CardTitle className="text-white">Client content ingestion</CardTitle>
+                    <CardDescription className="text-slate-400">Upload a deck or document to blend client-specific materials into the tenant library without diluting CHCG core content visibility.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={handleUpload}>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Asset title</span>
+                          <input value={title} onChange={(event) => setTitle(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="New hire workflow deck" />
+                        </label>
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Category</span>
+                          <input value={category} onChange={(event) => setCategory(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="Operational execution" />
+                        </label>
+                      </div>
+                      <label className="space-y-2 text-sm text-slate-200">
+                        <span>Summary</span>
+                        <textarea value={summary} onChange={(event) => setSummary(event.target.value)} required rows={4} className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} placeholder="Describe how this material supports coaching, readiness, or documentation workflows." />
+                      </label>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Format</span>
+                          <Select value={format} onValueChange={(value) => setFormat(value as typeof format)}>
+                            <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
+                              <SelectValue placeholder="Choose format" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"].map((option) => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </label>
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Primary audience</span>
+                          <Select value={linkedRole} onValueChange={(value) => setLinkedRole(value as DemoRole | "all")}>
+                            <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
+                              <SelectValue placeholder="Choose audience" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="executive">Executive</SelectItem>
+                              <SelectItem value="manager">Manager</SelectItem>
+                              <SelectItem value="coach">Coach / Supervisor</SelectItem>
+                              <SelectItem value="learner">Learner</SelectItem>
+                              <SelectItem value="client_admin">Client admin</SelectItem>
+                              <SelectItem value="all">All roles</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </label>
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Source label</span>
+                          <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="Client enablement team" />
+                        </label>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Tags</span>
+                          <input value={tags} onChange={(event) => setTags(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} placeholder="workflow, qa, launch" />
+                        </label>
+                        <label className="space-y-2 text-sm text-slate-200">
+                          <span>Optional file</span>
+                          <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} className="block h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-950" />
+                        </label>
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-slate-400">Uploads are tenant-scoped and surfaced with explicit source labeling so CHCG assets remain distinguishable from imported materials.</p>
+                        <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                          {uploadMutation.isPending ? "Uploading..." : "Add to library"}
+                        </Button>
+                      </div>
+                      {uploadNotice ? <p className="text-sm text-cyan-200">{uploadNotice}</p> : null}
+                    </form>
+                  </CardContent>
+                </PremiumCard>
+
+                <div className="space-y-6">
                   <PremiumCard>
-                    <CardContent className="py-12 text-center text-slate-300">
-                      No assets match the current search, track, and role filters yet. Try broadening the search, switching library views, or uploading tenant-specific material below.
+                    <CardHeader>
+                      <CardTitle className="text-white">Integration notes</CardTitle>
+                      <CardDescription className="text-slate-400">How the library fits the wider EnableOS demo story.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-sm leading-6 text-slate-300">
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                        <p className="font-medium text-white">Tenant-safe blending</p>
+                        <p className="mt-2">CHCG methodology assets stay globally available while imported client materials remain isolated to the selected tenant.</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                        <p className="font-medium text-white">Role-aware curation</p>
+                        <p className="mt-2">Role filters reveal the same library through executive, manager, learner, and client-admin relevance lenses.</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                        <p className="font-medium text-white">Journey alignment</p>
+                        <p className="mt-2">Mapped-journey counts reinforce how methodology assets can feed interventions, coaching sessions, and review evidence workflows.</p>
+                      </div>
                     </CardContent>
                   </PremiumCard>
-                ) : null}
+                  <PremiumCard>
+                    <CardHeader>
+                      <CardTitle className="text-white">Ingestion checklist</CardTitle>
+                      <CardDescription className="text-slate-400">A compact preflight so uploads remain consistent and immediately usable.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm leading-6 text-slate-300">
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Name the asset clearly and assign one primary audience first.</div>
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Use tags that match how coaches and managers actually search inside missions.</div>
+                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Keep the source label explicit so imported material never looks like native CHCG methodology.</div>
+                    </CardContent>
+                  </PremiumCard>
+                </div>
               </TabsContent>
             </Tabs>
-
-            <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-              <PremiumCard>
-                <CardHeader>
-                  <CardTitle className="text-white">Client content ingestion</CardTitle>
-                  <CardDescription className="text-slate-400">Upload a deck or document to blend client-specific materials into the tenant library without diluting CHCG core content visibility.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form className="space-y-4" onSubmit={handleUpload}>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Asset title</span>
-                        <input value={title} onChange={(event) => setTitle(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none ring-0 placeholder:text-slate-500" placeholder="New hire workflow deck" />
-                      </label>
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Category</span>
-                        <input value={category} onChange={(event) => setCategory(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none ring-0 placeholder:text-slate-500" placeholder="Operational execution" />
-                      </label>
-                    </div>
-                    <label className="space-y-2 text-sm text-slate-200">
-                      <span>Summary</span>
-                      <textarea value={summary} onChange={(event) => setSummary(event.target.value)} required rows={4} className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none placeholder:text-slate-500" placeholder="Describe how this material supports coaching, readiness, or documentation workflows." />
-                    </label>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Format</span>
-                        <Select value={format} onValueChange={(value) => setFormat(value as typeof format)}>
-                          <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
-                            <SelectValue placeholder="Choose format" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"].map((option) => (
-                              <SelectItem key={option} value={option}>{option}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </label>
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Primary audience</span>
-                        <Select value={linkedRole} onValueChange={(value) => setLinkedRole(value as DemoRole | "all")}>
-                          <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
-                            <SelectValue placeholder="Choose audience" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="executive">Executive</SelectItem>
-                            <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="coach">Coach / Supervisor</SelectItem>
-                            <SelectItem value="learner">Learner</SelectItem>
-                            <SelectItem value="client_admin">Client admin</SelectItem>
-                            <SelectItem value="all">All roles</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </label>
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Source label</span>
-                        <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} required className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500" placeholder="Client enablement team" />
-                      </label>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Tags</span>
-                        <input value={tags} onChange={(event) => setTags(event.target.value)} className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-white outline-none placeholder:text-slate-500" placeholder="workflow, qa, launch" />
-                      </label>
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Optional file</span>
-                        <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} className="block h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-950" />
-                      </label>
-                    </div>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm text-slate-400">Uploads are tenant-scoped and surfaced with explicit source labeling so CHCG assets remain distinguishable from imported materials.</p>
-                      <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                        {uploadMutation.isPending ? "Uploading..." : "Add to library"}
-                      </Button>
-                    </div>
-                    {uploadNotice ? <p className="text-sm text-cyan-200">{uploadNotice}</p> : null}
-                  </form>
-                </CardContent>
-              </PremiumCard>
-
-              <PremiumCard>
-                <CardHeader>
-                  <CardTitle className="text-white">Integration notes</CardTitle>
-                  <CardDescription className="text-slate-400">How the library fits the wider EnableOS demo story.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm leading-6 text-slate-300">
-                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                    <p className="font-medium text-white">Tenant-safe blending</p>
-                    <p className="mt-2">CHCG methodology assets stay globally available while imported client materials remain isolated to the selected tenant.</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                    <p className="font-medium text-white">Role-aware curation</p>
-                    <p className="mt-2">Role filters reveal the same library through executive, manager, learner, and client-admin relevance lenses.</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                    <p className="font-medium text-white">Journey alignment</p>
-                    <p className="mt-2">Mapped-journey counts reinforce how methodology assets can feed interventions, coaching sessions, and review evidence workflows.</p>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            </div>
           </div>
         ) : null}
       </SectionShell>
     </Surface>
   );
 }
+
 
 function DocumentationFeed({ entries }: { entries: any[] }) {
   return (
@@ -6093,6 +6362,7 @@ function WorkflowLibraryPanel({
 function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
   const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
+  const [activeExecutiveMode, setActiveExecutiveMode] = useState<"overview" | "trends" | "risk" | "evidence" | "documentation">("overview");
   const roiTrendConfig = {
     readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
     qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
@@ -6123,608 +6393,531 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         <MetricCard label="Intervention confidence" value="High" supporting="Correlation between action volume and readiness movement is positive" icon={<BrainCircuit className="h-4 w-4" />} />
         <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <ChartFrame title="Intervention correlation" description="Readiness movement compared with intervention volume over four weeks.">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.correlationSeries}>
-              <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis dataKey="week" stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
-              <Bar yAxisId="left" dataKey="interventions" fill="#2F6FED" radius={[10, 10, 0, 0]} />
-              <Line yAxisId="right" dataKey="readiness" stroke="#7DD3FC" strokeWidth={3} dot={{ r: 4, fill: "#7DD3FC" }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartFrame>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Before / after ROI movement</CardTitle>
-            <CardDescription className="text-slate-400">A clear executive story of intervention impact.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.roiMetrics.map((metric: any) => (
-              <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-slate-400">{metric.label}</p>
-                    <p className="text-xl font-semibold text-white">{metric.after}</p>
-                  </div>
-                  <Badge className="rounded-full border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{metric.delta}</Badge>
-                </div>
-                <p className="mt-2 text-sm text-slate-300">Before: {metric.before}</p>
-              </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="space-y-6">
-          <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Team readiness distribution</CardTitle>
-            <CardDescription className="text-slate-400">Where leaders should focus next.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.teamReadiness.map((team: any) => (
-              <div key={team.team} className="space-y-2">
-                <div className="flex items-center justify-between text-sm text-slate-300">
-                  <span>{team.team}</span>
-                  <span>{team.score}</span>
-                </div>
-                <Progress value={team.score} className="h-2 bg-white/8" />
-              </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Client reporting command center</CardTitle>
-            <CardDescription className="text-slate-400">A unified reporting surface connects ROI evidence, intervention health, peer benchmarks, and operational risk so client stakeholders can understand what is moving and where action should go next.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Reporting narrative</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
-              <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.reportingOverview.summary}</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {data.reportingOverview.summaryCards.map((entry: any) => (
-                <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{entry.label}</p>
-                  <p className="mt-3 text-3xl font-semibold text-white">{entry.value}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{entry.detail}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </PremiumCard>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <PremiumCard>
-            <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <CardTitle className="text-white">Interactive ROI trend explorer</CardTitle>
-                <CardDescription className="text-slate-400">Inspect how core proof metrics move over time against the peer line without leaving the reporting workspace.</CardDescription>
-              </div>
-              <div className="w-full max-w-[220px]">
-                <Select value={selectedRoiTrendMetric} onValueChange={(value) => setSelectedRoiTrendMetric(value as "readiness" | "qaScore" | "csat")}>
-                  <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="readiness">Readiness</SelectItem>
-                    <SelectItem value="qaScore">QA score</SelectItem>
-                    <SelectItem value="csat">CSAT</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected ROI proof metric</p>
-                    <p className="mt-2 text-xl font-semibold text-white">{selectedRoiTrendConfig.label}</p>
-                  </div>
-                  <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">Interactive ROI trend</Badge>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300">Use the selector to compare movement in readiness, QA score, or CSAT against the peer benchmark across the current reporting window.</p>
-              </div>
-              <ChartFrame title="ROI trend over time" description={`Current series: ${selectedRoiTrendConfig.label} against ${selectedRoiTrendConfig.benchmarkLabel}.`}>
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.roiTrendSeries}>
-                      <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                      <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
-                      <Line type="monotone" dataKey={selectedRoiTrendConfig.valueKey} name={selectedRoiTrendConfig.label} stroke={selectedRoiTrendConfig.color} strokeWidth={3} dot={{ r: 4, fill: selectedRoiTrendConfig.color }} activeDot={{ r: 5 }} />
-                      <Line type="monotone" dataKey={selectedRoiTrendConfig.benchmarkKey} name={selectedRoiTrendConfig.benchmarkLabel} stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartFrame>
-            </CardContent>
-          </PremiumCard>
-          <PremiumCard>
-            <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <CardTitle className="text-white">Interactive error-rate trend explorer</CardTitle>
-                <CardDescription className="text-slate-400">Switch between total and severity-specific error movement to see where operational risk is actually improving.</CardDescription>
-              </div>
-              <div className="w-full max-w-[220px]">
-                <Select value={selectedErrorTrendMetric} onValueChange={(value) => setSelectedErrorTrendMetric(value as "total" | "critical" | "moderate" | "minor")}>
-                  <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="total">Total error rate</SelectItem>
-                    <SelectItem value="critical">Critical errors</SelectItem>
-                    <SelectItem value="moderate">Moderate errors</SelectItem>
-                    <SelectItem value="minor">Minor errors</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected error signal</p>
-                    <p className="mt-2 text-xl font-semibold text-white">{selectedErrorTrendConfig.label}</p>
-                  </div>
-                  <Badge className="rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-100">Interactive error-rate trend</Badge>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300">Compare the current slope of {selectedErrorTrendConfig.label.toLowerCase()} across the reporting window so leaders can decide whether coaching, process fixes, or retraining should intensify next.</p>
-              </div>
-              <ChartFrame title="Error-rate movement over time" description={`Current series: ${selectedErrorTrendConfig.label}.`}>
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data.errorRateReporting.trendSeries}>
-                      <defs>
-                        <linearGradient id="reporting-error-trend" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.45} />
-                          <stop offset="95%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.05} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                      <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
-                      <Area type="monotone" dataKey={selectedErrorTrendMetric} name={selectedErrorTrendConfig.label} stroke={selectedErrorTrendConfig.color} fill="url(#reporting-error-trend)" strokeWidth={3} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartFrame>
-            </CardContent>
-          </PremiumCard>
-        </div>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Assessment question reporting</CardTitle>
-            <CardDescription className="text-slate-400">Executives can see which assessment prompts miss most often, how each result compares with peers, and where coaching attention should intensify first.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.questionReporting.map((entry: any) => {
-              const alertStyles = entry.alert === "high"
-                ? "border-rose-500/25 bg-rose-500/10 text-rose-200"
-                : entry.alert === "medium"
-                  ? "border-amber-500/25 bg-amber-500/10 text-amber-100"
-                  : "border-cyan-500/25 bg-cyan-500/10 text-cyan-100";
-              const alertLabel = entry.alert === "high"
-                ? "High alert"
-                : entry.alert === "medium"
-                  ? "Watch closely"
-                  : "Monitor";
 
-              return (
-                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.module}</p>
-                      <h3 className="mt-2 text-base font-medium text-white">{entry.question}</h3>
-                      <p className="mt-2 text-sm text-slate-300">Skill domain: <span className="font-medium text-white">{entry.skillDomain}</span></p>
-                    </div>
-                    <Badge className={`rounded-full border ${alertStyles}`}>{alertLabel}</Badge>
-                  </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Miss rate</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer baseline</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.peerMissRate}%</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">First-pass success</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.firstPassSuccess}%</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Retry dependency</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.retryDependency}%</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">14-day attempts</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.attemptsLast14Days}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 lg:grid-cols-[0.95fr_1.05fr]">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Affected cohort</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.affectedCohort}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Trend</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.trend}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended coaching action:</span> {entry.coachingAction}</p>
-                </div>
-              );
-            })}
-          </CardContent>
-        </PremiumCard>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Tenure-aware lifecycle reporting</CardTitle>
-            <CardDescription className="text-slate-400">Executives can compare how early, developing, and tenured specialists move through readiness, quality, intervention follow-through, and error pressure across the employee lifecycle.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.lifecycleReporting.map((entry: any) => (
-              <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.tenureRange}</p>
-                    <h3 className="mt-2 text-base font-medium text-white">{entry.stage}</h3>
-                  </div>
-                  <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.population} specialists</Badge>
-                </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-5">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Readiness</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">QA score</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{entry.qaScore}</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Intervention close rate</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Error rate</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{entry.errorRate}%</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Coaching focus:</span> {entry.coachingFocus}</p>
-              </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Peer benchmark reporting</CardTitle>
-            <CardDescription className="text-slate-400">Peer-based comparisons turn raw performance into cohort-aware percentages so clients can understand whether a team or learner is below, at, or above the expected norm.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 xl:grid-cols-3">
-            {data.peerBenchmarking.map((entry: any) => (
-              <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.cohort}</p>
-                <h3 className="mt-2 text-base font-medium text-white">{entry.metric}</h3>
-                <p className="mt-3 text-3xl font-semibold text-white">{entry.score}</p>
-                <p className="mt-3 text-sm font-medium text-cyan-100">{entry.comparison}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{entry.insight}</p>
-              </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Repeat-module escalation watch</CardTitle>
-              <CardDescription className="text-slate-400">Executives can see when the same module has been sent multiple times and whether the real issue now requires coaching, review, or process intervention instead of another resend.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {data.repeatAssignmentReporting.map((entry: any) => (
-                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.learner}</p>
-                      <h3 className="mt-2 text-base font-medium text-white">{entry.module}</h3>
-                    </div>
-                    <Badge className="rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-100">Sent {entry.assignmentCount} times</Badge>
-                  </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Completion rate</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{entry.completionRate}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Escalation path</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.recommendedEscalation}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Observed behavior change:</span> {entry.behaviorChange}</p>
-                </div>
-              ))}
-            </CardContent>
-          </PremiumCard>
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Coaching consistency reporting</CardTitle>
-              <CardDescription className="text-slate-400">Managers are measured on cadence, follow-through, and documentation quality so leadership can tie coaching discipline to downstream readiness movement.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Cadence adherence</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.cadenceAdherence}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed coaching intervals</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.missedIntervals}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.followUpCompletion}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.documentationCompleteness}</p>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Outcome alignment</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{data.coachingConsistency.outcomeAlignment}</p>
-              </div>
-              <div className="space-y-3">
-                {data.coachingConsistency.managerRollup.map((entry: any) => (
-                  <div key={entry.manager} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <h3 className="text-base font-medium text-white">{entry.manager}</h3>
-                      <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.cadenceAdherence}% cadence hit</Badge>
-                    </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{entry.missedIntervals}</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{entry.followUpCompletion}%</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{entry.documentationCompleteness}%</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </PremiumCard>
-        </div>
-        <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Behavior analysis</CardTitle>
-              <CardDescription className="text-slate-400">Behavior domains connect QA findings, assessment misses, and coaching observations so the client can see what is actually changing in the work, not only in the scores.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {data.behaviorAnalysis.map((entry: any) => (
-                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h3 className="text-base font-medium text-white">{entry.behavior}</h3>
-                    <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.signalShare}</Badge>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended action:</span> {entry.recommendedAction}</p>
-                </div>
-              ))}
-            </CardContent>
-          </PremiumCard>
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Error-rate reporting</CardTitle>
-              <CardDescription className="text-slate-400">Operational errors remain visible as both a standalone risk signal and part of the ROI story, helping clients connect enablement to avoidable rework and compliance exposure.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current error rate</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.currentErrorRate}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Baseline error rate</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.baselineErrorRate}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Post-intervention movement</p>
-                  <p className="mt-2 text-3xl font-semibold text-emerald-300">{data.errorRateReporting.delta}</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {data.errorRateReporting.severityMix.map((entry: any) => (
-                  <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-base font-medium text-white">{entry.label}</h3>
-                      <Badge className="rounded-full border border-white/10 bg-slate-950/45 text-slate-100">{entry.value}</Badge>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Movement summary</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{data.errorRateReporting.movementSummary}</p>
-              </div>
-            </CardContent>
-          </PremiumCard>
-        </div>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Executive proof of impact</CardTitle>
-            <CardDescription className="text-slate-400">Before/after movement, intervention correlation, sustained-readiness checks, and error-rate improvement give leaders evidence that the operating model is working without overstating causation.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Directional evidence summary</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{data.proofOfImpact.headline}</h3>
-              <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.proofOfImpact.summary}</p>
+      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-500/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(18rem,0.82fr)] xl:items-start">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Executive reporting mission</Badge>
+              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">Show what changed, what is at risk, and what needs action next</span>
             </div>
-            <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Before / after movement</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Seeded cohorts show how readiness and workflow precision moved after targeted intervention plans closed and coaching follow-through stayed visible.</p>
+            <div>
+              <h2 className="text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A guided reporting command center replaces the long analytics stack.</h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">This workspace opens with a command summary, then lets leaders switch between overview, trends, risk, evidence, and documentation instead of scrolling through every reporting block at once.</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {data.reportingOverview.summaryCards.map((entry: any) => (
+                <div key={entry.label} className="rounded-[1.35rem] border border-white/10 bg-white/8 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{entry.label}</p>
+                  <p className="mt-3 text-2xl font-semibold text-white">{entry.value}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
                 </div>
-                {data.proofOfImpact.beforeAfter.map((entry: any) => (
-                  <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+              ))}
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Narrative focus</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-200">{data.reportingOverview.summary}</p>
+            </div>
+            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Proof cue</p>
+              <p className="mt-2 text-sm leading-6">{data.proofOfImpact.headline}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Tabs value={activeExecutiveMode} onValueChange={(value) => setActiveExecutiveMode(value as "overview" | "trends" | "risk" | "evidence" | "documentation")} className="space-y-4">
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Reporting modes</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Switch the workspace focus instead of forcing every reporting stream into one continuous scroll.</p>
+            </div>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
+              <TabsTrigger value="overview" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Overview</TabsTrigger>
+              <TabsTrigger value="trends" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Trends</TabsTrigger>
+              <TabsTrigger value="risk" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Risk</TabsTrigger>
+              <TabsTrigger value="evidence" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Evidence</TabsTrigger>
+              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+
+        <TabsContent value="overview" className="mt-0 space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <ChartFrame title="Intervention correlation" description="Readiness movement compared with intervention volume over four weeks.">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.correlationSeries}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                  <XAxis dataKey="week" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                  <Bar yAxisId="left" dataKey="interventions" fill="#2F6FED" radius={[10, 10, 0, 0]} />
+                  <Line yAxisId="right" dataKey="readiness" stroke="#7DD3FC" strokeWidth={3} dot={{ r: 4, fill: "#7DD3FC" }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartFrame>
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Before / after ROI movement</CardTitle>
+                <CardDescription className="text-slate-400">A compact executive story of intervention impact.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.roiMetrics.map((metric: any) => (
+                  <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <h3 className="text-base font-medium text-white">{entry.label}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">{entry.evidence}</p>
+                        <p className="text-sm text-slate-400">{metric.label}</p>
+                        <p className="text-xl font-semibold text-white">{metric.after}</p>
                       </div>
-                      <Badge className="rounded-full border border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{entry.delta}</Badge>
+                      <Badge className="rounded-full border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{metric.delta}</Badge>
                     </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Before</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{entry.before}</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">After</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{entry.after}</p>
-                      </div>
-                    </div>
+                    <p className="mt-2 text-sm text-slate-300">Before: {metric.before}</p>
                   </div>
                 ))}
-              </div>
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Intervention correlation</p>
-                  <p className="mt-3 text-3xl font-semibold text-white">{data.proofOfImpact.interventionCorrelation.value}</p>
-                  <p className="mt-2 text-sm font-medium text-white">{data.proofOfImpact.interventionCorrelation.label}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{data.proofOfImpact.interventionCorrelation.detail}</p>
+              </CardContent>
+            </PremiumCard>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Team readiness distribution</CardTitle>
+                <CardDescription className="text-slate-400">Where leaders should focus next.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.teamReadiness.map((team: any) => (
+                  <div key={team.team} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm text-slate-300">
+                      <span>{team.team}</span>
+                      <span>{team.score}</span>
+                    </div>
+                    <Progress value={team.score} className="h-2 bg-white/8" />
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {data.peerBenchmarking.map((entry: any) => (
+                <div key={entry.id} className="trophy-card h-full p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.cohort}</p>
+                  <h3 className="mt-2 text-base font-medium text-white">{entry.metric}</h3>
+                  <p className="mt-3 text-3xl font-semibold text-white">{entry.score}</p>
+                  <p className="mt-3 text-sm font-medium text-cyan-100">{entry.comparison}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">{entry.insight}</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Sustained readiness evidence</p>
-                  <div className="mt-4 space-y-3">
-                    {data.proofOfImpact.sustainedReadiness.map((entry: any) => (
-                      <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trends" className="mt-0 space-y-6">
+          <div className="grid gap-6 xl:grid-cols-2">
+            <PremiumCard>
+              <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle className="text-white">Interactive ROI trend explorer</CardTitle>
+                  <CardDescription className="text-slate-400">Inspect how core proof metrics move over time against the peer line without leaving the reporting workspace.</CardDescription>
+                </div>
+                <div className="w-full max-w-[220px]">
+                  <Select value={selectedRoiTrendMetric} onValueChange={(value) => setSelectedRoiTrendMetric(value as "readiness" | "qaScore" | "csat")}>
+                    <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="readiness">Readiness</SelectItem>
+                      <SelectItem value="qaScore">QA score</SelectItem>
+                      <SelectItem value="csat">CSAT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected ROI proof metric</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{selectedRoiTrendConfig.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">Use the selector to compare movement in readiness, QA score, or CSAT against the peer benchmark across the current reporting window.</p>
+                </div>
+                <ChartFrame title="ROI trend over time" description={`Current series: ${selectedRoiTrendConfig.label} against ${selectedRoiTrendConfig.benchmarkLabel}.`}>
+                  <div className="h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={data.roiTrendSeries}>
+                        <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                        <Line type="monotone" dataKey={selectedRoiTrendConfig.valueKey} name={selectedRoiTrendConfig.label} stroke={selectedRoiTrendConfig.color} strokeWidth={3} dot={{ r: 4, fill: selectedRoiTrendConfig.color }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey={selectedRoiTrendConfig.benchmarkKey} name={selectedRoiTrendConfig.benchmarkLabel} stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartFrame>
+              </CardContent>
+            </PremiumCard>
+            <PremiumCard>
+              <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle className="text-white">Interactive error-rate trend explorer</CardTitle>
+                  <CardDescription className="text-slate-400">Switch between total and severity-specific error movement to see where operational risk is actually improving.</CardDescription>
+                </div>
+                <div className="w-full max-w-[220px]">
+                  <Select value={selectedErrorTrendMetric} onValueChange={(value) => setSelectedErrorTrendMetric(value as "total" | "critical" | "moderate" | "minor")}>
+                    <SelectTrigger className="border-white/10 bg-slate-950/70 text-slate-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="total">Total error rate</SelectItem>
+                      <SelectItem value="critical">Critical errors</SelectItem>
+                      <SelectItem value="moderate">Moderate errors</SelectItem>
+                      <SelectItem value="minor">Minor errors</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected error signal</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{selectedErrorTrendConfig.label}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">Compare the current slope of {selectedErrorTrendConfig.label.toLowerCase()} across the reporting window so leaders can decide whether coaching, process fixes, or retraining should intensify next.</p>
+                </div>
+                <ChartFrame title="Error-rate movement over time" description={`Current series: ${selectedErrorTrendConfig.label}.`}>
+                  <div className="h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data.errorRateReporting.trendSeries}>
+                        <defs>
+                          <linearGradient id="reporting-error-trend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.45} />
+                            <stop offset="95%" stopColor={selectedErrorTrendConfig.color} stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                        <Area type="monotone" dataKey={selectedErrorTrendMetric} name={selectedErrorTrendConfig.label} stroke={selectedErrorTrendConfig.color} fill="url(#reporting-error-trend)" strokeWidth={3} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartFrame>
+              </CardContent>
+            </PremiumCard>
+          </div>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Tenure-aware lifecycle reporting</CardTitle>
+              <CardDescription className="text-slate-400">Compare readiness, quality, intervention close rate, peer position, and error pressure across the employee lifecycle.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 xl:grid-cols-3">
+              {data.lifecycleReporting.map((entry: any) => (
+                <div key={entry.id} className="guide-card p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.tenureRange}</p>
+                      <h3 className="mt-2 text-base font-medium text-white">{entry.stage}</h3>
+                    </div>
+                    <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.population} specialists</Badge>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Readiness</p><p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">QA score</p><p className="mt-2 text-lg font-semibold text-white">{entry.qaScore}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Close rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-300">{entry.trend}</p>
+                </div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+        </TabsContent>
+
+        <TabsContent value="risk" className="mt-0 space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Assessment question reporting</CardTitle>
+                <CardDescription className="text-slate-400">High-risk questions stay visible without forcing the entire detailed table to sit permanently on the page.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.questionReporting.map((entry: any) => {
+                  const alertStyles = entry.alert === "high"
+                    ? "border-rose-500/25 bg-rose-500/10 text-rose-200"
+                    : entry.alert === "medium"
+                      ? "border-amber-500/25 bg-amber-500/10 text-amber-100"
+                      : "border-cyan-500/25 bg-cyan-500/10 text-cyan-100";
+                  const alertLabel = entry.alert === "high" ? "High alert" : entry.alert === "medium" ? "Watch closely" : "Monitor";
+                  return (
+                    <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.module}</p>
+                          <h3 className="mt-2 text-base font-medium text-white">{entry.question}</h3>
+                          <p className="mt-2 text-sm text-slate-300">Skill domain: <span className="font-medium text-white">{entry.skillDomain}</span></p>
+                        </div>
+                        <Badge className={`rounded-full border ${alertStyles}`}>{alertLabel}</Badge>
+                      </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Miss rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Retry dependency</p><p className="mt-2 text-lg font-semibold text-white">{entry.retryDependency}%</p></div>
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-300">{entry.trend}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended coaching action:</span> {entry.coachingAction}</p>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </PremiumCard>
+            <div className="space-y-6">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Repeat-module escalation watch</CardTitle>
+                  <CardDescription className="text-slate-400">See when another module resend is no longer the right move.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {data.repeatAssignmentReporting.map((entry: any) => (
+                    <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.learner}</p>
+                          <h3 className="mt-2 text-base font-medium text-white">{entry.module}</h3>
+                        </div>
+                        <Badge className="rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-100">Sent {entry.assignmentCount} times</Badge>
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Observed change:</span> {entry.behaviorChange}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Escalation path:</span> {entry.recommendedEscalation}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </PremiumCard>
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Error-rate reporting</CardTitle>
+                  <CardDescription className="text-slate-400">Keep operational risk visible as a standalone signal and part of the ROI story.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.currentErrorRate}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Baseline</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.baselineErrorRate}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Movement</p><p className="mt-2 text-3xl font-semibold text-emerald-300">{data.errorRateReporting.delta}</p></div>
+                  </div>
+                  <div className="space-y-3">
+                    {data.errorRateReporting.severityMix.map((entry: any) => (
+                      <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-white">{entry.label}</p>
-                          <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.value}</Badge>
+                          <h3 className="text-base font-medium text-white">{entry.label}</h3>
+                          <Badge className="rounded-full border border-white/10 bg-slate-950/45 text-slate-100">{entry.value}</Badge>
                         </div>
                         <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
                       </div>
                     ))}
                   </div>
+                  <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">{data.errorRateReporting.movementSummary}</p>
+                </CardContent>
+              </PremiumCard>
+            </div>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Coaching consistency reporting</CardTitle>
+                <CardDescription className="text-slate-400">Tie cadence, follow-through, and documentation quality to downstream readiness movement.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Cadence adherence</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.cadenceAdherence}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.missedIntervals}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.followUpCompletion}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.documentationCompleteness}</p></div>
+                </div>
+                <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">{data.coachingConsistency.outcomeAlignment}</p>
+                <div className="space-y-3">
+                  {data.coachingConsistency.managerRollup.map((entry: any) => (
+                    <div key={entry.manager} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <h3 className="text-base font-medium text-white">{entry.manager}</h3>
+                        <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.cadenceAdherence}% cadence hit</Badge>
+                      </div>
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p><p className="mt-2 text-lg font-semibold text-white">{entry.missedIntervals}</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p><p className="mt-2 text-lg font-semibold text-white">{entry.followUpCompletion}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p><p className="mt-2 text-lg font-semibold text-white">{entry.documentationCompleteness}%</p></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </PremiumCard>
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Behavior analysis</CardTitle>
+                <CardDescription className="text-slate-400">Behavior domains connect QA findings, assessment misses, and coaching observations.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.behaviorAnalysis.map((entry: any) => (
+                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <h3 className="text-base font-medium text-white">{entry.behavior}</h3>
+                      <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.signalShare}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended action:</span> {entry.recommendedAction}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="evidence" className="mt-0 space-y-6">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Executive proof of impact</CardTitle>
+              <CardDescription className="text-slate-400">Before/after movement, intervention correlation, sustained-readiness checks, and error-rate improvement provide directional evidence without overstating causation.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Directional evidence summary</p>
+                <h3 className="mt-2 text-lg font-semibold text-white">{data.proofOfImpact.headline}</h3>
+                <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.proofOfImpact.summary}</p>
+              </div>
+              <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                <div className="space-y-4">
+                  {data.proofOfImpact.beforeAfter.map((entry: any) => (
+                    <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-medium text-white">{entry.label}</h3>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{entry.evidence}</p>
+                        </div>
+                        <Badge className="rounded-full border border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{entry.delta}</Badge>
+                      </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Before</p><p className="mt-2 text-lg font-semibold text-white">{entry.before}</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">After</p><p className="mt-2 text-lg font-semibold text-white">{entry.after}</p></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Intervention correlation</p>
+                    <p className="mt-3 text-3xl font-semibold text-white">{data.proofOfImpact.interventionCorrelation.value}</p>
+                    <p className="mt-2 text-sm font-medium text-white">{data.proofOfImpact.interventionCorrelation.label}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">{data.proofOfImpact.interventionCorrelation.detail}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Sustained readiness evidence</p>
+                    <div className="mt-3 space-y-3">
+                      {data.proofOfImpact.sustainedReadiness.map((entry: any) => (
+                        <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-medium text-white">{entry.label}</p>
+                            <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.value}</Badge>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">
+                    <span className="font-medium text-white">Evidence note:</span> {data.proofOfImpact.evidenceNote}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-sm leading-6 text-slate-300">
-              <span className="font-medium text-white">Evidence note:</span> {data.proofOfImpact.evidenceNote}
-            </div>
-          </CardContent>
-        </PremiumCard>
-        <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">Executive methodology references</CardTitle>
-            <CardDescription className="text-slate-400">CHCG governance assets from Data-Led Leadership, Performance Leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            {data.methodologyAssets.map((asset: any) => (
-              <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{asset.category}</p>
-                <h3 className="mt-2 text-lg font-medium text-white">{asset.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
-              </div>
-            ))}
-          </CardContent>
-        </PremiumCard>
-        </div>
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
-              <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DocumentationFeed entries={data.documentationEntries} />
             </CardContent>
           </PremiumCard>
-          <WorkflowLibraryPanel
-            title="Executive content blend"
-            description="Tenant-uploaded materials can now sit beside CHCG governance assets inside executive readiness and documentation review workflows."
-            resources={data.workflowLibraryMix.documentationResources}
-          />
-        </div>
-        <div className="space-y-6">
-          <WeeklyCoachingLogComposer
-            tenantId={data.tenant.id}
-            subjectUserId={coachingSubject.subjectUserId}
-            coachRole="executive"
-            title="Capture a weekly coaching log from the executive view"
-            employeeName={coachingSubject.employeeName}
-            employeeEmail={coachingSubject.employeeEmail}
-            coachName={data.executive.name}
-            coachEmail={data.executive.email}
-            supervisorName={coachingSubject.supervisorName}
-            supervisorEmail={coachingSubject.supervisorEmail}
-            managerOfSupervisorEmail={coachingSubject.managerOfSupervisorEmail}
-            onCreated={onUpdated}
-          />
-          <WeeklyCoachingLogTimeline
-            title="Weekly coaching logs in the readiness record"
-            description="Executives can review the exact attendance, SMART-goal follow-up, coaching comments, support requests, and learner take-aways tied to each coaching cycle."
-            tenantId={data.tenant.id}
-            logs={data.weeklyCoachingLogs}
-            allowLogEditing
-            onUpdated={onUpdated}
-          />
-          <ReviewLogComposer
-            tenantId={data.tenant.id}
-            subjectUserId={data.reviewLogs[0]?.subjectUserId ?? data.executive.id}
-            authorRole="executive"
-            title="Add quarterly or annual executive review"
-            onCreated={onUpdated}
-          />
           <PremiumCard>
             <CardHeader>
-              <CardTitle className="text-white">Recent executive review logs</CardTitle>
-              <CardDescription className="text-slate-400">Documented one-on-ones, quarterly check-ins, and annual reviews connected to readiness movement.</CardDescription>
+              <CardTitle className="text-white">Executive methodology references</CardTitle>
+              <CardDescription className="text-slate-400">CHCG governance assets from data-led leadership, performance leadership, and engagement-system design surfaced directly in the experience.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {data.reviewLogs.map((entry: any) => (
-                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-lg font-medium text-white">{entry.title}</h4>
-                      <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
-                    </div>
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
-                  </div>
-                  <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              {data.methodologyAssets.map((asset: any) => (
+                <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{asset.category}</p>
+                  <h3 className="mt-2 text-lg font-medium text-white">{asset.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
                 </div>
               ))}
             </CardContent>
           </PremiumCard>
-        </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="documentation" className="mt-0 space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+            <div className="space-y-6">
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Documentation generated from learning and interventions</CardTitle>
+                  <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DocumentationFeed entries={data.documentationEntries} />
+                </CardContent>
+              </PremiumCard>
+              <WorkflowLibraryPanel
+                title="Executive content blend"
+                description="Tenant-uploaded materials can now sit beside CHCG governance assets inside executive readiness and documentation review workflows."
+                resources={data.workflowLibraryMix.documentationResources}
+              />
+            </div>
+            <div className="space-y-6">
+              <WeeklyCoachingLogComposer
+                tenantId={data.tenant.id}
+                subjectUserId={coachingSubject.subjectUserId}
+                coachRole="executive"
+                title="Capture a weekly coaching log from the executive view"
+                employeeName={coachingSubject.employeeName}
+                employeeEmail={coachingSubject.employeeEmail}
+                coachName={data.executive.name}
+                coachEmail={data.executive.email}
+                supervisorName={coachingSubject.supervisorName}
+                supervisorEmail={coachingSubject.supervisorEmail}
+                managerOfSupervisorEmail={coachingSubject.managerOfSupervisorEmail}
+                onCreated={onUpdated}
+              />
+              <WeeklyCoachingLogTimeline
+                title="Weekly coaching logs in the readiness record"
+                description="Executives can review the exact attendance, SMART-goal follow-up, coaching comments, support requests, and learner take-aways tied to each coaching cycle."
+                tenantId={data.tenant.id}
+                logs={data.weeklyCoachingLogs}
+                allowLogEditing
+                onUpdated={onUpdated}
+              />
+              <ReviewLogComposer
+                tenantId={data.tenant.id}
+                subjectUserId={data.reviewLogs[0]?.subjectUserId ?? data.executive.id}
+                authorRole="executive"
+                title="Add quarterly or annual executive review"
+                onCreated={onUpdated}
+              />
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Recent executive review logs</CardTitle>
+                  <CardDescription className="text-slate-400">Documented one-on-ones, quarterly check-ins, and annual reviews connected to readiness movement.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {data.reviewLogs.map((entry: any) => (
+                    <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                          <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                        </div>
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                      </div>
+                      <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </PremiumCard>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -6732,11 +6925,16 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
 function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const leadModule = data.activeJourney?.modules?.[0] ?? null;
   const [activeTab, setActiveTab] = useState<"coaching" | "transfer" | "documentation" | "alerts">("coaching");
+  const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
+  const [selectedAlertId, setSelectedAlertId] = useState<string>(data.notifications[0]?.id ?? "");
 
   const openCoachView = (tab: "coaching" | "transfer" | "documentation" | "alerts", sectionId: string) => {
     setActiveTab(tab);
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
+
+  const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
+  const selectedAlert = data.notifications.find((item: any) => item.id === selectedAlertId) ?? data.notifications[0] ?? null;
 
   return (
     <div className="space-y-6">
@@ -6746,6 +6944,33 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
       </div>
+
+      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-400/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),linear-gradient(135deg,rgba(7,13,28,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] xl:items-start">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Coach studio mission</Badge>
+              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">Coach the behavior, not just the completion</span>
+            </div>
+            <div>
+              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">A focused coach desk keeps guidance, evidence, and follow-up in one place.</h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">Instead of one long coaching page, the coach workspace now moves through a clear sequence: see the signal, choose the coaching lane, capture the log, and document the next observation.</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current learner focus</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{data.directLearner.name}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-200">{data.directLearner.title} · {data.activeJourney.title}</p>
+            </div>
+            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Coach momentum</p>
+              <p className="mt-2 text-sm leading-6">{data.weeklyCoachingLogs.length} structured logs and {data.coachingSessions.length} active coaching threads are ready to review or extend.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="coach-signal-trend" className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] scroll-mt-24">
         <ChartFrame title="Coach-visible signal trend" description="Frontline coaching should connect active performance signals to the next observed behavior, not just course completion.">
           <ResponsiveContainer width="100%" height="100%">
@@ -6762,7 +6987,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <PremiumCard className="scroll-mt-24" id="coach-supervision-lane">
           <CardHeader>
             <CardTitle className="text-white">Coach supervision lane</CardTitle>
-            <CardDescription className="text-slate-400">A dedicated coach workspace sits between learner delivery and manager governance so weekly coaching, observed behaviors, and escalation context stay visible.</CardDescription>
+            <CardDescription className="text-slate-400">The coach workspace sits between learner delivery and manager governance so weekly coaching, observed behaviors, and escalation context stay visible.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
@@ -6782,86 +7007,71 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
               <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
             </div>
-            <RetrainingHistorySection
-              title="Retraining completion history"
-              description="Coach-visible history keeps past retraining outcomes attached to Nina's supervision lane so follow-through remains easy to confirm over time."
-              assignments={data.retrainingHistory ?? []}
-              emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules."
-            />
-            <GuidanceActionPanel
-              tenantId={data.tenant.id}
-              suggestion={data.aiSuggestion}
-              catalog={data.retrainingCatalog}
-              assignments={data.activeRetrainingAssignments}
-              actorRole="coach"
-              learnerName={data.directLearner.name}
-              onUpdated={onUpdated}
-            />
+            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the supervision lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." />
+            <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="coach" learnerName={data.directLearner.name} onUpdated={onUpdated} />
           </CardContent>
         </PremiumCard>
       </div>
+
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-4">
-        <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
-          <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
-          <TabsTrigger value="transfer" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
-          <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-          <TabsTrigger value="alerts" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="coaching" id="coach-coaching-lane" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Coach modes</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.</p>
+            </div>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
+              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
+              <TabsTrigger value="transfer" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
+              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+              <TabsTrigger value="alerts" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+
+        <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div className="space-y-4">
             {data.coachingSessions.map((session: any) => (
-              <PremiumCard key={session.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-white">{session.title}</CardTitle>
-                      <CardDescription className="mt-2 text-slate-400">{session.notes}</CardDescription>
-                    </div>
-                    <StatusBadge value={session.status} />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
-                    <div className="mt-2 space-y-2 text-sm text-slate-300">
-                      {session.actionPlan.map((step: any) => (
-                        <div key={step} className="flex items-start gap-2">
-                          <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                          <span>{step}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching thread</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
                   </div>
-                </CardContent>
-              </PremiumCard>
+                  <StatusBadge value={session.status} />
+                </div>
+              </button>
             ))}
           </div>
           <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
-            <WeeklyCoachingLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={data.directLearner.id}
-              coachRole="coach"
-              title="Capture a weekly coaching log from the coach workspace"
-              employeeName={data.directLearner.name}
-              employeeEmail={data.directLearner.email}
-              coachName={data.coach.name}
-              coachEmail={data.coach.email}
-              supervisorName={data.escalationPartner.name}
-              supervisorEmail={data.escalationPartner.email}
-              managerOfSupervisorEmail={data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail}
-              onCreated={onUpdated}
-            />
-            <WeeklyCoachingLogTimeline
-              title="Coach-visible weekly coaching history"
-              description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record."
-              tenantId={data.tenant.id}
-              logs={data.weeklyCoachingLogs}
-              allowLogEditing
-              onUpdated={onUpdated}
-            />
+            {selectedCoachingSession ? (
+              <PremiumCard>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{selectedCoachingSession.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">{selectedCoachingSession.notes}</CardDescription>
+                    </div>
+                    <StatusBadge value={selectedCoachingSession.status} />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {selectedCoachingSession.actionPlan.map((step: any) => (
+                      <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                    ))}
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+            <WeeklyCoachingLogComposer tenantId={data.tenant.id} subjectUserId={data.directLearner.id} coachRole="coach" title="Capture a weekly coaching log from the coach workspace" employeeName={data.directLearner.name} employeeEmail={data.directLearner.email} coachName={data.coach.name} coachEmail={data.coach.email} supervisorName={data.escalationPartner.name} supervisorEmail={data.escalationPartner.email} managerOfSupervisorEmail={data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail} onCreated={onUpdated} />
+            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
           </div>
         </TabsContent>
-        <TabsContent value="transfer" id="coach-transfer-lane" className="grid gap-6 xl:grid-cols-[1fr_0.92fr] scroll-mt-24">
+
+        <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.82fr_1.18fr] scroll-mt-24">
+          <WorkflowLibraryPanel title="Coach-ready content mix" description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning." resources={data.workflowLibraryMix.documentationResources} />
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Training-transfer focus</CardTitle>
@@ -6881,13 +7091,13 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               ))}
             </CardContent>
           </PremiumCard>
-          <WorkflowLibraryPanel
-            title="Coach-ready content mix"
-            description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning."
-            resources={data.workflowLibraryMix.documentationResources}
-          />
         </TabsContent>
-        <TabsContent value="documentation" id="coach-documentation-feed" className="grid gap-6 xl:grid-cols-[1fr_0.92fr] scroll-mt-24">
+
+        <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
+          <div className="space-y-6">
+            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={data.directLearner.id} authorRole="coach" title="Write a coach follow-up or observational review" onCreated={onUpdated} />
+            <WorkflowLibraryPanel title="Coach observation resources" description="Use methodology references and tenant materials to keep observation notes aligned with the lesson evidence and coaching standard." resources={data.workflowLibraryMix.interventionResources} />
+          </div>
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Coach documentation feed</CardTitle>
@@ -6897,38 +7107,37 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <DocumentationFeed entries={data.documentationEntries} />
             </CardContent>
           </PremiumCard>
-          <div className="space-y-6">
-            <ReviewLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={data.directLearner.id}
-              authorRole="coach"
-              title="Write a coach follow-up or observational review"
-              onCreated={onUpdated}
-            />
-            <WorkflowLibraryPanel
-              title="Coach observation resources"
-              description="Use methodology references and tenant materials to keep observation notes aligned with the lesson evidence and coaching standard."
-              resources={data.workflowLibraryMix.interventionResources}
-            />
-          </div>
         </TabsContent>
-        <TabsContent value="alerts" id="coach-alerts-feed" className="grid gap-4 md:grid-cols-2 scroll-mt-24">
-          {data.notifications.map((item: any) => (
-            <PremiumCard key={item.id}>
-              <CardHeader>
+
+        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+          <div className="space-y-4">
+            {data.notifications.map((item: any) => (
+              <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedAlert?.id === item.id ? "border-rose-400/30 bg-rose-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <CardTitle className="text-white">{item.title}</CardTitle>
-                    <CardDescription className="mt-2 text-slate-400">{new Date(item.createdAt).toLocaleString()}</CardDescription>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Alert</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300">{new Date(item.createdAt).toLocaleString()}</p>
                   </div>
                   <StatusBadge value={item.priority} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-6 text-slate-300">{item.detail}</p>
-              </CardContent>
-            </PremiumCard>
-          ))}
+              </button>
+            ))}
+          </div>
+          <PremiumCard>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-white">{selectedAlert?.title ?? "Alert detail"}</CardTitle>
+                  {selectedAlert ? <CardDescription className="mt-2 text-slate-400">{new Date(selectedAlert.createdAt).toLocaleString()}</CardDescription> : null}
+                </div>
+                {selectedAlert ? <StatusBadge value={selectedAlert.priority} /> : null}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-6 text-slate-300">{selectedAlert?.detail ?? "Select an alert to inspect the coach-facing recommendation and timing context."}</p>
+            </CardContent>
+          </PremiumCard>
         </TabsContent>
       </Tabs>
     </div>
@@ -6938,6 +7147,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
   const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
+  const [selectedInterventionId, setSelectedInterventionId] = useState<string>(data.interventions[0]?.id ?? "");
+  const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
+  const [selectedNotificationId, setSelectedNotificationId] = useState<string>(data.notifications[0]?.id ?? "");
   const managerWeeklyCoachingLogProps = {
     tenantId: data.tenant.id,
     subjectUserId: data.directReport.id,
@@ -6973,6 +7185,10 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
     }, 0);
   };
 
+  const selectedIntervention = data.interventions.find((item: any) => item.id === selectedInterventionId) ?? data.interventions[0] ?? null;
+  const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
+  const selectedNotification = data.notifications.find((item: any) => item.id === selectedNotificationId) ?? data.notifications[0] ?? null;
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
@@ -6981,8 +7197,35 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         <MetricCard label="Coaching follow-ups" value={`${data.coachingSessions.length}`} supporting="Structured sessions with action plans and reminders" icon={<Users2 className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coaching-lane")} actionLabel="Open coaching lane" />
         <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coach-oversight")} actionLabel="Review coach oversight" />
       </div>
-      <div id="manager-signal-trend" className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] scroll-mt-24">
-        <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to Workflow Precision, Service Foundations, and manager-led intervention logic.">
+
+      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-amber-400/18 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] xl:items-start">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="mission-chip rounded-full border-amber-300/20 bg-amber-300/12 text-amber-50">Manager operations mission</Badge>
+              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-50/80">See the risk, coach the rep, close the action</span>
+            </div>
+            <div>
+              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">A guided manager desk replaces the long operations page.</h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">The manager workspace now opens like a case-management console: priority signals first, then split views for interventions, coaching, documentation, and alerts so users stay oriented without endless scrolling.</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Today's focus</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{data.aiSuggestion.headline ?? data.aiSuggestion.title ?? "Resolve open signals and move coaching forward."}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-200">{data.aiSuggestion.summary ?? data.aiSuggestion.detail ?? "The manager lane should surface the most urgent workflow, quality, and coaching actions first."}</p>
+            </div>
+            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Momentum cue</p>
+              <p className="mt-2 text-sm leading-6">{data.directReport.name} is at {data.directReport.readinessScore} readiness with {data.coachingSessions.length} active coaching follow-ups in motion.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="manager-signal-trend" className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] scroll-mt-24">
+        <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
               <defs>
@@ -7010,109 +7253,132 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           onUpdated={onUpdated}
         />
       </div>
+
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")} className="space-y-4">
-        <TabsList className="w-full justify-start rounded-full border border-white/10 bg-white/5 p-1 text-slate-300">
-          <TabsTrigger value="interventions" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Interventions</TabsTrigger>
-          <TabsTrigger value="coaching" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching log</TabsTrigger>
-          <TabsTrigger value="documentation" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-full data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="interventions" id="manager-interventions-lane" className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] scroll-mt-24">
-          <div className="grid gap-4">
-            {data.interventions.map((item: any) => (
-              <PremiumCard key={item.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-white">{item.title}</CardTitle>
-                      <CardDescription className="mt-2 text-slate-400">Gap: {item.gap}</CardDescription>
-                    </div>
-                    <StatusBadge value={item.status} />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2 text-sm text-slate-300">
-                    {item.assignedActions.map((action: any) => (
-                      <div key={action} className="flex items-start gap-2">
-                        <ChevronRight className="mt-0.5 h-4 w-4 text-slate-500" />
-                        <span>{action}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Separator className="bg-white/8" />
-                  <div className="flex items-center justify-between text-sm text-slate-400">
-                    <span>Due {new Date(item.dueDate).toLocaleDateString()}</span>
-                    <span>Owner: {data.manager.name}</span>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ))}
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Manager modes</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Each mode keeps a short queue on one side and the selected case detail on the other.</p>
+            </div>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
+              <TabsTrigger value="interventions" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Interventions</TabsTrigger>
+              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching</TabsTrigger>
+              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+              <TabsTrigger value="notifications" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
+            </TabsList>
           </div>
-          <WorkflowLibraryPanel
-            title="Intervention content mix"
-            description="Managers can pull both CHCG methodology assets and tenant uploads directly into intervention execution."
-            resources={data.workflowLibraryMix.interventionResources}
-          />
-        </TabsContent>
-        <TabsContent value="coaching" id="manager-coaching-lane" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
+        </div>
+
+        <TabsContent value="interventions" id="manager-interventions-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div className="space-y-4">
-            {data.coachingSessions.map((session: any) => (
-              <PremiumCard key={session.id}>
-              <CardHeader>
+            {data.interventions.map((item: any) => (
+              <button key={item.id} type="button" onClick={() => setSelectedInterventionId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedIntervention?.id === item.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <CardTitle className="text-white">{session.title}</CardTitle>
-                    <CardDescription className="mt-2 text-slate-400">{session.notes}</CardDescription>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{item.gap}</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300">Due {new Date(item.dueDate).toLocaleDateString()}</p>
                   </div>
-                  <StatusBadge value={session.status} />
+                  <StatusBadge value={item.status} />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
-                  <div className="mt-2 space-y-2 text-sm text-slate-300">
-                    {session.actionPlan.map((step: any) => (
-                      <div key={step} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                        <span>{step}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
-                  <div className="mt-2 space-y-2">
-                    {session.auditTrail.map((entry: any) => (
-                      <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
-                        <p className="mt-1">{entry.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </PremiumCard>
+              </button>
             ))}
           </div>
           <div className="space-y-6">
+            {selectedIntervention ? (
+              <PremiumCard>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{selectedIntervention.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">Gap: {selectedIntervention.gap}</CardDescription>
+                    </div>
+                    <StatusBadge value={selectedIntervention.status} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {selectedIntervention.assignedActions.map((action: any) => (
+                      <div key={action} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
+                        <div className="flex items-start gap-2"><ChevronRight className="mt-0.5 h-4 w-4 text-cyan-300" /><span>{action}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-slate-400"><span>Owner: {data.manager.name}</span><span>Due {new Date(selectedIntervention.dueDate).toLocaleDateString()}</span></div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+            <WorkflowLibraryPanel
+              title="Intervention content mix"
+              description="Managers can pull both CHCG methodology assets and tenant uploads directly into intervention execution."
+              resources={data.workflowLibraryMix.interventionResources}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="coaching" id="manager-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+          <div className="space-y-4">
+            {data.coachingSessions.map((session: any) => (
+              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-emerald-400/30 bg-emerald-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching session</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
+                  </div>
+                  <StatusBadge value={session.status} />
+                </div>
+              </button>
+            ))}
             <PremiumCard className="border-cyan-400/20 bg-cyan-400/8">
               <CardHeader>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <CardTitle className="text-white">Open the coaching log in a focused pop-up</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">Managers can launch the same weekly coaching log in a separate dialog when they want a cleaner writing surface without leaving the coaching lane.</CardDescription>
+                    <CardDescription className="mt-2 text-slate-300">Launch a cleaner writing surface without leaving the coaching lane.</CardDescription>
                   </div>
-                  <WeeklyCoachingLogPopupBox
-                    composerProps={managerWeeklyCoachingLogProps}
-                    onCreated={onUpdated}
-                  />
+                  <WeeklyCoachingLogPopupBox composerProps={managerWeeklyCoachingLogProps} onCreated={onUpdated} />
                 </div>
               </CardHeader>
             </PremiumCard>
-            <WeeklyCoachingLogComposer
-              {...managerWeeklyCoachingLogProps}
-              onCreated={onUpdated}
-            />
+          </div>
+          <div className="space-y-6">
+            {selectedCoachingSession ? (
+              <PremiumCard>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">{selectedCoachingSession.title}</CardTitle>
+                      <CardDescription className="mt-2 text-slate-400">{selectedCoachingSession.notes}</CardDescription>
+                    </div>
+                    <StatusBadge value={selectedCoachingSession.status} />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
+                    <div className="mt-2 grid gap-3 md:grid-cols-2">
+                      {selectedCoachingSession.actionPlan.map((step: any) => (
+                        <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
+                    <div className="mt-2 space-y-2">
+                      {selectedCoachingSession.auditTrail.map((entry: any) => (
+                        <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
+                          <p className="mt-1">{entry.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </PremiumCard>
+            ) : null}
+            <WeeklyCoachingLogComposer {...managerWeeklyCoachingLogProps} onCreated={onUpdated} />
             <WeeklyCoachingLogTimeline
               title="Weekly coaching log history"
               description="Managers can review every structured coaching field, confirm the simulated email-copy list, and track how the learner responds over time."
@@ -7124,62 +7390,42 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             <PremiumCard className="scroll-mt-24" id="manager-coach-oversight">
               <CardHeader>
                 <CardTitle className="text-white">Coach direct-report oversight</CardTitle>
-                <CardDescription className="text-slate-400">Managers can remotely review the same direct-report coaching history the coach sees, keeping the escalation conversation aligned inside the manager workspace.</CardDescription>
+                <CardDescription className="text-slate-400">Review the same direct-report coaching history the coach sees without leaving the manager workspace.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {data.coachCoverage.map((coverage: any) => {
                   const filteredHistory = filterRetrainingHistoryByWindow(coverage.retrainingHistory ?? [], historyWindow);
-
                   return (
-                  <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
-                        <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
+                    <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
+                          <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
+                        </div>
+                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
                       </div>
-                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
-                    </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p>
-                        <p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p>
-                        <p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p><p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p><p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p><p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p><p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p></div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p>
-                        <p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p>
-                        <p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p>
-                      </div>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
-                            <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button type="button" variant={historyWindow === "week" ? "default" : "outline"} className={historyWindow === "week" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("week")}>
-                              Week
-                            </Button>
-                            <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>
-                              Month
-                            </Button>
-                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white" onClick={() => exportRetrainingHistory(coverage.directReport.name, filteredHistory)} disabled={!filteredHistory.length}>
-                              Export CSV
-                            </Button>
+                      <div className="mt-4 space-y-3">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
+                              <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button type="button" variant={historyWindow === "week" ? "default" : "outline"} className={historyWindow === "week" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("week")}>Week</Button>
+                              <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>Month</Button>
+                              <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white" onClick={() => exportRetrainingHistory(coverage.directReport.name, filteredHistory)} disabled={!filteredHistory.length}>Export CSV</Button>
+                            </div>
                           </div>
                         </div>
+                        <RetrainingHistorySection title="Targeted retraining history" description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane." assignments={filteredHistory} emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`} />
                       </div>
-                      <RetrainingHistorySection
-                        title="Targeted retraining history"
-                        description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane."
-                        assignments={filteredHistory}
-                        emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`}
-                      />
                     </div>
-                  </div>
                   );
                 })}
                 <WeeklyCoachingLogTimeline
@@ -7194,12 +7440,13 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </PremiumCard>
           </div>
         </TabsContent>
-        <TabsContent value="documentation" id="manager-documentation-lane" className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr] scroll-mt-24">
+
+        <TabsContent value="documentation" id="manager-documentation-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
           <div className="space-y-6">
             <PremiumCard>
               <CardHeader>
                 <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
-                <CardDescription className="text-slate-400">Completion evidence from Service Foundations, Workflow Precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
+                <CardDescription className="text-slate-400">Completion evidence from service foundations, workflow precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
               </CardHeader>
               <CardContent>
                 <DocumentationFeed entries={data.documentationEntries} />
@@ -7212,17 +7459,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             />
           </div>
           <div className="space-y-6">
-            <ReviewLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={data.directReport.id}
-              authorRole="manager"
-              title="Write a one-on-one, quarterly, or annual coaching log"
-              onCreated={onUpdated}
-            />
+            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={data.directReport.id} authorRole="manager" title="Write a one-on-one, quarterly, or annual coaching log" onCreated={onUpdated} />
             <PremiumCard>
               <CardHeader>
                 <CardTitle className="text-white">Structured review history</CardTitle>
-                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance-leadership cadence.</CardDescription>
+                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance cadence.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {data.reviewLogs.map((entry: any) => (
@@ -7241,21 +7482,34 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </PremiumCard>
           </div>
         </TabsContent>
-        <TabsContent value="notifications" id="manager-alerts-lane" className="grid gap-4 lg:grid-cols-2 scroll-mt-24">
-          {data.notifications.map((item: any) => (
-            <PremiumCard key={item.id}>
-              <CardHeader>
+
+        <TabsContent value="notifications" id="manager-alerts-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+          <div className="space-y-4">
+            {data.notifications.map((item: any) => (
+              <button key={item.id} type="button" onClick={() => setSelectedNotificationId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedNotification?.id === item.id ? "border-rose-400/30 bg-rose-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                 <div className="flex items-center justify-between gap-4">
-                  <CardTitle className="text-white">{item.title}</CardTitle>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Alert</p>
+                    <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300">{new Date(item.createdAt).toLocaleString()}</p>
+                  </div>
                   <StatusBadge value={item.priority} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-6 text-slate-300">{item.detail}</p>
-                <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
-              </CardContent>
-            </PremiumCard>
-          ))}
+              </button>
+            ))}
+          </div>
+          <PremiumCard>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <CardTitle className="text-white">{selectedNotification?.title ?? "Alert details"}</CardTitle>
+                {selectedNotification ? <StatusBadge value={selectedNotification.priority} /> : null}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-7 text-slate-300">{selectedNotification?.detail ?? "Select an alert to inspect the full manager-facing recommendation and time stamp."}</p>
+              {selectedNotification ? <p className="mt-4 text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(selectedNotification.createdAt).toLocaleString()}</p> : null}
+            </CardContent>
+          </PremiumCard>
         </TabsContent>
       </Tabs>
     </div>
@@ -7270,6 +7524,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"journey" | "reengagements" | "coaching" | "evidence">("journey");
   const utils = trpc.useUtils();
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
@@ -7315,10 +7570,60 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
     freshStart,
   });
   const activeIntervention = data.assignedInterventions.find((item: any) => item.id === selectedInterventionId) ?? null;
+  const learnerCelebrationCopy = completedLearnerModules >= Math.max(1, Math.ceil(learnerModules.length / 2))
+    ? "You have already crossed the halfway mark in your guided journey."
+    : "Each completed module unlocks the next coaching and readiness milestone.";
 
   return (
-
     <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+        <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
+        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
+        <MetricCard label={learnerWorkspaceCopy.assignedReengagementsMetricLabel} value={`${data.assignedInterventions.length}`} supporting={learnerWorkspaceCopy.assignedReengagementsMetricSupporting} icon={<Target className="h-4 w-4" />} />
+        <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
+      </div>
+
+      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-400/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),linear-gradient(135deg,rgba(6,24,42,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(18rem,0.82fr)] xl:items-start">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Learner journey</Badge>
+              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">One clear next step at a time</span>
+            </div>
+            <div>
+              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">The learner workspace now guides progress, action, and evidence without making people hunt through one long page.</h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">Use the guided modes below to continue the journey, handle assigned re-engagements, respond to coaching, and review evidence only when it is needed.</p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href={primaryTrainingPath}>
+                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                  if (activeRetrainingAssignment?.status === "assigned") {
+                    updateActiveAssignmentStatus("in_progress");
+                  }
+                }}>
+                  {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining") : "Resume guided training"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/library">
+                <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Browse mapped resources</Button>
+              </Link>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current focus</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-200">{activeRetrainingAssignment ? `Assigned from ${activeRetrainingAssignment.journeyTitle} with ${formatDueWindow(activeRetrainingAssignment.dueAt).toLowerCase()}.` : `Next recommendation inside ${data.activeJourney.title} with ${data.activeJourney.progress}% journey completion so far.`}</p>
+            </div>
+            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Progress celebration</p>
+              <p className="mt-2 text-sm leading-6">{learnerCelebrationCopy}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {activeRetrainingAssignment ? (
         <div id="learner-priority-retraining" className="rounded-[1.8rem] border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(253,224,71,0.18),transparent_34%),linear-gradient(135deg,rgba(69,26,3,0.92),rgba(15,23,42,0.98))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.26)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -7352,154 +7657,61 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
           </div>
         </div>
       ) : null}
-      {retrainingHistory.length ? (
-        <RetrainingHistorySection
-          title="Past retraining history"
-          description="Your learner workspace now keeps earlier assigned modules visible after completion so you can review what was already finished before the next intervention starts."
-          assignments={retrainingHistory}
-        />
-      ) : null}
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
-        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
-        <MetricCard label={learnerWorkspaceCopy.assignedReengagementsMetricLabel} value={`${data.assignedInterventions.length}`} supporting={learnerWorkspaceCopy.assignedReengagementsMetricSupporting} icon={<Target className="h-4 w-4" />} />
-        <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
-      </div>
-      <PremiumCard className="overflow-hidden">
-        <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
-          <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
-              <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
-              <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
+
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")} className="space-y-4">
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Learner modes</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Move through the journey with one mode at a time instead of reading the whole workspace top to bottom.</p>
             </div>
-            <div className="mt-5 max-w-3xl">
-              <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
-              <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{activeRetrainingAssignment?.moduleTitle ?? primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
-            </div>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Modules completed</p>
-                <p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p>
-              </div>
-              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">{activeRetrainingAssignment ? "Assigned module" : "Recommended next"}</p>
-                <p className="mt-2 text-sm font-medium text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p>
-              </div>
-              <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Coach milestone</p>
-                <p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p>
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href={primaryTrainingPath}>
-                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-                  if (activeRetrainingAssignment?.status === "assigned") {
-                    updateActiveAssignmentStatus("in_progress");
-                  }
-                }}>
-                  {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining") : "Resume guided training"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
-                <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
-                  {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark module complete"}
-                </Button>
-              ) : null}
-              <Link href="/library">
-                <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                  Browse mapped resources
-                </Button>
-              </Link>
-            </div>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
+              <TabsTrigger value="journey" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Journey</TabsTrigger>
+              <TabsTrigger value="reengagements" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Re-engagements</TabsTrigger>
+              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching</TabsTrigger>
+              <TabsTrigger value="evidence" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Evidence</TabsTrigger>
+            </TabsList>
           </div>
-          <div className="grid gap-4">
-            <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Learning signals</p>
-              <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
-              <p className="mt-3 text-sm leading-7 text-slate-100">The learner workspace now mirrors modern LMS discovery patterns by surfacing a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Achievement layer</p>
-                <p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p>
-              </div>
-              <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Recommendation framing</p>
-                <p className="mt-2 text-sm font-medium text-white">Use the training route for the immersive lesson player and the learner workspace for high-level progress, continuation, and next-step discovery.</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </PremiumCard>
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="space-y-6">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Active enablement journey</CardTitle>
-              <CardDescription className="text-slate-400">{learnerWorkspaceCopy.activeJourneyDescription}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {activeRetrainingAssignment ? (
-                <div className="rounded-3xl border border-amber-400/25 bg-amber-400/10 p-4 shadow-[0_18px_50px_rgba(251,191,36,0.12)]">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-amber-100/80">Assigned first</p>
-                      <h3 className="mt-2 text-lg font-semibold text-white">{activeRetrainingAssignment.moduleTitle}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-100/90">{activeRetrainingAssignment.status === "completed" ? "This targeted retraining is complete and leadership can now see the completion chip in their oversight lanes." : "This retraining has been pinned to the top of your journey and should be completed before resuming the rest of your learning path."}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge value={activeRetrainingAssignment.status} />
-                      <Badge className="rounded-full border-amber-400/20 bg-amber-400/14 text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <Link href={primaryTrainingPath}>
-                      <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-                        if (activeRetrainingAssignment.status === "assigned") {
-                          updateActiveAssignmentStatus("in_progress");
-                        }
-                      }}>{activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Open assigned module"}</Button>
-                    </Link>
-                    {activeRetrainingAssignment.status !== "completed" ? (
-                      <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
-                        {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark complete"}
-                      </Button>
-                    ) : null}
-                    <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 px-3 py-1 text-slate-100">{activeRetrainingAssignment.journeyTitle}</Badge>
-                  </div>
+        </div>
+
+        <TabsContent value="journey" className="mt-0 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+          <PremiumCard className="overflow-hidden">
+            <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
+              <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
+                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
+                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
                 </div>
-              ) : null}
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-slate-400">Competency gap</p>
-                    <h3 className="text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h3>
-                  </div>
-                  <Badge className="rounded-full border-blue-500/20 bg-blue-500/10 text-blue-200">{data.activeJourney.progress}% complete</Badge>
+                <div className="mt-5 max-w-3xl">
+                  <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
+                  <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{activeRetrainingAssignment?.moduleTitle ?? primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
                 </div>
-                <Progress value={data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Modules completed</p><p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p></div>
+                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Recommended next</p><p className="mt-2 text-sm font-medium text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p></div>
+                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Coach milestone</p><p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p></div>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Link href={primaryTrainingPath}>
-                  <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-                    if (activeRetrainingAssignment?.status === "assigned") {
-                      updateActiveAssignmentStatus("in_progress");
-                    }
-                  }}>
-                    {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review assigned retraining" : "Launch assigned retraining") : "Launch interactive training"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/library">
-                  <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                    Open mapped resources
-                  </Button>
-                </Link>
+              <div className="grid gap-4">
+                <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Learning signals</p>
+                  <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
+                  <p className="mt-3 text-sm leading-7 text-slate-100">The learner workspace now surfaces a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
+                </div>
+                <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5"><p className="text-xs uppercase tracking-[0.22em] text-slate-300">Achievement layer</p><p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p></div>
+                <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5"><p className="text-xs uppercase tracking-[0.22em] text-slate-300">Recommendation framing</p><p className="mt-2 text-sm font-medium text-white">Use the training route for the immersive lesson player and the learner workspace for high-level progress, continuation, and next-step discovery.</p></div>
               </div>
-              <div className="space-y-3">
+            </CardContent>
+          </PremiumCard>
+          <div className="space-y-6">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Active enablement journey</CardTitle>
+                <CardDescription className="text-slate-400">{learnerWorkspaceCopy.activeJourneyDescription}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {data.activeJourney.modules.map((module: any, index: number) => (
                   <div key={module.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-start justify-between gap-4">
@@ -7517,10 +7729,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
                     </div>
                     <div className="mt-4">
-                      <div className="mb-2 flex items-center justify-between text-sm text-slate-400">
-                        <span>{index === 0 ? "Recommended path" : "Completion"}</span>
-                        <span>{module.completionRate}%</span>
-                      </div>
+                      <div className="mb-2 flex items-center justify-between text-sm text-slate-400"><span>{index === 0 ? "Recommended path" : "Completion"}</span><span>{module.completionRate}%</span></div>
                       <Progress value={module.completionRate} className="h-2 bg-white/8" />
                     </div>
                     <div className="mt-4 flex flex-wrap gap-3">
@@ -7536,16 +7745,14 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </PremiumCard>
-          <WorkflowLibraryPanel
-            title="Journey resource mix"
-            description="Your learning path can now blend CHCG core modules with tenant-provided launch or compliance materials."
-            resources={data.workflowLibraryMix.journeyResources}
-          />
-        </div>
-        <div className="space-y-6">
+              </CardContent>
+            </PremiumCard>
+            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Review what was already finished before the next intervention starts." assignments={retrainingHistory} /> : null}
+            <WorkflowLibraryPanel title="Journey resource mix" description="Your learning path can now blend CHCG core modules with tenant-provided launch or compliance materials." resources={data.workflowLibraryMix.journeyResources} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reengagements" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">{learnerWorkspaceCopy.assignedReengagementsCardTitle}</CardTitle>
@@ -7563,48 +7770,31 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                   </div>
                   <div className="mt-4 space-y-2 text-sm text-slate-300">
                     {item.assignedActions.map((action: any) => (
-                      <button
-                        key={action}
-                        type="button"
-                        onClick={() => setSelectedInterventionId(item.id)}
-                        className="flex w-full items-start gap-2 rounded-2xl border border-white/8 bg-slate-950/35 px-3 py-3 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"
-                      >
-                        <ChevronRight className="mt-0.5 h-4 w-4 text-cyan-200" />
-                        <span>{action}</span>
-                      </button>
+                      <button key={action} type="button" onClick={() => setSelectedInterventionId(item.id)} className="flex w-full items-start gap-2 rounded-2xl border border-white/8 bg-slate-950/35 px-3 py-3 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"><ChevronRight className="mt-0.5 h-4 w-4 text-cyan-200" /><span>{action}</span></button>
                     ))}
                   </div>
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Button type="button" variant="outline" onClick={() => setSelectedInterventionId(item.id)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                      Choose training for this re-engagement
-                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setSelectedInterventionId(item.id)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Choose training for this re-engagement</Button>
                     {activeRetrainingAssignment ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 text-amber-100">Assigned module available now</Badge> : null}
                   </div>
                 </div>
               ))}
             </CardContent>
           </PremiumCard>
-          <Dialog open={Boolean(activeIntervention)} onOpenChange={(open) => !open ? setSelectedInterventionId(null) : null}>
-            <DialogContent className="border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Select the training to continue this re-engagement</DialogTitle>
-                <DialogDescription className="text-slate-400">
-                  {activeIntervention ? `Route ${activeIntervention.title} into the right module so the learner lands exactly where the assigned re-engagement should continue.` : "Choose a module to continue this re-engagement."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3">
+          <div className="space-y-6">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Re-engagement guidance</CardTitle>
+                <CardDescription className="text-slate-400">Choose the best training continuation path when a re-engagement is assigned.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {interventionTrainingOptions.map((option) => (
                   <Link key={option.id} href={option.path}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
-                          updateActiveAssignmentStatus("in_progress");
-                        }
-                        setSelectedInterventionId(null);
-                      }}
-                      className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-                    >
+                    <button type="button" onClick={() => {
+                      if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
+                        updateActiveAssignmentStatus("in_progress");
+                      }
+                    }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <h4 className="text-base font-semibold text-white">{option.title}</h4>
@@ -7616,17 +7806,59 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                     </button>
                   </Link>
                 ))}
+              </CardContent>
+            </PremiumCard>
+            <Dialog open={Boolean(activeIntervention)} onOpenChange={(open) => !open ? setSelectedInterventionId(null) : null}>
+              <DialogContent className="border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Select the training to continue this re-engagement</DialogTitle>
+                  <DialogDescription className="text-slate-400">{activeIntervention ? `Route ${activeIntervention.title} into the right module so the learner lands exactly where the assigned re-engagement should continue.` : "Choose a module to continue this re-engagement."}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  {interventionTrainingOptions.map((option) => (
+                    <Link key={option.id} href={option.path}>
+                      <button type="button" onClick={() => {
+                        if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
+                          updateActiveAssignmentStatus("in_progress");
+                        }
+                        setSelectedInterventionId(null);
+                      }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-base font-semibold text-white">{option.title}</h4>
+                            <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
+                            <p className="mt-2 text-sm text-cyan-100/85">{option.detail}</p>
+                          </div>
+                          <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
+                        </div>
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="coaching" className="mt-0 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Coaching timeline</CardTitle>
+              <CardDescription className="text-slate-400">Review the next coaching checkpoint and your structured take-aways without leaving the learner workspace.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Next coaching milestone</p>
+                <h3 className="mt-2 text-xl font-semibold text-white">{data.nextCoachingSession.title}</h3>
+                <p className="mt-2 text-sm text-slate-300">Due {new Date(data.nextCoachingSession.dueDate).toLocaleDateString()}</p>
               </div>
-            </DialogContent>
-          </Dialog>
-          <WeeklyCoachingLogTimeline
-            title="Weekly coaching log and your take-aways"
-            description="Review the structured coaching notes your leaders recorded, see which email recipients would receive copies, and add your own response back into the same log."
-            tenantId={data.tenant.id}
-            logs={data.weeklyCoachingLogs}
-            allowTakeawayEditing
-            onUpdated={onUpdated}
-          />
+              <WeeklyCoachingLogTimeline title="Weekly coaching log and your take-aways" description="Review the structured coaching notes your leaders recorded, see which email recipients would receive copies, and add your own response back into the same log." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowTakeawayEditing onUpdated={onUpdated} />
+            </CardContent>
+          </PremiumCard>
+          <WorkflowLibraryPanel title="Coaching support assets" description="Use mapped resources to prepare for your next coaching step and reinforce the right behaviors before the next review." resources={data.workflowLibraryMix.documentationResources} />
+        </TabsContent>
+
+        <TabsContent value="evidence" className="mt-0 grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Documentation hub</CardTitle>
@@ -7650,13 +7882,9 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
               </div>
             </CardContent>
           </PremiumCard>
-          <WorkflowLibraryPanel
-            title="Documentation support assets"
-            description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents."
-            resources={data.workflowLibraryMix.documentationResources}
-          />
-        </div>
-      </div>
+          <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -7672,6 +7900,8 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   const [customRoleName, setCustomRoleName] = useState("");
   const [customRoleDescription, setCustomRoleDescription] = useState("");
   const [customRoleBase, setCustomRoleBase] = useState<DemoRole>("manager");
+  const [activeAdminMode, setActiveAdminMode] = useState<"overview" | "branding" | "roles" | "governance">("overview");
+  const [selectedTenantUserId, setSelectedTenantUserId] = useState<string>(data.tenantUsers[0]?.id ?? data.admin.id);
   const updateBranding = trpc.demo.previewUpdateBranding.useMutation({
     onSuccess: () => {
       onUpdated?.();
@@ -7693,216 +7923,389 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
     setHeroStatement(data.branding.heroStatement);
   }, [data.branding.accent, data.branding.heroStatement, data.branding.logoMark, data.branding.preferredLabel]);
 
+  const selectedTenantUser = data.tenantUsers.find((user: any) => user.id === selectedTenantUserId) ?? data.tenantUsers[0] ?? data.admin;
+  const blendedGovernanceAssets = [
+    ...data.workflowLibraryMix.journeyResources,
+    ...data.workflowLibraryMix.interventionResources,
+    ...data.workflowLibraryMix.documentationResources,
+  ].filter((asset: any, index: number, collection: any[]) => collection.findIndex((candidate: any) => candidate.id === asset.id) === index).slice(0, 4);
+
+  const openAdminMode = (mode: "overview" | "branding" | "roles" | "governance", sectionId: string) => {
+    setActiveAdminMode(mode);
+    window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
+  };
+
   return (
     <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(310px,0.92fr)]">
+        <PremiumCard className="overflow-hidden">
+          <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+            <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.96),rgba(15,23,42,0.98))] p-6 shadow-[0_28px_85px_rgba(8,15,35,0.3)]">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Client control</Badge>
+                <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.tenant.industry}</Badge>
+                <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.branding.dataIsolation}</Badge>
+              </div>
+              <div className="mt-5 max-w-3xl">
+                <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">Tenant mission control</p>
+                <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{data.branding.preferredLabel}</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-50">Run branding, permissions, content governance, and documentation oversight from one guided surface instead of hunting through long stacked admin pages.</p>
+              </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Tenant roster</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{data.tenantUsers.length}</p>
+                  <p className="mt-1 text-xs text-slate-300">Role-scoped identities in the active tenant</p>
+                </div>
+                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Custom roles</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{(data.customRoles ?? []).length}</p>
+                  <p className="mt-1 text-xs text-slate-300">Tenant-specific permission overlays</p>
+                </div>
+                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Governance signals</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{data.documentationEntries.length}</p>
+                  <p className="mt-1 text-xs text-slate-300">Documentation events ready for audit</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-4">
+              <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">What matters now</p>
+                <h4 className="mt-3 text-xl font-semibold text-white">Keep the tenant presentation polished while preserving strict CHCG governance and predictable role access.</h4>
+                <p className="mt-3 text-sm leading-7 text-slate-100">The admin workspace now guides leaders through identity, role architecture, and governance review in compact decision modes.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button type="button" onClick={() => openAdminMode("branding", "admin-branding-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
+                  <p className="mt-2 text-base font-semibold text-white">Refresh white-label controls</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Adjust preferred label, accent, logo mark, and hero statement without leaving this control plane.</p>
+                </button>
+                <button type="button" onClick={() => openAdminMode("governance", "admin-governance-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Audit lane</p>
+                  <p className="mt-2 text-base font-semibold text-white">Review coaching and documentation evidence</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Surface the proof trail and weekly governance artifacts before you expand the full audit timeline.</p>
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </PremiumCard>
+
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Control cues</p>
+              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Use one mode at a time so tenant admins never have to scroll through branding, permissions, coaching, and evidence all at once.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {data.configuration.slice(0, 4).map((item: any) => (
+                <div key={item.key} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
+                  <p className="mt-2 text-sm font-semibold text-[#1B303C]">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
         <MetricCard label="Role users" value={`${data.tenantUsers.length}`} supporting="Strictly tenant-scoped account inventory" icon={<Users2 className="h-4 w-4" />} />
         <MetricCard label="Brand accent" value={data.branding.accent} supporting={data.branding.preferredLabel} icon={<Sparkles className="h-4 w-4" />} />
         <MetricCard label="Isolation mode" value="Strict" supporting={data.branding.dataIsolation} icon={<ShieldCheck className="h-4 w-4" />} />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="space-y-6">
-          <PremiumCard>
-          <CardHeader>
-            <CardTitle className="text-white">White-label tenant identity</CardTitle>
-            <CardDescription className="text-slate-400">Client-specific identity and enterprise presentation controls.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/10 text-lg font-semibold text-white" style={{ backgroundColor: data.branding.accent + "22" }}>
-                  {data.branding.logoMark}
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Preferred label</p>
-                  <h3 className="mt-1 text-xl font-semibold text-white">{data.branding.preferredLabel}</h3>
-                  <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{data.branding.heroStatement}</p>
-                </div>
-              </div>
+
+      <Tabs value={activeAdminMode} onValueChange={(value) => setActiveAdminMode(value as "overview" | "branding" | "roles" | "governance")} className="space-y-4">
+        <div className="command-band px-4 py-4 md:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Client control modes</p>
+              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between overview, branding, role architecture, and governance instead of scrolling through every admin surface sequentially.</p>
             </div>
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5">
-              <div className="mb-4 space-y-1">
-                <p className="text-sm font-medium text-white">Branding controls</p>
-                <p className="text-sm leading-6 text-slate-400">Update the label, accent, logo mark, and hero message to demonstrate tenant-specific white-label configuration layered over CHCG methodology tracks.</p>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
+              <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
+              <TabsTrigger value="branding" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Branding</TabsTrigger>
+              <TabsTrigger value="roles" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Roles</TabsTrigger>
+              <TabsTrigger value="governance" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Governance</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+
+        <TabsContent value="overview" className="mt-0 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+          <PremiumCard id="admin-overview-section">
+            <CardHeader>
+              <CardTitle className="text-white">Tenant operating snapshot</CardTitle>
+              <CardDescription className="text-slate-400">Force-fed information for the three admin decisions that matter most right now.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="guide-card p-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Identity status</p>
+                <p className="mt-2 text-lg font-semibold text-white">{data.branding.preferredLabel}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Accent {data.branding.accent} and logo mark {data.branding.logoMark} are active across the tenant preview.</p>
+              </div>
+              <div className="guide-card p-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Role architecture</p>
+                <p className="mt-2 text-lg font-semibold text-white">{(data.customRoles ?? []).length > 0 ? `${(data.customRoles ?? []).length} custom lane${(data.customRoles ?? []).length === 1 ? "" : "s"}` : "Core permission lanes only"}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Every tenant role still maps to a predictable CHCG permission lane.</p>
+              </div>
+              <div className="guide-card p-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Governance proof</p>
+                <p className="mt-2 text-lg font-semibold text-white">{data.weeklyCoachingLogs.length} coaching records</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Tenant admins can audit learner take-aways, recipient routing, and follow-up completeness from one mode.</p>
+              </div>
+              <div className="guide-card p-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Library blend</p>
+                <p className="mt-2 text-lg font-semibold text-white">{blendedGovernanceAssets.length} curated governance assets</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">CHCG assets and tenant uploads stay visibly distinct while feeding the same workflows.</p>
+              </div>
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Action launcher</CardTitle>
+              <CardDescription className="text-slate-400">Jump directly into the next admin flow without navigating a long page.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { title: "Update white-label identity", description: "Refine brand tone, logo mark, and accent colors.", mode: "branding", sectionId: "admin-branding-section" },
+                { title: "Add or review custom roles", description: "Keep permission lanes clear while supporting tenant-specific job families.", mode: "roles", sectionId: "admin-roles-section" },
+                { title: "Audit governance evidence", description: "Review coaching logs, review records, and documentation feed side by side.", mode: "governance", sectionId: "admin-governance-section" },
+              ].map((item) => (
+                <button key={item.title} type="button" onClick={() => openAdminMode(item.mode as any, item.sectionId)} className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10">
+                  <div>
+                    <p className="text-sm font-medium text-white">{item.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">{item.description}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400" />
+                </button>
+              ))}
+            </CardContent>
+          </PremiumCard>
+        </TabsContent>
+
+        <TabsContent value="branding" className="mt-0 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]" id="admin-branding-section">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">White-label tenant identity</CardTitle>
+              <CardDescription className="text-slate-400">Client-specific identity and enterprise presentation controls in one compact editor.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/10 text-lg font-semibold text-white" style={{ backgroundColor: `${accent}22` }}>
+                    {logoMark}
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Live preview</p>
+                    <h3 className="mt-1 text-xl font-semibold text-white">{preferredLabel}</h3>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{heroStatement}</p>
+                  </div>
+                </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2 text-sm text-slate-300">
                   <span>Preferred label</span>
-                  <input value={preferredLabel} onChange={(event) => setPreferredLabel(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                  <input value={preferredLabel} onChange={(event) => setPreferredLabel(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
                 </label>
                 <label className="space-y-2 text-sm text-slate-300">
                   <span>Accent</span>
-                  <input value={accent} onChange={(event) => setAccent(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                  <input value={accent} onChange={(event) => setAccent(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
                 </label>
                 <label className="space-y-2 text-sm text-slate-300">
                   <span>Logo mark</span>
-                  <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                  <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className={FORM_INPUT_SURFACE_CLASS} />
                 </label>
                 <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
                   <span>Hero statement</span>
-                  <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                  <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
                 </label>
               </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Button
-                  className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
-                  onClick={() => updateBranding.mutate({ tenantId: data.tenant.id, preferredLabel, accent, logoMark, heroStatement })}
-                  disabled={updateBranding.isPending}
-                >
+              <div className="flex flex-wrap items-center gap-3">
+                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => updateBranding.mutate({ tenantId: data.tenant.id, preferredLabel, accent, logoMark, heroStatement })} disabled={updateBranding.isPending}>
                   {updateBranding.isPending ? "Applying..." : "Apply branding"}
                 </Button>
                 {updateBranding.isSuccess ? <span className="text-sm text-emerald-300">Branding updated for this tenant.</span> : null}
               </div>
-            </div>
-            <div className="space-y-3">
-              {data.configuration.map((item: any) => (
-                <div key={item.key} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
-                  <span className="text-slate-300">{item.label}</span>
-                  <Badge className="rounded-full border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{item.value}</Badge>
-                </div>
-              ))}
-            </div>
-            <ReviewLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={data.tenantUsers.find((user: any) => user.role === "learner")?.id ?? data.admin.id}
-              authorRole="client_admin"
-              title="Write coach or calibration documentation"
-              onCreated={onUpdated}
-            />
-          </CardContent>
-        </PremiumCard>
-          <WeeklyCoachingLogComposer
-            tenantId={data.tenant.id}
-            subjectUserId={learnerUser.id}
-            coachRole="client_admin"
-            title="Write a structured weekly coaching log as client admin"
-            employeeName={learnerUser.name}
-            employeeEmail={learnerUser.email}
-            coachName={data.admin.name}
-            coachEmail={data.admin.email}
-            supervisorName={managerUser.name}
-            supervisorEmail={managerUser.email}
-            managerOfSupervisorEmail={executiveUser.email}
-            onCreated={onUpdated}
-          />
-        </div>
-        <div className="space-y-6">
-          <WorkflowLibraryPanel
-            title="Blended workflow library governance"
-            description="Client admins can now see how tenant-uploaded materials are mixed with CHCG assets across journeys, interventions, and documentation support."
-            resources={[
-              ...data.workflowLibraryMix.journeyResources,
-              ...data.workflowLibraryMix.interventionResources,
-              ...data.workflowLibraryMix.documentationResources,
-            ].filter((asset: any, index: number, collection: any[]) => collection.findIndex((candidate: any) => candidate.id === asset.id) === index).slice(0, 4)}
-          />
+            </CardContent>
+          </PremiumCard>
+          <div className="space-y-6">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Identity guardrails</CardTitle>
+                <CardDescription className="text-slate-400">Keep the tenant presentation polished without diluting the underlying CHCG method.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {data.configuration.map((item: any) => (
+                  <div key={item.key} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                    <span className="text-slate-300">{item.label}</span>
+                    <Badge className="rounded-full border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{item.value}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+            <WorkflowLibraryPanel title="Blended workflow library governance" description="Client admins can see how tenant-uploaded materials are mixed with CHCG assets across journeys, interventions, and documentation support." resources={blendedGovernanceAssets} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="roles" className="mt-0 grid gap-6 xl:grid-cols-[0.94fr_1.06fr]" id="admin-roles-section">
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">Tenant user roster</CardTitle>
-              <CardDescription className="text-slate-400">Role-scoped access model within the current client boundary.</CardDescription>
+              <CardDescription className="text-slate-400">Select one user to inspect role context instead of scanning a full stacked roster.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {data.tenantUsers.map((user: any) => (
-                <div key={user.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div>
-                    <p className="font-medium text-white">{user.name}</p>
-                    <p className="text-sm text-slate-400">{user.title} · {user.team}</p>
-                  </div>
-                  <Badge className="rounded-full border-white/10 bg-white/8 capitalize text-slate-200">{user.role.replace("_", " ")}</Badge>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3">
+                {data.tenantUsers.map((user: any) => (
+                  <button key={user.id} type="button" onClick={() => setSelectedTenantUserId(user.id)} className={`flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${selectedTenantUser.id === user.id ? "border-cyan-400/30 bg-cyan-400/12" : "border-white/10 bg-white/5 hover:bg-white/10"}`}>
+                    <div>
+                      <p className="font-medium text-white">{user.name}</p>
+                      <p className="text-sm text-slate-400">{user.title} · {user.team}</p>
+                    </div>
+                    <Badge className="rounded-full border-white/10 bg-white/8 capitalize text-slate-200">{user.role.replace("_", " ")}</Badge>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </PremiumCard>
+          <div className="space-y-6">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Selected role context</CardTitle>
+                <CardDescription className="text-slate-400">Show the user’s current lane, team context, and the next governance action at a glance.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                <div className="guide-card p-4 md:col-span-2">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected user</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{selectedTenantUser.name}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{selectedTenantUser.title} on {selectedTenantUser.team}</p>
                 </div>
-              ))}
-            </CardContent>
-          </PremiumCard>
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Custom role definitions</CardTitle>
-              <CardDescription className="text-slate-300/80">Add tenant-specific job families while still mapping each role to one of the core CHCG permission lanes.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-2 text-sm font-medium text-slate-200">
-                  <span>Role name</span>
-                  <input value={customRoleName} onChange={(event) => setCustomRoleName(event.target.value)} placeholder="Example: Workflow Quality Lead" className={FORM_INPUT_SURFACE_CLASS} />
-                </label>
-                <label className="space-y-2 text-sm font-medium text-slate-200">
-                  <span>Base permission lane</span>
-                  <Select value={customRoleBase} onValueChange={(value) => setCustomRoleBase(value as DemoRole)}>
-                    <SelectTrigger className="border-white/12 bg-slate-950 text-slate-50 [color-scheme:dark]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="executive">Executive</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="coach">Coach</SelectItem>
-                      <SelectItem value="learner">Learner</SelectItem>
-                      <SelectItem value="client_admin">Client admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </label>
-                <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
-                  <span>Role description</span>
-                  <textarea value={customRoleDescription} onChange={(event) => setCustomRoleDescription(event.target.value)} rows={4} placeholder="Describe the tenant-specific responsibilities this custom role should cover." className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
-                </label>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
-                  disabled={createCustomRole.isPending || customRoleName.trim().length < 3 || customRoleDescription.trim().length < 12}
-                  onClick={() => createCustomRole.mutate({ tenantId: data.tenant.id, name: customRoleName.trim(), description: customRoleDescription.trim(), inheritsFrom: customRoleBase })}
-                >
-                  {createCustomRole.isPending ? "Saving..." : "Add custom role"}
-                </Button>
-                <span className="text-sm text-slate-300">Every custom role stays anchored to a core permission lane so role-scoped views and governance rules remain predictable.</span>
-              </div>
-              <div className="space-y-3">
-                {(data.customRoles ?? []).map((role: any) => (
-                  <div key={role.id} className="rounded-2xl border border-white/12 bg-slate-950/78 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-base font-semibold text-white">{role.name}</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-200">{role.description}</p>
+                <div className="guide-card p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Permission lane</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{getRoleLabel(selectedTenantUser.role)}</p>
+                </div>
+                <div className="guide-card p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Admin cue</p>
+                  <p className="mt-2 text-lg font-semibold text-white">Verify role fit before routing new content or governance actions.</p>
+                </div>
+              </CardContent>
+            </PremiumCard>
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Custom role definitions</CardTitle>
+                <CardDescription className="text-slate-300/80">Add tenant-specific job families while still mapping each role to one of the core CHCG permission lanes.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2 text-sm font-medium text-slate-200">
+                    <span>Role name</span>
+                    <input value={customRoleName} onChange={(event) => setCustomRoleName(event.target.value)} placeholder="Example: Workflow Quality Lead" className={FORM_INPUT_SURFACE_CLASS} />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200">
+                    <span>Base permission lane</span>
+                    <Select value={customRoleBase} onValueChange={(value) => setCustomRoleBase(value as DemoRole)}>
+                      <SelectTrigger className="border-white/12 bg-slate-950 text-slate-50 [color-scheme:dark]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="executive">Executive</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="coach">Coach</SelectItem>
+                        <SelectItem value="learner">Learner</SelectItem>
+                        <SelectItem value="client_admin">Client admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </label>
+                  <label className="space-y-2 text-sm font-medium text-slate-200 md:col-span-2">
+                    <span>Role description</span>
+                    <textarea value={customRoleDescription} onChange={(event) => setCustomRoleDescription(event.target.value)} rows={4} placeholder="Describe the tenant-specific responsibilities this custom role should cover." className={`min-h-[110px] ${FORM_INPUT_SURFACE_CLASS}`} />
+                  </label>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" disabled={createCustomRole.isPending || customRoleName.trim().length < 3 || customRoleDescription.trim().length < 12} onClick={() => createCustomRole.mutate({ tenantId: data.tenant.id, name: customRoleName.trim(), description: customRoleDescription.trim(), inheritsFrom: customRoleBase })}>
+                    {createCustomRole.isPending ? "Saving..." : "Add custom role"}
+                  </Button>
+                  <span className="text-sm text-slate-300">Every custom role stays anchored to a core permission lane so role-scoped views and governance rules remain predictable.</span>
+                </div>
+                <div className="space-y-3">
+                  {(data.customRoles ?? []).map((role: any) => (
+                    <div key={role.id} className="rounded-2xl border border-white/12 bg-slate-950/78 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-white">{role.name}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-200">{role.description}</p>
+                        </div>
+                        <Badge className="rounded-full border-white/12 bg-white/8 text-slate-100">Mapped to {getRoleLabel(role.inheritsFrom)}</Badge>
                       </div>
-                      <Badge className="rounded-full border-white/12 bg-white/8 text-slate-100">Mapped to {getRoleLabel(role.inheritsFrom)}</Badge>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </PremiumCard>
-          <WeeklyCoachingLogTimeline
-            title="Tenant weekly coaching governance"
-            description="Client admins can audit who was coached, who would receive the simulated copies, and whether learner take-aways have been written back into each record."
-            tenantId={data.tenant.id}
-            logs={data.weeklyCoachingLogs}
-            allowLogEditing
-            onUpdated={onUpdated}
-          />
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Documentation governance</CardTitle>
-              <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across Service Foundations, Workflow Precision, Data-Led Leadership, and Performance Leadership activity.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <DocumentationFeed entries={data.documentationEntries} />
-              <div className="space-y-3">
-                {data.reviewLogs.map((entry: any) => (
-                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
-                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </PremiumCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="governance" className="mt-0 space-y-6" id="admin-governance-section">
+          <div className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
+            <div className="space-y-6">
+              <WeeklyCoachingLogComposer
+                tenantId={data.tenant.id}
+                subjectUserId={learnerUser.id}
+                coachRole="client_admin"
+                title="Write a structured weekly coaching log as client admin"
+                employeeName={learnerUser.name}
+                employeeEmail={learnerUser.email}
+                coachName={data.admin.name}
+                coachEmail={data.admin.email}
+                supervisorName={managerUser.name}
+                supervisorEmail={managerUser.email}
+                managerOfSupervisorEmail={executiveUser.email}
+                onCreated={onUpdated}
+              />
+              <ReviewLogComposer
+                tenantId={data.tenant.id}
+                subjectUserId={data.tenantUsers.find((user: any) => user.role === "learner")?.id ?? data.admin.id}
+                authorRole="client_admin"
+                title="Write coach or calibration documentation"
+                onCreated={onUpdated}
+              />
+            </div>
+            <div className="space-y-6">
+              <WeeklyCoachingLogTimeline
+                title="Tenant weekly coaching governance"
+                description="Client admins can audit who was coached, who would receive the simulated copies, and whether learner take-aways have been written back into each record."
+                tenantId={data.tenant.id}
+                logs={data.weeklyCoachingLogs}
+                allowLogEditing
+                onUpdated={onUpdated}
+              />
+              <PremiumCard>
+                <CardHeader>
+                  <CardTitle className="text-white">Documentation governance</CardTitle>
+                  <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across Service Foundations, Workflow Precision, Data-Led Leadership, and Performance Leadership activity.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <DocumentationFeed entries={data.documentationEntries} />
+                  <div className="space-y-3">
+                    {data.reviewLogs.map((entry: any) => (
+                      <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                            <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                          </div>
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                        </div>
+                        <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
-                    </div>
-                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </PremiumCard>
-        </div>
-      </div>
+                </CardContent>
+              </PremiumCard>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
