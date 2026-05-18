@@ -410,6 +410,7 @@ function BriefFlashCardDeck({
   onFlip,
   onPrevious,
   onNext,
+  onJumpToIndex,
   canGoPrevious,
   canGoNext,
   progressLabel,
@@ -425,6 +426,7 @@ function BriefFlashCardDeck({
   onFlip: () => void;
   onPrevious: () => void;
   onNext: () => void;
+  onJumpToIndex?: (index: number) => void;
   canGoPrevious: boolean;
   canGoNext: boolean;
   progressLabel: string;
@@ -452,6 +454,8 @@ function BriefFlashCardDeck({
         dotActive: "bg-cyan-300",
         inlinePanel: "border-white/10 bg-white/8",
         control: "border-white/10 bg-white/8 text-slate-100 hover:bg-white/14 hover:text-white",
+        jumpChip: "border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white",
+        jumpChipActive: "border-cyan-300/40 bg-cyan-300/16 text-white shadow-[0_10px_28px_rgba(34,211,238,0.16)]",
         focus: "focus-visible:ring-cyan-300/40",
       }
     : {
@@ -466,6 +470,8 @@ function BriefFlashCardDeck({
         dotActive: "bg-sky-500",
         inlinePanel: "border-stone-200 bg-stone-50",
         control: "border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900",
+        jumpChip: "border-stone-200 bg-white text-slate-600 hover:bg-stone-100 hover:text-slate-900",
+        jumpChipActive: "border-sky-300 bg-sky-50 text-sky-700 shadow-[0_10px_24px_rgba(14,165,233,0.12)]",
         focus: "focus-visible:ring-sky-300/45",
       };
 
@@ -581,6 +587,30 @@ function BriefFlashCardDeck({
           </div>
         </div>
       </div>
+
+      {items.length > 1 ? (
+        <div className={`mt-4 rounded-[1.15rem] border px-3 py-3 ${themeClasses.inlinePanel}`}>
+          <div className="flex items-center justify-between gap-3">
+            <p className={`text-[11px] uppercase tracking-[0.2em] ${themeClasses.subdued}`}>Jump to card</p>
+            <p className={`text-xs ${themeClasses.muted}`}>Use the inline index strip for faster deck navigation.</p>
+          </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {items.map((item, index) => (
+              <Button
+                key={`${item.id}-jump`}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onJumpToIndex?.(index)}
+                className={`min-w-[5.75rem] shrink-0 rounded-[1rem] px-3 py-2 text-left transition ${index === boundedIndex ? themeClasses.jumpChipActive : themeClasses.jumpChip}`}
+              >
+                <span className="block text-[10px] uppercase tracking-[0.18em] opacity-75">Card {index + 1}</span>
+                <span className="mt-1 block line-clamp-2 text-xs font-medium leading-5">{item.supportLabel ?? item.eyebrow}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -4113,6 +4143,10 @@ export function TrainingExperienceView() {
                                   onFlip={() => setLessonFlashCardFlipped((current) => !current)}
                                   onPrevious={retreatLessonPage}
                                   onNext={advanceLessonPage}
+                                  onJumpToIndex={(index) => {
+                                    setLessonFlashCardFlipped(false);
+                                    setLessonPageIndex(index);
+                                  }}
                                   canGoPrevious={lessonPageIndex > 0}
                                   canGoNext={lessonPageIndex < currentStagePages.length - 1}
                                   progressLabel={currentStageItemCountLabel}
@@ -5463,6 +5497,10 @@ export function ContentLibraryView() {
                           onNext={() => {
                             setLaunchBriefCardFlipped(false);
                             setLaunchBriefCardIndex((current) => Math.min(current + 1, Math.max(selectedAssetBriefCards.length - 1, 0)));
+                          }}
+                          onJumpToIndex={(index) => {
+                            setLaunchBriefCardFlipped(false);
+                            setLaunchBriefCardIndex(index);
                           }}
                           canGoPrevious={launchBriefCardIndex > 0}
                           canGoNext={launchBriefCardIndex < selectedAssetBriefCards.length - 1}

@@ -161,6 +161,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
     expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");
     expect(trainingViewSource).toContain("Inline lesson flash cards");
+    expect(trainingViewSource).toContain("Jump to card");
+    expect(trainingViewSource).toContain("Use the inline index strip for faster deck navigation.");
+    expect(trainingViewSource).toContain("onJumpToIndex={(index) => {");
     expect(trainingViewSource).toContain("Previous card");
     expect(trainingViewSource).toContain("Show front");
     expect(trainingViewSource).toContain("All lesson flash cards reviewed. Move into the knowledge gate when ready.");
@@ -172,6 +175,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
     expect(trainingViewSource).toContain("Source label ·");
     expect(trainingViewSource).toContain("Current launch lane");
+    expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
 
   it("keeps client control and content library in the mission-control pattern", () => {

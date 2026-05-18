@@ -374,3 +374,5 @@
 - [x] Add targeted regression coverage for the flash-card briefs presentation and interaction copy
 - [x] Refine the flash-card briefs layout to combine fragmented sections, remove excess empty space, and reduce duplicated cues in Training Zone and Content Missions
 - [x] Add regression coverage for the cleaned-up flash-card composition and tighter brief layout
+- [x] Add an inline card-index jump strip to the shared flash-card deck so longer brief sequences are easier to navigate in Training Zone and Content Missions
+- [x] Add regression coverage for the inline card-index jump strip navigation in the shared flash-card experience
