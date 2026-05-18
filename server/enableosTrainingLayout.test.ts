@@ -156,6 +156,23 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("One clear next step at a time");
   });
 
+  it("keeps the training-zone lesson brief inside a guided flash-card deck", () => {
+    expect(trainingViewSource).toContain("function BriefFlashCardDeck");
+    expect(trainingViewSource).toContain("The lesson brief now reads like a guided flash-card deck");
+    expect(trainingViewSource).toContain("Tap, click, or press Enter to flip");
+    expect(trainingViewSource).toContain("Previous card");
+    expect(trainingViewSource).toContain("Show front");
+    expect(trainingViewSource).toContain("All lesson flash cards reviewed. Move into the knowledge gate when ready.");
+  });
+
+  it("keeps the content-library launch brief in the same flash-card pattern", () => {
+    expect(trainingViewSource).toContain("Launch brief card");
+    expect(trainingViewSource).toContain("flip through the brief cards to guide the launch conversation");
+    expect(trainingViewSource).toContain("Launch brief reviewed for the");
+    expect(trainingViewSource).toContain("Receiving lane ·");
+    expect(trainingViewSource).toContain("Launch action");
+  });
+
   it("keeps client control and content library in the mission-control pattern", () => {
     expect(trainingViewSource).toContain("Client control");
     expect(trainingViewSource).toContain("Client control modes");

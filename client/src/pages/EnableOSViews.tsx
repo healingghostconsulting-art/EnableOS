@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { buildRetrainingHistoryCsv, filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
 import { Badge } from "@/components/ui/badge";
@@ -389,6 +389,215 @@ export function getStageNavigatorLabel(stageId?: string | null) {
 
 export function getModalCheckpointResetKey(trigger?: { id?: string | null; assessmentKey?: string | null } | null) {
   return `${trigger?.id ?? "default"}-${trigger?.assessmentKey ?? "none"}`;
+}
+
+type BriefFlashCardItem = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  frontSummary: string;
+  backNarrative: string;
+  bullets?: string[];
+  accentLabel?: string;
+  supportLabel?: string;
+  supportValue?: string;
+};
+
+function BriefFlashCardDeck({
+  items,
+  activeIndex,
+  isFlipped,
+  onFlip,
+  onPrevious,
+  onNext,
+  canGoPrevious,
+  canGoNext,
+  progressLabel,
+  statusLabel,
+  completionLabel,
+  emptyTitle,
+  emptyBody,
+  theme = "light",
+}: {
+  items: BriefFlashCardItem[];
+  activeIndex: number;
+  isFlipped: boolean;
+  onFlip: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  progressLabel: string;
+  statusLabel: string;
+  completionLabel: string;
+  emptyTitle?: string;
+  emptyBody?: string;
+  theme?: "light" | "dark";
+}) {
+  const boundedIndex = items.length > 0 ? Math.min(Math.max(activeIndex, 0), items.length - 1) : 0;
+  const activeItem = items[boundedIndex] ?? null;
+  const nextItem = items[boundedIndex + 1] ?? null;
+  const progressPercent = items.length > 0 ? Math.round(((boundedIndex + 1) / items.length) * 100) : 0;
+  const completionReady = items.length > 0 && boundedIndex >= items.length - 1 && isFlipped;
+  const themeClasses = theme === "dark"
+    ? {
+        shell: "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(15,23,42,0.72))]",
+        face: "border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),rgba(15,23,42,0.96)_58%)] text-white shadow-[0_24px_60px_rgba(2,6,23,0.45)]",
+        muted: "text-slate-300",
+        subdued: "text-slate-400",
+        badge: "border-white/10 bg-white/8 text-slate-100",
+        progressTrack: "bg-white/10",
+        progressFill: "bg-[linear-gradient(90deg,rgba(34,211,238,0.92),rgba(16,185,129,0.92))]",
+        dotIdle: "bg-white/14",
+        dotActive: "bg-cyan-300",
+        celebration: "border-emerald-400/20 bg-emerald-400/10 text-emerald-50",
+        summary: "border-white/10 bg-white/7",
+        control: "border-white/10 bg-white/8 text-slate-100 hover:bg-white/14 hover:text-white",
+        focus: "focus-visible:ring-cyan-300/40",
+      }
+    : {
+        shell: "border-stone-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,245,244,0.98))]",
+        face: "border-stone-200 bg-[radial-gradient(circle_at_top,rgba(186,230,253,0.42),rgba(255,255,255,0.98)_52%)] text-slate-950 shadow-[0_20px_48px_rgba(148,163,184,0.16)]",
+        muted: "text-slate-700",
+        subdued: "text-slate-500",
+        badge: "border-stone-200 bg-white text-slate-700",
+        progressTrack: "bg-stone-200",
+        progressFill: "bg-[linear-gradient(90deg,rgba(14,165,233,0.95),rgba(16,185,129,0.88))]",
+        dotIdle: "bg-stone-200",
+        dotActive: "bg-sky-500",
+        celebration: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        summary: "border-stone-200 bg-stone-50",
+        control: "border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900",
+        focus: "focus-visible:ring-sky-300/45",
+      };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft" && canGoPrevious) {
+      event.preventDefault();
+      onPrevious();
+      return;
+    }
+
+    if (event.key === "ArrowRight" && canGoNext) {
+      event.preventDefault();
+      onNext();
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onFlip();
+    }
+  };
+
+  if (!activeItem) {
+    return (
+      <div className={`rounded-[1.45rem] border px-5 py-6 ${themeClasses.shell}`}>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Flash card queue</p>
+        <h5 className={`mt-2 text-base font-semibold ${theme === "dark" ? "text-white" : "text-slate-950"}`}>{emptyTitle ?? "No flash cards loaded"}</h5>
+        <p className={`mt-3 text-sm leading-6 ${themeClasses.muted}`}>{emptyBody ?? "Add or select brief content to populate this flash-card sequence."}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className={`rounded-[1.35rem] border px-4 py-4 ${themeClasses.shell}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={`rounded-full ${themeClasses.badge}`}>{progressLabel}</Badge>
+            <Badge className={`rounded-full ${themeClasses.badge}`}>{statusLabel}</Badge>
+          </div>
+          <p className={`text-xs uppercase tracking-[0.22em] ${themeClasses.subdued}`}>{completionReady ? "Deck reviewed" : "Tap, click, or press Enter to flip"}</p>
+        </div>
+        <div className={`mt-4 h-2 overflow-hidden rounded-full ${themeClasses.progressTrack}`}>
+          <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${themeClasses.progressFill}`} style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+
+      <div className="[perspective:1600px]">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Flip flash card ${boundedIndex + 1} of ${items.length}`}
+          onClick={onFlip}
+          onKeyDown={handleKeyDown}
+          className={`group relative min-h-[23rem] cursor-pointer rounded-[1.5rem] outline-none transition-transform duration-300 hover:-translate-y-0.5 focus-visible:ring-2 ${themeClasses.focus}`}
+        >
+          <div className={`relative min-h-[23rem] transition-transform duration-500 [transform-style:preserve-3d] ${isFlipped ? "[transform:rotateY(180deg)]" : ""}`}>
+            <div className={`absolute inset-0 flex min-h-[23rem] flex-col justify-between rounded-[1.5rem] border px-5 py-5 [backface-visibility:hidden] ${themeClasses.face}`}>
+              <div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="max-w-2xl">
+                    <p className={`text-[11px] uppercase tracking-[0.22em] ${themeClasses.subdued}`}>{activeItem.eyebrow}</p>
+                    <h5 className="mt-2 text-lg font-semibold">{activeItem.title}</h5>
+                  </div>
+                  {activeItem.accentLabel ? <Badge className={`rounded-full ${themeClasses.badge}`}>{activeItem.accentLabel}</Badge> : null}
+                </div>
+                <p className={`mt-4 text-sm leading-7 ${themeClasses.muted}`}>{activeItem.frontSummary}</p>
+              </div>
+              <div className={`rounded-[1.2rem] border px-4 py-4 ${themeClasses.summary}`}>
+                <p className={`text-[11px] uppercase tracking-[0.2em] ${themeClasses.subdued}`}>{activeItem.supportLabel ?? "Up next"}</p>
+                <p className={`mt-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-slate-950"}`}>{activeItem.supportValue ?? (nextItem?.title ?? "Flip the card for the detailed brief")}</p>
+                <p className={`mt-2 text-xs leading-5 ${themeClasses.muted}`}>Front side for the headline cue. Flip for the operational detail and takeaway actions.</p>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {items.map((item, index) => (
+                  <span key={item.id} className={`h-2.5 rounded-full transition-all duration-300 ${index === boundedIndex ? `w-8 ${themeClasses.dotActive}` : `w-2.5 ${themeClasses.dotIdle}`}`} />
+                ))}
+              </div>
+            </div>
+
+            <div className={`absolute inset-0 flex min-h-[23rem] flex-col justify-between rounded-[1.5rem] border px-5 py-5 [backface-visibility:hidden] [transform:rotateY(180deg)] ${themeClasses.face}`}>
+              <div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="max-w-2xl">
+                    <p className={`text-[11px] uppercase tracking-[0.22em] ${themeClasses.subdued}`}>Detail side</p>
+                    <h5 className="mt-2 text-lg font-semibold">{activeItem.title}</h5>
+                  </div>
+                  <Badge className={`rounded-full ${themeClasses.badge}`}>{`Card ${boundedIndex + 1} of ${items.length}`}</Badge>
+                </div>
+                <p className={`mt-4 text-sm leading-7 ${themeClasses.muted}`}>{activeItem.backNarrative}</p>
+                {(activeItem.bullets ?? []).length > 0 ? (
+                  <div className="mt-5 space-y-3">
+                    {(activeItem.bullets ?? []).slice(0, 3).map((bullet) => (
+                      <div key={`${activeItem.id}-${bullet}`} className={`rounded-[1.15rem] border px-4 py-3 ${themeClasses.summary}`}>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${theme === "dark" ? "text-cyan-300" : "text-sky-600"}`} />
+                          <p className={`text-sm leading-6 ${themeClasses.muted}`}>{bullet}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <p className={`text-xs uppercase tracking-[0.2em] ${themeClasses.subdued}`}>{completionReady ? completionLabel : (nextItem ? `Ready for next card · ${nextItem.title}` : "Deck ready for completion")}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="outline" onClick={onPrevious} disabled={!canGoPrevious} className={`rounded-full ${themeClasses.control}`}>
+          Previous card
+        </Button>
+        <Button type="button" variant="outline" onClick={onFlip} className={`rounded-full ${themeClasses.control}`}>
+          {isFlipped ? "Show front" : "Flip card"}
+        </Button>
+        <Button type="button" variant="outline" onClick={onNext} disabled={!canGoNext} className={`rounded-full ${themeClasses.control}`}>
+          Next card
+        </Button>
+        <p className={`text-xs leading-5 ${themeClasses.muted}`}>{completionReady ? completionLabel : (nextItem ? `Up next · ${nextItem.title}` : statusLabel)}</p>
+      </div>
+
+      {completionReady ? (
+        <div className={`flex flex-wrap items-center gap-3 rounded-[1.2rem] border px-4 py-4 ${themeClasses.celebration}`}>
+          <Sparkles className="h-4 w-4" />
+          <p className="text-sm leading-6">{completionLabel}</p>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 const sectionMissionNarratives: Record<string, {
@@ -2096,6 +2305,7 @@ export function TrainingExperienceView() {
   };
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
+  const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -2610,6 +2820,10 @@ export function TrainingExperienceView() {
   }, [currentStagePages.length, lessonPageIndex]);
 
   useEffect(() => {
+    setLessonFlashCardFlipped(false);
+  }, [currentStage?.id, lessonPageIndex]);
+
+  useEffect(() => {
     if (typeof window === "undefined" || !trainingProgressStorageKey || !modules.length || !selectedModule || !trainingProgressHydratedRef.current) {
       return;
     }
@@ -2756,6 +2970,19 @@ export function TrainingExperienceView() {
   const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
   const currentStageItemLabel = `${stageDisplayLabel} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
   const currentStageItemCountLabel = currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "No pages loaded";
+  const lessonBriefFlashCards: BriefFlashCardItem[] = currentStagePages.map((page: any, index) => ({
+    id: page.id ?? `${currentStage?.id ?? "lesson"}-${index}`,
+    eyebrow: page.eyebrow ?? `${stageDisplayLabel} flash card`,
+    title: page.title ?? `${stageDisplayLabel} ${index + 1}`,
+    frontSummary: page.narrative ?? "Flip this card to review the detailed brief guidance for this part of the lesson.",
+    backNarrative: page.narrative ?? "Detailed guidance will appear here once the current lesson content is ready.",
+    bullets: Array.isArray(page.bullets) ? page.bullets : [],
+    accentLabel: currentStage?.label ?? stageDisplayLabel,
+    supportLabel: index < currentStagePages.length - 1 ? "Next card" : "Checkpoint readiness",
+    supportValue: index < currentStagePages.length - 1
+      ? (currentStagePages[index + 1]?.title ?? `Continue to ${stageDisplayLabel.toLowerCase()} ${index + 2}`)
+      : "Finish this card review, then move into the next training checkpoint.",
+  }));
   const stageNavigatorLabel = getStageNavigatorLabel(currentStage?.id);
   const briefQuestions = presentation?.briefCheckpoint.questions ?? [];
   const briefAnsweredCount = briefQuestions.filter((question) => hasAssessmentAnswer(question, briefCheckpointAnswers)).length;
@@ -3859,64 +4086,29 @@ export function TrainingExperienceView() {
                               <div className="max-w-2xl">
                                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{stageNavigatorLabel}</p>
                                 <h4 className="mt-2 text-lg font-medium text-slate-950">{currentLessonPage?.title ?? currentStageItemLabel}</h4>
-                                <p className="mt-2 text-sm leading-6 text-slate-600">This lesson now stays inside the course canvas so the learner reads, checks understanding, and advances without dropping into a separate brief box.</p>
+                                <p className="mt-2 text-sm leading-6 text-slate-600">The lesson brief now reads like a guided flash-card deck so the learner can stay in the course canvas, flip for detail, and keep progressing without opening a detached panel.</p>
                               </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 <Badge className="rounded-full border-stone-200 bg-white text-slate-700">{currentStageItemCountLabel}</Badge>
                                 <Badge className="rounded-full border-sky-200 bg-sky-50 text-sky-700">{briefCompletionStatus.statusLabel}</Badge>
                               </div>
                             </div>
-                            <div
-                              key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`}
-                              ref={briefCardRef}
-                              className="mt-4 rounded-[1.45rem] border border-stone-200 bg-white px-5 py-5 shadow-[0_18px_36px_rgba(148,163,184,0.12)]"
-                            >
-                              <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div className="max-w-2xl">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Active lesson</p>
-                                  <h5 className="mt-2 text-base font-semibold text-slate-950">{currentLessonPage?.title ?? "Lesson loading"}</h5>
-                                </div>
-                                <p className="text-sm font-semibold text-sky-700">{briefCompletionStatus.percentComplete}%</p>
-                              </div>
-                              <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200">
-                                <div
-                                  className="h-full rounded-full bg-[linear-gradient(90deg,rgba(14,165,233,0.95),rgba(56,189,248,0.95))] transition-[width] duration-300 ease-out"
-                                  style={{ width: `${briefCompletionStatus.percentComplete}%` }}
-                                />
-                              </div>
-                              <p className="mt-4 text-sm leading-7 text-slate-700">{currentLessonPage?.narrative ?? "The current lesson page will appear here once the training content is ready."}</p>
-                              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-3">
-                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Lesson pacing</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-600">Each step advances in the same course surface so the learner stays oriented instead of bouncing between disconnected containers.</p>
-                                </div>
-                                <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-3">
-                                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Next lesson step</p>
-                                  <p className="mt-2 text-sm font-medium text-slate-900">{nextLessonPage?.title ?? "Knowledge check coming next"}</p>
-                                  <p className="mt-2 text-sm leading-6 text-slate-600">{nextLessonPage?.narrative ?? "You are on the final guided page before the next training moment begins."}</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="mt-4 flex flex-wrap items-center gap-3">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={retreatLessonPage}
-                                disabled={lessonPageIndex === 0}
-                                className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900"
-                              >
-                                Previous lesson
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={advanceLessonPage}
-                                disabled={lessonPageIndex >= currentStagePages.length - 1}
-                                className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100 hover:text-slate-900"
-                              >
-                                Next lesson
-                              </Button>
-                              <p className="text-xs leading-5 text-slate-500">The focused lesson now lives inside the main course canvas while the previous and next controls keep progression straightforward.</p>
+                            <div key={`${currentStage?.id ?? "stage"}-${lessonPageIndex}`} ref={briefCardRef} className="mt-4">
+                              <BriefFlashCardDeck
+                                items={lessonBriefFlashCards}
+                                activeIndex={lessonPageIndex}
+                                isFlipped={lessonFlashCardFlipped}
+                                onFlip={() => setLessonFlashCardFlipped((current) => !current)}
+                                onPrevious={retreatLessonPage}
+                                onNext={advanceLessonPage}
+                                canGoPrevious={lessonPageIndex > 0}
+                                canGoNext={lessonPageIndex < currentStagePages.length - 1}
+                                progressLabel={currentStageItemCountLabel}
+                                statusLabel={briefCompletionStatus.statusLabel}
+                                completionLabel={currentStage?.id === "brief" ? "All lesson flash cards reviewed. Move into the knowledge gate when ready." : `All ${stageDisplayLabel.toLowerCase()} flash cards reviewed. Continue when ready.`}
+                                emptyTitle="Lesson flash cards loading"
+                                emptyBody="The current lesson brief will populate as a flash-card sequence once the training content is ready."
+                              />
                             </div>
                           </div>
                         </div>
@@ -4851,6 +5043,8 @@ export function ContentLibraryView() {
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [selectedAssetRole, setSelectedAssetRole] = useState<DemoRole>("learner");
+  const [launchBriefCardIndex, setLaunchBriefCardIndex] = useState(0);
+  const [launchBriefCardFlipped, setLaunchBriefCardFlipped] = useState(false);
   const [, setLocation] = useLocation();
 
   const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
@@ -4912,6 +5106,59 @@ export function ContentLibraryView() {
   const selectedAsset = useMemo(() => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null, [assets, selectedAssetId]);
   const selectedAssetRoleOptions = useMemo(() => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [], [selectedAsset]);
   const selectedAssetWorkflowBrief = useMemo(() => getOperationalLaunchReadinessBrief(selectedAssetRole), [selectedAssetRole]);
+  const selectedAssetBriefCards = useMemo<BriefFlashCardItem[]>(() => {
+    if (!selectedAsset) {
+      return [];
+    }
+
+    const roleLabel = getRoleLabel(selectedAssetRole);
+    return [
+      {
+        id: `${selectedAsset.id}-${selectedAssetRole}-training-use`,
+        eyebrow: "Launch brief card",
+        title: `${selectedAssetWorkflowBrief.title} · training use`,
+        frontSummary: "How should this asset be framed before the user enters the next workspace?",
+        backNarrative: selectedAssetWorkflowBrief.trainingUse,
+        bullets: [`Source label · ${selectedAsset.sourceLabel}`, `Receiving lane · ${roleLabel}`],
+        accentLabel: roleLabel,
+        supportLabel: "Next card",
+        supportValue: "Workflow owner",
+      },
+      {
+        id: `${selectedAsset.id}-${selectedAssetRole}-workflow-owner`,
+        eyebrow: "Launch brief card",
+        title: `${selectedAssetWorkflowBrief.title} · workflow owner`,
+        frontSummary: "Who should own the handoff and use the asset first?",
+        backNarrative: selectedAssetWorkflowBrief.workflowOwner,
+        bullets: [`Current asset · ${selectedAsset.title}`, `Role lens · ${roleLabel}`],
+        accentLabel: roleLabel,
+        supportLabel: "Next card",
+        supportValue: "Launch alignment",
+      },
+      {
+        id: `${selectedAsset.id}-${selectedAssetRole}-launch-alignment`,
+        eyebrow: "Launch brief card",
+        title: `${selectedAssetWorkflowBrief.title} · launch alignment`,
+        frontSummary: "What should the surrounding launch copy emphasize so the handoff feels intentional?",
+        backNarrative: selectedAssetWorkflowBrief.launchAlignment,
+        bullets: [`Mission label · ${selectedAsset.category}`, `Track focus · ${selectedAsset.summary}`],
+        accentLabel: roleLabel,
+        supportLabel: "Next card",
+        supportValue: "Follow-through proof",
+      },
+      {
+        id: `${selectedAsset.id}-${selectedAssetRole}-follow-through`,
+        eyebrow: "Launch brief card",
+        title: `${selectedAssetWorkflowBrief.title} · follow-through proof`,
+        frontSummary: "What does success look like after this brief launches the learner or operator into the next flow?",
+        backNarrative: selectedAssetWorkflowBrief.followThrough,
+        bullets: [`Action button · ${selectedAssetWorkflowBrief.startLabel}`, `Selected lane · ${roleLabel}`],
+        accentLabel: roleLabel,
+        supportLabel: "Launch action",
+        supportValue: selectedAssetWorkflowBrief.startLabel,
+      },
+    ];
+  }, [selectedAsset, selectedAssetRole, selectedAssetWorkflowBrief]);
   const launchSummaryCards = useMemo(
     () => [
       {
@@ -4947,6 +5194,11 @@ export function ContentLibraryView() {
       return resolveDefaultSelectedAssetRole(selectedAsset.linkedRoles, preferredRole);
     });
   }, [access.data?.grant.role, roleFilter, selectedAsset, selectedAssetRoleOptions]);
+
+  useEffect(() => {
+    setLaunchBriefCardIndex(0);
+    setLaunchBriefCardFlipped(false);
+  }, [selectedAsset?.id, selectedAssetRole]);
 
   function handleStartTraining(asset?: any, role?: DemoRole, journeyId?: string, moduleId?: string, assignmentId?: string) {
     setLocation(buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId }));
@@ -5168,11 +5420,11 @@ export function ContentLibraryView() {
                         <CardTitle className="text-white">Operational launch readiness brief</CardTitle>
                         <CardDescription className="text-slate-400">Choose the receiving role and see how this asset should be introduced.</CardDescription>
                       </CardHeader>
-                      <CardContent className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100 sm:col-span-2">
+                      <CardContent className="space-y-4">
+                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100">
                           <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Launch brief</p>
                           <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Use the role chips to align this handoff with the exact workspace lens that should receive the asset first.</p>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Use the role chips to align this handoff with the exact workspace lens that should receive the asset first, then flip through the brief cards to guide the launch conversation.</p>
                           <div className="mt-4 flex flex-wrap gap-2">
                             {selectedAssetRoleOptions.map((linkedRole) => (
                               <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
@@ -5182,22 +5434,28 @@ export function ContentLibraryView() {
                           </div>
                           <p className="mt-4 text-sm leading-6 text-slate-200">Source label · <span className="font-medium text-white">{selectedAsset.sourceLabel}</span></p>
                         </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Training use</p>
-                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.trainingUse}</p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Workflow owner</p>
-                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.workflowOwner}</p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Launch alignment</p>
-                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.launchAlignment}</p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/6 p-5 text-[15px] leading-7 text-slate-300">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-slate-500">Follow-through proof</p>
-                          <p className="mt-2.5 text-white">{selectedAssetWorkflowBrief.followThrough}</p>
-                        </div>
+                        <BriefFlashCardDeck
+                          items={selectedAssetBriefCards}
+                          activeIndex={launchBriefCardIndex}
+                          isFlipped={launchBriefCardFlipped}
+                          onFlip={() => setLaunchBriefCardFlipped((current) => !current)}
+                          onPrevious={() => {
+                            setLaunchBriefCardFlipped(false);
+                            setLaunchBriefCardIndex((current) => Math.max(current - 1, 0));
+                          }}
+                          onNext={() => {
+                            setLaunchBriefCardFlipped(false);
+                            setLaunchBriefCardIndex((current) => Math.min(current + 1, Math.max(selectedAssetBriefCards.length - 1, 0)));
+                          }}
+                          canGoPrevious={launchBriefCardIndex > 0}
+                          canGoNext={launchBriefCardIndex < selectedAssetBriefCards.length - 1}
+                          progressLabel={selectedAssetBriefCards.length > 0 ? `${launchBriefCardIndex + 1} of ${selectedAssetBriefCards.length}` : "No cards loaded"}
+                          statusLabel={`Aligned to the ${getRoleLabel(selectedAssetRole)} lane`}
+                          completionLabel={`Launch brief reviewed for the ${getRoleLabel(selectedAssetRole)} lane. Use ${selectedAssetWorkflowBrief.startLabel.toLowerCase()} when you are ready to hand off.`}
+                          emptyTitle="Launch brief flash cards loading"
+                          emptyBody="Choose an asset and receiving role to populate the launch-readiness flash cards."
+                          theme="dark"
+                        />
                       </CardContent>
                     </PremiumCard>
                   </div>

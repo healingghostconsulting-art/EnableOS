@@ -370,3 +370,5 @@
 - [x] Redesign Coach Studio, Learner Journey, and Training Zone around focused task flows, pop-up interactions, and motivational progress feedback
 - [x] Redesign Client Control and Content Missions using compact step-based layouts and search-first drill-down interactions
 - [x] Add targeted regression coverage for the new product-wide layout system, navigation behavior, and guided interaction patterns
+- [x] Redesign the briefs section so it looks and feels like interactive flash cards within the mission-control UI system
+- [x] Add targeted regression coverage for the flash-card briefs presentation and interaction copy
