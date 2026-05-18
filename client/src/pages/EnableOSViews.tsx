@@ -6076,6 +6076,28 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
         <PremiumCard>
           <CardHeader>
+            <CardTitle className="text-white">Client reporting command center</CardTitle>
+            <CardDescription className="text-slate-400">A unified reporting surface connects ROI evidence, intervention health, peer benchmarks, and operational risk so client stakeholders can understand what is moving and where action should go next.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Reporting narrative</p>
+              <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
+              <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.reportingOverview.summary}</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {data.reportingOverview.summaryCards.map((entry: any) => (
+                <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{entry.label}</p>
+                  <p className="mt-3 text-3xl font-semibold text-white">{entry.value}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">{entry.detail}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </PremiumCard>
+        <PremiumCard>
+          <CardHeader>
             <CardTitle className="text-white">Assessment question reporting</CardTitle>
             <CardDescription className="text-slate-400">Executives can see which assessment prompts miss most often, how each result compares with peers, and where coaching attention should intensify first.</CardDescription>
           </CardHeader>
@@ -6098,10 +6120,11 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                     <div>
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.module}</p>
                       <h3 className="mt-2 text-base font-medium text-white">{entry.question}</h3>
+                      <p className="mt-2 text-sm text-slate-300">Skill domain: <span className="font-medium text-white">{entry.skillDomain}</span></p>
                     </div>
                     <Badge className={`rounded-full border ${alertStyles}`}>{alertLabel}</Badge>
                   </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
                     <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Miss rate</p>
                       <p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p>
@@ -6114,8 +6137,30 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p>
                       <p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p>
                     </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">First-pass success</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.firstPassSuccess}%</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Retry dependency</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.retryDependency}%</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">14-day attempts</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.attemptsLast14Days}</p>
+                    </div>
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-300">{entry.coachingAction}</p>
+                  <div className="mt-4 grid gap-3 lg:grid-cols-[0.95fr_1.05fr]">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Affected cohort</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.affectedCohort}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Trend</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.trend}</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended coaching action:</span> {entry.coachingAction}</p>
                 </div>
               );
             })}
@@ -6124,7 +6169,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         <PremiumCard>
           <CardHeader>
             <CardTitle className="text-white">Tenure-aware lifecycle reporting</CardTitle>
-            <CardDescription className="text-slate-400">Executives can compare how early, developing, and tenured specialists move through readiness, quality, and intervention follow-through across the employee lifecycle.</CardDescription>
+            <CardDescription className="text-slate-400">Executives can compare how early, developing, and tenured specialists move through readiness, quality, intervention follow-through, and error pressure across the employee lifecycle.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {data.lifecycleReporting.map((entry: any) => (
@@ -6136,7 +6181,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                   </div>
                   <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.population} specialists</Badge>
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-5">
                   <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Readiness</p>
                     <p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p>
@@ -6149,6 +6194,14 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                     <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Intervention close rate</p>
                     <p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p>
                   </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p>
+                    <p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Error rate</p>
+                    <p className="mt-2 text-lg font-semibold text-white">{entry.errorRate}%</p>
+                  </div>
                 </div>
                 <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Coaching focus:</span> {entry.coachingFocus}</p>
@@ -6158,8 +6211,168 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         </PremiumCard>
         <PremiumCard>
           <CardHeader>
+            <CardTitle className="text-white">Peer benchmark reporting</CardTitle>
+            <CardDescription className="text-slate-400">Peer-based comparisons turn raw performance into cohort-aware percentages so clients can understand whether a team or learner is below, at, or above the expected norm.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 xl:grid-cols-3">
+            {data.peerBenchmarking.map((entry: any) => (
+              <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.cohort}</p>
+                <h3 className="mt-2 text-base font-medium text-white">{entry.metric}</h3>
+                <p className="mt-3 text-3xl font-semibold text-white">{entry.score}</p>
+                <p className="mt-3 text-sm font-medium text-cyan-100">{entry.comparison}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{entry.insight}</p>
+              </div>
+            ))}
+          </CardContent>
+        </PremiumCard>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Repeat-module escalation watch</CardTitle>
+              <CardDescription className="text-slate-400">Executives can see when the same module has been sent multiple times and whether the real issue now requires coaching, review, or process intervention instead of another resend.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {data.repeatAssignmentReporting.map((entry: any) => (
+                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.learner}</p>
+                      <h3 className="mt-2 text-base font-medium text-white">{entry.module}</h3>
+                    </div>
+                    <Badge className="rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-100">Sent {entry.assignmentCount} times</Badge>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Completion rate</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{entry.completionRate}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Escalation path</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.recommendedEscalation}</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Observed behavior change:</span> {entry.behaviorChange}</p>
+                </div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Coaching consistency reporting</CardTitle>
+              <CardDescription className="text-slate-400">Managers are measured on cadence, follow-through, and documentation quality so leadership can tie coaching discipline to downstream readiness movement.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Cadence adherence</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.cadenceAdherence}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed coaching intervals</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.missedIntervals}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.followUpCompletion}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.documentationCompleteness}</p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Outcome alignment</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{data.coachingConsistency.outcomeAlignment}</p>
+              </div>
+              <div className="space-y-3">
+                {data.coachingConsistency.managerRollup.map((entry: any) => (
+                  <div key={entry.manager} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <h3 className="text-base font-medium text-white">{entry.manager}</h3>
+                      <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.cadenceAdherence}% cadence hit</Badge>
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{entry.missedIntervals}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{entry.followUpCompletion}%</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{entry.documentationCompleteness}%</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </PremiumCard>
+        </div>
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Behavior analysis</CardTitle>
+              <CardDescription className="text-slate-400">Behavior domains connect QA findings, assessment misses, and coaching observations so the client can see what is actually changing in the work, not only in the scores.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {data.behaviorAnalysis.map((entry: any) => (
+                <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h3 className="text-base font-medium text-white">{entry.behavior}</h3>
+                    <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.signalShare}</Badge>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Trend:</span> {entry.trend}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended action:</span> {entry.recommendedAction}</p>
+                </div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Error-rate reporting</CardTitle>
+              <CardDescription className="text-slate-400">Operational errors remain visible as both a standalone risk signal and part of the ROI story, helping clients connect enablement to avoidable rework and compliance exposure.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current error rate</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.currentErrorRate}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Baseline error rate</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.baselineErrorRate}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Post-intervention movement</p>
+                  <p className="mt-2 text-3xl font-semibold text-emerald-300">{data.errorRateReporting.delta}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {data.errorRateReporting.severityMix.map((entry: any) => (
+                  <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-base font-medium text-white">{entry.label}</h3>
+                      <Badge className="rounded-full border border-white/10 bg-slate-950/45 text-slate-100">{entry.value}</Badge>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Movement summary</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{data.errorRateReporting.movementSummary}</p>
+              </div>
+            </CardContent>
+          </PremiumCard>
+        </div>
+        <PremiumCard>
+          <CardHeader>
             <CardTitle className="text-white">Executive proof of impact</CardTitle>
-            <CardDescription className="text-slate-400">Before/after movement, intervention correlation, and sustained-readiness checks give leaders evidence that the operating model is working without overstating causation.</CardDescription>
+            <CardDescription className="text-slate-400">Before/after movement, intervention correlation, sustained-readiness checks, and error-rate improvement give leaders evidence that the operating model is working without overstating causation.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
@@ -6171,7 +6384,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               <div className="space-y-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Before / after movement</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Two seeded cohorts show how readiness and workflow precision moved after targeted intervention plans closed.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Seeded cohorts show how readiness and workflow precision moved after targeted intervention plans closed and coaching follow-through stayed visible.</p>
                 </div>
                 {data.proofOfImpact.beforeAfter.map((entry: any) => (
                   <div key={entry.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">

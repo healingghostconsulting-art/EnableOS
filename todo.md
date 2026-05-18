@@ -341,3 +341,15 @@
 - [x] Add targeted regression coverage for the tenure-aware executive lifecycle reporting refinement selected from the 2026-05-15 Google Doc audit
 - [x] Add an executive proof-of-impact panel that demonstrates how the program is working through before/after movement, intervention correlation, and sustained-readiness evidence using the seeded analytics model without making unsupported causal claims
 - [x] Add targeted regression coverage for the executive proof-of-impact refinement selected from the 2026-05-15 Google Doc audit
+- [x] Add an executive coaching-consistency reporting panel that shows cadence adherence, missed coaching intervals, and coaching follow-through consistency using the existing weekly coaching-log and review data model
+- [x] Add targeted regression coverage for the executive coaching-consistency refinement selected after the proof-of-impact pass
+- [x] Pause the recurring two-hour shared Google Doc review schedule for this project task
+- [x] Build a client-facing reporting dashboard section that unifies ROI evidence, risk intelligence, and drill-down analytics for executives and client stakeholders
+- [x] Add question-level reporting with miss-rate trends, first-pass success, retry dependency, skill mapping, and high-alert thresholds for persistently weak questions
+- [x] Add tenure-based lifecycle reporting that compares readiness, QA, intervention close rate, and coaching focus across onboarding, developing, and tenured cohorts
+- [x] Add peer benchmarking metrics that express learner and team performance as percentile-based comparisons within similar cohorts
+- [x] Add repeat-assignment intelligence that flags when the same module has been sent multiple times without sufficient behavior improvement and recommends escalation paths
+- [x] Add executive coaching-consistency reporting that measures cadence adherence, missed intervals, follow-up completion, documentation completeness, and coaching-to-outcome alignment
+- [x] Add behavior-analysis reporting that groups QA findings, coaching observations, and assessment weakness into recurring observable behavior domains
+- [x] Add error-rate reporting with total error trend, severity mix, and post-intervention movement summaries
+- [x] Add targeted regression coverage for the new reporting dashboard data model and UI sections

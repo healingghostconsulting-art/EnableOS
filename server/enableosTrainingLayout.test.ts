@@ -98,10 +98,13 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps executive question reporting visible with peer comparison and high-alert language", () => {
+    expect(trainingViewSource).toContain("Client reporting command center");
     expect(trainingViewSource).toContain("Assessment question reporting");
     expect(trainingViewSource).toContain("Miss rate");
     expect(trainingViewSource).toContain("Peer baseline");
     expect(trainingViewSource).toContain("Peer percentile");
+    expect(trainingViewSource).toContain("First-pass success");
+    expect(trainingViewSource).toContain("Retry dependency");
     expect(trainingViewSource).toContain("High alert");
   });
 
@@ -112,10 +115,16 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Readiness");
     expect(trainingViewSource).toContain("QA score");
     expect(trainingViewSource).toContain("Intervention close rate");
+    expect(trainingViewSource).toContain("Error rate");
     expect(trainingViewSource).toContain("Coaching focus:");
   });
 
   it("keeps executive proof-of-impact evidence visible without causal overclaiming", () => {
+    expect(trainingViewSource).toContain("Peer benchmark reporting");
+    expect(trainingViewSource).toContain("Repeat-module escalation watch");
+    expect(trainingViewSource).toContain("Coaching consistency reporting");
+    expect(trainingViewSource).toContain("Behavior analysis");
+    expect(trainingViewSource).toContain("Error-rate reporting");
     expect(trainingViewSource).toContain("Executive proof of impact");
     expect(trainingViewSource).toContain("Before / after movement");
     expect(trainingViewSource).toContain("Intervention correlation");

@@ -61,6 +61,13 @@ describe("demo router", () => {
         expect.objectContaining({ sourceKind: "chcg" }),
       ]),
     );
+    expect(executive.reportingOverview).toMatchObject({
+      headline: expect.stringContaining("executive-ready ROI story"),
+      summaryCards: expect.arrayContaining([
+        expect.objectContaining({ label: "High-alert questions", value: "3" }),
+        expect.objectContaining({ label: "Coaching cadence target hit", value: "94%" }),
+      ]),
+    });
     expect(executive.questionReporting).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -68,6 +75,10 @@ describe("demo router", () => {
           alert: "high",
           missRate: 42,
           peerPercentile: 18,
+          firstPassSuccess: 48,
+          retryDependency: 29,
+          attemptsLast14Days: 64,
+          skillDomain: "Verification discipline",
         }),
       ]),
     );
@@ -78,16 +89,64 @@ describe("demo router", () => {
           tenureRange: "0-30 days",
           readiness: 68,
           interventionCloseRate: 82,
+          peerPercentile: 26,
+          errorRate: 12,
         }),
         expect.objectContaining({
           stage: "Tenured stage",
           tenureRange: "91+ days",
           qaScore: 91,
+          peerPercentile: 74,
+          errorRate: 5,
         }),
       ]),
     );
+    expect(executive.peerBenchmarking).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          cohort: "Core Service Delivery managers",
+          metric: "QA score",
+          score: "84th percentile",
+        }),
+      ]),
+    );
+    expect(executive.repeatAssignmentReporting).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          learner: "Nina Patel",
+          assignmentCount: 3,
+          module: "Workflow verification essentials",
+        }),
+      ]),
+    );
+    expect(executive.coachingConsistency).toMatchObject({
+      cadenceAdherence: "94%",
+      missedIntervals: 5,
+      followUpCompletion: "88%",
+      documentationCompleteness: "91%",
+      managerRollup: expect.arrayContaining([
+        expect.objectContaining({ manager: "Marcus Bell", cadenceAdherence: 96 }),
+      ]),
+    });
+    expect(executive.behaviorAnalysis).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          behavior: "Verification language consistency",
+          signalShare: "32% of flagged behaviors",
+        }),
+      ]),
+    );
+    expect(executive.errorRateReporting).toMatchObject({
+      currentErrorRate: "7.8%",
+      baselineErrorRate: "12.4%",
+      delta: "-4.6 pts",
+      severityMix: expect.arrayContaining([
+        expect.objectContaining({ label: "Critical", value: "2.1%" }),
+      ]),
+    });
     expect(executive.proofOfImpact).toMatchObject({
       headline: expect.stringContaining("targeted retraining"),
+      summary: expect.stringContaining("error improvement"),
       interventionCorrelation: expect.objectContaining({
         value: "0.78",
         label: "Positive intervention/readiness relationship",
@@ -109,6 +168,10 @@ describe("demo router", () => {
         expect.objectContaining({
           label: "60-day sustain rate",
           value: "82%",
+        }),
+        expect.objectContaining({
+          label: "Error-rate reduction hold",
+          value: "-4.6 pts",
         }),
       ]),
     );
