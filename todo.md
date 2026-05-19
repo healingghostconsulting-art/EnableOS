@@ -381,3 +381,6 @@
 - [x] Convert the training experience from scroll-heavy stacked sections into page-by-page section flows that advance during the training journey
 - [x] Add a ribbon action to log coaching and force the coaching log to open in a focused pop-up workflow
 - [x] Add regression coverage for the page-by-page training flow and ribbon-triggered coaching-log pop-up behavior
+- [x] Fix the missing coach-ribbon coaching-log button so it is clearly visible in the live coach workspace
+- [x] Force the coach-ribbon coaching-log action to open the structured log in a focused pop-up flow
+- [x] Add regression coverage for coach-ribbon coaching-log button visibility and popup entry behavior

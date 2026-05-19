@@ -100,8 +100,10 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Search-first mission entry");
   });
 
-  it("gives coaching workspaces a focused pop-up logging path while preserving the shared composer", () => {
+  it("gives coaching workspaces a visible ribbon-level pop-up logging path while preserving the shared composer", () => {
     expect(trainingViewSource).toContain("Log a coaching");
+    expect(trainingViewSource).toContain("The primary coaching-log button now lives directly in the top coach ribbon");
+    expect(trainingViewSource).toContain("force the structured log to open in a focused pop-up window");
     expect(trainingViewSource).toContain("Focused coaching log capture");
     expect(trainingViewSource).toContain("Use the ribbon action or this button to open the structured coaching log in a pop-up");
     expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");

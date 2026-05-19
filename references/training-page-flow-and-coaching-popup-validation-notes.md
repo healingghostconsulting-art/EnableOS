@@ -17,3 +17,7 @@
 ## Test and health summary
 - Full Vitest suite passed after the refactor: 20 test files, 136 tests.
 - Project health check reported no current TypeScript or LSP errors.
+
+## Ribbon visibility follow-up
+
+The development coach route now shows a visible **Log a coaching** button directly in the top coach ribbon above the fold. The published domain currently redirects to the authentication screen before the coach workspace can be inspected, so live unauthenticated verification there is blocked until sign-in.
