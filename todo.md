@@ -378,3 +378,6 @@
 - [x] Add regression coverage for the inline card-index jump strip navigation in the shared flash-card experience
 - [x] Study KnowBe4 interface patterns for stronger visual pop, smoother transitions, and reduced scrolling, then adapt the most relevant ideas to CHCG EnableOS
 - [x] Add regression coverage for the KnowBe4-inspired density and navigation refinements after implementation
+- [x] Convert the training experience from scroll-heavy stacked sections into page-by-page section flows that advance during the training journey
+- [x] Add a ribbon action to log coaching and force the coaching log to open in a focused pop-up workflow
+- [x] Add regression coverage for the page-by-page training flow and ribbon-triggered coaching-log pop-up behavior

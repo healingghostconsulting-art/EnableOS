@@ -2389,6 +2389,7 @@ export function TrainingExperienceView() {
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
+  const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -2413,6 +2414,7 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
@@ -2437,6 +2439,7 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
@@ -2464,6 +2467,7 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
     setDismissedQuizTriggerIds([]);
@@ -2515,6 +2519,7 @@ export function TrainingExperienceView() {
 
   useEffect(() => {
     setLessonPageIndex(0);
+    setTrainingWorkspacePage("lesson");
     if (stages[stageIndex]?.id === "apply") {
       setApplicationAnswers({});
       setApplicationSubmitted(false);
@@ -4139,7 +4144,19 @@ export function TrainingExperienceView() {
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
                         <div className="command-band px-4 py-4 md:px-5">
-                          <div className="grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start">
+                          <div className="flex flex-col gap-4 border-b border-[#1B303C]/10 pb-4 xl:flex-row xl:items-center xl:justify-between">
+                            <div className="max-w-2xl">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Training pages</p>
+                              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Move through the training in focused pages instead of one long stack. Open the brief, lesson page, checkpoint, or transfer pack as separate workspace views.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button type="button" variant={trainingWorkspacePage === "brief" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Brief</Button>
+                              <Button type="button" variant={trainingWorkspacePage === "lesson" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson page</Button>
+                              <Button type="button" variant={trainingWorkspacePage === "checkpoint" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
+                              <Button type="button" variant={trainingWorkspacePage === "resources" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Transfer pack</Button>
+                            </div>
+                          </div>
+                          <div className={trainingWorkspacePage === "brief" ? "mt-4 grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
                             <div className="space-y-3">
                               <div className="context-rail-card px-4 py-4">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -4202,7 +4219,7 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        <div className="sticky bottom-4 z-20 mt-6 rounded-[1.5rem] border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.18),rgba(15,23,42,0.94))] px-4 py-4 shadow-[0_20px_60px_rgba(8,15,35,0.35)] backdrop-blur-xl">
+                        <div className={trainingWorkspacePage === "lesson" ? "sticky bottom-4 z-20 mt-6 rounded-[1.5rem] border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.18),rgba(15,23,42,0.94))] px-4 py-4 shadow-[0_20px_60px_rgba(8,15,35,0.35)] backdrop-blur-xl" : "hidden"}>
                           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div className="min-w-0 space-y-2">
                               <div className="flex flex-wrap items-center gap-2">
@@ -4243,7 +4260,7 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        {currentLessonPage ? (
+                        {trainingWorkspacePage === "lesson" && currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
                             <div className="space-y-8">
                               <div>
@@ -4804,7 +4821,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {!activeModalQuizTrigger && currentStage?.id === "brief" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "brief" ? (
                       <div className="space-y-5">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -4830,7 +4847,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {!activeModalQuizTrigger && currentStage?.id === "practice" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "practice" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Practice scenario</p>
@@ -4874,7 +4891,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {!activeModalQuizTrigger && currentStage?.id === "apply" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "apply" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -4904,7 +4921,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {!activeModalQuizTrigger && currentStage?.id === "reflect" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "reflect" ? (
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
@@ -4983,7 +5000,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className={trainingWorkspacePage === "checkpoint" ? "flex flex-wrap items-center justify-between gap-3" : "hidden"}>
                       <Button
                         type="button"
                         variant="outline"
@@ -5015,7 +5032,7 @@ export function TrainingExperienceView() {
                         </Button>
                       </div>
                     </div>
-                    {activeModalQuizTrigger ? (
+                    {trainingWorkspacePage === "checkpoint" && activeModalQuizTrigger ? (
                       <InlineAssessmentShell
                         moduleTitle={selectedModule?.title ?? currentStage?.title ?? "Training module"}
                         stageLabel={currentStage?.label ?? "Guided lesson"}
@@ -5037,7 +5054,7 @@ export function TrainingExperienceView() {
                   </CardContent>
                 </PremiumCard>
 
-                <PremiumCard className="overflow-hidden">
+                <PremiumCard className={trainingWorkspacePage === "resources" ? "overflow-hidden" : "hidden overflow-hidden"}>
                   <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.32))]">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="max-w-2xl">
@@ -7289,6 +7306,20 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
 
+  const coachWeeklyCoachingLogProps = {
+    tenantId: data.tenant.id,
+    subjectUserId: data.directLearner.id,
+    coachRole: "coach" as const,
+    title: "Capture a weekly coaching log from the coach workspace",
+    employeeName: data.directLearner.name,
+    employeeEmail: data.directLearner.email,
+    coachName: data.coach.name,
+    coachEmail: data.coach.email,
+    supervisorName: data.escalationPartner.name,
+    supervisorEmail: data.escalationPartner.email,
+    managerOfSupervisorEmail: data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail,
+  };
+
   const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
   const selectedAlert = data.notifications.find((item: any) => item.id === selectedAlertId) ?? data.notifications[0] ?? null;
 
@@ -7322,6 +7353,20 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
               <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Coach momentum</p>
               <p className="mt-2 text-sm leading-6">{data.weeklyCoachingLogs.length} structured logs and {data.coachingSessions.length} active coaching threads are ready to review or extend.</p>
+            </div>
+            <div className="rounded-[1.45rem] border border-cyan-400/25 bg-cyan-400/10 p-4 shadow-[0_18px_40px_rgba(8,15,35,0.18)]">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Ribbon action</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">Launch the coaching log in a focused pop-up instead of dropping a long inline form into the lane.</p>
+              <div className="mt-4">
+                <WeeklyCoachingLogPopupBox
+                  buttonLabel="Log a coaching"
+                  dialogTitle={`Weekly coaching log · ${data.directLearner.name}`}
+                  dialogDescription="Capture the weekly coaching record in a focused pop-up, save it, and return to the coach lane with history refreshed."
+                  buttonClassName="rounded-full border-cyan-300/30 bg-cyan-300/12 text-cyan-50 hover:bg-cyan-300/18 hover:text-white"
+                  composerProps={coachWeeklyCoachingLogProps}
+                  onCreated={onUpdated}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -7421,7 +7466,23 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </CardContent>
               </PremiumCard>
             ) : null}
-            <WeeklyCoachingLogComposer tenantId={data.tenant.id} subjectUserId={data.directLearner.id} coachRole="coach" title="Capture a weekly coaching log from the coach workspace" employeeName={data.directLearner.name} employeeEmail={data.directLearner.email} coachName={data.coach.name} coachEmail={data.coach.email} supervisorName={data.escalationPartner.name} supervisorEmail={data.escalationPartner.email} managerOfSupervisorEmail={data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail} onCreated={onUpdated} />
+            <PremiumCard>
+              <CardHeader>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="max-w-2xl">
+                    <CardTitle className="text-white">Focused coaching log capture</CardTitle>
+                    <CardDescription className="mt-2 text-slate-400">Use the ribbon action or this button to open the structured coaching log in a pop-up instead of expanding an inline form in the coaching lane.</CardDescription>
+                  </div>
+                  <WeeklyCoachingLogPopupBox
+                    buttonLabel="Open coaching log pop-up"
+                    dialogTitle={`Weekly coaching log · ${data.directLearner.name}`}
+                    dialogDescription="Capture the full weekly coaching record in a focused pop-up, then return to the coach lane with the history refreshed."
+                    composerProps={coachWeeklyCoachingLogProps}
+                    onCreated={onUpdated}
+                  />
+                </div>
+              </CardHeader>
+            </PremiumCard>
             <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
           </div>
         </TabsContent>

@@ -100,9 +100,11 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Search-first mission entry");
   });
 
-  it("gives managers a focused coaching-log pop-up path without removing the inline workflow", () => {
-    expect(trainingViewSource).toContain("Open the coaching log in a focused pop-up");
-    expect(trainingViewSource).toContain("Launch coaching log pop-up");
+  it("gives coaching workspaces a focused pop-up logging path while preserving the shared composer", () => {
+    expect(trainingViewSource).toContain("Log a coaching");
+    expect(trainingViewSource).toContain("Focused coaching log capture");
+    expect(trainingViewSource).toContain("Use the ribbon action or this button to open the structured coaching log in a pop-up");
+    expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
     expect(trainingViewSource).toContain("Weekly coaching log pop-up");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("composerProps: WeeklyCoachingLogComposerProps");
@@ -167,8 +169,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("One clear next step at a time");
   });
 
-  it("keeps the training-zone lesson brief inside a guided flash-card deck", () => {
+  it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
+    expect(trainingViewSource).toContain("Training pages");
+    expect(trainingViewSource).toContain("Move through the training in focused pages instead of one long stack.");
+    expect(trainingViewSource).toContain("Transfer pack");
+    expect(trainingViewSource).toContain("trainingWorkspacePage");
     expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
     expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");
     expect(trainingViewSource).toContain("Inline lesson flash cards");
