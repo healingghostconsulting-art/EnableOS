@@ -728,14 +728,43 @@ function SectionShell({
   description,
   actions,
   children,
+  compact = false,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  compact?: boolean;
 }) {
   const narrative = resolveSectionMissionNarrative(eyebrow, title);
+
+  if (compact) {
+    return (
+      <div className="workspace-stack">
+        <div className="rounded-[2rem] border border-[#1B303C]/10 bg-white/82 px-5 py-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="max-w-4xl space-y-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.22em]">
+                  {eyebrow}
+                </Badge>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium text-[#4A6373]">{narrative.focus}</span>
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-[1.9rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[2.2rem]">{title}</h1>
+                <p className="max-w-3xl text-sm leading-7 text-[#4A6373] sm:text-[15px]">{description}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {actions}
+            </div>
+          </div>
+        </div>
+        <div className="focus-stack">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace-stack">
@@ -3593,6 +3622,7 @@ export function TrainingExperienceView() {
         eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
         title={isDirectModuleLaunch ? (selectedModule?.title ?? "Interactive course player") : "Interactive training simulator"}
         description={isDirectModuleLaunch ? "This deep link opens straight into the active course player so the learner lands on the lesson itself." : "This route turns CHCG and tenant content into one guided lesson flow with learn, practice, apply, and reflection checkpoints."}
+        compact
         actions={
           <>
             {access.data ? (
@@ -3628,19 +3658,22 @@ export function TrainingExperienceView() {
             ) : null}
 
             <PremiumCard className={isDirectModuleLaunch ? "hidden" : undefined}>
-              <CardContent className="flex flex-col gap-4 px-6 py-5">
-                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <div className="max-w-3xl">
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training family preview</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">{canBrowseAllTrainingFamilies ? "Review every module family in one guided course player" : `${effectiveTrainingRoleLabel} Training Zone`}</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "Switch between learner, workflow, leadership, performance, and engagement previews without leaving the course shell." : `This training route stays scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so the lesson context matches the current workspace responsibility.`}</p>
+              <CardContent className="flex flex-col gap-4 px-5 py-4">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                  <div className="max-w-3xl space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Training family preview</p>
+                      {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                    </div>
+                    <p className="text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "Choose a preview lane, open the lesson page, and keep the actual course canvas above the fold." : `This training route stays scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so the lesson context matches the current workspace responsibility.`}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                  <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-300 xl:max-w-sm">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current guidance</p>
+                    <p className="mt-2 leading-6 text-white">Keep the course player dominant and use the preview rail only to pick the right lane before training begins.</p>
                   </div>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2.5">
                   {availableTrainingRoleFilterOptions.map((option) => (
                     <Button
                       key={`training-role-filter-${option.value}`}
@@ -3652,18 +3685,6 @@ export function TrainingExperienceView() {
                       {option.label}
                     </Button>
                   ))}
-                </div>
-                <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                  <div className="rounded-[1.35rem] border border-cyan-400/16 bg-cyan-400/8 px-4 py-4 text-sm text-slate-200 shadow-[0_16px_40px_rgba(34,211,238,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Human-in-the-loop cue</p>
-                    <p className="mt-2 font-medium text-white">Agent-assist tools can accelerate preparation, but the human still owns judgment, empathy, and the final response.</p>
-                    <p className="mt-2 leading-6 text-slate-300">Use the prompts to think faster, then confirm the coaching move, customer language, and documentation choice yourself.</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-white/12 bg-white/8 px-4 py-4 text-sm text-slate-200 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Cleaner lesson flow</p>
-                    <p className="mt-2 font-medium text-white">Shorter context panels and brighter surfaces keep the next learner action easier to spot.</p>
-                    <p className="mt-2 leading-6 text-slate-300">The top shell now focuses on what to do next instead of asking the learner to scan long setup copy before starting.</p>
-                  </div>
                 </div>
                 <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-5">
                   {previewScenarios.map((scenario) => (
@@ -5152,6 +5173,9 @@ export function ContentLibraryView() {
   const [selectedAssetRole, setSelectedAssetRole] = useState<DemoRole>("learner");
   const [launchBriefCardIndex, setLaunchBriefCardIndex] = useState(0);
   const [launchBriefCardFlipped, setLaunchBriefCardFlipped] = useState(false);
+  const [libraryLaunchOpen, setLibraryLaunchOpen] = useState(false);
+  const [libraryLaunchPath, setLibraryLaunchPath] = useState<string | null>(null);
+  const [libraryLaunchTitle, setLibraryLaunchTitle] = useState("Focused training window");
   const [, setLocation] = useLocation();
 
   const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
@@ -5308,7 +5332,29 @@ export function ContentLibraryView() {
   }, [selectedAsset?.id, selectedAssetRole]);
 
   function handleStartTraining(asset?: any, role?: DemoRole, journeyId?: string, moduleId?: string, assignmentId?: string) {
-    setLocation(buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId }));
+    const path = buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId });
+    setLibraryLaunchTitle(asset?.title ?? selectedAsset?.title ?? "Focused training window");
+    setLibraryLaunchPath(path);
+    setLibraryLaunchOpen(true);
+  }
+
+  function openTrainingInSeparateWindow(path = libraryLaunchPath) {
+    if (!path) {
+      return;
+    }
+
+    if (typeof window === "undefined") {
+      setLocation(path);
+      return;
+    }
+
+    const popup = window.open(path, "_blank", "popup=yes,width=1440,height=920,left=120,top=80");
+    if (!popup) {
+      setLocation(path);
+      return;
+    }
+
+    popup.focus();
   }
 
   async function readFileAsBase64(file: File) {
@@ -5361,9 +5407,10 @@ export function ContentLibraryView() {
   return (
     <Surface>
       <SectionShell
-        eyebrow="Content Library"
-        title="CHCG methodology assets and tenant-scoped imports"
-        description="Move from discovery to launch to upload through guided library modes instead of scrolling through one long content catalog."
+        eyebrow="Content Missions Library"
+        title="Browse the shelves, then open one training at a time"
+        description="Content Missions now behaves more like a library: browse the shelf, choose one asset, and launch the training in a focused window instead of stacking more content on the same page."
+        compact
         actions={
           <>
             {access.data ? (
@@ -5372,7 +5419,7 @@ export function ContentLibraryView() {
               </Badge>
             ) : null}
             <Button type="button" onClick={() => handleStartTraining(selectedAsset ?? undefined)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-              Start training
+              Open training window
             </Button>
             <Link href="/">
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
@@ -5385,85 +5432,64 @@ export function ContentLibraryView() {
         {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
           <div className="space-y-6">
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)]">
-              <PremiumCard className="overflow-hidden">
-                <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-                  <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.18),transparent_38%),linear-gradient(135deg,rgba(7,31,54,0.96),rgba(15,23,42,0.98))] p-6 shadow-[0_28px_85px_rgba(8,15,35,0.3)]">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Content mission control</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{library.data.branding.preferredLabel}</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{assetView === "all" ? "Blended view" : assetView === "chcg" ? "CHCG core" : "Client imports"}</Badge>
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)]">
+              <div className="command-band px-5 py-5 md:px-6 md:py-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Content mission control</Badge>
+                  <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">{library.data.branding.preferredLabel}</Badge>
+                  <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">{assetView === "all" ? "Blended view" : assetView === "chcg" ? "CHCG core" : "Client imports"}</Badge>
+                </div>
+                <div className="mt-5 max-w-4xl space-y-3">
+                  <p className="text-sm uppercase tracking-[0.24em] text-[#6B7E8A]">Guided library flow</p>
+                  <h3 className="text-[2.1rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem]">Enter the library, choose the right title, and open one training at a time.</h3>
+                  <p className="max-w-3xl text-sm leading-7 text-[#4A6373]">The browsing surface now stays about discovery and handoff. When it is time to train, the lesson opens in a focused window instead of growing this page taller.</p>
+                </div>
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  {launchSummaryCards.map((card) => (
+                    <div key={card.label} className="rounded-[1.4rem] border border-[#1B303C]/10 bg-white/72 px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{card.label}</p>
+                      <p className="mt-2 text-lg font-semibold text-[#1B303C]">{card.value}</p>
+                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">{card.support}</p>
                     </div>
-                    <div className="mt-5 max-w-3xl">
-                      <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">Guided library flow</p>
-                      <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">Find the right asset, launch it fast, and only open deeper controls when you need them.</h3>
-                      <p className="mt-3 text-sm leading-7 text-slate-50">The library now force-feeds discovery, workflow handoff, and ingestion as separate modes so users stop getting lost inside long catalog pages.</p>
-                    </div>
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                      {launchSummaryCards.map((card) => (
-                        <div key={card.label} className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">{card.label}</p>
-                          <p className="mt-2 text-xl font-semibold text-white">{card.value}</p>
-                          <p className="mt-1 text-xs text-slate-300">{card.support}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid gap-4">
-                    <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-300">What matters now</p>
-                      <h4 className="mt-3 text-xl font-semibold text-white">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
-                      <p className="mt-3 text-sm leading-7 text-slate-100">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
-                        <p className="mt-2 text-base font-semibold text-white">Open asset explorer</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">Filter by role, track, and source until you have one clear launch candidate.</p>
-                      </button>
-                      <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Upload lane</p>
-                        <p className="mt-2 text-base font-semibold text-white">Add a tenant-specific asset</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
-                      </button>
-                    </div>
-                  </div>
-                </CardContent>
-              </PremiumCard>
+                  ))}
+                </div>
+              </div>
 
-              <div className="command-band px-4 py-4 md:px-5">
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Library cues</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Assets stay tenant-safe, role-aware, and launch-ready. Each mode reveals just enough information to move forward confidently.</p>
+              <div className="grid gap-3">
+                <div className="command-band px-4 py-4 md:px-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">What matters now</p>
+                  <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
+                </div>
+                <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Recommended next</p>
+                  <p className="mt-2 text-base font-semibold text-[#1B303C]">Open asset explorer</p>
+                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear launch candidate.</p>
+                </button>
+                <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Upload lane</p>
+                  <p className="mt-2 text-base font-semibold text-[#1B303C]">Add a tenant-specific asset</p>
+                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
+                </button>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
-                    </div>
+                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
+                  </div>
+                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
+                  </div>
+                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
+                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-              <MetricCard label="Total assets" value={String(library.data.stats.totalAssets)} supporting="Visible under the current tenant, role, and search filters." icon={<Layers3 className="h-4 w-4" />} />
-              <MetricCard label="CHCG core assets" value={String(library.data.stats.chcgAssets)} supporting="Sanitized CHCG methodology assets ready for reuse." icon={<BookOpen className="h-4 w-4" />} />
-              <MetricCard label="Client imports" value={String(library.data.stats.importedAssets)} supporting="Tenant-scoped materials uploaded for this workspace." icon={<Building2 className="h-4 w-4" />} />
-              <MetricCard label="Mapped journeys" value={String(library.data.stats.mappedJourneys)} supporting="Assets already connected to enablement journeys." icon={<Target className="h-4 w-4" />} />
             </div>
 
             <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
@@ -5488,15 +5514,15 @@ export function ContentLibraryView() {
                       <CardHeader className="space-y-3">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                           <div>
-                            <CardTitle className="text-white">Selected asset workflow handoff</CardTitle>
-                            <CardDescription className="text-slate-400">Inspect one asset deeply, then launch the right training view without leaving the library.</CardDescription>
+                            <CardTitle className="text-white">Selected shelf item</CardTitle>
+                            <CardDescription className="text-slate-400">Inspect one asset deeply, then open the right training in its own focused window.</CardDescription>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" variant="outline" onClick={() => setLocation("/learner")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                              Open learner journey
+                            <Button type="button" variant="outline" onClick={() => setLibraryMode("explore")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                              Back to shelves
                             </Button>
                             <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                              {selectedAssetWorkflowBrief.startLabel}
+                              Open training window
                             </Button>
                           </div>
                         </div>
@@ -5524,14 +5550,14 @@ export function ContentLibraryView() {
                     </PremiumCard>
                     <PremiumCard>
                       <CardHeader>
-                        <CardTitle className="text-white">Operational launch readiness brief</CardTitle>
-                        <CardDescription className="text-slate-400">Choose the receiving role and see how this asset should be introduced.</CardDescription>
+                        <CardTitle className="text-white">Launch window briefing</CardTitle>
+                        <CardDescription className="text-slate-400">Choose the receiving role, then open the training in a focused window instead of stacking it below the library.</CardDescription>
                       </CardHeader>
                       <CardContent className="grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start">
                         <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100">
                           <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Launch brief</p>
                           <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Set the receiving role, confirm the source context, and use the flash cards as one compact launch handoff instead of separate brief tiles.</p>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Set the receiving role, confirm the source context, and open the training in a focused window once the handoff is clear.</p>
                           <div className="mt-4 flex flex-wrap gap-2">
                             {selectedAssetRoleOptions.map((linkedRole) => (
                               <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
@@ -5540,7 +5566,7 @@ export function ContentLibraryView() {
                             ))}
                           </div>
                           <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Current launch lane</p>
+                            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Window launch lane</p>
                             <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowBrief.startLabel}</p>
                             <p className="mt-2 text-xs leading-5 text-slate-300">Source label · {selectedAsset.sourceLabel}</p>
                           </div>
@@ -5566,7 +5592,7 @@ export function ContentLibraryView() {
                           canGoNext={launchBriefCardIndex < selectedAssetBriefCards.length - 1}
                           progressLabel={selectedAssetBriefCards.length > 0 ? `${launchBriefCardIndex + 1} of ${selectedAssetBriefCards.length}` : "No cards loaded"}
                           statusLabel={`Aligned to the ${getRoleLabel(selectedAssetRole)} lane`}
-                          completionLabel={`Launch brief reviewed for the ${getRoleLabel(selectedAssetRole)} lane. Use ${selectedAssetWorkflowBrief.startLabel.toLowerCase()} when you are ready to hand off.`}
+                          completionLabel={`Launch brief reviewed for the ${getRoleLabel(selectedAssetRole)} lane. Open the training window when you are ready to hand off.`}
                           emptyTitle="Launch brief flash cards loading"
                           emptyBody="Choose an asset and receiving role to populate the launch-readiness flash cards."
                           theme="dark"
@@ -5672,7 +5698,7 @@ export function ContentLibraryView() {
                       <PremiumCard>
                         <CardHeader>
                           <CardTitle className="text-white">Active selection</CardTitle>
-                          <CardDescription className="text-slate-400">The side panel keeps detail close without forcing a separate full-page scroll.</CardDescription>
+                          <CardDescription className="text-slate-400">Keep the shelf context here, then open the selected training in its own focused window when you are ready.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="flex flex-wrap items-center gap-2">
@@ -5701,9 +5727,9 @@ export function ContentLibraryView() {
                             <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Open launcher</Button>
+                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Review launch window</Button>
                             <Button type="button" variant="outline" onClick={() => handleStartTraining(selectedAsset)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                              Start training
+                              Open training window
                               <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                             {selectedAsset.fileUrl ? (
@@ -5841,6 +5867,39 @@ export function ContentLibraryView() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
+              <DialogContent className="max-h-[92vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl xl:max-w-[88vw]">
+                <DialogHeader>
+                  <DialogTitle>{libraryLaunchTitle}</DialogTitle>
+                  <DialogDescription className="text-slate-400">The library stays in browse mode while the selected training opens in a focused window. Use the separate-window action if you want the lesson in its own browser popup.</DialogDescription>
+                </DialogHeader>
+                <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-2">
+                  {libraryLaunchPath ? (
+                    <iframe
+                      title={libraryLaunchTitle}
+                      src={libraryLaunchPath}
+                      className="h-[72vh] w-full rounded-[1.15rem] border border-white/10 bg-white"
+                    />
+                  ) : (
+                    <div className="flex h-[48vh] items-center justify-center rounded-[1.15rem] border border-dashed border-white/10 text-sm text-slate-400">
+                      Select a training from the library to open the focused window.
+                    </div>
+                  )}
+                </div>
+                <DialogFooter className="gap-2 sm:justify-between">
+                  <p className="text-sm text-slate-400">Low-value top ribbons are minimized in this launched training view so the lesson content starts sooner.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" onClick={() => setLibraryLaunchOpen(false)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                      Close window
+                    </Button>
+                    <Button type="button" onClick={() => openTrainingInSeparateWindow()} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+                      Open in separate window
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         ) : null}
       </SectionShell>

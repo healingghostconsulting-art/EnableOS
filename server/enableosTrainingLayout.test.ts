@@ -188,24 +188,33 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("All lesson flash cards reviewed. Move into the knowledge gate when ready.");
   });
 
-  it("keeps the content-library launch brief in the same flash-card pattern", () => {
+  it("keeps the content-library launch brief in the same flash-card pattern while shifting launch into a focused window", () => {
     expect(trainingViewSource).toContain("Launch brief card");
-    expect(trainingViewSource).toContain("Set the receiving role, confirm the source context, and use the flash cards as one compact launch handoff instead of separate brief tiles.");
+    expect(trainingViewSource).toContain("Set the receiving role, confirm the source context, and open the training in a focused window once the handoff is clear.");
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
     expect(trainingViewSource).toContain("Source label ·");
-    expect(trainingViewSource).toContain("Current launch lane");
+    expect(trainingViewSource).toContain("Window launch lane");
+    expect(trainingViewSource).toContain("Open training window");
     expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
 
-  it("keeps client control and content library in the mission-control pattern", () => {
+  it("keeps client control and content library in the mission-control pattern with a library-style launch window", () => {
     expect(trainingViewSource).toContain("Client control");
     expect(trainingViewSource).toContain("Client control modes");
     expect(trainingViewSource).toContain("Action launcher");
-    expect(trainingViewSource).toContain("Content mission control");
-    expect(trainingViewSource).toContain("Library modes");
-    expect(trainingViewSource).toContain("Switch between launcher, explore, and ingest");
+    expect(trainingViewSource).toContain("Content Missions Library");
+    expect(trainingViewSource).toContain("Browse the shelves, then open one training at a time");
+    expect(trainingViewSource).toContain("The library stays in browse mode while the selected training opens in a focused window.");
+    expect(trainingViewSource).toContain("Open in separate window");
     expect(trainingViewSource).toContain("Open asset explorer");
     expect(trainingViewSource).toContain("Ingestion checklist");
+  });
+
+  it("uses a compact shell when training opens from the library or a direct course launch", () => {
+    expect(trainingViewSource).toContain("compact={Boolean(requestedAssetId) || isDirectModuleLaunch}");
+    expect(trainingViewSource).toContain("Low-value top ribbons are minimized in this launched training view so the lesson content starts sooner.");
+    expect(trainingViewSource).toContain("function SectionShell");
+    expect(trainingViewSource).toContain("compact = false");
   });
 
   it("keeps the shared mission-control shell animated and reward-aware without overwhelming the workflow", () => {

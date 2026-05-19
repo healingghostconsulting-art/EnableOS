@@ -384,3 +384,7 @@
 - [x] Fix the missing coach-ribbon coaching-log button so it is clearly visible in the live coach workspace
 - [x] Force the coach-ribbon coaching-log action to open the structured log in a focused pop-up flow
 - [x] Add regression coverage for coach-ribbon coaching-log button visibility and popup entry behavior
+- [x] Redesign Content Missions so it feels like entering a cleaner training library rather than a stacked mission surface
+- [x] Launch selected training from Content Missions in a focused pop-up or separate-window experience instead of keeping everything on one long page
+- [x] Add regression coverage for the library-style Content Missions experience and focused training launch flow
+- [x] Reduce or remove top ribbons in Content Missions and related training launch surfaces where they cover content without adding meaningful training value

@@ -38,6 +38,7 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 348;
 const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
+const compactWorkspaceHeaderPaths = new Set(["/training", "/library"]);
 
 const workspaceMissionSignals: Record<string, {
   eyebrow: string;
@@ -262,7 +263,9 @@ function DashboardLayoutContent({
   const activeMenuItem = menuItems.find((item) => item.path === location);
   const isMobile = useIsMobile();
   const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
-  const commandSignal = resolveWorkspaceMissionSignal(activeMenuItem?.path ?? location, activeMenuItem?.label ?? title);
+  const activeWorkspacePath = activeMenuItem?.path ?? location;
+  const commandSignal = resolveWorkspaceMissionSignal(activeWorkspacePath, activeMenuItem?.label ?? title);
+  const useCompactWorkspaceHeader = compactWorkspaceHeaderPaths.has(activeWorkspacePath);
   const profileName = user?.name || demoProfile?.name || "CHCG Demo";
   const profileEmail = user?.email || demoProfile?.email || demoProfile?.roleLabel || "Demo workspace";
   const profileFallback = profileName
@@ -483,48 +486,77 @@ function DashboardLayoutContent({
           </div>
         ) : (
           <div className="sticky top-0 z-30 px-4 pt-4 md:px-7 xl:px-8">
-            <div className="command-band px-4 py-4 md:px-5 md:py-5">
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.8fr)] xl:items-center">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
-                    <span className="command-pill px-3 py-1 text-xs font-medium text-[#4A6373]">{commandSignal.focus}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="reward-ring celebration-glow mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(252,188,52,0.2),rgba(74,99,115,0.08))] text-[#1B303C]">
-                      <Trophy className="float-trophy h-5 w-5" />
+            <div className={useCompactWorkspaceHeader ? "command-band px-4 py-3 md:px-5 md:py-4" : "command-band px-4 py-4 md:px-5 md:py-5"}>
+              {useCompactWorkspaceHeader ? (
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                  <div className="min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
+                      <span className="command-pill px-3 py-1 text-xs font-medium text-[#4A6373]">{commandSignal.focus}</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <p className="text-sm font-medium text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
-                      <h1 className="max-w-3xl text-[1.55rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.8rem]">{commandSignal.headline}</h1>
-                      <p className="max-w-3xl text-sm leading-6 text-[#4A6373] md:text-[15px]">{commandSignal.next}</p>
+                      <h1 className="max-w-3xl text-[1.18rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.3rem]">{commandSignal.headline}</h1>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 xl:justify-end">
+                    <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
+                      <Compass className="h-3.5 w-3.5 text-[#4A6373]" />
+                      <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{activeMenuItem?.label ?? title}</span>
+                    </div>
+                    <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
+                      <Target className="h-3.5 w-3.5 text-[#4A6373]" />
+                      <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{commandSignal.focus}</span>
+                    </div>
+                    <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
+                      <Sparkles className="h-3.5 w-3.5 text-[#4A6373]" />
+                      <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{commandSignal.reward}</span>
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="trophy-card px-4 py-3.5">
-                    <div className="flex items-center gap-2 text-[#4A6373]">
-                      <Compass className="h-4 w-4" />
-                      <p className="text-[10px] uppercase tracking-[0.22em]">Current mode</p>
+              ) : (
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.8fr)] xl:items-center">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
+                      <span className="command-pill px-3 py-1 text-xs font-medium text-[#4A6373]">{commandSignal.focus}</span>
                     </div>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
+                    <div className="flex items-start gap-3">
+                      <div className="reward-ring celebration-glow mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(252,188,52,0.2),rgba(74,99,115,0.08))] text-[#1B303C]">
+                        <Trophy className="float-trophy h-5 w-5" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
+                        <h1 className="max-w-3xl text-[1.55rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.8rem]">{commandSignal.headline}</h1>
+                        <p className="max-w-3xl text-sm leading-6 text-[#4A6373] md:text-[15px]">{commandSignal.next}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="trophy-card px-4 py-3.5">
-                    <div className="flex items-center gap-2 text-[#4A6373]">
-                      <Target className="h-4 w-4" />
-                      <p className="text-[10px] uppercase tracking-[0.22em]">Next focus</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="trophy-card px-4 py-3.5">
+                      <div className="flex items-center gap-2 text-[#4A6373]">
+                        <Compass className="h-4 w-4" />
+                        <p className="text-[10px] uppercase tracking-[0.22em]">Current mode</p>
+                      </div>
+                      <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
                     </div>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.focus}</p>
-                  </div>
-                  <div className="trophy-card px-4 py-3.5">
-                    <div className="flex items-center gap-2 text-[#4A6373]">
-                      <Sparkles className="h-4 w-4" />
-                      <p className="text-[10px] uppercase tracking-[0.22em]">Momentum</p>
+                    <div className="trophy-card px-4 py-3.5">
+                      <div className="flex items-center gap-2 text-[#4A6373]">
+                        <Target className="h-4 w-4" />
+                        <p className="text-[10px] uppercase tracking-[0.22em]">Next focus</p>
+                      </div>
+                      <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.focus}</p>
                     </div>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.reward}</p>
+                    <div className="trophy-card px-4 py-3.5">
+                      <div className="flex items-center gap-2 text-[#4A6373]">
+                        <Sparkles className="h-4 w-4" />
+                        <p className="text-[10px] uppercase tracking-[0.22em]">Momentum</p>
+                      </div>
+                      <p className="mt-3 text-sm font-semibold leading-6 text-[#1B303C]">{commandSignal.reward}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
