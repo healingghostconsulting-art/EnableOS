@@ -390,3 +390,4 @@
 - [x] Reduce or remove top ribbons in Content Missions and related training launch surfaces where they cover content without adding meaningful training value
 - [x] Fix the Content Missions explorer visual regression causing overlapping text, broken track cards, and unreadable filter composition
 - [x] Add regression coverage for the repaired Content Missions explorer layout so the card and filter surfaces stay readable
+- [x] Create an editable client-facing LMS development plan spreadsheet summarizing current progress, queued work, priorities, and estimated timelines
