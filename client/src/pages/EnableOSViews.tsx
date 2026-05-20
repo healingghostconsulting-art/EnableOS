@@ -5432,7 +5432,7 @@ export function ContentLibraryView() {
         {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
           <div className="space-y-6">
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)]">
+            <div className={`grid gap-6 ${libraryMode === "explore" ? "" : "xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)]"}`}>
               <div className="command-band px-5 py-5 md:px-6 md:py-6">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Content mission control</Badge>
@@ -5444,62 +5444,79 @@ export function ContentLibraryView() {
                   <h3 className="text-[2.1rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem]">Enter the library, choose the right title, and open one training at a time.</h3>
                   <p className="max-w-3xl text-sm leading-7 text-[#4A6373]">The browsing surface now stays about discovery and handoff. When it is time to train, the lesson opens in a focused window instead of growing this page taller.</p>
                 </div>
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
-                  {launchSummaryCards.map((card) => (
-                    <div key={card.label} className="rounded-[1.4rem] border border-[#1B303C]/10 bg-white/72 px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{card.label}</p>
-                      <p className="mt-2 text-lg font-semibold text-[#1B303C]">{card.value}</p>
-                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">{card.support}</p>
-                    </div>
-                  ))}
-                </div>
+                {libraryMode === "explore" ? (
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    {launchSummaryCards.map((card) => (
+                      <div key={card.label} className="rounded-full border border-[#1B303C]/10 bg-white/78 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">{card.label}</p>
+                        <p className="mt-1 text-sm font-semibold text-[#1B303C]">{card.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-5 grid gap-3 md:grid-cols-3">
+                    {launchSummaryCards.map((card) => (
+                      <div key={card.label} className="rounded-[1.4rem] border border-[#1B303C]/10 bg-white/72 px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{card.label}</p>
+                        <p className="mt-2 text-lg font-semibold text-[#1B303C]">{card.value}</p>
+                        <p className="mt-1 text-xs leading-5 text-[#4A6373]">{card.support}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="grid gap-3">
-                <div className="command-band px-4 py-4 md:px-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">What matters now</p>
-                  <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
-                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
+              {libraryMode === "explore" ? null : (
+                <div className="grid gap-3">
+                  <div className="command-band px-4 py-4 md:px-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">What matters now</p>
+                    <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
+                  </div>
+                  <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Recommended next</p>
+                    <p className="mt-2 text-base font-semibold text-[#1B303C]">Open asset explorer</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear launch candidate.</p>
+                  </button>
+                  <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Upload lane</p>
+                    <p className="mt-2 text-base font-semibold text-[#1B303C]">Add a tenant-specific asset</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
+                  </button>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
+                    </div>
+                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
+                    </div>
+                  </div>
                 </div>
-                <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Recommended next</p>
-                  <p className="mt-2 text-base font-semibold text-[#1B303C]">Open asset explorer</p>
-                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear launch candidate.</p>
-                </button>
-                <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Upload lane</p>
-                  <p className="mt-2 text-base font-semibold text-[#1B303C]">Add a tenant-specific asset</p>
-                  <p className="mt-2 text-sm leading-6 text-[#4A6373]">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
-                </button>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
-              <div className="command-band px-4 py-4 md:px-5">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className={`command-band px-4 md:px-5 ${libraryMode === "explore" ? "py-3" : "py-4"}`}>
+                <div className={`flex ${libraryMode === "explore" ? "flex-wrap items-center justify-between gap-3" : "flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"}`}>
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Library modes</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between launcher, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
+                    {libraryMode === "explore" ? (
+                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">Choose a shelf mode, then stay in the explorer.</p>
+                    ) : (
+                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between launcher, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
+                    )}
                   </div>
-                  <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
+                  <TabsList className={`h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 ${libraryMode === "explore" ? "p-1.5 xl:w-auto" : "p-2 xl:w-auto"}`}>
                     <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Launcher</TabsTrigger>
                     <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Explore</TabsTrigger>
                     <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
@@ -5610,40 +5627,49 @@ export function ContentLibraryView() {
               </TabsContent>
 
               <TabsContent value="explore" className="mt-0 space-y-6" id="library-explore-mode">
-                <PremiumCard>
-                  <CardHeader className="space-y-4">
-                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <PremiumCard className="border-[#d7d0c3] bg-[linear-gradient(180deg,rgba(247,242,231,0.98),rgba(241,236,226,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+                  <CardHeader className="space-y-5">
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] xl:items-end">
                       <div className="space-y-2">
-                        <CardTitle className="text-[1.65rem] text-white">Track explorer</CardTitle>
-                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-400">Filter by role, track, and source so users see only the asset lanes that matter before they drill down.</CardDescription>
+                        <CardTitle className="text-[1.65rem] text-slate-950">Track explorer</CardTitle>
+                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-600">Filter by role, track, and source so users see only the asset lanes that matter before they drill down.</CardDescription>
                       </div>
-                      <label className="block w-full max-w-xl space-y-2 text-[15px] text-slate-200">
+                      <label className="block w-full space-y-2 text-[15px] text-slate-700">
                         <span>Search assets</span>
-                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} placeholder="Search by title, category, tag, or source label" />
+                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7b97a]" placeholder="Search by title, category, tag, or source label" />
                       </label>
                     </div>
                     <div className="flex max-w-4xl flex-wrap gap-2.5">
                       {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
-                        <Button key={option.value} type="button" variant="outline" onClick={() => setRoleFilter(option.value as DemoRole | "all")} className={`rounded-full border-white/10 ${roleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
+                        <Button key={option.value} type="button" variant="outline" onClick={() => setRoleFilter(option.value as DemoRole | "all")} className={`rounded-full border-slate-200 ${roleFilter === option.value ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/85 text-slate-700 hover:bg-white hover:text-slate-950"}`}>
                           {option.label}
                         </Button>
                       ))}
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-                      <Button type="button" variant="outline" onClick={() => setTrackFilter("all")} className={`h-auto rounded-3xl border-white/10 px-5 py-4 text-left ${trackFilter === "all" ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
-                        <div>
-                          <p className="text-base font-semibold leading-6">All tracks</p>
-                          <p className={`mt-2 text-sm leading-6 ${trackFilter === "all" ? "text-slate-700" : "text-slate-300"}`}>See the full blended library.</p>
-                        </div>
-                      </Button>
-                      {library.data.tracks.map((track: any) => (
-                        <Button key={track.id} type="button" variant="outline" onClick={() => setTrackFilter(track.id)} className={`h-auto rounded-3xl border-white/10 px-5 py-4 text-left ${trackFilter === track.id ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}>
-                          <div>
-                            <p className="text-base font-semibold leading-6">{track.title}</p>
-                            <p className={`mt-2 text-sm leading-6 ${trackFilter === track.id ? "text-slate-700" : "text-slate-300"}`}>{track.summary}</p>
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)] xl:items-start">
+                      <div className="flex flex-wrap gap-3">
+                        <Button type="button" variant="outline" onClick={() => setTrackFilter("all")} className={`min-h-[5.25rem] min-w-[11.5rem] flex-1 items-start justify-start whitespace-normal rounded-3xl border-slate-200 px-5 py-4 text-left shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${trackFilter === "all" ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/90 text-slate-800 hover:bg-white hover:text-slate-950"}`}>
+                          <div className="min-w-0 space-y-1.5">
+                            <p className="text-base font-semibold leading-6">All tracks</p>
+                            <p className={`text-xs uppercase tracking-[0.18em] ${trackFilter === "all" ? "text-slate-300" : "text-slate-500"}`}>Show every shelf</p>
                           </div>
                         </Button>
-                      ))}
+                        {library.data.tracks.map((track: any) => (
+                          <Button key={track.id} type="button" variant="outline" onClick={() => setTrackFilter(track.id)} className={`min-h-[5.25rem] min-w-[11.5rem] flex-1 items-start justify-start whitespace-normal rounded-3xl border-slate-200 px-5 py-4 text-left shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${trackFilter === track.id ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/90 text-slate-800 hover:bg-white hover:text-slate-950"}`}>
+                            <div className="min-w-0 space-y-1.5">
+                              <p className="break-words text-base font-semibold leading-6">{track.title}</p>
+                              <p className={`text-xs uppercase tracking-[0.18em] ${trackFilter === track.id ? "text-slate-300" : "text-slate-500"}`}>Browse lane</p>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="rounded-[1.6rem] border border-slate-200 bg-white/88 px-5 py-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current track focus</p>
+                        <p className="mt-3 text-lg font-semibold text-slate-950">{trackFilter === "all" ? "Blended library view" : library.data.tracks.find((track: any) => track.id === trackFilter)?.title ?? "Blended library view"}</p>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">{trackFilter === "all" ? "Browse the full catalog first, then narrow only if the user needs one specific methodology lane." : library.data.tracks.find((track: any) => track.id === trackFilter)?.summary ?? "Focus the shelf on one methodology lane before launching a training window."}</p>
+                        <p className="mt-4 text-xs uppercase tracking-[0.22em] text-slate-500">Explorer behavior</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">Keep this area for filtering and selection only. Open the actual training in its own focused window after the shelf decision is made.</p>
+                      </div>
                     </div>
                   </CardHeader>
                 </PremiumCard>

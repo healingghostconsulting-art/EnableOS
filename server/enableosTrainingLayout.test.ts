@@ -76,8 +76,8 @@ describe("learner training layout helpers", () => {
 
   it("keeps the learner training shell concise, brighter, and explicit about human-in-the-loop behavior", () => {
     expect(trainingViewSource).toContain("Human-in-the-loop cue");
-    expect(trainingViewSource).toContain("Agent-assist tools can accelerate preparation, but the human still owns judgment, empathy, and the final response.");
-    expect(trainingViewSource).toContain("Shorter context panels and brighter surfaces keep the next learner action easier to spot.");
+    expect(trainingViewSource).toContain("Use agent-assist prompts to prepare faster, then keep the final tone, decision, and documentation choice with the human.");
+    expect(trainingViewSource).toContain("The lesson keeps the AI support visible without letting it replace judgment, empathy, or coaching accountability.");
     expect(trainingViewSource).toContain("bg-cyan-400/8");
     expect(trainingViewSource).toContain("bg-white/8");
   });
@@ -207,14 +207,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("The library stays in browse mode while the selected training opens in a focused window.");
     expect(trainingViewSource).toContain("Open in separate window");
     expect(trainingViewSource).toContain("Open asset explorer");
+    expect(trainingViewSource).toContain("Track explorer");
+    expect(trainingViewSource).toContain("Current track focus");
+    expect(trainingViewSource).toContain("Blended library view");
+    expect(trainingViewSource).toContain("Open the actual training in its own focused window after the shelf decision is made.");
     expect(trainingViewSource).toContain("Ingestion checklist");
   });
 
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
-    expect(trainingViewSource).toContain("compact={Boolean(requestedAssetId) || isDirectModuleLaunch}");
-    expect(trainingViewSource).toContain("Low-value top ribbons are minimized in this launched training view so the lesson content starts sooner.");
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = false");
+    expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
+    expect(trainingViewSource).toContain("This deep link opens straight into the active course player so the learner lands on the lesson itself.");
+    expect(trainingViewSource).toContain("compact");
   });
 
   it("keeps the shared mission-control shell animated and reward-aware without overwhelming the workflow", () => {
