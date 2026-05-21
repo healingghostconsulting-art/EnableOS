@@ -142,7 +142,7 @@ describe("getTrainingPresentation", () => {
         durationMinutes: 15,
         skillFocus: "KPI interpretation",
       },
-      "Data-Led Leadership",
+      "Unlocking the Power of Data",
       "Trend interpretation and action planning",
     );
 
@@ -170,7 +170,7 @@ describe("getTrainingPresentation", () => {
         durationMinutes: 18,
         skillFocus: "Calibration and coaching leverage",
       },
-      "Performance Leadership",
+      "Utilizing Performance Management to Maximize Results",
       "Movable middle coaching and structured improvement plans",
     );
 
@@ -197,7 +197,7 @@ describe("getTrainingPresentation", () => {
         durationMinutes: 14,
         skillFocus: "Engagement cadence",
       },
-      "Engagement & Recognition",
+      "Gamification for Remote Teams",
       "Recognition consistency and motivation design",
     );
 
@@ -212,6 +212,31 @@ describe("getTrainingPresentation", () => {
     );
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-engagement-module-q1-a");
+  });
+
+  it("builds a fallback real-time coaching lesson with coaching-readiness charts and action tools when the module points to the uploaded coaching curriculum", () => {
+    const presentation = getTrainingPresentation(
+      {
+        id: "custom-coaching-module",
+        title: "SMART Goals and Coaching Documentation",
+        format: "Workshop",
+        durationMinutes: 16,
+        skillFocus: "Coaching pillars and follow-through",
+      },
+      "Real-time Coaching",
+      "Visible follow-through and accountable development",
+    );
+
+    expect(presentation.heroTitle).toBe("SMART Goals and Coaching Documentation");
+    expect(presentation.deckVisuals).toEqual([]);
+    expect(presentation.insightCharts).toHaveLength(2);
+    expect(presentation.insightCharts[0]?.title).toBe("Coaching conversation readiness");
+    expect(presentation.insightCharts[1]?.title).toBe("Coaching transfer cadence");
+    expect(presentation.heroSummary).toContain("SMART action planning");
+    expect(presentation.evidenceLabel).toBe("Real-time Coaching deck translated into preparation, feedback, and accountability views");
+    expect(presentation.resourceActions[0]?.label).toBe("Coaching prep sheet");
+    expect(presentation.resourceActions[1]?.label).toBe("SMART follow-up");
+    expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-coaching-module-q1-a");
   });
 
   it("builds a generic fallback lesson with gated application content when a module has no specialized deck match", () => {

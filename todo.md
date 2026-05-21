@@ -398,3 +398,8 @@
 - [x] Redesign quiz and knowledge-check validation, review, and feedback states so assessments feel native to EnableOS rather than generic browser flows
 - [x] Run a cross-surface learner-experience polish pass to unify typography, spacing, card hierarchy, and visual density across Content Missions, Training Zone, and course detail views
 - [x] Add targeted regression coverage for the feedback-video-driven learning experience refinements
+- [x] Deeply review the uploaded leadership training decks and extract their exact curriculum structure, module naming, and reusable lesson content
+- [x] Remove client-specific watermarking, branding references, and tenant-specific naming from the leadership training experience where deck-derived content is applied
+- [x] Align library asset names and training-module titles exactly to the normalized leadership curriculum naming conventions from the uploaded decks
+- [x] Apply the extracted leadership curriculum content into the current training modules and supporting library entries
+- [x] Add or update regression coverage for the revised leadership curriculum naming, content mapping, and branding cleanup

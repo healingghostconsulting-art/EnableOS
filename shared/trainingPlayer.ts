@@ -345,7 +345,7 @@ export function buildSlideInteraction(
         kind,
         title: "Choose the strongest move",
         prompt: `Which choice best reflects the intended learner move for ${slide.title.toLowerCase()}?`,
-        instructions: "Pick the strongest CHCG-aligned behavior before continuing.",
+        instructions: "Pick the strongest lesson-aligned behavior before continuing.",
         choices: [
           { id: `${slide.id}-mc-a`, label: firstBullet, detail: "This aligns to the lesson behavior made explicit on the slide.", correct: true },
           { id: `${slide.id}-mc-b`, label: secondBullet, detail: "This is related but not the clearest primary move for this page." },
@@ -408,7 +408,7 @@ export function buildSlideInteraction(
         choices: [
           { id: `${slide.id}-sim-a`, label: `Demonstrate ${firstBullet.toLowerCase()} and make the outcome visible.`, detail: "This is the strongest operational move.", correct: true },
           { id: `${slide.id}-sim-b`, label: `Delay the proof until after the interaction is over.`, detail: "This weakens transfer and makes the behavior hard to verify." },
-          { id: `${slide.id}-sim-c`, label: "Use generic reassurance without a clear action signal.", detail: "This lowers clarity and CHCG evidence quality." },
+          { id: `${slide.id}-sim-c`, label: "Use generic reassurance without a clear action signal.", detail: "This lowers clarity and makes the behavior harder to verify." },
         ],
       };
     case "timed_challenge":
@@ -431,7 +431,7 @@ export function buildSlideInteraction(
         kind,
         title: "Drag the sequence into order",
         prompt: "Put the learner moves in the right order before continuing.",
-        instructions: "Reorder the behavior sequence so it reflects the intended CHCG flow on this slide.",
+        instructions: "Reorder the behavior sequence so it reflects the intended lesson flow on this slide.",
         orderedSteps: [firstBullet, secondBullet, thirdBullet],
       };
     default:

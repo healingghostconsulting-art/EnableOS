@@ -1434,6 +1434,14 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
     moduleKeywords.includes("improvement plan") ||
     moduleKeywords.includes("discipline") ||
     moduleKeywords.includes("high performer");
+  const isCoachingLeadershipFamily =
+    moduleKeywords.includes("real-time coaching") ||
+    moduleKeywords.includes("coaching pillars") ||
+    moduleKeywords.includes("smart goals") ||
+    moduleKeywords.includes("learning styles") ||
+    moduleKeywords.includes("accountability conversations") ||
+    moduleKeywords.includes("self-discovery") ||
+    moduleKeywords.includes("documenting coaching");
   const isLeadershipFamily =
     moduleKeywords.includes("data") ||
     moduleKeywords.includes("kpi") ||
@@ -1441,7 +1449,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
     moduleKeywords.includes("trend") ||
     moduleKeywords.includes("dashboard") ||
     moduleKeywords.includes("action planning") ||
-    (moduleKeywords.includes("leadership") && !isPerformanceLeadershipFamily);
+    (moduleKeywords.includes("leadership") && !isPerformanceLeadershipFamily && !isCoachingLeadershipFamily);
   const isWorkflowFamily =
     moduleKeywords.includes("qa") ||
     moduleKeywords.includes("quality") ||
@@ -1478,7 +1486,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Bucketing activity",
           caption: "This performance-leadership frame brings calibration and performance segmentation into the lesson as a structured activity instead of a text-only explanation.",
           imageUrl: "/manus-storage/performance-leadership-08_61606933.png",
-          sourceDeck: "Maximizing performance through performance management",
+          sourceDeck: "Utilizing Performance Management to Maximize Results",
           pageLabel: "Slide 8",
         },
         {
@@ -1488,7 +1496,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             ? "This bias-check visual gives calibration modules a more explicit fairness frame so leaders can compare evidence, documentation quality, and labeling discipline before deciding on next actions."
             : "The platform uses this development frame to show how performance leadership includes stretch assignment planning, mentorship, and retention strategy rather than only correction.",
           imageUrl: usePerformanceBiasVisual ? "/manus-storage/performance-leadership-09_edfbb1ea.png" : "/manus-storage/performance-leadership-15_3215473c.png",
-          sourceDeck: "Maximizing performance through performance management",
+          sourceDeck: "Utilizing Performance Management to Maximize Results",
           pageLabel: usePerformanceBiasVisual ? "Slide 9" : "Slide 15",
         },
         {
@@ -1496,7 +1504,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Performance conversation framing",
           caption: "A third performance deck frame is now surfaced so the module carries more of the original workshop logic into the lesson and makes calibration, development, and documentation feel like one connected system.",
           imageUrl: "/manus-storage/performance-leadership-10_f976e1db.png",
-          sourceDeck: "Maximizing performance through performance management",
+          sourceDeck: "Utilizing Performance Management to Maximize Results",
           pageLabel: "Slide 10",
         },
         {
@@ -1504,10 +1512,12 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Improvement-plan decision ladder",
           caption: "A fourth leadership-performance visual extends the lesson with a clearer improvement ladder so supervisors can distinguish correction, coaching intensity, recognition, and development planning more explicitly.",
           imageUrl: "/manus-storage/performance-leadership-14_686d8ef6.png",
-          sourceDeck: "Maximizing performance through performance management",
+          sourceDeck: "Utilizing Performance Management to Maximize Results",
           pageLabel: "Slide 14",
         },
       ]
+    : isCoachingLeadershipFamily
+      ? []
     : isLeadershipFamily
       ? [
           {
@@ -1515,7 +1525,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "How to read KPI reports",
             caption: "This leadership deck frame brings KPI trend reading, target comparison, and outlier detection directly into the lesson so leaders can study the original visual logic in-platform.",
             imageUrl: "/manus-storage/leadership-data-08_d8fd351a.png",
-            sourceDeck: "Unlocking the power of date",
+            sourceDeck: "Unlocking the Power of Data",
             pageLabel: "Slide 8",
           },
         {
@@ -1525,7 +1535,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             ? "This workshop-style KPI activity helps leadership modules feel more hands-on by showing how trend reading, concern detection, and next-step planning can be practiced in-platform."
             : "The lesson uses this original action-planning frame to turn analysis into a coached next move instead of leaving KPI interpretation as passive review.",
           imageUrl: useLeadershipWorkshopVisual ? "/manus-storage/leadership-data-09_f158ab35.png" : "/manus-storage/leadership-data-15_c9ba127f.png",
-          sourceDeck: "Unlocking the power of date",
+          sourceDeck: "Unlocking the Power of Data",
           pageLabel: useLeadershipWorkshopVisual ? "Slide 9" : "Slide 15",
         },
         {
@@ -1533,7 +1543,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Examples of flawed analysis",
           caption: "A third leadership slide is now embedded so executives can study common analysis errors such as correlation mistakes, confirmation bias, recency bias, and overreliance on averages instead of seeing the same action-planning frame twice.",
           imageUrl: "/manus-storage/leadership-data-17_e47d3a3d.png",
-          sourceDeck: "Unlocking the power of date",
+          sourceDeck: "Unlocking the Power of Data",
           pageLabel: "Slide 17",
         },
         {
@@ -1541,7 +1551,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Question-led KPI review prompts",
           caption: "A fourth KPI slide gives the lesson a stronger workshop feel by surfacing the guiding questions leaders should ask before moving from a metric reading to a team action plan.",
           imageUrl: "/manus-storage/leadership-data-10_173605c2.png",
-          sourceDeck: "Unlocking the power of date",
+          sourceDeck: "Unlocking the Power of Data",
           pageLabel: "Slide 10",
         },
 
@@ -1591,7 +1601,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             title: "Gamification mistakes to avoid",
             caption: "This frame helps leaders design engagement loops carefully by surfacing the risks of overcomplication, unfairness, burnout, and stale reward structures directly inside the lesson.",
             imageUrl: "/manus-storage/gamification-08_78b0164d.png",
-            sourceDeck: "Gamification & Work From Home",
+            sourceDeck: "Gamification for Remote Teams: Engaging and Empowering Leaders",
             pageLabel: "Slide 8",
           },
         {
@@ -1601,7 +1611,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
             ? "This step-by-step program-design slide makes engagement lessons more concrete by showing how purpose, rules, metrics, rewards, pilot feedback, and iteration fit together."
             : "The course uses this timeline visual to show how daily, weekly, monthly, and quarterly recognition moments can become an intentional operating rhythm instead of an ad hoc morale tactic.",
           imageUrl: useEngagementProgramVisual ? "/manus-storage/gamification-09_013f4839.png" : "/manus-storage/gamification-15_b67831b0.png",
-          sourceDeck: "Gamification & Work From Home",
+          sourceDeck: "Gamification for Remote Teams: Engaging and Empowering Leaders",
           pageLabel: useEngagementProgramVisual ? "Slide 9" : "Slide 15",
         },
         {
@@ -1609,7 +1619,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "What makes a good reward",
           caption: "A third gamification slide is now embedded so the engagement modules preserve concrete reward-design options such as recognition, badges, time-off tokens, spotlight moments, and non-monetary rewards from the presentation.",
           imageUrl: "/manus-storage/gamification-10_48ec527b.png",
-          sourceDeck: "Gamification & Work From Home",
+          sourceDeck: "Gamification for Remote Teams: Engaging and Empowering Leaders",
           pageLabel: "Slide 10",
         },
         {
@@ -1617,7 +1627,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           title: "Recognition loop design checklist",
           caption: "A fourth engagement visual extends the module with a repeatable checklist so managers can review fairness, cadence, visibility, and reward sustainability before launching a motivation program.",
           imageUrl: "/manus-storage/gamification-14_8cfa45db.png",
-          sourceDeck: "Gamification & Work From Home",
+          sourceDeck: "Gamification for Remote Teams: Engaging and Empowering Leaders",
           pageLabel: "Slide 14",
         },
 
@@ -1654,6 +1664,35 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           ],
         },
       ]
+    : isCoachingLeadershipFamily
+      ? [
+          {
+            id: `${module.id}-chart-1`,
+            title: "Coaching conversation readiness",
+            description: `A leadership-coaching view showing how ${module.skillFocus.toLowerCase()} should strengthen trust-building, goal clarity, and accountable follow-through.`,
+            metricLabel: "Readiness score",
+            chartType: "comparison",
+            insightNote: "The strongest coaching modules improve connection, clarity, and ownership together instead of treating feedback as a one-off event.",
+            data: [
+              { label: "Connection and trust", value: 86, benchmark: 80 },
+              { label: "Goal clarity", value: 82, benchmark: 78 },
+              { label: "Accountability follow-through", value: 74, benchmark: 72 },
+            ],
+          },
+          {
+            id: `${module.id}-chart-2`,
+            title: "Coaching transfer cadence",
+            description: "This chart mirrors the workshop's emphasis on preparation, live delivery, documentation, and follow-up rather than one-off feedback moments.",
+            metricLabel: "Cadence score",
+            chartType: "trend",
+            insightNote: "A durable coaching system depends on preparation, practice, documentation, and visible follow-through.",
+            data: [
+              { label: "Prepared", value: 79, benchmark: 75 },
+              { label: "Documented", value: 71, benchmark: 70 },
+              { label: "Followed through", value: 68, benchmark: 72 },
+            ],
+          },
+        ]
     : isLeadershipFamily
       ? [
           {
@@ -1753,6 +1792,8 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
 
   const fallbackHeroSummary = isPerformanceLeadershipFamily
     ? `This ${module.format.toLowerCase()} turns ${module.skillFocus.toLowerCase()} into a calibration and coaching lesson inside ${journeyTitle}, helping leaders compare segments, protect fairness, and choose the next development move with more evidence.`
+    : isCoachingLeadershipFamily
+      ? `This ${module.format.toLowerCase()} brings the Real-time Coaching curriculum into ${journeyTitle}, connecting trust-building, feedback delivery, SMART action planning, and accountability follow-through.`
     : isLeadershipFamily
       ? `This ${module.format.toLowerCase()} reframes ${module.skillFocus.toLowerCase()} as a decision-making lesson inside ${journeyTitle}, connecting KPI interpretation, pattern recognition, and action planning to the broader competency gap of ${competencyGap.toLowerCase()}.`
       : isWorkflowFamily
@@ -1761,7 +1802,9 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
           ? `This ${module.format.toLowerCase()} brings ${module.skillFocus.toLowerCase()} into ${journeyTitle} as an operating-rhythm lesson, showing how recognition design, motivation balance, and measurable reinforcement support the wider competency gap of ${competencyGap.toLowerCase()}.`
           : `This ${module.format.toLowerCase()} is presented as a guided lesson inside ${journeyTitle}, with the focus placed on ${module.skillFocus.toLowerCase()} and the broader competency gap of ${competencyGap.toLowerCase()}.`;
   const fallbackEvidenceLabel = isPerformanceLeadershipFamily
-    ? "Performance-leadership deck translated into calibration, fairness, and development views"
+    ? "Performance-management deck translated into calibration, fairness, and development views"
+    : isCoachingLeadershipFamily
+      ? "Real-time Coaching deck translated into preparation, feedback, and accountability views"
     : isLeadershipFamily
       ? "Leadership-data deck translated into KPI interpretation and action-planning views"
       : isWorkflowFamily
@@ -1777,6 +1820,12 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         { id: `${module.id}-resource-2`, label: "Manager checkpoint", detail: "Use the lesson in the next coaching review and document which evidence supported the decision." },
         { id: `${module.id}-resource-3`, label: "Bias guardrail", detail: "Review the documentation signals that help leaders avoid labeling errors before escalating action." },
       ]
+    : isCoachingLeadershipFamily
+      ? [
+          { id: `${module.id}-resource-1`, label: "Coaching prep sheet", detail: "Capture the session goal, the evidence you will use, and the discovery question that should open the conversation." },
+          { id: `${module.id}-resource-2`, label: "SMART follow-up", detail: "Write the behavior change, the measurement, and the timeline that should be reviewed after the session." },
+          { id: `${module.id}-resource-3`, label: "Accountability prompt", detail: "Note how the learner's progress will be documented and when the next follow-up conversation should happen." },
+        ]
     : isLeadershipFamily
       ? [
           { id: `${module.id}-resource-1`, label: "KPI review worksheet", detail: "Capture the pattern, explain the likely cause, and note the action that should follow the data review." },
@@ -1903,7 +1952,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
         narrative: `The learner studies the key moves for ${module.skillFocus.toLowerCase()} before choosing a rehearsal mode.`,
         bullets: [
           "Notice the signal in the workflow moment.",
-          "Choose language that reflects CHCG expectations.",
+          "Choose language that reflects the lesson expectations.",
           "Prepare one observable behavior for the next coaching checkpoint.",
         ],
         visualTone: "Practice frame",

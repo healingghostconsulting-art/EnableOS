@@ -14,7 +14,7 @@ describe("training discovery search", () => {
       keywords: ["manager", "workflow", "qa"],
     },
     {
-      title: "Unlocking the power of date",
+      title: "Unlocking the Power of Data",
       subtitle: "KPI reading and executive decision quality.",
       keywords: ["executive", "kpi", "leadership"],
     },
@@ -38,8 +38,8 @@ describe("training discovery search", () => {
     expect(filterTrainingRecords(records, "quality assurance").map((record) => record.title)).toEqual([
       "Quality Assurance Essentials",
     ]);
-    expect(filterTrainingRecords(records, "power date").map((record) => record.title)).toEqual([
-      "Unlocking the power of date",
+    expect(filterTrainingRecords(records, "power data").map((record) => record.title)).toEqual([
+      "Unlocking the Power of Data",
     ]);
   });
 });
