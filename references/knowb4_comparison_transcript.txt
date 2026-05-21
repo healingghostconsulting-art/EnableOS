@@ -1,0 +1,48 @@
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/knowb4_comparison_20260521.mp4, file size: 452.43 MB
+File size exceeds limit, converting to audio (64kbps)...
+Converting video to audio (bitrate: 64k)...
+Audio conversion completed. Saved to: /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016.mp3
+Transcribing audio file: /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016.mp3, file size: 1.92 MB
+Transcription may take some time depending on file size and audio length...
+Transcription completed successfully!
+
+TRANSCRIPTION RESULT:
+Total Duration: 251.4 seconds
+Language: english
+Timestamped segments:
+[00:00.0 - 00:02.1]  you
+[00:30.0 - 00:32.1]  you
+[01:00.0 - 01:02.1]  you
+[01:30.0 - 01:32.1]  you
+[02:00.0 - 02:02.1]  you
+[02:30.0 - 02:32.1]  you
+[03:00.0 - 03:02.1]  you
+[03:30.0 - 03:32.1]  you
+[04:00.0 - 04:02.1]  you
+Complete transcription result saved to: /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016_transcription_20260521_134021.json
+Plain text transcription saved to: /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016_transcription_20260521_134021.txt
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016.mp3
+[2J[H[3Jmanus-speech-to-text /home/ubuntu/Downloads/knowb4_comparison_20260521.mp4
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/knowb4_comparison_20260521.mp4, file size: 452.43 MB
+File size exceeds limit, converting to audio (64kbps)...
+Transcribing audio file: /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016.mp3, file size: 1.92 MB
+Transcription may take some time depending on file size and audio length...
+
+Snippet of transcribed content:
+[00:00.0 - 00:02.1] you
+[00:30.0 - 00:32.1] you
+[01:00.0 - 01:02.1] you
+[01:30.0 - 01:32.1] you
+[02:00.0 - 02:02.1] you
+[02:30.0 - 02:32.1] you
+[03:00.0 - 03:02.1] you
+[03:30.0 - 03:32.1] you
+[04:00.0 - 04:02.1] you
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016.mp3
+
+Completed transcription, JSON saved to /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016_transcription_20260521_134021.json
+Plain text transcription saved to /home/ubuntu/Downloads/knowb4_comparison_20260521_converted_20260521_134016_transcription_20260521_134021.txt

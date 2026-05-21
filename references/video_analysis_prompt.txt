@@ -1,0 +1,1 @@
+Review this feedback video for the CHCG EnableOS Demo and extract the concrete requested changes. Focus on UI comparisons, workflow issues, content presentation concerns, and any explicit asks for what should be changed next. Organize the findings into actionable product changes, not a generic summary.
