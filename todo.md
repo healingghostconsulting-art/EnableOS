@@ -413,3 +413,6 @@
 - [x] Fix the broken first-click behavior so the primary mission/library selection opens the intended next view instead of returning to the same UI state
 - [x] Add or update regression coverage for site-wide compact-layout consistency and the corrected primary navigation flow
 - [x] Review the available KnowBe4 comparison videos with a Training Zone focus and report prioritized scroll-reduction and interaction-efficiency improvements before the next redesign pass
+- [x] Review the newly shared Training Zone video together with the other KnowBe4 comparison videos from today and produce a more accurate redesign direction based on the real Training Zone flow rather than the earlier mockup assumption
+- [x] Implement the approved KnowBe4-inspired Training Zone redesign by making the lesson canvas the primary above-the-fold destination, collapsing nonessential support panels into reveal-on-demand rails or drawers, and converting checkpoints into focused in-flow states.
+- [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the approved player redesign.

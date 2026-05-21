@@ -75,12 +75,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("text-slate-300");
   });
 
-  it("keeps the learner training shell concise, brighter, and explicit about human-in-the-loop behavior", () => {
-    expect(trainingViewSource).toContain("Human-in-the-loop cue");
-    expect(trainingViewSource).toContain("Use agent-assist prompts to prepare faster, then keep the final tone, decision, and documentation choice with the human.");
-    expect(trainingViewSource).toContain("The lesson keeps the AI support visible without letting it replace judgment, empathy, or coaching accountability.");
-    expect(trainingViewSource).toContain("bg-cyan-400/8");
-    expect(trainingViewSource).toContain("bg-white/8");
+  it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
+    expect(trainingViewSource).toContain("Reveal on demand");
+    expect(trainingViewSource).toContain("Support stays secondary");
+    expect(trainingViewSource).toContain("Transcript, coach prompts, and transfer materials remain available, but the lesson canvas owns the screen first.");
+    expect(trainingViewSource).toContain("Above-the-fold focus");
+    expect(trainingViewSource).toContain("Player support");
   });
 
   it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
@@ -176,8 +176,8 @@ describe("learner training layout helpers", () => {
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain("Training pages");
-    expect(trainingViewSource).toContain("Move through the training in focused pages instead of one long stack.");
-    expect(trainingViewSource).toContain("Transfer pack");
+    expect(trainingViewSource).toContain("The lesson stays dominant by default. Open overview, checkpoint, or resources only when you need them.");
+    expect(trainingViewSource).toContain("Resources");
     expect(trainingViewSource).toContain("trainingWorkspacePage");
     expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
     expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");
@@ -214,7 +214,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = true");
     expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
-    expect(trainingViewSource).toContain("This deep link opens straight into the active course player so the learner lands on the lesson itself.");
+    expect(trainingViewSource).toContain("Lesson first. Progress and support stay compact until the learner needs them.");
+    expect(trainingViewSource).toContain("Player launch setup");
+    expect(trainingViewSource).toContain("Focused player");
     expect(trainingViewSource).toContain("Module outline");
     expect(trainingViewSource).toContain("Lesson canvas ·");
     expect(trainingViewSource).toContain("Progress rail");

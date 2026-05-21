@@ -1,0 +1,36 @@
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/training_zone_feedback_20260521.mp4, file size: 117.43 MB
+File size exceeds limit, converting to audio (64kbps)...
+Converting video to audio (bitrate: 64k)...
+Audio conversion completed. Saved to: /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349.mp3
+Transcribing audio file: /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349.mp3, file size: 0.50 MB
+Transcription may take some time depending on file size and audio length...
+Transcription completed successfully!
+
+TRANSCRIPTION RESULT:
+Total Duration: 66.0 seconds
+Language: english
+Timestamped segments:
+[00:00.0 - 00:02.1]  you
+[00:30.0 - 00:32.1]  you
+[01:00.0 - 01:02.1]  you
+Complete transcription result saved to: /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349_transcription_20260521_155353.json
+Plain text transcription saved to: /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349_transcription_20260521_155353.txt
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349.mp3
+[2J[H[3Jmanus-speech-to-text /home/ubuntu/Downloads/training_zone_feedback_20260521.mp4
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/training_zone_feedback_20260521.mp4, file size: 117.43 MB
+File size exceeds limit, converting to audio (64kbps)...
+Transcribing audio file: /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349.mp3, file size: 0.50 MB
+Transcription may take some time depending on file size and audio length...
+
+Snippet of transcribed content:
+[00:00.0 - 00:02.1] you
+[00:30.0 - 00:32.1] you
+[01:00.0 - 01:02.1] you
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349.mp3
+
+Completed transcription, JSON saved to /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349_transcription_20260521_155353.json
+Plain text transcription saved to /home/ubuntu/Downloads/training_zone_feedback_20260521_converted_20260521_155349_transcription_20260521_155353.txt
