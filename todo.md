@@ -403,3 +403,9 @@
 - [x] Align library asset names and training-module titles exactly to the normalized leadership curriculum naming conventions from the uploaded decks
 - [x] Apply the extracted leadership curriculum content into the current training modules and supporting library entries
 - [x] Add or update regression coverage for the revised leadership curriculum naming, content mapping, and branding cleanup
+- [x] Review the newly shared direct-comparison video, identify where EnableOS remains too scroll-heavy or clunky versus the reference, and report back with prioritized UI updates
+- [x] Create a visual mockup of the compacted EnableOS UI direction for approval before implementing the next scroll-reduction and interaction-efficiency design pass
+- [x] Implement the approved compact mission-hub redesign so more actionable training and mission content appears above the fold with reduced header and hero sprawl
+- [x] Redesign the training library into denser browse rows or compact mission cards with faster scan-and-launch behavior and in-panel detail viewing
+- [x] Implement the focused training-player shell with a persistent module outline, central lesson canvas, and compact progress rail matching the approved mockup direction
+- [x] Add or update regression coverage for the approved compact-UI redesign across the mission hub, library, and focused training-player experience

@@ -915,6 +915,33 @@ function MetricCard({
   );
 }
 
+function DocumentationFeed({ entries }: { entries: any[] }) {
+  if (!entries || entries.length === 0) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-slate-300">
+        No documentation feed entries are available for this view yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {entries.map((entry: any, index: number) => (
+        <div key={entry.id ?? `${entry.title ?? "documentation"}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+            </div>
+            {entry.updatedAt ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{String(entry.updatedAt)}</Badge> : null}
+          </div>
+          {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function revealWorkspaceSection(sectionId: string) {
   if (typeof document === "undefined") {
     return;
@@ -1932,21 +1959,28 @@ export function LandingView() {
         cta: "Open manager-aligned training",
       },
       {
-        title: "Unlocking the power of date",
+        title: "Unlocking the Power of Data",
         subtitle: "KPI interpretation, trend review, and decision-quality leadership.",
         keywords: ["executive", "leadership", "data", "kpi"],
         href: "/training?role=executive",
         cta: "Open executive-aligned training",
       },
       {
-        title: "Maximizing performance through performance management",
-        subtitle: "Calibration, improvement planning, and coaching accountability.",
+        title: "Real-time Coaching",
+        subtitle: "In-the-moment coaching responses, reinforcement, and follow-through cues.",
+        keywords: ["manager", "coaching", "feedback", "leadership"],
+        href: "/training?role=manager",
+        cta: "Open coaching module",
+      },
+      {
+        title: "Utilizing Performance to Maximize Performance",
+        subtitle: "Calibration, improvement planning, and performance accountability rhythms.",
         keywords: ["manager", "performance", "calibration", "reviews"],
         href: "/training?role=manager",
         cta: "Open performance training",
       },
       {
-        title: "Gamification & Work From Home",
+        title: "Engagement and Empowering",
         subtitle: "Recognition rhythms, gamification, and hybrid-team motivation design.",
         keywords: ["manager", "engagement", "recognition", "remote teams"],
         href: "/training?role=manager",
@@ -1967,264 +2001,209 @@ export function LandingView() {
     [landingSearchQuery, landingTrainingRecords],
   );
   const landingMetricHighlights = landing.data?.featuredMetrics ?? [
-    { label: "Active interventions", value: 18 },
-    { label: "Avg. readiness uplift", value: "+9 pts" },
-    { label: "Documented coaching cycles", value: "94%" },
-    { label: "Intervention-to-impact confidence", value: "High" },
+    { label: "Ready to launch", value: 12 },
+    { label: "Due this week", value: 4 },
+    { label: "Avg. progress", value: "61%" },
+    { label: "In coaching", value: 9 },
   ];
-  const landingProofPoints = [
-    "Search-first mission entry",
-    "Role-tuned workspace launchers",
-    "Visible coaching and readiness movement",
-  ];
+  const compactMissionQueue = landingSearchQuery.trim() ? landingSearchResults : landingTrainingRecords.slice(0, 6);
+  const compactWorkspaceCards = featuredTenants.slice(0, 4);
 
   return (
     <Surface>
       <div className="workspace-stack">
-        <div className="glass-panel energy-frame overflow-hidden rounded-[2.4rem] border border-[#1B303C]/10 bg-white shadow-[0_32px_120px_rgba(27,48,60,0.12)]">
-          <div className="grid gap-6 px-6 py-7 md:px-8 md:py-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,0.85fr)] xl:items-start xl:px-10 xl:py-10">
-            <div className="space-y-5">
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge variant="outline" className="mission-chip w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.32em]">
-                    EnableOS mission hub
-                  </Badge>
-                  <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.24em] text-[#4A6373]">Guided by CHCG performance methodology</span>
-                </div>
-                <div className="max-w-[54rem] space-y-4">
-                  <h1 className="max-w-[12ch] text-[2.65rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.55rem] md:leading-[1.02] xl:text-[4rem]">
-                    Turn enablement into a live performance mission, not a static training portal.
-                  </h1>
-                  <p className="max-w-3xl text-[1.02rem] leading-7 text-[#4A6373] md:text-[1.05rem]">
-                    EnableOS frames learning, coaching, and governance as one connected operating system with searchable missions, visible momentum, and role-specific decision support across every client workspace, while CHCG powers the underlying methodology and execution discipline.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2.5">
-                  {landingProofPoints.map((point) => (
-                    <span key={point} className="command-pill px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">
-                      {point}
-                    </span>
-                  ))}
-                </div>
+        <div className="glass-panel energy-frame overflow-hidden rounded-[2.2rem] border border-[#1B303C]/10 bg-white shadow-[0_28px_90px_rgba(27,48,60,0.12)]">
+          <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-7">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.28em]">
+                  EnableOS mission hub
+                </Badge>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Search-first entry</span>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Compact rows</span>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Fewer scroll jumps</span>
               </div>
-              <div className="rounded-[2rem] border border-[#1B303C]/8 bg-[linear-gradient(135deg,rgba(27,48,60,0.04),rgba(252,188,52,0.08))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] md:p-5">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(15rem,0.52fr)] xl:items-start">
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">One-screen proof</p>
-                      <Badge className="mission-chip rounded-full text-[#1B303C]">Browse less. Launch faster. Prove movement.</Badge>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {landingMetricHighlights.map((item: any) => (
-                        <div key={item.label} className="rounded-[1.45rem] bg-[#1B303C] px-4 py-4 text-white shadow-[0_18px_48px_rgba(27,48,60,0.18)]">
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-300">{item.label}</p>
-                          <p className="mt-3 text-2xl font-semibold tracking-tight">{String(item.value)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                    <div className="trophy-card px-4 py-3.5">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current mode</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{missionHubMode === "overview" ? "Command overview" : missionHubMode === "workspaces" ? "Workspace launcher" : "Learning tracks"}</p>
-                    </div>
-                    <div className="trophy-card px-4 py-3.5">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{viewer.data ? "Resume assigned mission" : "Launch sign-in or preview training"}</p>
-                    </div>
-                    <div className="trophy-card px-4 py-3.5">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">Role-aligned clarity</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="max-w-4xl space-y-3">
+                <h1 className="max-w-[15ch] text-[2.35rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.05rem] md:leading-[1.02] xl:text-[3.4rem]">
+                  Show more actionable training in one screen.
+                </h1>
+                <p className="max-w-3xl text-[0.98rem] leading-7 text-[#4A6373]">
+                  This compact mission hub keeps real training, workspace entry, and next-action signals above the fold so users can browse, choose, and launch without crossing long explanatory sections first.
+                </p>
               </div>
-              <div className="glass-panel max-w-5xl space-y-4 rounded-[1.9rem] border border-[#1B303C]/10 bg-white p-4 md:p-5">
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,0.46fr)] xl:items-start">
-                  <div className="space-y-3">
-                    <label className="block space-y-2 text-sm text-[#1B303C]">
-                      <span>Search missions, training tracks, and workspaces</span>
-                      <div className="flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
-                        <Search className="h-4 w-4 text-[#4A6373]" />
-                        <input
-                          value={landingSearchQuery}
-                          onChange={(event) => setLandingSearchQuery(event.target.value)}
-                          placeholder="Search Service Foundations, Workflow Precision, KPI, coaching, learner..."
-                          className="w-full bg-transparent text-[#1B303C] outline-none placeholder:text-[#4A6373]"
-                        />
-                      </div>
-                    </label>
-                    <div className="rounded-[1.4rem] border border-[#FCBC34]/25 bg-white px-4 py-3.5">
-                      <p className="text-[14px] leading-6 text-[#4A6373]">
-                        {viewerAccess.data
-                          ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the client-specific workspaces and training access granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                          : "After sign-in, users only see the client-specific trainings and workspaces assigned to their account rather than a shared cross-client training selector."}
-                      </p>
-                    </div>
+              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
+                <label className="block min-w-0 space-y-2 text-sm text-[#1B303C]">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search mission hub</span>
+                  <div className="flex items-center gap-3 rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                    <Search className="h-4 w-4 text-[#4A6373]" />
+                    <input
+                      value={landingSearchQuery}
+                      onChange={(event) => setLandingSearchQuery(event.target.value)}
+                      placeholder="Search data, coaching, QA, learner, manager..."
+                      className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]"
+                    />
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    <Link href="/learner" className="min-w-0">
-                      <Button className="min-h-[3.5rem] w-full justify-between rounded-[1.35rem] bg-[#1B303C] px-5 py-3 text-left text-[14px] font-medium leading-5 text-white hover:bg-[#243f4d] xl:text-[15px]">
-                        <span className="min-w-0 whitespace-normal">{viewer.data ? "Resume my enablement mission" : "Sign in for client mission access"}</span>
-                        <ArrowRight className="ml-3 h-4 w-4 shrink-0" />
-                      </Button>
-                    </Link>
-                    <Link href="/training" className="min-w-0">
-                      <Button variant="outline" className="min-h-[3.5rem] w-full justify-start rounded-[1.35rem] border-[#1B303C]/14 bg-white px-5 py-3 text-left text-[14px] font-medium leading-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] xl:text-[15px]">
-                        <span className="min-w-0 whitespace-normal">Preview interactive training simulator</span>
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-                {landingSearchQuery.trim() ? (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {landingSearchResults.length > 0 ? landingSearchResults.map((result) => (
-                      <Link key={`${result.href}-${result.title}`} href={result.href}>
-                        <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-left transition hover:border-[#FCBC34]/30 hover:bg-white">
-                          <p className="text-sm font-medium text-[#1B303C]">{result.title}</p>
-                          <p className="mt-2 text-xs leading-5 text-[#4A6373]">{result.subtitle}</p>
-                          <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{result.cta}</p>
-                        </button>
-                      </Link>
-                    )) : (
-                      <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-4 text-sm text-[#4A6373] md:col-span-2">
-                        No training or workspace results match that search yet. Try a track name, role, or skill keyword.
-                      </div>
-                    )}
-                  </div>
-                ) : null}
+                </label>
+                <Link href={viewer.data ? "/learner" : "/login"}>
+                  <Button className="h-12 rounded-[1.25rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
+                    {viewer.data ? "Resume my mission" : "Launch next"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/training">
+                  <Button variant="outline" className="h-12 rounded-[1.25rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
+                    Preview player
+                  </Button>
+                </Link>
               </div>
             </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {landingMetricHighlights.map((item: any) => (
+                <div key={item.label} className="rounded-[1.3rem] border border-[#1B303C]/8 bg-[linear-gradient(160deg,rgba(27,48,60,0.98),rgba(23,37,47,0.96))] px-4 py-4 text-white shadow-[0_18px_48px_rgba(27,48,60,0.16)]">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
+                  <p className="mt-2 text-[1.7rem] font-semibold tracking-tight">{String(item.value)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-5 border-t border-[#1B303C]/8 px-5 py-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-7">
             <div className="space-y-3">
-              <div className="guide-card p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Smooth launch rhythm</p>
-                <h2 className="mt-3 text-xl font-semibold text-[#1B303C]">Keep proof, launch, and search above the fold.</h2>
-                <p className="mt-3 text-sm leading-7 text-[#4A6373]">The homepage now front-loads proof, mission entry, and workspace orientation so users do not have to scroll through multiple explanation bands before they can act.</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Training queue</p>
+                  <p className="mt-1 text-sm text-[#4A6373]">Dense rows keep titles, status, runtime, and next action in the same frame.</p>
+                </div>
+                <Badge className="rounded-full border-[#1B303C]/10 bg-white text-[#1B303C]">{compactMissionQueue.length} visible</Badge>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                {featuredTenants.map((tenant: any) => (
-                  <div key={tenant.id} className="rounded-[1.7rem] border border-[#1B303C]/8 bg-white/92 p-4 shadow-[0_18px_48px_rgba(27,48,60,0.08)]">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="command-pill px-3 py-1.5 text-sm font-medium text-[#1B303C]">{tenant.logoMark}</div>
-                      <Badge className="mission-chip rounded-full text-[#1B303C]">{tenant.industry}</Badge>
-                    </div>
-                    <h3 className="mt-3 text-lg font-semibold text-[#1B303C]">{tenant.name}</h3>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">{tenant.description}</p>
+              <div className="space-y-2.5">
+                {compactMissionQueue.length > 0 ? compactMissionQueue.map((record, index) => (
+                  <Link key={`${record.href}-${record.title}`} href={record.href}>
+                    <button type="button" className="flex w-full items-center justify-between gap-4 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/85 px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32 hover:bg-white">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">{index + 1}</span>
+                          <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-[#F7F8FA] text-[#4A6373]">{record.keywords[0]}</Badge>
+                        </div>
+                        <p className="mt-2 line-clamp-1 text-sm font-semibold text-[#1B303C]">{record.title}</p>
+                        <p className="mt-1 line-clamp-1 text-xs leading-5 text-[#4A6373]">{record.subtitle}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold text-[#1B303C]">{index % 3 === 0 ? "61% complete" : index % 3 === 1 ? "Start now" : "Review"}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#6B7E8A]">{record.cta}</p>
+                      </div>
+                    </button>
+                  </Link>
+                )) : (
+                  <div className="rounded-[1.2rem] border border-dashed border-[#1B303C]/14 bg-white/70 px-4 py-5 text-sm text-[#4A6373]">
+                    No matching mission yet. Try a broader keyword to repopulate the queue.
                   </div>
-                ))}
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Workspace launchers</p>
+                <p className="mt-1 text-sm text-[#4A6373]">Keep tenant context and the primary action in short cards instead of long previews.</p>
+              </div>
+              <div className="grid gap-2.5">
+                {compactWorkspaceCards.length > 0 ? compactWorkspaceCards.map((tenant: any) => (
+                  <Link key={tenant.id} href="/learner">
+                    <button type="button" className="w-full rounded-[1.2rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(245,247,250,0.94))] px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-1 text-sm font-semibold text-[#1B303C]">{tenant.name}</p>
+                          <p className="mt-1 line-clamp-1 text-xs uppercase tracking-[0.18em] text-[#6B7E8A]">{tenant.industry}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-[#1B303C]" />
+                      </div>
+                    </button>
+                  </Link>
+                )) : (
+                  <div className="rounded-[1.2rem] border border-dashed border-[#1B303C]/14 bg-white/70 px-4 py-5 text-sm text-[#4A6373]">
+                    Tenant launchers will appear here once landing data is available.
+                  </div>
+                )}
+              </div>
+              <div className="rounded-[1.3rem] border border-[#FCBC34]/22 bg-[linear-gradient(160deg,rgba(255,251,240,0.92),rgba(255,255,255,0.95))] px-4 py-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Access model</p>
+                <p className="mt-2 text-sm leading-6 text-[#4A6373]">
+                  {viewerAccess.data
+                    ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the workspaces and training lanes granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
+                    : "After sign-in, users land directly in their assigned client context instead of seeing a cross-client training picker."}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <Tabs value={missionHubMode} onValueChange={(value) => setMissionHubMode(value as "overview" | "workspaces" | "tracks")} className="space-y-4">
-          <div className="command-band px-4 py-4 md:px-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="command-band px-4 py-3.5 md:px-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Mission modes</p>
-                <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between the core command summary, workspace launcher, and CHCG learning architecture instead of scrolling through every block in sequence.</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Compact mission navigation</p>
+                <p className="mt-1 text-sm text-[#4A6373]">Each mode is denser and shorter so users can compare, choose, and move without losing context.</p>
               </div>
-              <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
-                <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
+              <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[1.25rem] border border-[#1B303C]/10 bg-white/75 p-1.5">
+                <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Command</TabsTrigger>
                 <TabsTrigger value="workspaces" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Workspaces</TabsTrigger>
-                <TabsTrigger value="tracks" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Learning tracks</TabsTrigger>
+                <TabsTrigger value="tracks" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Tracks</TabsTrigger>
               </TabsList>
             </div>
           </div>
 
-          <TabsContent value="overview" className="mt-0 space-y-4">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
-              <div className="grid gap-4 lg:grid-cols-3">
-                {[
-                  {
-                    title: "Signal-to-action missions",
-                    description: "Live KPI and QA cues now feed training, interventions, and coaching steps as one connected operating rhythm.",
-                    icon: <Gauge className="h-5 w-5" />,
-                  },
-                  {
-                    title: "Role-tuned command views",
-                    description: "Executives, managers, learners, and client admins each get a distinct interface with the right missions, urgency, and decision context.",
-                    icon: <Users2 className="h-5 w-5" />,
-                  },
-                  {
-                    title: "Guided coaching intelligence",
-                    description: "AI-assisted prompts, simulation cues, and human override controls keep the product dynamic without feeling opaque or over-automated.",
-                    icon: <Bot className="h-5 w-5" />,
-                  },
-                ].map((item: any) => (
-                  <PremiumCard key={item.title} className="h-full">
-                    <CardHeader>
-                      <div className="reward-ring mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/10 to-violet-500/12 text-white">{item.icon}</div>
-                      <CardTitle className="text-white">{item.title}</CardTitle>
-                      <CardDescription className="text-slate-300">{item.description}</CardDescription>
-                    </CardHeader>
-                  </PremiumCard>
-                ))}
+          <TabsContent value="overview" className="mt-0">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.06fr)_minmax(320px,0.94fr)]">
+              <div className="grid gap-4 md:grid-cols-3">
+                <MetricCard label="Live queue" value="6 visible" supporting="Compressed browse rows show status, runtime, and next action in one scan path." icon={<Layers3 className="h-5 w-5 text-cyan-300" />} />
+                <MetricCard label="Mission pace" value="1-screen launch" supporting="Search and launch controls stay inside the first shell rather than below long narrative sections." icon={<Gauge className="h-5 w-5 text-cyan-300" />} />
+                <MetricCard label="Training entry" value="Focused player" supporting="Course detail and player launch now behave as a contained step instead of a long page continuation." icon={<BookOpen className="h-5 w-5 text-cyan-300" />} />
               </div>
-              <div className="guide-card p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Scrolling guardrail</p>
-                <h3 className="mt-3 text-xl font-semibold text-[#1B303C]">Proof, launch, and search now lead the page.</h3>
-                <p className="mt-3 text-sm leading-7 text-[#4A6373]">The densest evidence and the primary calls to action now sit inside the hero so the overview tab can stay focused on operating principles instead of repeating another full metric band.</p>
-                <div className="mt-4 flex flex-wrap gap-2.5">
-                  {landingProofPoints.map((point) => (
-                    <span key={point} className="command-pill px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">
-                      {point}
-                    </span>
-                  ))}
+              <div className="guide-card px-5 py-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Why this is faster</p>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-[#4A6373]">
+                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Actionable modules appear immediately instead of after stacked hero content.</span></div>
+                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Search, browse, and resume controls live in the same compact frame.</span></div>
+                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Training and workspace entry points are visible without forcing another full-screen detour.</span></div>
                 </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="workspaces" className="mt-0 space-y-4">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                {Object.values(roleMeta).map((item: any) => (
-                  <Link key={item.route} href={item.route} className="min-w-0">
-                    <button type="button" className="trophy-card flex h-full w-full flex-col items-start gap-3 p-5 text-left">
-                      <span className="command-pill px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-[#4A6373]">{item.eyebrow}</span>
-                      <div>
-                        <p className="text-base font-semibold text-[#1B303C]">{item.title}</p>
-                        <p className="mt-2 text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
+          <TabsContent value="workspaces" className="mt-0">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {Object.values(roleMeta).map((item) => (
+                <Link key={item.route} href={item.route}>
+                  <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-white/85 px-4 py-4 text-left shadow-[0_16px_38px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.eyebrow}</p>
+                    <p className="mt-2 text-base font-semibold text-[#1B303C]">{item.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
+                  </button>
+                </Link>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tracks" className="mt-0">
+            <div className="grid gap-3">
+              {landingTrainingRecords.slice(0, 6).map((record) => (
+                <Link key={`track-${record.href}-${record.title}`} href={record.href}>
+                  <button type="button" className="flex w-full items-center justify-between gap-4 rounded-[1.25rem] border border-[#1B303C]/10 bg-white/88 px-4 py-3.5 text-left shadow-[0_16px_40px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {record.keywords.slice(0, 2).map((keyword) => (
+                          <Badge key={`${record.title}-${keyword}`} variant="outline" className="rounded-full border-[#1B303C]/10 bg-[#F7F8FA] text-[#4A6373]">{keyword}</Badge>
+                        ))}
                       </div>
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">Open workspace</span>
-                    </button>
-                  </Link>
-                ))}
-              </div>
-              <div className="guide-card p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Workspace logic</p>
-                <h3 className="mt-3 text-xl font-semibold text-[#1B303C]">Every role gets a guided surface, not the same long dashboard.</h3>
-                <p className="mt-3 text-sm leading-7 text-[#4A6373]">Executives see proof and exceptions. Managers see case action. Coaches see focused support tools. Learners see the next mission. Admins see grouped setup steps.</p>
-              </div>
+                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{record.title}</p>
+                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">{record.subtitle}</p>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7E8A]">{record.cta}</span>
+                  </button>
+                </Link>
+              ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="tracks" className="mt-0 space-y-4">
-            <PremiumCard>
-              <CardHeader className="space-y-4">
-                <Badge className="mission-chip w-fit rounded-full text-slate-200">CHCG learning architecture</Badge>
-                <div className="max-w-3xl space-y-3">
-                  <CardTitle className="text-2xl text-white">Five mission-ready learning tracks now power the EnableOS story.</CardTitle>
-                  <CardDescription className="text-base leading-7 text-slate-300">The experience is now framed around original CHCG mission tracks for frontline service, workflow execution, leadership decision quality, performance governance, and recognition-led engagement.</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-5">
-                {filterTrainingRecords([
-                  { title: "Soft Skills & Customer/Patient Service Foundation", subtitle: "Empathy, professionalism, de-escalation, and trust-building behaviors for frontline performance.", keywords: ["service foundations", "learner", "soft skills"] },
-                  { title: "Quality Assurance Essentials", subtitle: "Verification, QA discipline, documentation accuracy, transfers, and clean execution habits.", keywords: ["workflow precision", "qa", "manager"] },
-                  { title: "Unlocking the power of date", subtitle: "KPI reading, trend interpretation, root-cause analysis, and action ownership.", keywords: ["data", "kpi", "executive"] },
-                  { title: "Maximizing performance through performance management", subtitle: "Calibration, coaching cadence, review structure, and measurable improvement planning.", keywords: ["performance", "reviews", "coaching"] },
-                  { title: "Gamification & Work From Home", subtitle: "Recognition loops, pulse checks, gamified momentum, and hybrid-team operating rhythm.", keywords: ["engagement", "recognition", "remote teams"] },
-                ], landingSearchQuery).map((track: any) => (
-                  <div key={track.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                    <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Track</p>
-                    <h3 className="mt-3 text-lg font-semibold text-white">{track.title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-300">{track.subtitle}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </PremiumCard>
           </TabsContent>
         </Tabs>
       </div>
@@ -2232,91 +2211,75 @@ export function LandingView() {
   );
 }
 
+
 export function RoleWorkspace({ role }: { role: DemoRole }) {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
-  const [location] = useLocation();
-  const requestedFreshStart = useMemo(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return new URLSearchParams(window.location.search).get("freshStart") === "1";
-  }, [location]);
-  const queryMap: Record<DemoRole, any> = {
-    executive: trpc.demo.secureExecutive.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
-    manager: trpc.demo.secureManager.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
-    coach: trpc.demo.secureCoach.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
-    learner: trpc.demo.secureLearner.useQuery(tenantId ? { tenantId, freshStart: requestedFreshStart } : { freshStart: requestedFreshStart }, { enabled: Boolean(tenantId) }),
-    client_admin: trpc.demo.secureAdmin.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) }),
-  };
-
-  const query = queryMap[role];
-  const meta = roleMeta[role];
-  const learnerPerspectiveNotice = role === "learner"
-    ? getLearnerWorkspacePerspectiveNotice(access.data?.grant.role)
-    : null;
-  const canAccessRequestedRole = access.data ? access.data.permittedRoles.includes(role) : false;
+  const executiveQuery = trpc.demo.secureExecutive.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) && role === "executive" });
+  const managerQuery = trpc.demo.secureManager.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) && role === "manager" });
+  const coachQuery = trpc.demo.secureCoach.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) && role === "coach" });
+  const learnerQuery = trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) && role === "learner" });
+  const adminQuery = trpc.demo.secureAdmin.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) && role === "client_admin" });
+  const activeQuery: any = role === "executive"
+    ? executiveQuery
+    : role === "manager"
+      ? managerQuery
+      : role === "coach"
+        ? coachQuery
+        : role === "learner"
+          ? learnerQuery
+          : adminQuery;
+  const canAccessWorkspace = access.data ? access.data.permittedRoles.includes(role) : false;
   const refreshWorkspace = () => {
     void access.refetch();
-    void query.refetch();
+    void activeQuery.refetch?.();
   };
+  const roleDescriptor = roleMeta[role as keyof typeof roleMeta];
 
   return (
     <Surface>
       <SectionShell
-        eyebrow={meta.eyebrow}
-        title={meta.title}
-        description={meta.subtitle}
+        eyebrow={roleDescriptor?.eyebrow ?? "Workspace"}
+        title={roleDescriptor?.title ?? "Workspace"}
+        description={roleDescriptor?.subtitle ?? "Open a role-specific workspace with the correct tenant-scoped data."}
         actions={
-          <>
-            {access.data ? (
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-                {access.data.tenant.name}
-              </Badge>
-            ) : null}
-            <Link href="/">
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                Back to overview
-              </Button>
-            </Link>
-          </>
+          access.data ? (
+            <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+              {access.data.tenant.name}
+            </Badge>
+          ) : null
         }
       >
-        {access.isLoading || query.isLoading ? <LoadingState /> : null}
+        {access.isLoading || activeQuery.isLoading ? <LoadingState /> : null}
         {!access.isLoading && !access.data ? (
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
-              <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific workspaces and purchased training access.</CardDescription>
+              <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific workspace data.</CardDescription>
             </CardHeader>
           </PremiumCard>
         ) : null}
-        {!access.isLoading && canAccessRequestedRole && learnerPerspectiveNotice ? (
-          <PremiumCard className="overflow-hidden border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.16),transparent_34%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] shadow-[0_24px_72px_rgba(8,15,35,0.28)]">
-            <CardContent className="flex flex-col gap-4 px-6 py-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="max-w-4xl">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-50">{learnerPerspectiveNotice.eyebrow}</p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">{learnerPerspectiveNotice.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-50">{learnerPerspectiveNotice.description}</p>
-              </div>
-              <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50 shadow-[0_10px_24px_rgba(8,145,178,0.18)]">Learner shell active</Badge>
-            </CardContent>
-          </PremiumCard>
-        ) : null}
-        {!access.isLoading && access.data && !canAccessRequestedRole ? (
+        {!access.isLoading && access.data && !canAccessWorkspace ? (
           <PremiumCard>
             <CardHeader>
               <CardTitle className="text-white">This workspace is outside your current entitlement.</CardTitle>
-              <CardDescription className="text-slate-300">Your signed-in account is limited to the client and role access assigned to {access.data.tenant.name}. Use the routes your role has been granted or sign in with a different client account.</CardDescription>
+              <CardDescription className="text-slate-300">Use an account mapped to the {roleDescriptor?.title?.toLowerCase() ?? "requested"} role to open this workspace for {access.data.tenant.name}.</CardDescription>
             </CardHeader>
           </PremiumCard>
         ) : null}
-        {!query.isLoading && canAccessRequestedRole && role === "executive" && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && canAccessRequestedRole && role === "manager" && query.data ? <ManagerPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && canAccessRequestedRole && role === "coach" && query.data ? <CoachPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-        {!query.isLoading && canAccessRequestedRole && role === "learner" && query.data ? <LearnerPanel data={query.data} onUpdated={refreshWorkspace} freshStart={requestedFreshStart} /> : null}
-        {!query.isLoading && canAccessRequestedRole && role === "client_admin" && query.data ? <AdminPanel data={query.data} onUpdated={refreshWorkspace} /> : null}
+        {!activeQuery.isLoading && canAccessWorkspace && activeQuery.data ? (
+          role === "executive" ? (
+            <ExecutivePanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+          ) : role === "manager" ? (
+            <ManagerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+          ) : role === "coach" ? (
+            <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+          ) : role === "learner" ? (
+            <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+          ) : (
+            <AdminPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+          )
+        ) : null}
       </SectionShell>
     </Surface>
   );
@@ -4083,13 +4046,13 @@ export function TrainingExperienceView() {
               </PremiumCard>
             ) : null}
 
-            <div className={`grid gap-6 ${navigatorCollapsed ? "2xl:grid-cols-[112px_minmax(0,1fr)]" : "2xl:grid-cols-[340px_minmax(0,1fr)]"}`}>
+            <div className={`grid gap-6 ${navigatorCollapsed ? "2xl:grid-cols-[112px_minmax(0,1fr)_230px]" : "2xl:grid-cols-[300px_minmax(0,1fr)_240px]"}`}>
               <PremiumCard className="2xl:sticky 2xl:top-6">
                 <CardHeader className={navigatorCollapsed ? "pb-4" : undefined}>
                   <div className={`flex gap-3 ${navigatorCollapsed ? "flex-col items-center text-center" : "flex-wrap items-center justify-between"}`}>
                     <div>
-                      <CardTitle className="text-white">{navigatorCollapsed ? "Path" : "Learning path navigator"}</CardTitle>
-                      <CardDescription className="text-slate-400">{navigatorCollapsed ? "Collapse the rail until you need the full path view again." : "A more persistent LMS-style rail keeps the journey sequence, completion status, and next recommendation visible while the learner moves through the module."}</CardDescription>
+                      <CardTitle className="text-white">{navigatorCollapsed ? "Outline" : "Module outline"}</CardTitle>
+                      <CardDescription className="text-slate-400">{navigatorCollapsed ? "Keep the outline compact until you need the full lesson path again." : "The left rail stays focused on the active module sequence so learners can see where they are without the rest of the page competing for attention."}</CardDescription>
                     </div>
                     <div className={`flex gap-2 ${navigatorCollapsed ? "flex-col items-center" : "items-center"}`}>
                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
@@ -4176,7 +4139,7 @@ export function TrainingExperienceView() {
                   <CardHeader>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <CardTitle className="text-white">{currentStage?.title}</CardTitle>
+                        <CardTitle className="text-white">Lesson canvas · {currentStage?.title}</CardTitle>
                         <CardDescription className="text-slate-400">{currentStage?.body}</CardDescription>
                       </div>
                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label}</Badge>
@@ -5178,6 +5141,37 @@ export function TrainingExperienceView() {
                   </CardContent>
                 </PremiumCard>
               </div>
+
+              <PremiumCard className="2xl:sticky 2xl:top-6 h-fit">
+                <CardHeader>
+                  <div className="space-y-2">
+                    <CardTitle className="text-white">Progress rail</CardTitle>
+                    <CardDescription className="text-slate-400">Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next</p>
+                    <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Time left</p>
+                    <p className="mt-2 text-sm font-medium text-white">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Score</p>
+                    <p className="mt-2 text-sm font-medium text-white">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Reward</p>
+                    <p className="mt-2 text-sm font-medium text-white">{currentStageItemCountLabel}</p>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className="w-full rounded-[1rem] bg-white text-slate-950 hover:bg-slate-100">Continue</Button>
+                    <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className="w-full rounded-[1rem] border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
+                  </div>
+                </CardContent>
+              </PremiumCard>
             </div>
           </div>
         ) : null}
@@ -5235,7 +5229,7 @@ export function ContentLibraryView() {
   const trackKeywords: Record<string, string[]> = {
     all: [],
     "track-service-foundations": ["service foundations", "soft skills", "customer service", "communication"],
-    "track-workflow-precision": ["workflow", "qa", "documentation", "verification", "execution"],
+    "track-workflow-precision": ["workflow", "qa", "documentation", "verification"],
     "track-data-leadership": ["data", "kpi", "analytics", "leadership intelligence"],
     "track-performance-leadership": ["performance", "coaching", "quarterly reviews", "annual reviews"],
     "track-engagement-recognition": ["engagement", "recognition", "gamification", "remote teams"],
@@ -5324,26 +5318,7 @@ export function ContentLibraryView() {
       },
     ];
   }, [selectedAsset, selectedAssetRole, selectedAssetWorkflowBrief]);
-  const launchSummaryCards = useMemo(
-    () => [
-      {
-        label: "Visible assets",
-        value: String(assets.length),
-        support: "Filtered by tenant, role, source, and search intent.",
-      },
-      {
-        label: "Selected lane",
-        value: roleFilter === "all" ? "All roles" : getRoleLabel(roleFilter),
-        support: "Use role lenses to reduce noise before opening course detail.",
-      },
-      {
-        label: "Focus track",
-        value: trackFilter === "all" ? "All tracks" : library.data?.tracks.find((track: any) => track.id === trackFilter)?.title ?? "All tracks",
-        support: "Pinned to the current methodology stream.",
-      },
-    ],
-    [assets.length, library.data?.tracks, roleFilter, trackFilter],
-  );
+
   const selectedAssetEstimatedMinutes = useMemo(() => {
     if (!selectedAsset) {
       return 0;
@@ -5398,6 +5373,7 @@ export function ContentLibraryView() {
   const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Learner";
   const libraryProgressSteps = ["Browse library", "Review course detail", "Launch player"];
   const libraryProgressValue = selectedAsset ? (libraryMode === "launcher" ? 66 : 33) : 0;
+  const selectedTrackTitle = trackFilter === "all" ? "All tracks" : library.data?.tracks.find((track: any) => track.id === trackFilter)?.title ?? "All tracks";
 
   useEffect(() => {
     if (!selectedAsset) {
@@ -5496,8 +5472,8 @@ export function ContentLibraryView() {
     <Surface>
       <SectionShell
         eyebrow="Content Missions Library"
-        title="Browse the shelves, then open one training at a time"
-        description="Content Missions now behaves more like a library: browse the shelf, choose one asset, and launch the training in a focused window instead of stacking more content on the same page."
+        title="Compact shelves with in-panel course detail"
+        description="The library now keeps more titles, status, and launch cues in one screen. Browse dense shelf rows on the left, keep the selected course detail on the right, and only then enter the focused training player."
         compact
         actions={
           <>
@@ -5506,7 +5482,7 @@ export function ContentLibraryView() {
                 {access.data.tenant.name}
               </Badge>
             ) : null}
-            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+            <Button type="button" onClick={() => jumpToLibraryMode("launcher", "library-launcher-mode")} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
               Review course detail
             </Button>
             <Link href="/">
@@ -5519,605 +5495,399 @@ export function ContentLibraryView() {
       >
         {access.isLoading || library.isLoading ? <LoadingState /> : null}
         {!library.isLoading && library.data ? (
-          <div className="space-y-6">
-            <div className={`grid gap-6 ${libraryMode === "explore" ? "" : "xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)]"}`}>
-              <div className="command-band px-5 py-5 md:px-6 md:py-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Content mission control</Badge>
-                  <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">{library.data.branding.preferredLabel}</Badge>
-                  <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">{assetView === "all" ? "Blended view" : assetView === "chcg" ? "CHCG core" : "Client imports"}</Badge>
-                </div>
-                <div className="mt-5 max-w-4xl space-y-3">
-                  <p className="text-sm uppercase tracking-[0.24em] text-[#6B7E8A]">Guided library flow</p>
-                  <h3 className="text-[2.1rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem]">Scan more titles at once, then move into one structured course detail view.</h3>
-                  <p className="max-w-3xl text-sm leading-7 text-[#4A6373]">The library now stays dense and browseable so users can compare more options without a long scroll. Once one title is selected, the in-app course detail view stages objectives, launch fit, and training expectations before the lesson opens.</p>
-                </div>
-                {libraryMode === "explore" ? (
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    {launchSummaryCards.map((card) => (
-                      <div key={card.label} className="rounded-full border border-[#1B303C]/10 bg-white/78 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">{card.label}</p>
-                        <p className="mt-1 text-sm font-semibold text-[#1B303C]">{card.value}</p>
-                      </div>
-                    ))}
+          <div className="space-y-5">
+            <div className="command-band px-4 py-4 md:px-5 md:py-5">
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-end">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Search-first library</Badge>
+                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Compact rows</Badge>
+                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Detail stays visible</Badge>
                   </div>
-                ) : (
-                  <div className="mt-5 grid gap-3 md:grid-cols-3">
-                    {launchSummaryCards.map((card) => (
-                      <div key={card.label} className="rounded-[1.4rem] border border-[#1B303C]/10 bg-white/72 px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{card.label}</p>
-                        <p className="mt-2 text-lg font-semibold text-[#1B303C]">{card.value}</p>
-                        <p className="mt-1 text-xs leading-5 text-[#4A6373]">{card.support}</p>
-                      </div>
-                    ))}
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Mission library control</p>
+                    <h3 className="mt-2 text-[1.8rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.15rem]">Scan many modules, inspect one detail panel, and launch with less scroll.</h3>
+                    <p className="mt-2 max-w-3xl text-sm leading-7 text-[#4A6373]">The left shelf is intentionally denser. The right panel keeps runtime, sections, checkpoints, and role-aligned launch context visible so users do not bounce between separate long surfaces.</p>
                   </div>
-                )}
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Visible assets</p>
+                    <p className="mt-1 text-lg font-semibold text-[#1B303C]">{assets.length}</p>
+                  </div>
+                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Focus track</p>
+                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedTrackTitle}</p>
+                  </div>
+                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Selected lane</p>
+                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedAssetWorkflowLabel}</p>
+                  </div>
+                </div>
               </div>
-
-              {libraryMode === "explore" ? null : (
-                <div className="grid gap-3">
-                  <div className="command-band px-4 py-4 md:px-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">What matters now</p>
-                    <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then review one course detail view before you launch the player.</h4>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, raises information density, and gives each selected title a cleaner staging step instead of forcing an abrupt launch.</p>
-                  </div>
-                  <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Recommended next</p>
-                    <p className="mt-2 text-base font-semibold text-[#1B303C]">Open asset explorer</p>
-                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear candidate, then move into the course detail view.</p>
-
-                  </button>
-                  <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Upload lane</p>
-                    <p className="mt-2 text-base font-semibold text-[#1B303C]">Add a tenant-specific asset</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Bring in client materials without diluting CHCG source clarity or role mapping.</p>
-                  </button>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">CHCG core assets</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.chcgAssets}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Client imports</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.importedAssets}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Mapped journeys</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{library.data.stats.mappedJourneys}</p>
-                    </div>
-                    <div className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Search state</p>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{searchQuery.trim().length > 0 ? "Focused" : "Open"}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
-              <div className={`command-band px-4 md:px-5 ${libraryMode === "explore" ? "py-3" : "py-4"}`}>
-                <div className={`flex ${libraryMode === "explore" ? "flex-wrap items-center justify-between gap-3" : "flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"}`}>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Library modes</p>
-                    {libraryMode === "explore" ? (
-                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">Choose a shelf mode, then stay in the explorer.</p>
-                    ) : (
-                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between course detail, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
-                    )}
+              <div className="command-band px-4 py-4 md:px-5" id="library-explore-mode">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search assets</span>
+                      <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+                        <Search className="h-4 w-4 text-[#6B7E8A]" />
+                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search data, coaching, QA, engagement..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
+                      </div>
+                    </label>
+                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Role lens</span>
+                      <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as DemoRole | "all")} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+                        <option value="all">All roles</option>
+                        {Object.entries(roleMeta).map(([key, item]) => <option key={key} value={key}>{item.title}</option>)}
+                      </select>
+                    </label>
+                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
+                      <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+                        <option value="all">All tracks</option>
+                        {library.data.tracks.map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
+                      </select>
+                    </label>
                   </div>
-                  <TabsList className={`h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 ${libraryMode === "explore" ? "p-1.5 xl:w-auto" : "p-2 xl:w-auto"}`}>
+                  <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/75 p-1.5">
+                    <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Compact shelves</TabsTrigger>
                     <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Course detail</TabsTrigger>
-                    <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Explore</TabsTrigger>
                     <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
                   </TabsList>
                 </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Blended view</Button>
+                  <Button type="button" variant={assetView === "chcg" ? "default" : "outline"} onClick={() => setAssetView("chcg")} className={assetView === "chcg" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>CHCG core</Button>
+                  <Button type="button" variant={assetView === "imported" ? "default" : "outline"} onClick={() => setAssetView("imported")} className={assetView === "imported" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Client imports</Button>
+                </div>
               </div>
 
-              <TabsContent value="launcher" className="mt-0 space-y-6" id="library-launcher-mode">
-                {selectedAsset ? (
-                  <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                    <PremiumCard>
-                      <CardHeader className="space-y-3">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                          <div>
-                            <CardTitle className="text-white">Selected course detail</CardTitle>
-                            <CardDescription className="text-slate-400">Review the course fit, expected runtime, completion rhythm, and launch context before opening the focused player.</CardDescription>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button type="button" variant="outline" onClick={() => setLibraryMode("explore")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                              Back to shelves
-                            </Button>
-                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                              Launch focused player
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
-                        </div>
-                        <div>
-                          <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/75">Course detail staging</p>
-                          <h3 className="mt-2 text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
-                          <p className="mt-3 text-base leading-7 text-slate-300">{selectedAsset.summary}</p>
-                        </div>
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Course status</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-400">Detail review is now the required step before launch.</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Estimated runtime</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-400">Sized for a tighter course-detail and player handoff.</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sections in flow</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetSectionCount}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-400">Structured as staged learning blocks instead of one long surface.</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Knowledge gates</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetCheckpointCount} checkpoints</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-400">Inline checks and a clearer completion rhythm stay visible before launch.</p>
-                          </div>
-                        </div>
-                        <div className="rounded-[1.25rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch sequence</p>
-                              <p className="mt-2 text-sm font-medium text-white">{libraryProgressSteps.join(" · ")}</p>
-                            </div>
-                            <Badge className="rounded-full border-white/10 bg-white/10 text-white">{libraryProgressValue}% staged</Badge>
-                          </div>
-                          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                            <div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} />
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
-                        </div>
-                        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(240px,0.8fr)]">
-                          <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">What this detail view should clarify</p>
-                            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                              {selectedAssetOutcomeLines.map((line) => (
-                                <div key={line} className="flex items-start gap-2">
-                                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                                  <span>{line}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-400">The launch briefing and player entry now stay aligned to the active audience lens.</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedAsset.tags.map((tag: string) => (
-                            <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5 text-sm text-slate-300">#{tag}</span>
-                          ))}
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4.5 text-[15px] leading-7 text-slate-300">
-                          <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
-                          <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
-                        </div>
-                      </CardContent>
-                    </PremiumCard>
-                    <PremiumCard>
-                      <CardHeader>
-                        <CardTitle className="text-white">Role-aligned launch briefing</CardTitle>
-                        <CardDescription className="text-slate-400">Choose the receiving role, review the handoff cards, then launch the focused player only after the course detail is clear.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start">
-                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Course detail to launch brief</p>
-                          <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Set the receiving role, confirm the source context, and move from detail review into the focused player only once the handoff is clear.</p>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {selectedAssetRoleOptions.map((linkedRole) => (
-                              <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
-                                {getRoleLabel(linkedRole)}
-                              </Button>
-                            ))}
-                          </div>
-                          <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Window launch lane</p>
-                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowBrief.startLabel}</p>
-                            <p className="mt-2 text-xs leading-5 text-slate-300">Source label · {selectedAsset.sourceLabel}</p>
-                          </div>
-                        </div>
-                        <BriefFlashCardDeck
-                          items={selectedAssetBriefCards}
-                          activeIndex={launchBriefCardIndex}
-                          isFlipped={launchBriefCardFlipped}
-                          onFlip={() => setLaunchBriefCardFlipped((current) => !current)}
-                          onPrevious={() => {
-                            setLaunchBriefCardFlipped(false);
-                            setLaunchBriefCardIndex((current) => Math.max(current - 1, 0));
-                          }}
-                          onNext={() => {
-                            setLaunchBriefCardFlipped(false);
-                            setLaunchBriefCardIndex((current) => Math.min(current + 1, Math.max(selectedAssetBriefCards.length - 1, 0)));
-                          }}
-                          onJumpToIndex={(index) => {
-                            setLaunchBriefCardFlipped(false);
-                            setLaunchBriefCardIndex(index);
-                          }}
-                          canGoPrevious={launchBriefCardIndex > 0}
-                          canGoNext={launchBriefCardIndex < selectedAssetBriefCards.length - 1}
-                          progressLabel={selectedAssetBriefCards.length > 0 ? `${launchBriefCardIndex + 1} of ${selectedAssetBriefCards.length}` : "No cards loaded"}
-                          statusLabel={`Aligned to the ${getRoleLabel(selectedAssetRole)} lane`}
-                          completionLabel={`Launch brief reviewed for the ${getRoleLabel(selectedAssetRole)} lane. Open the training window when you are ready to hand off.`}
-                          emptyTitle="Launch brief flash cards loading"
-                          emptyBody="Choose an asset and receiving role to populate the launch-readiness flash cards."
-                          theme="dark"
-                        />
-                      </CardContent>
-                    </PremiumCard>
-                  </div>
-                ) : (
+              <TabsContent value="explore" className="mt-0" id="library-explore-rows">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
                   <PremiumCard>
-                    <CardContent className="py-12 text-center text-slate-300">
-                      Select an asset in Explore mode to activate the launcher panel.
+                    <CardHeader className="space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-white">Training queue</CardTitle>
+                          <CardDescription className="text-slate-400">Compact rows keep more content above the fold and update the selected detail panel instantly.</CardDescription>
+                        </div>
+                        <Badge className="rounded-full border-white/10 bg-white/10 text-slate-100">{assets.length} results</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {groupedAssets.length > 0 ? groupedAssets.map((group) => (
+                        <div key={group.id} className="space-y-2.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{group.title}</p>
+                              <p className="mt-1 text-xs text-slate-400">{group.description}</p>
+                            </div>
+                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{group.assets.length} titles</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            {group.assets.map((asset: any) => {
+                              const active = selectedAsset?.id === asset.id;
+                              const assetMinutes = (() => {
+                                const runtimeByFormat: Record<string, number> = { Deck: 28, Playbook: 24, Checklist: 12, Guide: 20, Worksheet: 18, Microlearning: 10, Document: 16 };
+                                return (runtimeByFormat[asset.format] ?? 18) + Math.min(asset.tags.length * 2, 10);
+                              })();
+                              return (
+                                <button
+                                  key={asset.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedAssetId(asset.id);
+                                    setLibraryMode("launcher");
+                                  }}
+                                  className={`w-full rounded-[1.25rem] border px-4 py-3 text-left transition ${active ? "border-cyan-400/38 bg-cyan-400/12 shadow-[0_18px_46px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/6 hover:bg-white/10"}`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{asset.format}</p>
+                                        <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/22 bg-cyan-400/12 text-cyan-100" : "border-emerald-400/22 bg-emerald-400/12 text-emerald-100"}`}>{asset.sourceKind === "chcg" ? "Core" : "Imported"}</Badge>
+                                      </div>
+                                      <p className="mt-2 line-clamp-1 text-sm font-semibold text-white">{asset.title}</p>
+                                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">{asset.summary}</p>
+                                    </div>
+                                    <div className="shrink-0 text-right">
+                                      <p className="text-sm font-semibold text-white">{assetMinutes} min</p>
+                                      <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">Detail</p>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="rounded-[1.25rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">No library assets match the current search and filter combination.</div>
+                      )}
                     </CardContent>
                   </PremiumCard>
-                )}
-              </TabsContent>
 
-              <TabsContent value="explore" className="mt-0 space-y-6" id="library-explore-mode">
-                <PremiumCard className="border-[#d7d0c3] bg-[linear-gradient(180deg,rgba(247,242,231,0.98),rgba(241,236,226,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-                  <CardHeader className="space-y-5">
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] xl:items-end">
-                      <div className="space-y-2">
-                        <CardTitle className="text-[1.65rem] text-slate-950">Track explorer</CardTitle>
-                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-600">Filter by role, track, and source so users can scan a denser shelf, compare more titles at once, and only then move into the selected course detail view.</CardDescription>
+                  <PremiumCard>
+                    <CardHeader className="space-y-3" id="library-launcher-mode">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-white">Selected module detail</CardTitle>
+                          <CardDescription className="text-slate-400">Keep objectives, launch fit, and the next action in the same panel instead of routing through another long page.</CardDescription>
+                        </div>
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{libraryProgressValue}% staged</Badge>
                       </div>
-                      <label className="block w-full space-y-2 text-[15px] text-slate-700">
-                        <span>Search assets</span>
-                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7b97a]" placeholder="Search by title, category, tag, or source label" />
-                      </label>
-                    </div>
-                    <div className="flex max-w-4xl flex-wrap gap-2.5">
-                      {[{ value: "all", label: "All roles" }, { value: "executive", label: "Executive" }, { value: "manager", label: "Manager" }, { value: "coach", label: "Coach / Supervisor" }, { value: "learner", label: "Learner" }, { value: "client_admin", label: "Client admin" }].map((option) => (
-                        <Button key={option.value} type="button" variant="outline" onClick={() => setRoleFilter(option.value as DemoRole | "all")} className={`rounded-full border-slate-200 ${roleFilter === option.value ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/85 text-slate-700 hover:bg-white hover:text-slate-950"}`}>
-                          {option.label}
-                        </Button>
-                      ))}
-                    </div>
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)] xl:items-start">
-                      <div className="flex flex-wrap gap-3">
-                        <Button type="button" variant="outline" onClick={() => setTrackFilter("all")} className={`min-h-[5.25rem] min-w-[11.5rem] flex-1 items-start justify-start whitespace-normal rounded-3xl border-slate-200 px-5 py-4 text-left shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${trackFilter === "all" ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/90 text-slate-800 hover:bg-white hover:text-slate-950"}`}>
-                          <div className="min-w-0 space-y-1.5">
-                            <p className="text-base font-semibold leading-6">All tracks</p>
-                            <p className={`text-xs uppercase tracking-[0.18em] ${trackFilter === "all" ? "text-slate-300" : "text-slate-500"}`}>Show every shelf</p>
-                          </div>
-                        </Button>
-                        {library.data.tracks.map((track: any) => (
-                          <Button key={track.id} type="button" variant="outline" onClick={() => setTrackFilter(track.id)} className={`min-h-[5.25rem] min-w-[11.5rem] flex-1 items-start justify-start whitespace-normal rounded-3xl border-slate-200 px-5 py-4 text-left shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${trackFilter === track.id ? "bg-slate-950 text-white hover:bg-slate-900" : "bg-white/90 text-slate-800 hover:bg-white hover:text-slate-950"}`}>
-                            <div className="min-w-0 space-y-1.5">
-                              <p className="break-words text-base font-semibold leading-6">{track.title}</p>
-                              <p className={`text-xs uppercase tracking-[0.18em] ${trackFilter === track.id ? "text-slate-300" : "text-slate-500"}`}>Browse lane</p>
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
-                      <div className="rounded-[1.6rem] border border-slate-200 bg-white/88 px-5 py-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current track focus</p>
-                        <p className="mt-3 text-lg font-semibold text-slate-950">{trackFilter === "all" ? "Blended library view" : library.data.tracks.find((track: any) => track.id === trackFilter)?.title ?? "Blended library view"}</p>
-                        <p className="mt-3 text-sm leading-6 text-slate-600">{trackFilter === "all" ? "Browse the full catalog first, then narrow only if the user needs one specific methodology lane." : library.data.tracks.find((track: any) => track.id === trackFilter)?.summary ?? "Focus the shelf on one methodology lane before launching a training window."}</p>
-                        <p className="mt-4 text-xs uppercase tracking-[0.22em] text-slate-500">Explorer behavior</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">Keep this area for filtering and selection only. Open the actual training in its own focused window after the shelf decision is made.</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </PremiumCard>
-
-                <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-                  <Tabs value={assetView} onValueChange={(value) => setAssetView(value as "all" | "chcg" | "imported")} className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-3 rounded-3xl border border-white/10 bg-white/6 p-1">
-                      <TabsTrigger value="all" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Blended library</TabsTrigger>
-                      <TabsTrigger value="chcg" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">CHCG core</TabsTrigger>
-                      <TabsTrigger value="imported" className="rounded-[1.2rem] data-[state=active]:bg-white data-[state=active]:text-slate-950">Client imports</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value={assetView} className="mt-0">
-                      <PremiumCard>
-                        <CardHeader>
-                          <CardTitle className="text-white">Audience groups</CardTitle>
-                          <CardDescription className="text-slate-400">Choose one asset from a grouped audience lane to preview it in the in-app course detail view.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="max-h-[880px] space-y-5 overflow-auto pr-1">
-                          {groupedAssets.length > 0 ? groupedAssets.map((group) => (
-                            <div key={group.id} className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
-                              <div className="flex items-center justify-between gap-3">
-                                <div>
-                                  <p className="text-base font-semibold text-white">{group.title}</p>
-                                  <p className="mt-1 text-sm leading-6 text-slate-300">{group.description}</p>
-                                </div>
-                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length}</Badge>
-                              </div>
-                              <div className="grid gap-3 md:grid-cols-2">
-                                {group.assets.map((asset: any) => (
-                                  <button key={asset.id} type="button" onClick={() => setSelectedAssetId(asset.id)} className={`flex h-full w-full flex-col justify-between rounded-[1.35rem] border px-4 py-4 text-left transition ${selectedAsset?.id === asset.id ? "border-cyan-400/30 bg-cyan-400/12 shadow-[0_16px_40px_rgba(34,211,238,0.08)]" : "border-white/10 bg-slate-950/50 hover:border-white/20 hover:bg-white/8"}`}>
-                                    <div className="min-w-0">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-100" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"}`}>{asset.sourceKind === "chcg" ? "CHCG core" : "Client import"}</Badge>
-                                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
-                                      </div>
-                                      <p className="mt-3 text-sm font-semibold text-white">{asset.title}</p>
-                                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{asset.summary}</p>
-                                    </div>
-                                    <div className="mt-4 flex items-center justify-between gap-3">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">View course detail</p>
-                                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )) : (
-                            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-8 text-center text-slate-300">
-                              No assets match the current search, track, and role filters yet.
-                            </div>
-                          )}
-                        </CardContent>
-                      </PremiumCard>
-                    </TabsContent>
-                  </Tabs>
-
-                  <div className="space-y-6">
-                    {selectedAsset ? (
-                      <PremiumCard>
-                        <CardHeader>
-                          <CardTitle className="text-white">Active course detail preview</CardTitle>
-                          <CardDescription className="text-slate-400">Keep the shelf context here, review the selected title, then move into the full course detail tab before you launch the player.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {selectedAsset ? (
+                        <>
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
                             <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
                             <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
                           </div>
                           <div>
-                            <h3 className="text-2xl font-semibold leading-tight text-white">{selectedAsset.title}</h3>
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Course detail staging</p>
+                            <h3 className="mt-2 text-[1.9rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
                             <p className="mt-3 text-sm leading-7 text-slate-300">{selectedAsset.summary}</p>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedAsset.linkedRoles.map((linked: string) => (
-                              <Badge key={`${selectedAsset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-white/5 text-slate-300">
-                                {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
-                              </Badge>
-                            ))}
-                          </div>
                           <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
-                              <p><span className="text-slate-500">Status</span> · {selectedAssetStatusLabel}</p>
-                              <p className="mt-2"><span className="text-slate-500">Runtime</span> · {selectedAssetEstimatedMinutes} min</p>
-                              <p className="mt-2"><span className="text-slate-500">Checkpoints</span> · {selectedAssetCheckpointCount} inline gates</p>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sections</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSectionCount}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Knowledge gates</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCheckpointCount} checkpoints</p></div>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch sequence</p>
+                              <p className="text-xs text-cyan-100">{libraryProgressSteps.join(" · ")}</p>
                             </div>
-                            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
-                              <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
-                              <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
-                              <p className="mt-2"><span className="text-slate-500">Receiving lane</span> · {selectedAssetWorkflowLabel}</p>
+                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} /></div>
+                            <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside this module</p>
+                            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                              {selectedAssetOutcomeLines.map((line) => (
+                                <div key={line} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{line}</span></div>
+                              ))}
                             </div>
                           </div>
-                          <div className="flex flex-wrap gap-2.5 text-sm text-slate-300">
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {selectedAssetRoleOptions.map((linkedRole) => (
+                                <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
+                                  {getRoleLabel(linkedRole)}
+                                </Button>
+                              ))}
+                            </div>
+                            <p className="mt-3 text-sm leading-6 text-slate-300">{selectedAssetWorkflowBrief.title} keeps the launch handoff aligned to the active audience lens.</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
                             {selectedAsset.tags.map((tag: string) => (
-                              <span key={`${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5">#{tag}</span>
+                              <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs text-slate-300">#{tag}</span>
                             ))}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Open full course detail</Button>
-                            <Button type="button" variant="outline" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                              Launch focused player
-                              <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                            {selectedAsset.fileUrl ? (
-                              <a href={selectedAsset.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-white/10 hover:text-cyan-100">
-                                Open stored asset
-                                <ChevronRight className="ml-1 h-4 w-4" />
-                              </a>
-                            ) : null}
+                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch focused player</Button>
+                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Back to shelves</Button>
                           </div>
-                        </CardContent>
-                      </PremiumCard>
-                    ) : null}
-                    <WorkflowLibraryPanel
-                      title="Blended workflow library governance"
-                      description="Client admins and operators can still see how tenant-uploaded materials are mixed with CHCG assets across journeys, interventions, and documentation support."
-                      resources={[
-                        ...(library.data.importedAssets ?? []),
-                        ...(library.data.chcgAssets ?? []),
-                      ].filter((asset: any, index: number, collection: any[]) => collection.findIndex((candidate: any) => candidate.id === asset.id) === index).slice(0, 4)}
-                    />
-                  </div>
+                        </>
+                      ) : (
+                        <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">Select a shelf row to activate the module detail panel.</div>
+                      )}
+                    </CardContent>
+                  </PremiumCard>
                 </div>
               </TabsContent>
 
-              <TabsContent value="ingest" className="mt-0 grid gap-6 xl:grid-cols-[1.06fr_0.94fr]" id="library-ingest-mode">
-                <PremiumCard>
-                  <CardHeader>
-                    <CardTitle className="text-white">Client content ingestion</CardTitle>
-                    <CardDescription className="text-slate-400">Upload a deck or document to blend client-specific materials into the tenant library without diluting CHCG core content visibility.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form className="space-y-4" onSubmit={handleUpload}>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Asset title</span>
-                          <input value={title} onChange={(event) => setTitle(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="New hire workflow deck" />
-                        </label>
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Category</span>
-                          <input value={category} onChange={(event) => setCategory(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="Operational execution" />
-                        </label>
-                      </div>
-                      <label className="space-y-2 text-sm text-slate-200">
-                        <span>Summary</span>
-                        <textarea value={summary} onChange={(event) => setSummary(event.target.value)} required rows={4} className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} placeholder="Describe how this material supports coaching, readiness, or documentation workflows." />
-                      </label>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Format</span>
-                          <Select value={format} onValueChange={(value) => setFormat(value as typeof format)}>
-                            <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
-                              <SelectValue placeholder="Choose format" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"].map((option) => (
-                                <SelectItem key={option} value={option}>{option}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </label>
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Primary audience</span>
-                          <Select value={linkedRole} onValueChange={(value) => setLinkedRole(value as DemoRole | "all")}>
-                            <SelectTrigger className="h-12 border-white/10 bg-slate-950/70 text-slate-100">
-                              <SelectValue placeholder="Choose audience" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="executive">Executive</SelectItem>
-                              <SelectItem value="manager">Manager</SelectItem>
-                              <SelectItem value="coach">Coach / Supervisor</SelectItem>
-                              <SelectItem value="learner">Learner</SelectItem>
-                              <SelectItem value="client_admin">Client admin</SelectItem>
-                              <SelectItem value="all">All roles</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </label>
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Source label</span>
-                          <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} required className={FORM_INPUT_SURFACE_CLASS} placeholder="Client enablement team" />
-                        </label>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Tags</span>
-                          <input value={tags} onChange={(event) => setTags(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} placeholder="workflow, qa, launch" />
-                        </label>
-                        <label className="space-y-2 text-sm text-slate-200">
-                          <span>Optional file</span>
-                          <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} className="block h-12 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-950" />
-                        </label>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm text-slate-400">Uploads are tenant-scoped and surfaced with explicit source labeling so CHCG assets remain distinguishable from imported materials.</p>
-                        <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                          {uploadMutation.isPending ? "Uploading..." : "Add to library"}
-                        </Button>
-                      </div>
-                      {uploadNotice ? <p className="text-sm text-cyan-200">{uploadNotice}</p> : null}
-                    </form>
-                  </CardContent>
-                </PremiumCard>
-
-                <div className="space-y-6">
+              <TabsContent value="launcher" className="mt-0 space-y-4">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
                   <PremiumCard>
                     <CardHeader>
-                      <CardTitle className="text-white">Integration notes</CardTitle>
-                      <CardDescription className="text-slate-400">How the library fits the wider EnableOS demo story.</CardDescription>
+                      <CardTitle className="text-white">Course detail + launch brief</CardTitle>
+                      <CardDescription className="text-slate-400">The detail panel stays compact while the briefing sequence prepares the receiving role for launch.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4 text-sm leading-6 text-slate-300">
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                        <p className="font-medium text-white">Tenant-safe blending</p>
-                        <p className="mt-2">CHCG methodology assets stay globally available while imported client materials remain isolated to the selected tenant.</p>
+                    <CardContent className="space-y-4">
+                      {selectedAsset ? (
+                        <>
+                          <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Selected course detail</p>
+                            <h3 className="mt-2 text-[1.7rem] font-semibold text-white">{selectedAsset.title}</h3>
+                            <p className="mt-2 text-sm leading-7 text-slate-100">{selectedAsset.summary}</p>
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Lane</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p></div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch focused player</Button>
+                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">Select an asset from the compact shelves first.</div>
+                      )}
+                    </CardContent>
+                  </PremiumCard>
+                  <PremiumCard>
+                    <CardHeader>
+                      <CardTitle className="text-white">Role-aligned launch briefing</CardTitle>
+                      <CardDescription className="text-slate-400">Flash-card handoff stays inside the same screen so detail review and launch readiness remain connected.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {selectedAsset ? (
+                        <>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch brief owner</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowBrief.title}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-300">Set the receiving role, review the compact briefing cards, and launch only when the next handoff is clear.</p>
+                          </div>
+                          <BriefFlashCardDeck
+                            items={selectedAssetBriefCards}
+                            activeIndex={launchBriefCardIndex}
+                            isFlipped={launchBriefCardFlipped}
+                            onFlip={() => setLaunchBriefCardFlipped((current) => !current)}
+                            onPrevious={() => {
+                              setLaunchBriefCardFlipped(false);
+                              setLaunchBriefCardIndex((current) => Math.max(current - 1, 0));
+                            }}
+                            onNext={() => {
+                              setLaunchBriefCardFlipped(false);
+                              setLaunchBriefCardIndex((current) => Math.min(current + 1, Math.max(selectedAssetBriefCards.length - 1, 0)));
+                            }}
+                            onJumpToIndex={(index) => {
+                              setLaunchBriefCardFlipped(false);
+                              setLaunchBriefCardIndex(index);
+                            }}
+                            canGoPrevious={launchBriefCardIndex > 0}
+                            canGoNext={launchBriefCardIndex < selectedAssetBriefCards.length - 1}
+                            progressLabel={selectedAssetBriefCards.length > 0 ? `${launchBriefCardIndex + 1} of ${selectedAssetBriefCards.length}` : "No cards loaded"}
+                            statusLabel={`Aligned to the ${getRoleLabel(selectedAssetRole)} lane`}
+                            completionLabel={`Launch brief reviewed for the ${getRoleLabel(selectedAssetRole)} lane. Open the training window when you are ready to hand off.`}
+                            emptyTitle="Launch brief flash cards loading"
+                            emptyBody="Choose an asset and receiving role to populate the launch-readiness flash cards."
+                            theme="dark"
+                          />
+                        </>
+                      ) : (
+                        <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">Select an asset from the shelf to populate the launch brief.</div>
+                      )}
+                    </CardContent>
+                  </PremiumCard>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ingest" className="mt-0" id="library-ingest-mode">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+                  <PremiumCard>
+                    <CardHeader>
+                      <CardTitle className="text-white">Upload lane</CardTitle>
+                      <CardDescription className="text-slate-400">Bring in tenant-specific material without breaking the compact browse and detail flow.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">CHCG core assets</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.chcgAssets}</p></div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Client imports</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.importedAssets}</p></div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                        <p className="font-medium text-white">Role-aware curation</p>
-                        <p className="mt-2">Role filters reveal the same library through executive, manager, learner, and client-admin relevance lenses.</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-                        <p className="font-medium text-white">Journey alignment</p>
-                        <p className="mt-2">Mapped-journey counts reinforce how methodology assets can feed interventions, coaching sessions, and review evidence workflows.</p>
+                      <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 text-sm leading-6 text-slate-100">
+                        Uploaded assets return to the same compact shelf model, inherit role filters, and open in the same module-detail panel instead of creating a separate browsing branch.
                       </div>
                     </CardContent>
                   </PremiumCard>
                   <PremiumCard>
                     <CardHeader>
-                      <CardTitle className="text-white">Ingestion checklist</CardTitle>
-                      <CardDescription className="text-slate-400">A compact preflight so uploads remain consistent and immediately usable.</CardDescription>
+                      <CardTitle className="text-white">Add tenant-specific content</CardTitle>
+                      <CardDescription className="text-slate-400">This keeps imported materials searchable, role-mapped, and ready for the compact detail-and-launch flow.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-sm leading-6 text-slate-300">
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Name the asset clearly and assign one primary audience first.</div>
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Use tags that match how coaches and managers actually search inside missions.</div>
-                      <div className="rounded-2xl border border-white/10 bg-white/6 p-4">Keep the source label explicit so imported material never looks like native CHCG methodology.</div>
+                    <CardContent>
+                      <form onSubmit={handleUpload} className="grid gap-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Title</span>
+                            <input value={title} onChange={(event) => setTitle(event.target.value)} required className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
+                          </label>
+                          <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Category</span>
+                            <input value={category} onChange={(event) => setCategory(event.target.value)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
+                          </label>
+                        </div>
+                        <label className="grid gap-2 text-sm text-slate-300">
+                          <span>Summary</span>
+                          <textarea value={summary} onChange={(event) => setSummary(event.target.value)} required rows={4} className="rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 py-3 text-white outline-none" />
+                        </label>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Format</span>
+                            <select value={format} onChange={(event) => setFormat(event.target.value as typeof format)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none">
+                              {["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"].map((option) => <option key={option} value={option}>{option}</option>)}
+                            </select>
+                          </label>
+                          <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Linked role</span>
+                            <select value={linkedRole} onChange={(event) => setLinkedRole(event.target.value as DemoRole | "all")} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none">
+                              <option value="all">All roles</option>
+                              {Object.entries(roleMeta).map(([key, item]) => <option key={key} value={key}>{item.title}</option>)}
+                            </select>
+                          </label>
+                          <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Source label</span>
+                            <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
+                          </label>
+                        </div>
+                        <label className="grid gap-2 text-sm text-slate-300">
+                          <span>Tags</span>
+                          <input value={tags} onChange={(event) => setTags(event.target.value)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
+                        </label>
+                        <label className="grid gap-2 text-sm text-slate-300">
+                          <span>Optional file</span>
+                          <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} className="rounded-[1rem] border border-dashed border-white/18 bg-slate-950/35 px-3 py-3 text-slate-300" />
+                        </label>
+                        {uploadNotice ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{uploadNotice}</div> : null}
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">{uploadMutation.isPending ? "Uploading..." : "Add asset to library"}</Button>
+                          <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
+                        </div>
+                      </form>
                     </CardContent>
                   </PremiumCard>
                 </div>
               </TabsContent>
             </Tabs>
-
-            <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
-              <DialogContent className="max-h-[92vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl xl:max-w-[88vw]">
-                <DialogHeader>
-                  <DialogTitle>{libraryLaunchTitle}</DialogTitle>
-                  <DialogDescription className="text-slate-400">Course detail now lives in the page first. This embedded player remains an optional preview step, and the separate-window action is still available when the lesson needs its own browser popup.</DialogDescription>
-                </DialogHeader>
-                <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-2">
-                  {libraryLaunchPath ? (
-                    <iframe
-                      title={libraryLaunchTitle}
-                      src={libraryLaunchPath}
-                      className="h-[72vh] w-full rounded-[1.15rem] border border-white/10 bg-white"
-                    />
-                  ) : (
-                    <div className="flex h-[48vh] items-center justify-center rounded-[1.15rem] border border-dashed border-white/10 text-sm text-slate-400">
-                      Select a training from the library to open the focused window.
-                    </div>
-                  )}
-                </div>
-                <DialogFooter className="gap-2 sm:justify-between">
-                  <p className="text-sm text-slate-400">Low-value top ribbons stay minimized in this launched training view so the learner lands on progress, lesson context, and the next required action sooner.</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" onClick={() => setLibraryLaunchOpen(false)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                      Close window
-                    </Button>
-                    <Button type="button" onClick={() => openTrainingInSeparateWindow()} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                      Open in separate window
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </div>
         ) : null}
+
+        <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
+          <DialogContent className="sm:max-w-[30rem]">
+            <DialogHeader>
+              <DialogTitle>{libraryLaunchTitle}</DialogTitle>
+              <DialogDescription>The course detail review is complete. Open the focused player in a separate window or continue in this workspace.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 text-sm text-slate-600">
+              <div className="rounded-[1rem] border border-slate-200 bg-slate-50 px-4 py-4">
+                <p className="font-medium text-slate-900">Focused training player</p>
+                <p className="mt-2 leading-6">This launch keeps the learner in a contained player with visible progress, persistent outline, and fewer surrounding distractions.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" onClick={() => openTrainingInSeparateWindow()} className="rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]">Open training window</Button>
+                <Button type="button" variant="outline" onClick={() => {
+                  setLibraryLaunchOpen(false);
+                  if (libraryLaunchPath) {
+                    setLocation(libraryLaunchPath);
+                  }
+                }} className="rounded-full">Open here instead</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </SectionShell>
     </Surface>
   );
 }
 
-
-function DocumentationFeed({ entries }: { entries: any[] }) {
-  return (
-    <div className="space-y-3">
-      {entries.map((entry: any) => (
-        <div key={entry.id} className="rounded-2xl border border-white/12 bg-slate-950/82 p-4 shadow-[0_18px_44px_rgba(2,8,23,0.22)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-300">{entry.sourceType.replaceAll("_", " ")}</p>
-              <h4 className="mt-2 text-lg font-medium text-white">{entry.title}</h4>
-            </div>
-            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.authoredByRole.replaceAll("_", " ")}</Badge>
-          </div>
-          <p className="mt-2 text-sm leading-6 text-slate-300">{entry.summary}</p>
-          <div className="mt-4 space-y-2 text-sm text-slate-300">
-            {entry.evidencePoints.map((point: any) => (
-              <div key={point} className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
-                <span>{point}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function ChcgAdminView() {
   const access = trpc.demo.viewerAccess.useQuery();

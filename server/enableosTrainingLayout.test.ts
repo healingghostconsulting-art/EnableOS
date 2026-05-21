@@ -66,12 +66,12 @@ describe("learner training layout helpers", () => {
   });
 
   it("preserves the stronger learner readability treatments on the assignment and banner cards", () => {
-    expect(trainingViewSource).toContain("Learner shell active");
+    expect(trainingViewSource).toContain("Learner journey");
     expect(trainingViewSource).toContain("Priority retraining notification");
+    expect(trainingViewSource).toContain("Recommended path");
     expect(trainingViewSource).toContain("text-cyan-50");
     expect(trainingViewSource).toContain("text-slate-50");
     expect(trainingViewSource).toContain("text-slate-300");
-    expect(trainingViewSource).toContain("bg-slate-950/68");
   });
 
   it("keeps the learner training shell concise, brighter, and explicit about human-in-the-loop behavior", () => {
@@ -84,20 +84,21 @@ describe("learner training layout helpers", () => {
 
   it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
     expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("Guided by CHCG performance methodology");
-    expect(trainingViewSource).toContain("EnableOS frames learning, coaching, and governance as one connected operating system");
-    expect(trainingViewSource).toContain("CHCG powers the underlying methodology and execution discipline");
+    expect(trainingViewSource).toContain("This compact mission hub keeps real training, workspace entry, and next-action signals above the fold");
+    expect(trainingViewSource).toContain("CHCG core");
+    expect(trainingViewSource).toContain("CHCG asset");
+    expect(trainingViewSource).toContain("Client upload");
   });
 
-  it("keeps the landing page denser and more proof-led after the KnowBe4-inspired cleanup", () => {
-    expect(trainingViewSource).toContain("One-screen proof");
-    expect(trainingViewSource).toContain("Browse less. Launch faster. Prove movement.");
-    expect(trainingViewSource).toContain("Smooth launch rhythm");
-    expect(trainingViewSource).toContain("Keep proof, launch, and search above the fold.");
-    expect(trainingViewSource).toContain("Scrolling guardrail");
-    expect(trainingViewSource).toContain("Proof, launch, and search now lead the page.");
-    expect(trainingViewSource).toContain("The densest evidence and the primary calls to action now sit inside the hero");
-    expect(trainingViewSource).toContain("Search-first mission entry");
+  it("keeps the landing page denser and more proof-led after the compact mission-hub approval", () => {
+    expect(trainingViewSource).toContain("EnableOS mission hub");
+    expect(trainingViewSource).toContain("Search-first entry");
+    expect(trainingViewSource).toContain("Compact rows");
+    expect(trainingViewSource).toContain("Fewer scroll jumps");
+    expect(trainingViewSource).toContain("Show more actionable training in one screen.");
+    expect(trainingViewSource).toContain("This compact mission hub keeps real training, workspace entry, and next-action signals above the fold");
+    expect(trainingViewSource).toContain("Training queue");
+    expect(trainingViewSource).toContain("Workspace launchers");
   });
 
   it("gives coaching workspaces a visible ribbon-level pop-up logging path while preserving the shared composer", () => {
@@ -190,30 +191,22 @@ describe("learner training layout helpers", () => {
 
   it("keeps the content-library launch brief in the same flash-card pattern while shifting launch into a focused window", () => {
     expect(trainingViewSource).toContain("Launch brief card");
-    expect(trainingViewSource).toContain("Choose the receiving role, review the handoff cards, then launch the focused player only after the course detail is clear.");
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
     expect(trainingViewSource).toContain("Source label ·");
-    expect(trainingViewSource).toContain("Window launch lane");
+    expect(trainingViewSource).toContain("Receiving lane ·");
     expect(trainingViewSource).toContain("Launch focused player");
     expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
 
-  it("keeps client control and content library in the mission-control pattern with a library-style launch window", () => {
-    expect(trainingViewSource).toContain("Client control");
-    expect(trainingViewSource).toContain("Client control modes");
-    expect(trainingViewSource).toContain("Action launcher");
+  it("keeps client control and content library in the mission-control pattern with the denser browse-and-detail flow", () => {
     expect(trainingViewSource).toContain("Content Missions Library");
-    expect(trainingViewSource).toContain("Browse the shelves, then open one training at a time");
-    expect(trainingViewSource).toContain("Scan more titles at once, then move into one structured course detail view.");
-    expect(trainingViewSource).toContain("Review the course fit, expected runtime, completion rhythm, and launch context before opening the focused player.");
+    expect(trainingViewSource).toContain("Compact rows");
+    expect(trainingViewSource).toContain("Training queue");
+    expect(trainingViewSource).toContain("Selected module detail");
     expect(trainingViewSource).toContain("Course detail staging");
     expect(trainingViewSource).toContain("Launch sequence");
-    expect(trainingViewSource).toContain("Open in separate window");
-    expect(trainingViewSource).toContain("Track explorer");
-    expect(trainingViewSource).toContain("Current track focus");
-    expect(trainingViewSource).toContain("View course detail");
-    expect(trainingViewSource).toContain("Open full course detail");
-    expect(trainingViewSource).toContain("Ingestion checklist");
+    expect(trainingViewSource).toContain("Launch focused player");
+    expect(trainingViewSource).toContain("Open compact shelves");
   });
 
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
@@ -221,8 +214,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("compact = false");
     expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
     expect(trainingViewSource).toContain("This deep link opens straight into the active course player so the learner lands on the lesson itself.");
-    expect(trainingViewSource).toContain("Course status");
-    expect(trainingViewSource).toContain("Est. time remaining");
+    expect(trainingViewSource).toContain("Module outline");
+    expect(trainingViewSource).toContain("Lesson canvas ·");
+    expect(trainingViewSource).toContain("Progress rail");
     expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");
     expect(trainingViewSource).toContain("Checkpoint cleared");
     expect(trainingViewSource).toContain("Retry required");
