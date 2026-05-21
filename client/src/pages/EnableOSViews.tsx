@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleAlert,
+  Clock3,
   Gauge,
   Layers3,
   Mic,
@@ -1809,7 +1810,13 @@ function InlineAssessmentShell({
                 <p className="mt-2 text-sm font-medium text-[#243018]">{assessment.passingScore}/{questions.length}{assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}</p>
               </div>
             </div>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                {!submitted && !currentQuestionAnswered ? (
+                  <div className="w-full rounded-[1.15rem] border border-[#d6debf] bg-white/80 px-4 py-3 text-left text-sm leading-6 text-[#586648] shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+                    Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.
+                  </div>
+                ) : null}
+
               {questions.map((question: any, index: number) => {
                 const answered = hasAssessmentAnswer(question, answers);
                 const active = index === boundedQuestionIndex;
@@ -1873,18 +1880,24 @@ function InlineAssessmentShell({
                     )
                   ) : (
                     <Button type="button" onClick={onSubmit} disabled={!currentQuestionAnswered || disabled} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40] disabled:bg-[#b9c4a3] disabled:text-[#f6faec]">
-                      Submit
+                      Submit response
                     </Button>
                   )}
                 </div>
               </div>
               {submitted ? (
-                <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
-                  <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                    {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
-                    <span className={passed ? "text-emerald-700" : "text-rose-700"}>Score: {score}/{questions.length}</span>
+                <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                      {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
+                      <span className={passed ? "text-emerald-700" : "text-rose-700"}>{passed ? "Checkpoint cleared" : "Retry required"}</span>
+                    </div>
+                    <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>Score {score}/{questions.length}</div>
                   </div>
-                  <p className={`mt-2 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
+                  <p className={`mt-3 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
+                  <div className={`mt-4 rounded-[1rem] px-4 py-3 text-sm leading-6 ${passed ? "bg-white/70 text-emerald-800" : "bg-white/70 text-rose-800"}`}>
+                    {passed ? "The learner can now return to the lesson with this result recorded as part of the guided course flow." : "Review the feedback, update the answer, and retry inside the same assessment surface without leaving the lesson context."}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -3174,6 +3187,26 @@ export function TrainingExperienceView() {
   const currentStageQuizGatePassed = currentStageQuizTriggers.every((trigger) => completedQuizTriggerIds.includes(trigger.id));
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
+  const stageRuntimeLabel = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibrating";
+  const totalRuntimeMinutes = guidedPlan.stageDurations.reduce((sum, entry) => sum + entry.minutes, 0);
+  const elapsedRuntimeMinutes = guidedPlan.stageDurations.slice(0, Math.max(stageIndex, 0)).reduce((sum, entry) => sum + entry.minutes, 0);
+  const remainingRuntimeMinutes = Math.max(totalRuntimeMinutes - elapsedRuntimeMinutes, 0);
+  const courseStatusLabel = finalQuizPassed
+    ? "Ready to close"
+    : activeModalQuizTrigger && !activeModalPassed
+      ? "Checkpoint active"
+      : overallProgress >= 100
+        ? "Final review"
+        : overallProgress >= 60
+          ? "In progress"
+          : overallProgress > 0
+            ? "Getting underway"
+            : "Not started";
+  const courseStatusSupport = finalQuizPassed
+    ? "Final quiz is complete and the learner can finish the transfer commitment."
+    : activeModalQuizTrigger && !activeModalPassed
+      ? `${activeModalQuizTrigger.label} must be cleared before the learner can continue.`
+      : `Current stage runtime · ${stageRuntimeLabel}`;
   const utils = trpc.useUtils();
   const completeTrainingAssignment = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
@@ -3934,11 +3967,12 @@ export function TrainingExperienceView() {
               </CardContent>
             </PremiumCard>
 
-            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
               <MetricCard label="Modules in path" value={String(modules.length)} supporting={effectiveJourneyTitle} icon={<BookOpen className="h-4 w-4" />} />
               <MetricCard label="Current module" value={`${moduleIndex + 1}/${modules.length}`} supporting={selectedModule.title} icon={<Target className="h-4 w-4" />} />
+              <MetricCard label="Course status" value={courseStatusLabel} supporting={courseStatusSupport} icon={<Gauge className="h-4 w-4" />} />
               <MetricCard label="Interactive progress" value={`${overallProgress}%`} supporting={`Stage ${stageIndex + 1} of ${stages.length}`} icon={<Sparkles className="h-4 w-4" />} />
-              <MetricCard label="Mapped assets" value={String(supportingAssets.length)} supporting="CHCG and tenant materials blended into this lesson" icon={<Layers3 className="h-4 w-4" />} />
+              <MetricCard label="Est. time remaining" value={`${remainingRuntimeMinutes} min`} supporting="Guided runtime still visible while the learner advances" icon={<Clock3 className="h-4 w-4" />} />
             </div>
 
             {trainingVisuals.length > 0 ? (
@@ -5294,13 +5328,13 @@ export function ContentLibraryView() {
     () => [
       {
         label: "Visible assets",
-        value: String(library.data?.stats.totalAssets ?? 0),
-        support: "Filtered by tenant, role, and search intent.",
+        value: String(assets.length),
+        support: "Filtered by tenant, role, source, and search intent.",
       },
       {
         label: "Selected lane",
         value: roleFilter === "all" ? "All roles" : getRoleLabel(roleFilter),
-        support: "Use role lenses to reduce noise before launching training.",
+        support: "Use role lenses to reduce noise before opening course detail.",
       },
       {
         label: "Focus track",
@@ -5308,8 +5342,62 @@ export function ContentLibraryView() {
         support: "Pinned to the current methodology stream.",
       },
     ],
-    [library.data?.stats.totalAssets, library.data?.tracks, roleFilter, trackFilter],
+    [assets.length, library.data?.tracks, roleFilter, trackFilter],
   );
+  const selectedAssetEstimatedMinutes = useMemo(() => {
+    if (!selectedAsset) {
+      return 0;
+    }
+
+    const runtimeByFormat: Record<string, number> = {
+      Deck: 28,
+      Playbook: 24,
+      Checklist: 12,
+      Guide: 20,
+      Worksheet: 18,
+      Microlearning: 10,
+      Document: 16,
+    };
+
+    const baseMinutes = runtimeByFormat[selectedAsset.format] ?? 18;
+    const tagAdjustment = Math.min(selectedAsset.tags.length * 2, 10);
+    return baseMinutes + tagAdjustment;
+  }, [selectedAsset]);
+  const selectedAssetSectionCount = useMemo(() => {
+    if (!selectedAsset) {
+      return 0;
+    }
+
+    return Math.max(4, Math.min(8, selectedAsset.tags.length + 3));
+  }, [selectedAsset]);
+  const selectedAssetCheckpointCount = useMemo(() => {
+    if (!selectedAssetEstimatedMinutes) {
+      return 0;
+    }
+
+    return Math.max(2, Math.min(5, Math.ceil(selectedAssetEstimatedMinutes / 10)));
+  }, [selectedAssetEstimatedMinutes]);
+  const selectedAssetOutcomeLines = useMemo(() => {
+    if (!selectedAsset) {
+      return [] as string[];
+    }
+
+    return [
+      `Clarify the ${selectedAsset.category.toLowerCase()} objective before launch.`,
+      ...selectedAsset.tags.slice(0, 2).map((tag: string) => `Reinforce ${tag.replaceAll("-", " ")} during the guided lesson.`),
+    ].slice(0, 3);
+  }, [selectedAsset]);
+  const selectedAssetStatusLabel = selectedAsset
+    ? selectedAsset.sourceKind === "chcg"
+      ? "Ready for detail review"
+      : "Client-configured and ready for launch"
+    : "Select an asset to begin";
+  const selectedAssetStatusSupport = selectedAsset
+    ? `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
+    : "Choose a shelf item to activate the course detail view.";
+  const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Learner";
+  const libraryProgressSteps = ["Browse library", "Review course detail", "Launch player"];
+  const libraryProgressValue = selectedAsset ? (libraryMode === "launcher" ? 66 : 33) : 0;
 
   useEffect(() => {
     if (!selectedAsset) {
@@ -5418,8 +5506,8 @@ export function ContentLibraryView() {
                 {access.data.tenant.name}
               </Badge>
             ) : null}
-            <Button type="button" onClick={() => handleStartTraining(selectedAsset ?? undefined)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-              Open training window
+            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
+              Review course detail
             </Button>
             <Link href="/">
               <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
@@ -5441,8 +5529,8 @@ export function ContentLibraryView() {
                 </div>
                 <div className="mt-5 max-w-4xl space-y-3">
                   <p className="text-sm uppercase tracking-[0.24em] text-[#6B7E8A]">Guided library flow</p>
-                  <h3 className="text-[2.1rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem]">Enter the library, choose the right title, and open one training at a time.</h3>
-                  <p className="max-w-3xl text-sm leading-7 text-[#4A6373]">The browsing surface now stays about discovery and handoff. When it is time to train, the lesson opens in a focused window instead of growing this page taller.</p>
+                  <h3 className="text-[2.1rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem]">Scan more titles at once, then move into one structured course detail view.</h3>
+                  <p className="max-w-3xl text-sm leading-7 text-[#4A6373]">The library now stays dense and browseable so users can compare more options without a long scroll. Once one title is selected, the in-app course detail view stages objectives, launch fit, and training expectations before the lesson opens.</p>
                 </div>
                 {libraryMode === "explore" ? (
                   <div className="mt-5 flex flex-wrap gap-3">
@@ -5470,13 +5558,14 @@ export function ContentLibraryView() {
                 <div className="grid gap-3">
                   <div className="command-band px-4 py-4 md:px-5">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">What matters now</p>
-                    <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then select one asset and launch from the detail panel instead of scanning every card equally.</h4>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, but turns the workflow into a tighter launch deck with fewer vertical interruptions.</p>
+                    <h4 className="mt-2 text-lg font-semibold leading-7 text-[#1B303C]">Use a role lens first, then review one course detail view before you launch the player.</h4>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">This redesign keeps the catalog searchable, raises information density, and gives each selected title a cleaner staging step instead of forcing an abrupt launch.</p>
                   </div>
                   <button type="button" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Recommended next</p>
                     <p className="mt-2 text-base font-semibold text-[#1B303C]">Open asset explorer</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear launch candidate.</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Filter by role, track, and source until you have one clear candidate, then move into the course detail view.</p>
+
                   </button>
                   <button type="button" onClick={() => jumpToLibraryMode("ingest", "library-ingest-mode")} className="command-band p-4 text-left transition hover:-translate-y-0.5">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Upload lane</p>
@@ -5513,11 +5602,11 @@ export function ContentLibraryView() {
                     {libraryMode === "explore" ? (
                       <p className="mt-1 text-xs leading-5 text-[#4A6373]">Choose a shelf mode, then stay in the explorer.</p>
                     ) : (
-                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between launcher, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between course detail, explore, and ingest instead of moving through one long catalog-and-upload page.</p>
                     )}
                   </div>
                   <TabsList className={`h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 ${libraryMode === "explore" ? "p-1.5 xl:w-auto" : "p-2 xl:w-auto"}`}>
-                    <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Launcher</TabsTrigger>
+                    <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Course detail</TabsTrigger>
                     <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Explore</TabsTrigger>
                     <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
                   </TabsList>
@@ -5531,15 +5620,15 @@ export function ContentLibraryView() {
                       <CardHeader className="space-y-3">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                           <div>
-                            <CardTitle className="text-white">Selected shelf item</CardTitle>
-                            <CardDescription className="text-slate-400">Inspect one asset deeply, then open the right training in its own focused window.</CardDescription>
+                            <CardTitle className="text-white">Selected course detail</CardTitle>
+                            <CardDescription className="text-slate-400">Review the course fit, expected runtime, completion rhythm, and launch context before opening the focused player.</CardDescription>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" variant="outline" onClick={() => setLibraryMode("explore")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
                               Back to shelves
                             </Button>
                             <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-                              Open training window
+                              Launch focused player
                             </Button>
                           </div>
                         </div>
@@ -5551,8 +5640,62 @@ export function ContentLibraryView() {
                           <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
                         </div>
                         <div>
-                          <h3 className="text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/75">Course detail staging</p>
+                          <h3 className="mt-2 text-[2rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
                           <p className="mt-3 text-base leading-7 text-slate-300">{selectedAsset.summary}</p>
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Course status</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-400">Detail review is now the required step before launch.</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Estimated runtime</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-400">Sized for a tighter course-detail and player handoff.</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sections in flow</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetSectionCount}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-400">Structured as staged learning blocks instead of one long surface.</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Knowledge gates</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetCheckpointCount} checkpoints</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-400">Inline checks and a clearer completion rhythm stay visible before launch.</p>
+                          </div>
+                        </div>
+                        <div className="rounded-[1.25rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch sequence</p>
+                              <p className="mt-2 text-sm font-medium text-white">{libraryProgressSteps.join(" · ")}</p>
+                            </div>
+                            <Badge className="rounded-full border-white/10 bg-white/10 text-white">{libraryProgressValue}% staged</Badge>
+                          </div>
+                          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                            <div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} />
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
+                        </div>
+                        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(240px,0.8fr)]">
+                          <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">What this detail view should clarify</p>
+                            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                              {selectedAssetOutcomeLines.map((line) => (
+                                <div key={line} className="flex items-start gap-2">
+                                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                                  <span>{line}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/55 px-4 py-4">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p>
+                            <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-400">The launch briefing and player entry now stay aligned to the active audience lens.</p>
+                          </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {selectedAsset.tags.map((tag: string) => (
@@ -5567,14 +5710,14 @@ export function ContentLibraryView() {
                     </PremiumCard>
                     <PremiumCard>
                       <CardHeader>
-                        <CardTitle className="text-white">Launch window briefing</CardTitle>
-                        <CardDescription className="text-slate-400">Choose the receiving role, then open the training in a focused window instead of stacking it below the library.</CardDescription>
+                        <CardTitle className="text-white">Role-aligned launch briefing</CardTitle>
+                        <CardDescription className="text-slate-400">Choose the receiving role, review the handoff cards, then launch the focused player only after the course detail is clear.</CardDescription>
                       </CardHeader>
                       <CardContent className="grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start">
                         <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-[15px] leading-7 text-slate-100">
-                          <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Launch brief</p>
+                          <p className="text-[12px] uppercase tracking-[0.2em] text-cyan-100/75">Course detail to launch brief</p>
                           <h4 className="mt-2.5 text-lg font-medium text-white">{selectedAssetWorkflowBrief.title}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-100">Set the receiving role, confirm the source context, and open the training in a focused window once the handoff is clear.</p>
+                          <p className="mt-3 text-sm leading-6 text-slate-100">Set the receiving role, confirm the source context, and move from detail review into the focused player only once the handoff is clear.</p>
                           <div className="mt-4 flex flex-wrap gap-2">
                             {selectedAssetRoleOptions.map((linkedRole) => (
                               <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
@@ -5632,7 +5775,7 @@ export function ContentLibraryView() {
                     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] xl:items-end">
                       <div className="space-y-2">
                         <CardTitle className="text-[1.65rem] text-slate-950">Track explorer</CardTitle>
-                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-600">Filter by role, track, and source so users see only the asset lanes that matter before they drill down.</CardDescription>
+                        <CardDescription className="max-w-3xl text-base leading-7 text-slate-600">Filter by role, track, and source so users can scan a denser shelf, compare more titles at once, and only then move into the selected course detail view.</CardDescription>
                       </div>
                       <label className="block w-full space-y-2 text-[15px] text-slate-700">
                         <span>Search assets</span>
@@ -5685,7 +5828,7 @@ export function ContentLibraryView() {
                       <PremiumCard>
                         <CardHeader>
                           <CardTitle className="text-white">Audience groups</CardTitle>
-                          <CardDescription className="text-slate-400">Choose one asset from a grouped audience lane to preview it in the launcher.</CardDescription>
+                          <CardDescription className="text-slate-400">Choose one asset from a grouped audience lane to preview it in the in-app course detail view.</CardDescription>
                         </CardHeader>
                         <CardContent className="max-h-[880px] space-y-5 overflow-auto pr-1">
                           {groupedAssets.length > 0 ? groupedAssets.map((group) => (
@@ -5697,14 +5840,21 @@ export function ContentLibraryView() {
                                 </div>
                                 <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{group.assets.length}</Badge>
                               </div>
-                              <div className="space-y-2">
+                              <div className="grid gap-3 md:grid-cols-2">
                                 {group.assets.map((asset: any) => (
-                                  <button key={asset.id} type="button" onClick={() => { setSelectedAssetId(asset.id); setLibraryMode("launcher"); }} className={`flex w-full items-start justify-between rounded-2xl border px-4 py-4 text-left transition ${selectedAsset?.id === asset.id ? "border-cyan-400/30 bg-cyan-400/12" : "border-white/10 bg-slate-950/50 hover:bg-white/8"}`}>
+                                  <button key={asset.id} type="button" onClick={() => setSelectedAssetId(asset.id)} className={`flex h-full w-full flex-col justify-between rounded-[1.35rem] border px-4 py-4 text-left transition ${selectedAsset?.id === asset.id ? "border-cyan-400/30 bg-cyan-400/12 shadow-[0_16px_40px_rgba(34,211,238,0.08)]" : "border-white/10 bg-slate-950/50 hover:border-white/20 hover:bg-white/8"}`}>
                                     <div className="min-w-0">
-                                      <p className="text-sm font-semibold text-white">{asset.title}</p>
-                                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-100" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"}`}>{asset.sourceKind === "chcg" ? "CHCG core" : "Client import"}</Badge>
+                                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{asset.format}</Badge>
+                                      </div>
+                                      <p className="mt-3 text-sm font-semibold text-white">{asset.title}</p>
+                                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{asset.summary}</p>
                                     </div>
-                                    <ChevronRight className="ml-3 h-4 w-4 shrink-0 text-slate-500" />
+                                    <div className="mt-4 flex items-center justify-between gap-3">
+                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">View course detail</p>
+                                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                    </div>
                                   </button>
                                 ))}
                               </div>
@@ -5723,8 +5873,8 @@ export function ContentLibraryView() {
                     {selectedAsset ? (
                       <PremiumCard>
                         <CardHeader>
-                          <CardTitle className="text-white">Active selection</CardTitle>
-                          <CardDescription className="text-slate-400">Keep the shelf context here, then open the selected training in its own focused window when you are ready.</CardDescription>
+                          <CardTitle className="text-white">Active course detail preview</CardTitle>
+                          <CardDescription className="text-slate-400">Keep the shelf context here, review the selected title, then move into the full course detail tab before you launch the player.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="flex flex-wrap items-center gap-2">
@@ -5743,19 +5893,27 @@ export function ContentLibraryView() {
                               </Badge>
                             ))}
                           </div>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
+                              <p><span className="text-slate-500">Status</span> · {selectedAssetStatusLabel}</p>
+                              <p className="mt-2"><span className="text-slate-500">Runtime</span> · {selectedAssetEstimatedMinutes} min</p>
+                              <p className="mt-2"><span className="text-slate-500">Checkpoints</span> · {selectedAssetCheckpointCount} inline gates</p>
+                            </div>
+                            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
+                              <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
+                              <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
+                              <p className="mt-2"><span className="text-slate-500">Receiving lane</span> · {selectedAssetWorkflowLabel}</p>
+                            </div>
+                          </div>
                           <div className="flex flex-wrap gap-2.5 text-sm text-slate-300">
                             {selectedAsset.tags.map((tag: string) => (
                               <span key={`${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3.5 py-1.5">#{tag}</span>
                             ))}
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm leading-6 text-slate-300">
-                            <p><span className="text-slate-500">Source</span> · {selectedAsset.sourceLabel}</p>
-                            <p className="mt-2"><span className="text-slate-500">Created</span> · {new Date(selectedAsset.createdAt).toLocaleDateString()}</p>
-                          </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Review launch window</Button>
-                            <Button type="button" variant="outline" onClick={() => handleStartTraining(selectedAsset)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-                              Open training window
+                            <Button type="button" onClick={() => setLibraryMode("launcher")} className="rounded-full bg-white px-4 text-slate-950 hover:bg-slate-100">Open full course detail</Button>
+                            <Button type="button" variant="outline" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+                              Launch focused player
                               <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                             {selectedAsset.fileUrl ? (
@@ -5898,7 +6056,7 @@ export function ContentLibraryView() {
               <DialogContent className="max-h-[92vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl xl:max-w-[88vw]">
                 <DialogHeader>
                   <DialogTitle>{libraryLaunchTitle}</DialogTitle>
-                  <DialogDescription className="text-slate-400">The library stays in browse mode while the selected training opens in a focused window. Use the separate-window action if you want the lesson in its own browser popup.</DialogDescription>
+                  <DialogDescription className="text-slate-400">Course detail now lives in the page first. This embedded player remains an optional preview step, and the separate-window action is still available when the lesson needs its own browser popup.</DialogDescription>
                 </DialogHeader>
                 <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-2">
                   {libraryLaunchPath ? (
@@ -5914,7 +6072,7 @@ export function ContentLibraryView() {
                   )}
                 </div>
                 <DialogFooter className="gap-2 sm:justify-between">
-                  <p className="text-sm text-slate-400">Low-value top ribbons are minimized in this launched training view so the lesson content starts sooner.</p>
+                  <p className="text-sm text-slate-400">Low-value top ribbons stay minimized in this launched training view so the learner lands on progress, lesson context, and the next required action sooner.</p>
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="outline" onClick={() => setLibraryLaunchOpen(false)} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">
                       Close window

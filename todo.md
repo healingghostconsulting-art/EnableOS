@@ -392,3 +392,9 @@
 - [x] Add regression coverage for the repaired Content Missions explorer layout so the card and filter surfaces stay readable
 - [x] Create an editable client-facing LMS development plan spreadsheet summarizing current progress, queued work, priorities, and estimated timelines
 - [x] Review the newly shared feedback video, extract the requested CHCG EnableOS changes, and report back with a prioritized implementation plan
+- [x] Redesign Content Missions and related training-library browsing into a denser card-based experience with stronger grouping and reduced vertical sprawl
+- [x] Add a structured in-app course detail staging view between course browsing and training launch
+- [x] Expand progress visibility across learning surfaces with stronger progress bars, completion percentages, time estimates, and clearer status states
+- [x] Redesign quiz and knowledge-check validation, review, and feedback states so assessments feel native to EnableOS rather than generic browser flows
+- [x] Run a cross-surface learner-experience polish pass to unify typography, spacing, card hierarchy, and visual density across Content Missions, Training Zone, and course detail views
+- [x] Add targeted regression coverage for the feedback-video-driven learning experience refinements

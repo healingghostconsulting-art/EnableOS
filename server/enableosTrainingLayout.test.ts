@@ -190,11 +190,11 @@ describe("learner training layout helpers", () => {
 
   it("keeps the content-library launch brief in the same flash-card pattern while shifting launch into a focused window", () => {
     expect(trainingViewSource).toContain("Launch brief card");
-    expect(trainingViewSource).toContain("Set the receiving role, confirm the source context, and open the training in a focused window once the handoff is clear.");
+    expect(trainingViewSource).toContain("Choose the receiving role, review the handoff cards, then launch the focused player only after the course detail is clear.");
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
     expect(trainingViewSource).toContain("Source label ·");
     expect(trainingViewSource).toContain("Window launch lane");
-    expect(trainingViewSource).toContain("Open training window");
+    expect(trainingViewSource).toContain("Launch focused player");
     expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
 
@@ -204,13 +204,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Action launcher");
     expect(trainingViewSource).toContain("Content Missions Library");
     expect(trainingViewSource).toContain("Browse the shelves, then open one training at a time");
-    expect(trainingViewSource).toContain("The library stays in browse mode while the selected training opens in a focused window.");
+    expect(trainingViewSource).toContain("Scan more titles at once, then move into one structured course detail view.");
+    expect(trainingViewSource).toContain("Review the course fit, expected runtime, completion rhythm, and launch context before opening the focused player.");
+    expect(trainingViewSource).toContain("Course detail staging");
+    expect(trainingViewSource).toContain("Launch sequence");
     expect(trainingViewSource).toContain("Open in separate window");
-    expect(trainingViewSource).toContain("Open asset explorer");
     expect(trainingViewSource).toContain("Track explorer");
     expect(trainingViewSource).toContain("Current track focus");
-    expect(trainingViewSource).toContain("Blended library view");
-    expect(trainingViewSource).toContain("Open the actual training in its own focused window after the shelf decision is made.");
+    expect(trainingViewSource).toContain("View course detail");
+    expect(trainingViewSource).toContain("Open full course detail");
     expect(trainingViewSource).toContain("Ingestion checklist");
   });
 
@@ -219,6 +221,11 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("compact = false");
     expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
     expect(trainingViewSource).toContain("This deep link opens straight into the active course player so the learner lands on the lesson itself.");
+    expect(trainingViewSource).toContain("Course status");
+    expect(trainingViewSource).toContain("Est. time remaining");
+    expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");
+    expect(trainingViewSource).toContain("Checkpoint cleared");
+    expect(trainingViewSource).toContain("Retry required");
     expect(trainingViewSource).toContain("compact");
   });
 
