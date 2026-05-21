@@ -409,3 +409,6 @@
 - [x] Redesign the training library into denser browse rows or compact mission cards with faster scan-and-launch behavior and in-panel detail viewing
 - [x] Implement the focused training-player shell with a persistent module outline, central lesson canvas, and compact progress rail matching the approved mockup direction
 - [x] Add or update regression coverage for the approved compact-UI redesign across the mission hub, library, and focused training-player experience
+- [x] Apply the approved compact UI direction consistently across all major EnableOS site sections and role-based workspace surfaces, not only the training views
+- [x] Fix the broken first-click behavior so the primary mission/library selection opens the intended next view instead of returning to the same UI state
+- [x] Add or update regression coverage for site-wide compact-layout consistency and the corrected primary navigation flow

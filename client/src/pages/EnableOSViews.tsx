@@ -729,7 +729,7 @@ function SectionShell({
   description,
   actions,
   children,
-  compact = false,
+  compact = true,
 }: {
   eyebrow: string;
   title: string;
@@ -1942,49 +1942,60 @@ export function LandingView() {
   const featuredTenants = landing.data?.tenants ?? [];
   const [landingSearchQuery, setLandingSearchQuery] = useState("");
   const [missionHubMode, setMissionHubMode] = useState<"overview" | "workspaces" | "tracks">("overview");
+  const viewerHomeHref = viewerAccess.data?.grant.role === "platform_admin"
+    ? "/chcg-admin"
+    : viewerAccess.data?.grant.role === "client_admin"
+      ? "/admin"
+      : viewerAccess.data?.grant.role === "executive"
+        ? "/executive"
+        : viewerAccess.data?.grant.role === "manager"
+          ? "/manager"
+          : viewerAccess.data?.grant.role === "coach"
+            ? "/coach"
+            : "/learner";
   const landingTrainingRecords = useMemo(
     () => [
       {
         title: "Soft Skills & Customer/Patient Service Foundation",
         subtitle: "Customer service, active listening, empathy, de-escalation, and professionalism.",
         keywords: ["learner", "service foundations", "soft skills", "communication"],
-        href: "/training",
-        cta: "Open training simulator",
+        href: "/library?assetId=library-service-foundations-core&assetTitle=Soft%20Skills%20%26%20Customer%2FPatient%20Service%20Foundation&role=learner",
+        cta: "Review module detail",
       },
       {
         title: "Quality Assurance Essentials",
         subtitle: "Verification, QA discipline, documentation accuracy, and workflow execution.",
         keywords: ["manager", "workflow precision", "qa", "documentation"],
-        href: "/training?role=manager",
-        cta: "Open manager-aligned training",
+        href: "/library?assetId=library-workflow-precision-kit&assetTitle=Quality%20Assurance%20Essentials&role=manager",
+        cta: "Open QA detail",
       },
       {
         title: "Unlocking the Power of Data",
         subtitle: "KPI interpretation, trend review, and decision-quality leadership.",
         keywords: ["executive", "leadership", "data", "kpi"],
-        href: "/training?role=executive",
-        cta: "Open executive-aligned training",
+        href: "/library?assetTitle=Unlocking%20the%20Power%20of%20Data&role=executive",
+        cta: "Open leadership detail",
       },
       {
         title: "Real-time Coaching",
         subtitle: "In-the-moment coaching responses, reinforcement, and follow-through cues.",
-        keywords: ["manager", "coaching", "feedback", "leadership"],
-        href: "/training?role=manager",
-        cta: "Open coaching module",
+        keywords: ["coach", "coaching", "feedback", "leadership"],
+        href: buildTrainingLaunchPath({ role: "coach", journeyId: "journey-coach-practice-atlas", moduleId: "mod-rtc-1" }),
+        cta: "Open coaching player",
       },
       {
-        title: "Utilizing Performance to Maximize Performance",
+        title: "Utilizing Performance Management to Maximize Results",
         subtitle: "Calibration, improvement planning, and performance accountability rhythms.",
         keywords: ["manager", "performance", "calibration", "reviews"],
-        href: "/training?role=manager",
-        cta: "Open performance training",
+        href: "/library?assetId=library-performance-governance&assetTitle=Utilizing%20Performance%20Management%20to%20Maximize%20Results&role=manager",
+        cta: "Open performance detail",
       },
       {
-        title: "Engagement and Empowering",
+        title: "Gamification for Remote Teams: Engaging and Empowering Leaders",
         subtitle: "Recognition rhythms, gamification, and hybrid-team motivation design.",
         keywords: ["manager", "engagement", "recognition", "remote teams"],
-        href: "/training?role=manager",
-        cta: "Open engagement training",
+        href: "/library?assetId=library-gamified-engagement&assetTitle=Gamification%20for%20Remote%20Teams%3A%20Engaging%20and%20Empowering%20Leaders&role=manager",
+        cta: "Open engagement detail",
       },
       ...Object.values(roleMeta).map((item) => ({
         title: item.title,
@@ -2007,7 +2018,18 @@ export function LandingView() {
     { label: "In coaching", value: 9 },
   ];
   const compactMissionQueue = landingSearchQuery.trim() ? landingSearchResults : landingTrainingRecords.slice(0, 6);
-  const compactWorkspaceCards = featuredTenants.slice(0, 4);
+  const compactWorkspaceCards = featuredTenants.slice(0, 4).map((tenant: any, index) => ({
+    ...tenant,
+    href: viewer.data
+      ? viewerHomeHref
+      : index === 0
+        ? "/executive"
+        : index === 1
+          ? "/manager"
+          : index === 2
+            ? "/coach"
+            : "/admin",
+  }));
 
   return (
     <Surface>
@@ -2044,13 +2066,13 @@ export function LandingView() {
                     />
                   </div>
                 </label>
-                <Link href={viewer.data ? "/learner" : "/login"}>
+                <Link href={viewer.data ? viewerHomeHref : buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", freshStart: true })}>
                   <Button className="h-12 rounded-[1.25rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
                     {viewer.data ? "Resume my mission" : "Launch next"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/training">
+                <Link href={buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1" })}>
                   <Button variant="outline" className="h-12 rounded-[1.25rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
                     Preview player
                   </Button>
@@ -2109,7 +2131,7 @@ export function LandingView() {
               </div>
               <div className="grid gap-2.5">
                 {compactWorkspaceCards.length > 0 ? compactWorkspaceCards.map((tenant: any) => (
-                  <Link key={tenant.id} href="/learner">
+                  <Link key={tenant.id} href={tenant.href}>
                     <button type="button" className="w-full rounded-[1.2rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(245,247,250,0.94))] px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
@@ -5204,7 +5226,7 @@ export function ContentLibraryView() {
   const [libraryLaunchOpen, setLibraryLaunchOpen] = useState(false);
   const [libraryLaunchPath, setLibraryLaunchPath] = useState<string | null>(null);
   const [libraryLaunchTitle, setLibraryLaunchTitle] = useState("Focused training window");
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
   const uploadMutation = trpc.demo.secureUploadContent.useMutation({
@@ -5262,6 +5284,37 @@ export function ContentLibraryView() {
   }, [assetView, library.data, searchQuery, trackFilter]);
 
   const groupedAssets = useMemo(() => groupAssetsByTargetDemographic(assets), [assets]);
+
+  useEffect(() => {
+    if (!assets.length) {
+      return;
+    }
+
+    const queryParams = new URLSearchParams(location.split("?")[1] ?? "");
+    const requestedAssetId = queryParams.get("assetId");
+    const requestedAssetTitle = queryParams.get("assetTitle");
+    const requestedRole = queryParams.get("role") as DemoRole | null;
+    const matchedAsset = assets.find((asset: any) => asset.id === requestedAssetId)
+      ?? assets.find((asset: any) => asset.title.toLowerCase() === (requestedAssetTitle ?? "").toLowerCase())
+      ?? null;
+
+    if (matchedAsset && matchedAsset.id !== selectedAssetId) {
+      setSelectedAssetId(matchedAsset.id);
+    }
+
+    if (!matchedAsset && !selectedAssetId && assets[0]?.id) {
+      setSelectedAssetId(assets[0].id);
+    }
+
+    if (matchedAsset && libraryMode !== "launcher") {
+      setLibraryMode("launcher");
+    }
+
+    if (requestedRole && ["executive", "manager", "coach", "learner", "client_admin"].includes(requestedRole) && requestedRole !== selectedAssetRole) {
+      setSelectedAssetRole(requestedRole);
+    }
+  }, [assets, libraryMode, location, selectedAssetId, selectedAssetRole]);
+
   const selectedAsset = useMemo(() => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null, [assets, selectedAssetId]);
   const selectedAssetRoleOptions = useMemo(() => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [], [selectedAsset]);
   const selectedAssetWorkflowBrief = useMemo(() => getOperationalLaunchReadinessBrief(selectedAssetRole), [selectedAssetRole]);

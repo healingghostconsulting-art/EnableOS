@@ -38,7 +38,7 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 348;
 const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
-const compactWorkspaceHeaderPaths = new Set(["/training", "/library"]);
+const compactWorkspaceHeaderPaths = new Set(["/training", "/library", "/executive", "/reporting", "/manager", "/coach", "/learner", "/admin", "/chcg-admin"]);
 
 const workspaceMissionSignals: Record<string, {
   eyebrow: string;

@@ -6,6 +6,7 @@ import { getBriefBoxPages, getBriefCompletionStatus, getModalCheckpointResetKey,
 describe("learner training layout helpers", () => {
   const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
   const trainingViewSource = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
+  const dashboardLayoutSource = readFileSync(join(process.cwd(), "client/src/components/DashboardLayout.tsx"), "utf8");
 
   it("anchors the first brief window at the start of the stage", () => {
     const result = getBriefBoxPages(pages, 0);
@@ -211,7 +212,7 @@ describe("learner training layout helpers", () => {
 
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
     expect(trainingViewSource).toContain("function SectionShell");
-    expect(trainingViewSource).toContain("compact = false");
+    expect(trainingViewSource).toContain("compact = true");
     expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
     expect(trainingViewSource).toContain("This deep link opens straight into the active course player so the learner lands on the lesson itself.");
     expect(trainingViewSource).toContain("Module outline");
@@ -221,6 +222,26 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Checkpoint cleared");
     expect(trainingViewSource).toContain("Retry required");
     expect(trainingViewSource).toContain("compact");
+  });
+
+  it("routes the landing mission queue into exact library detail states or focused player launches instead of generic same-screen fallbacks", () => {
+    expect(trainingViewSource).toContain("/library?assetId=library-service-foundations-core");
+    expect(trainingViewSource).toContain("assetTitle=Quality%20Assurance%20Essentials");
+    expect(trainingViewSource).toContain("journey-coach-practice-atlas");
+    expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");
+    expect(trainingViewSource).toContain("const requestedAssetTitle = queryParams.get(\"assetTitle\")");
+    expect(trainingViewSource).toContain("if (matchedAsset && libraryMode !== \"launcher\")");
+  });
+
+  it("applies the compact authenticated workspace header across every primary role-based surface", () => {
+    expect(dashboardLayoutSource).toContain("compactWorkspaceHeaderPaths");
+    expect(dashboardLayoutSource).toContain('"/executive"');
+    expect(dashboardLayoutSource).toContain('"/reporting"');
+    expect(dashboardLayoutSource).toContain('"/manager"');
+    expect(dashboardLayoutSource).toContain('"/coach"');
+    expect(dashboardLayoutSource).toContain('"/learner"');
+    expect(dashboardLayoutSource).toContain('"/admin"');
+    expect(dashboardLayoutSource).toContain('"/chcg-admin"');
   });
 
   it("keeps the shared mission-control shell animated and reward-aware without overwhelming the workflow", () => {
