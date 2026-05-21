@@ -412,3 +412,4 @@
 - [x] Apply the approved compact UI direction consistently across all major EnableOS site sections and role-based workspace surfaces, not only the training views
 - [x] Fix the broken first-click behavior so the primary mission/library selection opens the intended next view instead of returning to the same UI state
 - [x] Add or update regression coverage for site-wide compact-layout consistency and the corrected primary navigation flow
+- [x] Review the available KnowBe4 comparison videos with a Training Zone focus and report prioritized scroll-reduction and interaction-efficiency improvements before the next redesign pass
