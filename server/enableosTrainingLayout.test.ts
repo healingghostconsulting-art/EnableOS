@@ -85,7 +85,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
     expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("This compact mission hub keeps real training, workspace entry, and next-action signals above the fold");
+    expect(trainingViewSource).toContain("Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.");
     expect(trainingViewSource).toContain("CHCG core");
     expect(trainingViewSource).toContain("CHCG asset");
     expect(trainingViewSource).toContain("Client upload");
@@ -93,11 +93,11 @@ describe("learner training layout helpers", () => {
 
   it("keeps the landing page denser and more proof-led after the compact mission-hub approval", () => {
     expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("Search-first entry");
-    expect(trainingViewSource).toContain("Compact rows");
-    expect(trainingViewSource).toContain("Fewer scroll jumps");
-    expect(trainingViewSource).toContain("Show more actionable training in one screen.");
-    expect(trainingViewSource).toContain("This compact mission hub keeps real training, workspace entry, and next-action signals above the fold");
+    expect(trainingViewSource).toContain("Primary queue");
+    expect(trainingViewSource).toContain("Workspace launch");
+    expect(trainingViewSource).toContain("Operations home");
+    expect(trainingViewSource).toContain("Start with the next assigned action.");
+    expect(trainingViewSource).toContain("Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.");
     expect(trainingViewSource).toContain("Training queue");
     expect(trainingViewSource).toContain("Workspace launchers");
   });

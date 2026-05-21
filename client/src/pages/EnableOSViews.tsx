@@ -741,23 +741,24 @@ function SectionShell({
   const narrative = resolveSectionMissionNarrative(eyebrow, title);
 
   if (compact) {
-    return (
+      return (
       <div className="workspace-stack">
-        <div className="rounded-[2rem] border border-[#1B303C]/10 bg-white/82 px-5 py-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="max-w-4xl space-y-3">
+        <div className="rounded-[1.75rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,248,250,0.92))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-4xl space-y-2.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.22em]">
+                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.24em]">
                   {eyebrow}
                 </Badge>
                 <span className="command-pill px-3 py-1 text-[11px] font-medium text-[#4A6373]">{narrative.focus}</span>
               </div>
-              <div className="space-y-2">
-                <h1 className="text-[1.9rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[2.2rem]">{title}</h1>
-                <p className="max-w-3xl text-sm leading-7 text-[#4A6373] sm:text-[15px]">{description}</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">{title}</p>
+                <h1 className="text-[1.35rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.55rem]">{description}</h1>
+                <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{narrative.next}</p>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               {actions}
             </div>
           </div>
@@ -2034,29 +2035,29 @@ export function LandingView() {
   return (
     <Surface>
       <div className="workspace-stack">
-        <div className="glass-panel energy-frame overflow-hidden rounded-[2.2rem] border border-[#1B303C]/10 bg-white shadow-[0_28px_90px_rgba(27,48,60,0.12)]">
-          <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-7">
+        <div className="glass-panel overflow-hidden rounded-[2rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(247,248,250,0.94))] shadow-[0_24px_70px_rgba(27,48,60,0.08)]">
+          <div className="grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-6">
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2.5">
-                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.28em]">
+                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.28em]">
                   EnableOS mission hub
                 </Badge>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Search-first entry</span>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Compact rows</span>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#4A6373]">Fewer scroll jumps</span>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Primary queue</span>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Workspace launch</span>
               </div>
-              <div className="max-w-4xl space-y-3">
-                <h1 className="max-w-[15ch] text-[2.35rem] font-semibold tracking-tight text-[#1B303C] md:text-[3.05rem] md:leading-[1.02] xl:text-[3.4rem]">
-                  Show more actionable training in one screen.
+              <div className="max-w-4xl space-y-2.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Operations home</p>
+                <h1 className="max-w-[16ch] text-[2rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem] md:leading-[1.04] xl:text-[2.8rem]">
+                  Start with the next assigned action.
                 </h1>
-                <p className="max-w-3xl text-[0.98rem] leading-7 text-[#4A6373]">
-                  This compact mission hub keeps real training, workspace entry, and next-action signals above the fold so users can browse, choose, and launch without crossing long explanatory sections first.
+                <p className="max-w-3xl text-[0.95rem] leading-6 text-[#4A6373]">
+                  Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.
                 </p>
               </div>
               <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
                 <label className="block min-w-0 space-y-2 text-sm text-[#1B303C]">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search mission hub</span>
-                  <div className="flex items-center gap-3 rounded-[1.35rem] border border-[#1B303C]/10 bg-[#F7F8FA] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                  <div className="flex items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                     <Search className="h-4 w-4 text-[#4A6373]" />
                     <input
                       value={landingSearchQuery}
@@ -2067,23 +2068,23 @@ export function LandingView() {
                   </div>
                 </label>
                 <Link href={viewer.data ? viewerHomeHref : buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", freshStart: true })}>
-                  <Button className="h-12 rounded-[1.25rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
+                  <Button className="h-11 rounded-[1.05rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
                     {viewer.data ? "Resume my mission" : "Launch next"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href={buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1" })}>
-                  <Button variant="outline" className="h-12 rounded-[1.25rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
+                  <Button variant="outline" className="h-11 rounded-[1.05rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
                     Preview player
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2.5 sm:grid-cols-2">
               {landingMetricHighlights.map((item: any) => (
-                <div key={item.label} className="rounded-[1.3rem] border border-[#1B303C]/8 bg-[linear-gradient(160deg,rgba(27,48,60,0.98),rgba(23,37,47,0.96))] px-4 py-4 text-white shadow-[0_18px_48px_rgba(27,48,60,0.16)]">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
-                  <p className="mt-2 text-[1.7rem] font-semibold tracking-tight">{String(item.value)}</p>
+                <div key={item.label} className="rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
+                  <p className="mt-2 text-[1.45rem] font-semibold tracking-tight text-[#1B303C]">{String(item.value)}</p>
                 </div>
               ))}
             </div>
@@ -6498,34 +6499,35 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
         <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
       </div>
 
-      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-500/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(18rem,0.82fr)] xl:items-start">
+      <div className="mission-hero-card overflow-hidden rounded-[1.8rem] border border-cyan-500/14 bg-[linear-gradient(180deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.18)]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)] xl:items-start">
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Executive reporting mission</Badge>
-              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">Show what changed, what is at risk, and what needs action next</span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Executive reporting</Badge>
+              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-50/80">Decision queue</span>
             </div>
-            <div>
-              <h2 className="text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A guided reporting command center replaces the long analytics stack.</h2>
-              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">This workspace opens with a command summary, then lets leaders switch between overview, trends, risk, evidence, and documentation instead of scrolling through every reporting block at once.</p>
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Reporting overview</p>
+              <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">Review the core lift, risk, and proof signals first.</h2>
+              <p className="max-w-4xl text-sm leading-6 text-slate-200">This workspace now opens like a reporting console: start with the summary cards, then switch into trends, risk, evidence, or documentation only when a deeper decision is required.</p>
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {data.reportingOverview.summaryCards.map((entry: any) => (
-                <div key={entry.label} className="rounded-[1.35rem] border border-white/10 bg-white/8 px-4 py-4 backdrop-blur-sm">
+                <div key={entry.label} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{entry.label}</p>
-                  <p className="mt-3 text-2xl font-semibold text-white">{entry.value}</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">{entry.value}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Narrative focus</p>
+          <div className="grid gap-3">
+            <div className="guide-card border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current headline</p>
               <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-200">{data.reportingOverview.summary}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-200">{data.reportingOverview.summary}</p>
             </div>
-            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
+            <div className="rounded-[1.2rem] border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
               <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Proof cue</p>
               <p className="mt-2 text-sm leading-6">{data.proofOfImpact.headline}</p>
             </div>
@@ -8090,52 +8092,52 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(310px,0.92fr)]">
         <PremiumCard className="overflow-hidden">
-          <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-            <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.18),transparent_38%),linear-gradient(135deg,rgba(8,47,73,0.96),rgba(15,23,42,0.98))] p-6 shadow-[0_28px_85px_rgba(8,15,35,0.3)]">
+          <CardContent className="space-y-4 p-5">
+            <div className="rounded-[1.6rem] border border-white/12 bg-white/6 p-5">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Client control</Badge>
                 <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.tenant.industry}</Badge>
                 <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.branding.dataIsolation}</Badge>
               </div>
-              <div className="mt-5 max-w-3xl">
-                <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">Tenant mission control</p>
-                <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{data.branding.preferredLabel}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-50">Run branding, permissions, content governance, and documentation oversight from one guided surface instead of hunting through long stacked admin pages.</p>
-              </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Tenant roster</p>
-                  <p className="mt-2 text-xl font-semibold text-white">{data.tenantUsers.length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Role-scoped identities in the active tenant</p>
-                </div>
-                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Custom roles</p>
-                  <p className="mt-2 text-xl font-semibold text-white">{(data.customRoles ?? []).length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Tenant-specific permission overlays</p>
-                </div>
-                <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Governance signals</p>
-                  <p className="mt-2 text-xl font-semibold text-white">{data.documentationEntries.length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Documentation events ready for audit</p>
-                </div>
+              <div className="mt-4 max-w-4xl space-y-3">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-300">Tenant operating queue</p>
+                <h3 className="text-[1.9rem] font-semibold tracking-tight text-white">{data.branding.preferredLabel}</h3>
+                <p className="text-sm leading-7 text-slate-100">Use one control plane for branding, role setup, governance review, and documentation follow-up so the admin team can finish setup without jumping between showcase panels.</p>
               </div>
             </div>
-            <div className="grid gap-4">
-              <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-300">What matters now</p>
-                <h4 className="mt-3 text-xl font-semibold text-white">Keep the tenant presentation polished while preserving strict CHCG governance and predictable role access.</h4>
-                <p className="mt-3 text-sm leading-7 text-slate-100">The admin workspace now guides leaders through identity, role architecture, and governance review in compact decision modes.</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Tenant roster</p>
+                <p className="mt-2 text-xl font-semibold text-white">{data.tenantUsers.length}</p>
+                <p className="mt-1 text-xs text-slate-300">Role-scoped identities in the active tenant</p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Custom roles</p>
+                <p className="mt-2 text-xl font-semibold text-white">{(data.customRoles ?? []).length}</p>
+                <p className="mt-1 text-xs text-slate-300">Tenant-specific permission overlays</p>
+              </div>
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Governance signals</p>
+                <p className="mt-2 text-xl font-semibold text-white">{data.documentationEntries.length}</p>
+                <p className="mt-1 text-xs text-slate-300">Documentation events ready for audit</p>
+              </div>
+            </div>
+            <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div className="rounded-[1.45rem] border border-white/12 bg-white/8 p-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Admin priority</p>
+                <h4 className="mt-2 text-lg font-semibold text-white">Keep tenant branding, permissions, and governance aligned.</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-200">The highest-value work is setup clarity: confirm the tenant label, role architecture, and audit evidence before expanding into longer history views.</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
                 <button type="button" onClick={() => openAdminMode("branding", "admin-branding-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
                   <p className="mt-2 text-base font-semibold text-white">Refresh white-label controls</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Adjust preferred label, accent, logo mark, and hero statement without leaving this control plane.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Adjust the tenant label, accent, logo mark, and entry statement without leaving this control plane.</p>
                 </button>
                 <button type="button" onClick={() => openAdminMode("governance", "admin-governance-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Audit lane</p>
                   <p className="mt-2 text-base font-semibold text-white">Review coaching and documentation evidence</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Surface the proof trail and weekly governance artifacts before you expand the full audit timeline.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">Open the proof trail and weekly governance artifacts before you drill into the full timeline.</p>
                 </button>
               </div>
             </div>

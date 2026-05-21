@@ -48,74 +48,74 @@ const workspaceMissionSignals: Record<string, {
   reward: string;
 }> = {
   "/": {
-    eyebrow: "Mission control",
-    headline: "Guide the user with the clearest next move.",
-    focus: "Priority path",
-    next: "Review urgent movement, recent wins, and the strongest next workspace jump.",
-    reward: "Momentum visible",
+    eyebrow: "Mission hub",
+    headline: "Start with the next priority.",
+    focus: "Next action",
+    next: "Search, resume, or jump directly into the right workspace.",
+    reward: "Queue visible",
   },
   "/executive": {
     eyebrow: "Executive command",
-    headline: "Translate movement into confident decisions.",
-    focus: "Readiness proof",
-    next: "Scan program lift, intervention correlation, and the biggest current performance risk.",
-    reward: "ROI story live",
+    headline: "Review lift, risk, and ROI.",
+    focus: "Executive summary",
+    next: "Scan the top trend changes and open the evidence that needs a decision.",
+    reward: "Evidence ready",
   },
   "/reporting": {
     eyebrow: "Reporting hub",
-    headline: "Turn dense reporting into guided evidence.",
-    focus: "Trend intelligence",
-    next: "Use charts and proof summaries to isolate what improved, what slipped, and where to drill in.",
-    reward: "Proof ready",
+    headline: "Compare movement without extra chrome.",
+    focus: "Trend review",
+    next: "Use the core charts first, then drill into the outliers that need follow-up.",
+    reward: "Reporting ready",
   },
   "/manager": {
     eyebrow: "Manager ops",
-    headline: "Keep interventions moving without losing the case context.",
-    focus: "Case action",
-    next: "Work the current learner queue, launch coaching, and review the selected intervention trail.",
-    reward: "Actions aligned",
+    headline: "Work the queue and clear the next case.",
+    focus: "Intervention queue",
+    next: "Open the active learner, review the evidence, and send the next action.",
+    reward: "Cases moving",
   },
   "/coach": {
     eyebrow: "Coach studio",
-    headline: "Coach from one focused workspace instead of stacked history.",
-    focus: "Guided coaching",
-    next: "Open the current learner, review evidence, and launch the coaching log without leaving context.",
-    reward: "Support visible",
+    headline: "Coach from one focused workspace.",
+    focus: "Guided support",
+    next: "Review the current session, confirm the evidence, and log the follow-up.",
+    reward: "Support ready",
   },
   "/learner": {
     eyebrow: "Learner journey",
-    headline: "Show the next mission first and celebrate movement.",
-    focus: "Progress path",
-    next: "Resume the current mission, unlock the next milestone, and keep the journey rewarding.",
-    reward: "Wins earned",
+    headline: "Resume the next assigned step.",
+    focus: "Assigned learning",
+    next: "Keep required work at the top and move optional material into secondary browse surfaces.",
+    reward: "Progress visible",
   },
   "/training": {
     eyebrow: "Training zone",
     headline: "Resume the current lesson.",
-    focus: "Checkpoint flow",
-    next: "Open support only when needed.",
-    reward: "Lesson in focus",
+    focus: "Lesson player",
+    next: "Keep support hidden until it is needed and let the lesson stay in control.",
+    reward: "Player ready",
   },
   "/admin": {
     eyebrow: "Client control",
-    headline: "Turn setup work into guided completion steps.",
-    focus: "System health",
-    next: "Resolve the most urgent setup item and keep the remaining controls grouped by task.",
-    reward: "Governance clear",
+    headline: "Finish setup in clear operating steps.",
+    focus: "Tenant setup",
+    next: "Start with the most urgent branding, role, or governance task, then open the deeper controls.",
+    reward: "Controls aligned",
   },
   "/library": {
     eyebrow: "Content missions",
-    headline: "Help users discover content without losing the thread.",
-    focus: "Search-first browse",
-    next: "Use focused filters, preview details on demand, and keep assignment actions close to the content.",
-    reward: "Assets ready",
+    headline: "Find, preview, and assign content faster.",
+    focus: "Focused browse",
+    next: "Search first, preview only what matters, and keep assignment actions close to the content.",
+    reward: "Assets queued",
   },
   "/chcg-admin": {
     eyebrow: "CHCG command",
-    headline: "Keep platform oversight compact, guided, and auditable.",
-    focus: "Platform control",
-    next: "Review the most important governance status first, then open the deeper admin surfaces only as needed.",
-    reward: "Oversight active",
+    headline: "Keep platform oversight compact and auditable.",
+    focus: "Platform review",
+    next: "Open the highest-risk governance issue first and move the rest into secondary admin views.",
+    reward: "Oversight clear",
   },
 };
 
@@ -488,24 +488,21 @@ function DashboardLayoutContent({
           <div className="sticky top-0 z-30 px-4 pt-4 md:px-7 xl:px-8">
             <div className={useCompactWorkspaceHeader ? "command-band px-4 py-3 md:px-5 md:py-4" : "command-band px-4 py-4 md:px-5 md:py-5"}>
               {useCompactWorkspaceHeader ? (
-                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
                   <div className="min-w-0 space-y-2">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
                       <span className="command-pill px-3 py-1 text-xs font-medium text-[#4A6373]">{commandSignal.focus}</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-[#1B303C]">{activeMenuItem?.label ?? title}</p>
-                      <h1 className="max-w-3xl text-[1.18rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.3rem]">{commandSignal.headline}</h1>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">{activeMenuItem?.label ?? title}</p>
+                      <h1 className="max-w-3xl text-[1.12rem] font-semibold leading-tight tracking-tight text-[#1B303C] md:text-[1.22rem]">{commandSignal.headline}</h1>
+                      <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{commandSignal.next}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 xl:justify-end">
+                  <div className="flex flex-wrap gap-2 xl:max-w-[34rem] xl:justify-end">
                     <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
                       <Compass className="h-3.5 w-3.5 text-[#4A6373]" />
-                      <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{activeMenuItem?.label ?? title}</span>
-                    </div>
-                    <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
-                      <Target className="h-3.5 w-3.5 text-[#4A6373]" />
                       <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{commandSignal.focus}</span>
                     </div>
                     <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">

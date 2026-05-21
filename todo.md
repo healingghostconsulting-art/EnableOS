@@ -418,3 +418,6 @@
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the approved player redesign.
 - [x] Reduce the remaining Training Zone scroll depth by compressing the top shell, shrinking nonessential vertical gaps, and collapsing any oversized in-flow sections that still push the lesson too far down the page.
 - [x] Update Training Zone layout regression coverage, re-run the relevant Vitest suites, verify project health, and save a checkpoint for the additional scroll-reduction pass.
+- [x] Conduct a comprehensive KnowBe4 product and UX review focused on training, navigation, dashboard structure, admin workflows, and content hierarchy, then map the strongest patterns to CHCG EnableOS.
+- [x] Remaster the CHCG EnableOS experience sitewide so the main workspaces, training flows, and dashboard shells feel more aligned with the strongest KnowBe4 interaction patterns while preserving CHCG-specific content and workflows.
+- [x] Update regression coverage where needed, run the relevant Vitest suites, verify project health, and save a checkpoint for the full-site remaster.
