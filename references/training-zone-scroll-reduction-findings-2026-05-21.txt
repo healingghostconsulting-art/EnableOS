@@ -1,0 +1,16 @@
+Training Zone scroll-reduction findings from latest visual inspection:
+
+1. The SectionShell header still consumes too much vertical space before the player begins. The title card, eyebrow pills, and descriptive copy create a separate band above the actual player.
+2. The collapsible "Player launch setup" strip remains too tall even while closed. It still shows a paragraph and a row of role-filter and preview buttons that push the focused player lower.
+3. The focused-player hero block is oversized. The headline area plus four status cards and the progress bar create a second large preamble before the learner reaches the actual lesson content.
+4. The command band above the lesson canvas adds another full-width row with workspace tabs and audio controls before the lesson begins.
+5. Inside the lesson page, repeated support copy such as "Player support" and the privacy card still takes vertical space before the main learning content.
+6. The transcript and storyboard are collapsed correctly, but the lesson still feels long because the primary visual, support summary, answer options, mini audio bar, and navigation controls all stack vertically.
+7. The highest-impact next pass should remove or flatten nonessential header copy, shrink the launch strip to a one-line control row, reduce the focused-player metrics from four blocks to a denser summary, and trim repeated support callouts inside the lesson page.
+
+Second live-review findings after the latest compression pass:
+
+8. The route-level Dashboard header is shorter now, but it still occupies a dedicated band above the player and continues to cost a full row before lesson content begins.
+9. The launch setup remains visually expanded in the current state. Even with compact pills, the role filters plus preview selectors still create a second pre-player band.
+10. The focused-player summary is materially smaller, but the left module outline rail is still tall enough that the learner sees the outline block before the lesson content.
+11. The next highest-impact reduction should collapse the route-level header into a very slim strip, force the launch setup closed by default behind an explicit toggle or drawer, and reduce the default height of the module outline rail so the lesson canvas becomes the dominant visible region sooner.

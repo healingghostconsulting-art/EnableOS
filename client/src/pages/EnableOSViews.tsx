@@ -2377,7 +2377,7 @@ export function TrainingExperienceView() {
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
-  const [navigatorCollapsed, setNavigatorCollapsed] = useState(false);
+  const [navigatorCollapsed, setNavigatorCollapsed] = useState(true);
   const [briefCheckpointAnswers, setBriefCheckpointAnswers] = useState<Record<string, string>>({});
   const [briefCheckpointSubmitted, setBriefCheckpointSubmitted] = useState(false);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
@@ -2417,6 +2417,7 @@ export function TrainingExperienceView() {
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
+  const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -3639,8 +3640,8 @@ export function TrainingExperienceView() {
     <Surface>
       <SectionShell
         eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
-        title={isDirectModuleLaunch ? (selectedModule?.title ?? "Interactive course player") : "Training player"}
-        description={isDirectModuleLaunch ? "The learner lands on the active lesson immediately." : "Lesson first. Progress and support stay compact until the learner needs them."}
+        title={selectedModule?.title ?? "Training player"}
+        description={isDirectModuleLaunch ? "Opens directly on the active lesson." : "Lesson first."}
         compact
         actions={
           <>
@@ -3659,7 +3660,7 @@ export function TrainingExperienceView() {
       >
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {launchedAsset ? (
               <PremiumCard>
                 <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
@@ -3678,129 +3679,89 @@ export function TrainingExperienceView() {
             {!isDirectModuleLaunch ? (
               <PremiumCard className="overflow-hidden">
                 <CardContent className="px-5 py-4">
-                  <details className="group rounded-[1.55rem] border border-white/10 bg-white/6 p-4">
-                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
-                          {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Role-chip launch · {requestedRoleLabel}</Badge> : null}
-                          {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Latest unlock · {recentUnlockMoment.title}</Badge> : null}
-                        </div>
-                        <p className="mt-3 text-sm font-medium text-white">Player launch setup</p>
-                        <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-300">{canBrowseAllTrainingFamilies ? "The lesson now opens immediately. Expand this setup only when you want to switch audience lane or preview scenario before continuing." : `This route remains scoped to the ${effectiveTrainingRoleLabel.toLowerCase()} lane so the learner lands in the right context without extra pre-lesson chrome.`}</p>
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-3.5 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                        {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{requestedRoleLabel}</Badge> : null}
+                        {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Unlock · {recentUnlockMoment.title}</Badge> : null}
+                        <span className="text-sm font-medium text-white">Launch setup</span>
+                        <span className="text-xs text-slate-300">{canBrowseAllTrainingFamilies ? "Switch lane only if needed." : `Scoped to ${effectiveTrainingRoleLabel.toLowerCase()}.`}</span>
                       </div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/60 px-4 py-2 text-xs uppercase tracking-[0.22em] text-slate-300 transition group-open:bg-white group-open:text-slate-950">Open setup</div>
-                    </summary>
-                    <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
-                      <div className="flex flex-wrap gap-2.5">
-                        {availableTrainingRoleFilterOptions.map((option) => (
-                          <Button
-                            key={`training-role-filter-${option.value}`}
-                            type="button"
-                            variant="outline"
-                            onClick={() => setRoleFilter(option.value)}
-                            className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
-                          >
-                            {option.label}
-                          </Button>
-                        ))}
-                      </div>
-                      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
-                        {previewScenarios.map((scenario) => (
-                          <button
-                            key={scenario.id}
-                            type="button"
-                            onClick={() => setPreviewScenarioId(scenario.id)}
-                            className={`rounded-[1.3rem] border px-4 py-4 text-left transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 shadow-[0_16px_40px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 hover:bg-white/10"}`}
-                          >
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{scenario.eyebrow}</p>
-                            <p className="mt-2 text-sm font-medium text-white">{scenario.label}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">{scenario.description}</p>
-                          </button>
-                        ))}
-                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border-white/10 bg-slate-950/60 text-white hover:bg-white/10 hover:text-white"
+                        onClick={() => setLaunchSetupOpen((current) => !current)}
+                      >
+                        {launchSetupOpen ? "Hide options" : "Switch lane"}
+                      </Button>
                     </div>
-                  </details>
+                    {launchSetupOpen ? (
+                      <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+                        <div className="flex flex-wrap gap-2">
+                          {availableTrainingRoleFilterOptions.map((option) => (
+                            <Button
+                              key={`training-role-filter-${option.value}`}
+                              type="button"
+                              variant="outline"
+                              onClick={() => setRoleFilter(option.value)}
+                              className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                            >
+                              {option.label}
+                            </Button>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {previewScenarios.map((scenario) => (
+                            <button
+                              key={scenario.id}
+                              type="button"
+                              onClick={() => setPreviewScenarioId(scenario.id)}
+                              className={`rounded-full border px-3 py-2 text-left text-sm transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 text-white shadow-[0_10px_22px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10"}`}
+                            >
+                              <span className="font-medium">{scenario.label}</span>
+                              <span className="ml-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{scenario.eyebrow}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-xs leading-5 text-slate-400">The active preview only changes the lesson lane and supporting context. The learner still lands directly inside the player.</p>
+                      </div>
+                    ) : null}
+                  </div>
                 </CardContent>
               </PremiumCard>
             ) : null}
-
             <PremiumCard className="overflow-hidden">
-              <CardContent className="px-5 py-5">
-                <div className="grid gap-4 2xl:grid-cols-[minmax(0,1.3fr)_minmax(220px,0.75fr)_minmax(220px,0.75fr)]">
-                  <div className="rounded-[1.7rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.14),rgba(15,23,42,0.92))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.22)]">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Focused player</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModule.format}</Badge>
-                      <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
-                      {featuredDeckVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge> : null}
+              <CardContent className="px-4 py-4">
+                <div className="rounded-[1.55rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.14),rgba(15,23,42,0.92))] px-4 py-4 shadow-[0_18px_45px_rgba(8,15,35,0.2)]">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Focused player</Badge>
+                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModule.format}</Badge>
+                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
+                        {featuredDeckVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge> : null}
+                      </div>
+                      <h2 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">{selectedModule.title}</h2>
+                      <p className="mt-2 text-sm leading-6 text-slate-200">Lesson first, with compact progress and support controls.</p>
                     </div>
-                    <div className="mt-4 max-w-3xl">
-                      <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-100/75">Active learning frame</p>
-                      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{selectedModule.title}</h2>
-                      <p className="mt-3 text-sm leading-6 text-slate-200">{`The player now opens on the current lesson first, keeps the outline and progress compact, and reveals supporting materials only when the learner asks for them.`}</p>
-                    </div>
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Course status</p>
-                        <p className="mt-2 text-sm font-medium text-white">{courseStatusLabel}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{courseStatusSupport}</p>
-                      </div>
-                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current page</p>
-                        <p className="mt-2 text-sm font-medium text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "Ready"}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{stageNavigatorLabel}</p>
-                      </div>
-                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Time remaining</p>
-                        <p className="mt-2 text-sm font-medium text-white">{remainingRuntimeMinutes} min</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibrating"}</p>
-                      </div>
-                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next gate</p>
-                        <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : currentStage?.title}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{activeQuizTrigger ? activeQuizTrigger.modalPrompt : "Advance through the active lesson to unlock the next checkpoint."}</p>
-                      </div>
-                    </div>
-                    <div className="mt-5">
-                      <Progress value={overallProgress} className="h-2.5 bg-white/8" />
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{courseStatusLabel}</div>
+                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</div>
+                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{remainingRuntimeMinutes} min left</div>
+                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{overallProgress}% complete</div>
                     </div>
                   </div>
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Path signal</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{overallProgress}% complete</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">{effectiveJourneyTitle}</p>
-                    <div className="mt-4 space-y-3">
-                      <div className="rounded-[1.1rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Modules completed</p>
-                        <p className="mt-2 text-sm font-medium text-white">{completedModuleCount} of {modules.length}</p>
-                      </div>
-                      <div className="rounded-[1.1rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current checkpoint</p>
-                        <p className="mt-2 text-sm font-medium text-white">{currentStage?.label}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Reveal on demand</p>
-                    <p className="mt-2 text-lg font-semibold text-white">Support stays secondary</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">Transcript, coach prompts, and transfer materials remain available, but the lesson canvas owns the screen first.</p>
-                    <div className="mt-4 space-y-3">
-                      <div className="rounded-[1.1rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach cue</p>
-                        <p className="mt-2 text-sm font-medium text-white">{effectiveCoachingTitle}</p>
-                      </div>
-                      <div className="rounded-[1.1rem] border border-white/10 bg-slate-950/55 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime model</p>
-                        <p className="mt-2 text-sm font-medium text-white">{guidedPlan.pacingLabel}</p>
-                      </div>
-                    </div>
+                  <div className="mt-3">
+                    <Progress value={overallProgress} className="h-2 bg-white/8" />
                   </div>
                 </div>
               </CardContent>
             </PremiumCard>
 
-            <div className={`grid gap-4 ${navigatorCollapsed ? "2xl:grid-cols-[104px_minmax(0,1fr)_240px]" : "2xl:grid-cols-[260px_minmax(0,1fr)_250px]"}`}>
+            <div className={`grid gap-4 ${navigatorCollapsed ? "2xl:grid-cols-[104px_minmax(0,1fr)_240px]" : "2xl:grid-cols-[240px_minmax(0,1fr)_236px]"}`}>
 
               <PremiumCard className="h-fit 2xl:sticky 2xl:top-5">
                 <CardHeader className={navigatorCollapsed ? "pb-4" : undefined}>
@@ -3900,15 +3861,17 @@ export function TrainingExperienceView() {
                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5">
-                    <div className="grid gap-3 md:grid-cols-4">
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
                       {stages.map((stage, index) => {
                         const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
                         return (
-                          <div key={stage.id} className={`rounded-2xl border px-3 py-3 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
-                            <p className="font-medium">{stage.label}</p>
-                            <p className="mt-1 text-xs text-slate-400">Step {index + 1}</p>
-                            {stagePlan ? <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-100/80">{stagePlan.durationLabel}</p> : null}
+                          <div key={stage.id} className={`rounded-full border px-3 py-2 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{stage.label}</span>
+                              <span className="text-xs text-slate-400">Step {index + 1}</span>
+                              {stagePlan ? <span className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/80">{stagePlan.durationLabel}</span> : null}
+                            </div>
                           </div>
                         );
                       })}
@@ -3929,7 +3892,7 @@ export function TrainingExperienceView() {
                               <Button type="button" variant={trainingWorkspacePage === "resources" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
                             </div>
                           </div>
-                          <div className={trainingWorkspacePage === "brief" ? "mt-4 grid gap-4 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
+                          <div className={trainingWorkspacePage === "brief" ? "mt-3 grid gap-3 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
                             <div className="space-y-3">
                               <div className="context-rail-card px-4 py-4">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -3956,7 +3919,7 @@ export function TrainingExperienceView() {
                                 </div>
                               </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="max-w-2xl">
                                   <p className="text-xs uppercase tracking-[0.22em] text-[#6B7E8A]">{stageNavigatorLabel}</p>
@@ -3992,67 +3955,29 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         </div>
-                        <div className={trainingWorkspacePage === "lesson" ? "sticky bottom-4 z-20 mt-6 rounded-[1.5rem] border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.18),rgba(15,23,42,0.94))] px-4 py-4 shadow-[0_20px_60px_rgba(8,15,35,0.35)] backdrop-blur-xl" : "hidden"}>
-                          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="min-w-0 space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Mini audio bar</Badge>
-                                <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentStage?.label ?? "Lesson"}</Badge>
-                                {activeQuizTrigger ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/10 text-amber-100">Next gate · {activeQuizTrigger.label}</Badge> : null}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-white">{miniAudioBarTitle}</p>
-                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-300">{narrationScript}</p>
-                              </div>
+                        <div className={trainingWorkspacePage === "lesson" && narrationStatus === "playing" ? "sticky bottom-3 z-20 mt-4 rounded-full border border-cyan-400/25 bg-[linear-gradient(180deg,rgba(8,145,178,0.22),rgba(15,23,42,0.96))] px-4 py-2 shadow-[0_14px_35px_rgba(8,15,35,0.28)] backdrop-blur-xl" : "hidden"}>
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Narration live</Badge>
+                              <span className="truncate text-sm text-white">{miniAudioBarTitle}</span>
                             </div>
-                            <div className="flex flex-col gap-3 lg:items-end">
-                              <div className="flex flex-wrap items-center gap-3">
-                                <Button type="button" className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-500" onClick={playNarrationPreview} disabled={!narrationSupported}>
-                                  <PlayCircle className="mr-2 h-4 w-4" />
-                                  Play audio
-                                </Button>
-                                <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500" onClick={stopNarration} disabled={!narrationSupported || narrationStatus === "idle" || narrationStatus === "unsupported"}>
-                                  <PauseCircle className="mr-2 h-4 w-4" />
-                                  Stop
-                                </Button>
-                                <Select value={narrationRate} onValueChange={setNarrationRate}>
-                                  <SelectTrigger className="w-[160px] rounded-full border-white/12 bg-slate-950/80 text-slate-100">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="0.85">Slow · 0.85x</SelectItem>
-                                    <SelectItem value="0.95">Balanced · 0.95x</SelectItem>
-                                    <SelectItem value="1">Standard · 1.0x</SelectItem>
-                                    <SelectItem value="1.1">Energetic · 1.1x</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <p className="text-xs text-slate-300 lg:text-right">
-                                {narrationStatus === "playing" ? "Reading the current lesson script aloud." : narrationStatus === "ended" ? "Finished reading the current lesson script." : narrationStatus === "unsupported" ? "This browser does not support in-page speech preview." : "Persistent narration controls stay available while you move through the lesson."}
-                              </p>
-                            </div>
+                            <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white disabled:bg-white/5 disabled:text-slate-500" onClick={stopNarration} disabled={!narrationSupported || narrationStatus === "idle" || narrationStatus === "unsupported"}>
+                              <PauseCircle className="mr-2 h-4 w-4" />
+                              Stop
+                            </Button>
                           </div>
                         </div>
                         {trainingWorkspacePage === "lesson" && currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
-                            <div className="space-y-8">
+                            <div className="space-y-6">
                               <div>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
                                 <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
-                                <p className="mt-4 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
-                                <div className="mt-6 rounded-[1.45rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                                  <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Player support</p>
-                                      <p className="mt-2 text-sm text-slate-100">Transcript, coach notes, and storyboard details stay collapsed until the learner chooses to reveal them.</p>
-                                    </div>
-                                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Above-the-fold focus</Badge>
-                                  </div>
-                                </div>
-                                <div className="mt-6 grid gap-4 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+                                <p className="mt-3 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
+                                <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
                                   {featuredDeckVisual ? (
                                     <div className="overflow-hidden rounded-[1.7rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(2,6,23,0.94))] shadow-[0_24px_70px_rgba(8,15,35,0.28)]">
                                       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
@@ -4082,10 +4007,6 @@ export function TrainingExperienceView() {
                                         {featuredDeckVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{featuredDeckVisual.title}</Badge> : null}
                                       </div>
                                       <p className="mt-4 text-sm leading-6 text-slate-300">{featuredDeckVisual?.caption ?? "The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it."}</p>
-                                      <div className="mt-4 rounded-[1.2rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
-                                        <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Privacy safeguard</p>
-                                        <p className="mt-3 text-sm leading-6 text-slate-100">Narration stays inside the course experience, and private reference recordings remain hidden from the visible learner flow.</p>
-                                      </div>
                                     </div>
                                     <details className="group rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
                                       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">

@@ -91,10 +91,10 @@ const workspaceMissionSignals: Record<string, {
   },
   "/training": {
     eyebrow: "Training zone",
-    headline: "Make training feel like progression, not a content wall.",
+    headline: "Resume the current lesson.",
     focus: "Checkpoint flow",
-    next: "Keep the learner inside the current stage and surface only the guidance needed right now.",
-    reward: "Milestones unlocked",
+    next: "Open support only when needed.",
+    reward: "Lesson in focus",
   },
   "/admin": {
     eyebrow: "Client control",

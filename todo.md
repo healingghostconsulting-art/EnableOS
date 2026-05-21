@@ -416,3 +416,5 @@
 - [x] Review the newly shared Training Zone video together with the other KnowBe4 comparison videos from today and produce a more accurate redesign direction based on the real Training Zone flow rather than the earlier mockup assumption
 - [x] Implement the approved KnowBe4-inspired Training Zone redesign by making the lesson canvas the primary above-the-fold destination, collapsing nonessential support panels into reveal-on-demand rails or drawers, and converting checkpoints into focused in-flow states.
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the approved player redesign.
+- [x] Reduce the remaining Training Zone scroll depth by compressing the top shell, shrinking nonessential vertical gaps, and collapsing any oversized in-flow sections that still push the lesson too far down the page.
+- [x] Update Training Zone layout regression coverage, re-run the relevant Vitest suites, verify project health, and save a checkpoint for the additional scroll-reduction pass.

@@ -76,11 +76,11 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
-    expect(trainingViewSource).toContain("Reveal on demand");
-    expect(trainingViewSource).toContain("Support stays secondary");
-    expect(trainingViewSource).toContain("Transcript, coach prompts, and transfer materials remain available, but the lesson canvas owns the screen first.");
-    expect(trainingViewSource).toContain("Above-the-fold focus");
-    expect(trainingViewSource).toContain("Player support");
+    expect(trainingViewSource).toContain("The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it.");
+    expect(trainingViewSource).toContain("Transcript");
+    expect(trainingViewSource).toContain("Visual storyboard");
+    expect(trainingViewSource).toContain("Keep the storyboard hidden until the learner wants supporting sequence detail.");
+    expect(trainingViewSource).toContain("Open narration controls and the page transcript only when needed.");
   });
 
   it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
@@ -214,8 +214,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = true");
     expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
-    expect(trainingViewSource).toContain("Lesson first. Progress and support stay compact until the learner needs them.");
-    expect(trainingViewSource).toContain("Player launch setup");
+    expect(trainingViewSource).toContain("Lesson first.");
+    expect(trainingViewSource).toContain("Launch setup");
     expect(trainingViewSource).toContain("Focused player");
     expect(trainingViewSource).toContain("Module outline");
     expect(trainingViewSource).toContain("Lesson canvas ·");
