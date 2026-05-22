@@ -3764,25 +3764,25 @@ export function TrainingExperienceView() {
             <div className="grid gap-4">
               <div className="space-y-6">
                 <PremiumCard>
-                  <CardHeader>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-white">Lesson canvas · {currentStage?.title}</CardTitle>
-                        <CardDescription className="text-slate-400">{currentStage?.body}</CardDescription>
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base font-semibold text-white md:text-lg">Lesson canvas · {currentStage?.title}</CardTitle>
+                        <CardDescription className="mt-1 line-clamp-2 max-w-3xl text-xs leading-5 text-slate-400 md:text-sm">{currentStage?.body}</CardDescription>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label}</Badge>
+                      <Badge className="rounded-full border-white/10 bg-white/8 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">{currentStage?.label}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
+                  <CardContent className="space-y-3 pt-0">
+                    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                       {stages.map((stage, index) => {
                         const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
                         return (
-                          <div key={stage.id} className={`rounded-full border px-3 py-2 text-sm ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
-                            <div className="flex flex-wrap items-center gap-2">
+                          <div key={stage.id} className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
                               <span className="font-medium">{stage.label}</span>
-                              <span className="text-xs text-slate-400">Step {index + 1}</span>
-                              {stagePlan ? <span className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/80">{stagePlan.durationLabel}</span> : null}
+                              <span className="text-[11px] text-slate-400">{index + 1}</span>
+                              {stagePlan ? <span className="text-[10px] uppercase tracking-[0.16em] text-cyan-100/80">{stagePlan.durationLabel}</span> : null}
                             </div>
                           </div>
                         );

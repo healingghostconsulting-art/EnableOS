@@ -423,3 +423,5 @@
 - [x] Update regression coverage where needed, run the relevant Vitest suites, verify project health, and save a checkpoint for the full-site remaster.
 - [x] Remove the Training Zone outline bar so the lesson player stays focused and less scroll-heavy.
 - [x] Update Training Zone regression coverage, re-run the relevant Vitest suites, verify project health, and save a checkpoint for the outline-bar removal pass.
+- [x] Tighten the Training Zone lesson canvas header and stage chips so the player consumes less vertical space before the learner reaches the lesson body.
+- [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the tighter lesson-header pass.
