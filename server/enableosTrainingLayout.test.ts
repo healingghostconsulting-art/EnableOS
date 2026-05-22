@@ -61,7 +61,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
-    expect(trainingViewSource).toContain("The lesson stays dominant by default. Open overview, checkpoint, or resources only when you need them.");
+    expect(trainingViewSource).toContain("Switch modes from one compact control.");
     expect(trainingViewSource).toContain("Match bank");
     expect(trainingViewSource).toContain("Passing threshold");
   });
@@ -176,8 +176,9 @@ describe("learner training layout helpers", () => {
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain("Training pages");
-    expect(trainingViewSource).toContain("The lesson stays dominant by default. Open overview, checkpoint, or resources only when you need them.");
+    expect(trainingViewSource).toContain("Switch modes from one compact control.");
     expect(trainingViewSource).toContain("Resources");
+    expect(trainingViewSource).toContain("inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1");
     expect(trainingViewSource).toContain("trainingWorkspacePage");
     expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
     expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");

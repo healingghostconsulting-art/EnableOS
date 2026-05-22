@@ -3791,17 +3791,19 @@ export function TrainingExperienceView() {
 
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="command-band px-4 py-4 md:px-5">
-                          <div className="flex flex-col gap-4 border-b border-[#1B303C]/10 pb-4 xl:flex-row xl:items-center xl:justify-between">
-                            <div className="max-w-2xl">
+                        <div className="command-band px-4 py-3 md:px-5">
+                          <div className="flex flex-col gap-2 border-b border-[#1B303C]/10 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
                               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Training pages</p>
-                              <p className="mt-2 text-sm leading-6 text-[#4A6373]">The lesson stays dominant by default. Open overview, checkpoint, or resources only when you need them.</p>
+                              <p className="mt-1 text-xs leading-5 text-[#4A6373]">Switch modes from one compact control.</p>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button type="button" variant={trainingWorkspacePage === "brief" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
-                              <Button type="button" variant={trainingWorkspacePage === "lesson" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson page</Button>
-                              <Button type="button" variant={trainingWorkspacePage === "checkpoint" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
-                              <Button type="button" variant={trainingWorkspacePage === "resources" ? "default" : "outline"} onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
+                            <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                              <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
+                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson</Button>
+                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
+                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
+                              </div>
                             </div>
                           </div>
                           <div className={trainingWorkspacePage === "brief" ? "mt-3 grid gap-3 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>

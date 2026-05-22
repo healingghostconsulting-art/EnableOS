@@ -425,3 +425,5 @@
 - [x] Update Training Zone regression coverage, re-run the relevant Vitest suites, verify project health, and save a checkpoint for the outline-bar removal pass.
 - [x] Tighten the Training Zone lesson canvas header and stage chips so the player consumes less vertical space before the learner reaches the lesson body.
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the tighter lesson-header pass.
+- [x] Compress the Training Zone command-band buttons into a single segmented control so the lesson player header feels cleaner and less cluttered.
+- [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the command-band segmentation pass.
