@@ -2378,7 +2378,6 @@ export function TrainingExperienceView() {
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
-  const [navigatorCollapsed, setNavigatorCollapsed] = useState(true);
   const [briefCheckpointAnswers, setBriefCheckpointAnswers] = useState<Record<string, string>>({});
   const [briefCheckpointSubmitted, setBriefCheckpointSubmitted] = useState(false);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
@@ -3762,95 +3761,7 @@ export function TrainingExperienceView() {
               </CardContent>
             </PremiumCard>
 
-            <div className={`grid gap-4 ${navigatorCollapsed ? "2xl:grid-cols-[104px_minmax(0,1fr)_240px]" : "2xl:grid-cols-[240px_minmax(0,1fr)_236px]"}`}>
-
-              <PremiumCard className="h-fit 2xl:sticky 2xl:top-5">
-                <CardHeader className={navigatorCollapsed ? "pb-4" : undefined}>
-                  <div className={`flex gap-3 ${navigatorCollapsed ? "flex-col items-center text-center" : "flex-wrap items-center justify-between"}`}>
-                    <div>
-                      <CardTitle className="text-white">{navigatorCollapsed ? "Outline" : "Module outline"}</CardTitle>
-                      <CardDescription className="text-slate-400">{navigatorCollapsed ? "Keep the outline compact until you need the full lesson path again." : "The left rail stays focused on the active module sequence so learners can see where they are without the rest of the page competing for attention."}</CardDescription>
-                    </div>
-                    <div className={`flex gap-2 ${navigatorCollapsed ? "flex-col items-center" : "items-center"}`}>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{completedModuleCount}/{modules.length} complete</Badge>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                        onClick={() => setNavigatorCollapsed((current) => !current)}
-                      >
-                        <ChevronRight className={`mr-1 h-4 w-4 transition-transform ${navigatorCollapsed ? "-rotate-180" : "rotate-180"}`} />
-                        {navigatorCollapsed ? "Expand" : "Minimize"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className={`max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 ${navigatorCollapsed ? "space-y-3" : "space-y-4"}`}>
-                  <div className={`rounded-3xl border border-white/10 bg-white/5 ${navigatorCollapsed ? "p-3" : "p-4"}`}>
-                    <p className="text-sm text-slate-400">{navigatorCollapsed ? "Gap" : "Competency gap"}</p>
-                    <p className={`mt-2 font-semibold text-white ${navigatorCollapsed ? "text-base leading-6" : "text-xl"}`}>{learner.data.activeJourney.competencyGap}</p>
-                    <Progress value={learner.data.activeJourney.progress} className="mt-4 h-2 bg-white/8" />
-                    <div className={`mt-4 grid gap-3 ${navigatorCollapsed ? "grid-cols-1" : "sm:grid-cols-2 xl:grid-cols-1"}`}>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{navigatorCollapsed ? "Next" : "Recommended next"}</p>
-                        <p className="mt-2 text-sm font-medium text-white">{nextRecommendedModule?.title ?? "Stay focused on the current module until the final reflection is complete."}</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{navigatorCollapsed ? "Checkpoint" : "Current checkpoint"}</p>
-                        <p className="mt-2 text-sm font-medium text-white">{currentStage?.title}</p>
-                        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-100/80">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibration loading"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {filteredModuleEntries.length > 0 ? filteredModuleEntries.map((module: any) => (
-                    <button
-                      key={module.id}
-                      type="button"
-                      onClick={() => setModuleIndex(module.originalIndex)}
-                      className={`w-full rounded-[1.6rem] border text-left transition ${module.originalIndex === moduleIndex ? "border-cyan-400/40 bg-cyan-400/10 shadow-[0_18px_45px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/5 hover:bg-white/8"} ${navigatorCollapsed ? "px-3 py-3" : "px-4 py-4"}`}
-                    >
-                      {navigatorCollapsed ? (
-                        <>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{module.originalIndex + 1}</span>
-                            <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes}m</Badge>
-                          </div>
-                          <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-white">{module.title}</p>
-                          <p className="mt-2 text-xs text-slate-400">{module.completionRate}% complete</p>
-                          <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{module.format}</p>
-                                {module.originalIndex === moduleIndex ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">In progress</Badge> : null}
-                                {module.originalIndex < moduleIndex ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Completed path</Badge> : null}
-                                {module.originalIndex === moduleIndex + 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
-                              </div>
-                              <h3 className="mt-2 line-clamp-2 text-lg font-medium text-white">{module.title}</h3>
-                              <p className="mt-2 line-clamp-3 text-sm text-slate-300">{module.skillFocus}</p>
-                            </div>
-                            <Badge className="shrink-0 rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
-                          </div>
-                          <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                            <span>{module.originalIndex === moduleIndex ? `Stage ${stageIndex + 1} active` : "Completion"}</span>
-                            <span>{module.completionRate}%</span>
-                          </div>
-                          <Progress value={module.completionRate} className="mt-2 h-2 bg-white/8" />
-                        </>
-                      )}
-                    </button>
-                  )) : (
-                    <div className="rounded-[1.6rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">
-                      No modules match this training search yet. Try a broader keyword or switch to another role-aligned preview.
-                    </div>
-                  )}
-                </CardContent>
-              </PremiumCard>
-
+            <div className="grid gap-4">
               <div className="space-y-6">
                 <PremiumCard>
                   <CardHeader>
@@ -5588,7 +5499,7 @@ export function ContentLibraryView() {
             <div className="space-y-4 text-sm text-slate-600">
               <div className="rounded-[1rem] border border-slate-200 bg-slate-50 px-4 py-4">
                 <p className="font-medium text-slate-900">Focused training player</p>
-                <p className="mt-2 leading-6">This launch keeps the learner in a contained player with visible progress, persistent outline, and fewer surrounding distractions.</p>
+                <p className="mt-2 leading-6">This launch keeps the learner in a contained player with visible progress, focused controls, and fewer surrounding distractions.</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button type="button" onClick={() => openTrainingInSeparateWindow()} className="rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]">Open training window</Button>

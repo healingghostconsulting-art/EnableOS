@@ -59,9 +59,9 @@ describe("learner training layout helpers", () => {
     expect(getModalCheckpointResetKey(null)).toBe("default-none");
   });
 
-  it("keeps learner-facing affordances for collapsing the path navigator and scanning quiz match banks", () => {
-    expect(trainingViewSource).toContain("setNavigatorCollapsed");
-    expect(trainingViewSource).toContain('navigatorCollapsed ? "Expand" : "Minimize"');
+  it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
+    expect(trainingViewSource).toContain("The lesson stays dominant by default. Open overview, checkpoint, or resources only when you need them.");
     expect(trainingViewSource).toContain("Match bank");
     expect(trainingViewSource).toContain("Passing threshold");
   });
@@ -217,7 +217,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Lesson first.");
     expect(trainingViewSource).toContain("Launch setup");
     expect(trainingViewSource).toContain("Focused player");
-    expect(trainingViewSource).toContain("Module outline");
+    expect(trainingViewSource).toContain("Lesson first, with compact progress and support controls.");
     expect(trainingViewSource).toContain("Lesson canvas ·");
     expect(trainingViewSource).toContain("Progress rail");
     expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");

@@ -421,3 +421,5 @@
 - [x] Conduct a comprehensive KnowBe4 product and UX review focused on training, navigation, dashboard structure, admin workflows, and content hierarchy, then map the strongest patterns to CHCG EnableOS.
 - [x] Remaster the CHCG EnableOS experience sitewide so the main workspaces, training flows, and dashboard shells feel more aligned with the strongest KnowBe4 interaction patterns while preserving CHCG-specific content and workflows.
 - [x] Update regression coverage where needed, run the relevant Vitest suites, verify project health, and save a checkpoint for the full-site remaster.
+- [x] Remove the Training Zone outline bar so the lesson player stays focused and less scroll-heavy.
+- [x] Update Training Zone regression coverage, re-run the relevant Vitest suites, verify project health, and save a checkpoint for the outline-bar removal pass.
