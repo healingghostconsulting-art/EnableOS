@@ -427,3 +427,6 @@
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the tighter lesson-header pass.
 - [x] Compress the Training Zone command-band buttons into a single segmented control so the lesson player header feels cleaner and less cluttered.
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the command-band segmentation pass.
+- [x] Map each Training Zone module to its appropriate curriculum slide deck and expose that deck through a contextual in-app viewer.
+- [x] Implement a Training Zone curriculum modal or drawer with module-aware title, slide navigation, and a strong return-to-lesson flow.
+- [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the curriculum-viewer pass.

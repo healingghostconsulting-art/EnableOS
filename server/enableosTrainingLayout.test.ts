@@ -61,7 +61,9 @@ describe("learner training layout helpers", () => {
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
-    expect(trainingViewSource).toContain("Switch modes from one compact control.");
+    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("Curriculum");
+    expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Match bank");
     expect(trainingViewSource).toContain("Passing threshold");
   });
@@ -176,7 +178,9 @@ describe("learner training layout helpers", () => {
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain("Training pages");
-    expect(trainingViewSource).toContain("Switch modes from one compact control.");
+    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("Curriculum");
+    expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Resources");
     expect(trainingViewSource).toContain("inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1");
     expect(trainingViewSource).toContain("trainingWorkspacePage");

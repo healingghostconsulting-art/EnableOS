@@ -2389,6 +2389,8 @@ export function TrainingExperienceView() {
   const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
   const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
+  const [curriculumViewerOpen, setCurriculumViewerOpen] = useState(false);
+  const [selectedCurriculumSlideIndex, setSelectedCurriculumSlideIndex] = useState(0);
   const [narrationRate, setNarrationRate] = useState("0.95");
   const [narrationStatus, setNarrationStatus] = useState<"idle" | "playing" | "ended" | "unsupported">("idle");
   const [trainingSearchQuery, setTrainingSearchQuery] = useState("");
@@ -2442,6 +2444,8 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setCurriculumViewerOpen(false);
+    setSelectedCurriculumSlideIndex(0);
     setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
@@ -2467,6 +2471,8 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setCurriculumViewerOpen(false);
+    setSelectedCurriculumSlideIndex(0);
     setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
@@ -2495,6 +2501,8 @@ export function TrainingExperienceView() {
     setFinalQuizAnswers({});
     setFinalQuizSubmitted(false);
     setSelectedDeckVisualIndex(0);
+    setCurriculumViewerOpen(false);
+    setSelectedCurriculumSlideIndex(0);
     setTrainingWorkspacePage("lesson");
     setNarrationStatus("idle");
     setActiveQuizTriggerId(null);
@@ -2757,6 +2765,37 @@ export function TrainingExperienceView() {
     presentation,
   });
   const trainingVisuals = useMemo(() => (presentation ? buildTrainingVisualGallery(presentation) : []), [presentation]);
+  const curriculumDeck = useMemo<Array<{
+    id: string;
+    stageId: "brief" | "practice" | "apply";
+    stageLabel: string;
+    slideIndex: number;
+    pageLabel: string;
+    slide: any;
+    visual: TrainingGalleryVisual | null;
+  }>>(() => {
+    if (!presentation) {
+      return [];
+    }
+
+    return [
+      { stageId: "brief" as const, stageLabel: "Learn", slides: presentation.slides },
+      { stageId: "practice" as const, stageLabel: "Practice", slides: presentation.practiceSlides },
+      { stageId: "apply" as const, stageLabel: "Apply in role", slides: presentation.applySlides },
+    ].flatMap(({ stageId, stageLabel, slides }) => {
+      const stageVisuals = trainingVisuals.filter((visual) => visual.stageId === stageId);
+
+      return slides.map((slide, index) => ({
+        id: `${stageId}-${slide.id}`,
+        stageId,
+        stageLabel,
+        slideIndex: index,
+        pageLabel: `${stageLabel} ${index + 1}`,
+        slide,
+        visual: stageVisuals[Math.min(index, Math.max(stageVisuals.length - 1, 0))] ?? null,
+      }));
+    });
+  }, [presentation, trainingVisuals]);
   const insightCharts = presentation?.insightCharts ?? [];
   const slideCanvas = getSlideCanvasVisuals(trainingVisuals, selectedDeckVisualIndex);
   const featuredDeckVisual = slideCanvas.activeVisual;
@@ -3085,6 +3124,21 @@ export function TrainingExperienceView() {
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
   const currentStageItemLabel = `${stageDisplayLabel} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
+  const activeCurriculumSlide = curriculumDeck[Math.min(selectedCurriculumSlideIndex, Math.max(curriculumDeck.length - 1, 0))] ?? null;
+  const activeCurriculumVisual = activeCurriculumSlide?.visual ?? featuredDeckVisual ?? null;
+
+  const openCurriculumViewer = () => {
+    if (!curriculumDeck.length) {
+      return;
+    }
+
+    const activeStageId = currentStage?.id === "practice" || currentStage?.id === "apply" ? currentStage.id : "brief";
+    const stageDeckEntries = curriculumDeck.filter((entry) => entry.stageId === activeStageId);
+    const alignedStageEntry = stageDeckEntries[Math.min(lessonPageIndex, Math.max(stageDeckEntries.length - 1, 0))] ?? curriculumDeck[0];
+    const alignedIndex = curriculumDeck.findIndex((entry) => entry.id === alignedStageEntry?.id);
+    setSelectedCurriculumSlideIndex(alignedIndex >= 0 ? alignedIndex : 0);
+    setCurriculumViewerOpen(true);
+  };
   const currentStageItemCountLabel = currentStagePages.length > 0 ? `${lessonPageIndex + 1} of ${currentStagePages.length}` : "No pages loaded";
   const lessonBriefFlashCards: BriefFlashCardItem[] = currentStagePages.map((page: any, index) => ({
     id: page.id ?? `${currentStage?.id ?? "lesson"}-${index}`,
@@ -3792,18 +3846,27 @@ export function TrainingExperienceView() {
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
                         <div className="command-band px-4 py-3 md:px-5">
-                          <div className="flex flex-col gap-2 border-b border-[#1B303C]/10 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-col gap-2 border-b border-[#1B303C]/10 pb-3 lg:flex-row lg:items-center lg:justify-between">
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Training pages</p>
-                              <p className="mt-1 text-xs leading-5 text-[#4A6373]">Switch modes from one compact control.</p>
+                              <p className="mt-1 text-xs leading-5 text-[#4A6373]">Switch modes from one compact control or open the mapped curriculum deck.</p>
                             </div>
-                            <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                              <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
-                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson</Button>
-                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
-                                <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                                <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
+                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson</Button>
+                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
+                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
+                                </div>
                               </div>
+                              {curriculumDeck.length ? (
+                                <Button type="button" variant="outline" onClick={openCurriculumViewer} className="h-8 rounded-full border-[#1B303C]/12 bg-white px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
+                                  <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+                                  Curriculum
+                                  <span className="ml-1.5 text-[10px] uppercase tracking-[0.16em] text-[#6B7E8A]">{curriculumDeck.length} slides</span>
+                                </Button>
+                              ) : null}
                             </div>
                           </div>
                           <div className={trainingWorkspacePage === "brief" ? "mt-3 grid gap-3 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
@@ -4776,6 +4839,70 @@ export function TrainingExperienceView() {
             </div>
           </div>
         ) : null}
+
+        <Dialog open={curriculumViewerOpen} onOpenChange={setCurriculumViewerOpen}>
+          <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl">
+            <DialogHeader>
+              <DialogTitle>{selectedModule.title} curriculum</DialogTitle>
+              <DialogDescription className="text-slate-400">Review the mapped slide deck for this module without leaving the focused player. The viewer opens to the curriculum section closest to the active lesson step.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum slide</p>
+                    <p className="mt-2 text-sm font-medium text-white">{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModule.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-400">{activeCurriculumSlide?.stageLabel ?? "Lesson curriculum"} · Slide {Math.min(selectedCurriculumSlideIndex + 1, Math.max(curriculumDeck.length, 1))} of {curriculumDeck.length || 1}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.max(current - 1, 0))} disabled={selectedCurriculumSlideIndex === 0} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Previous</Button>
+                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.min(current + 1, Math.max(curriculumDeck.length - 1, 0)))} disabled={selectedCurriculumSlideIndex >= curriculumDeck.length - 1} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Next</Button>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-[1.7rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.1),rgba(2,6,23,0.94))] shadow-[0_24px_70px_rgba(8,15,35,0.28)]">
+                  <div className="border-b border-white/8 px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Module-aware curriculum</Badge>
+                      {activeCurriculumVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">{activeCurriculumVisual.sourceDeck}</Badge> : null}
+                    </div>
+                  </div>
+                  <div className="bg-slate-950/90 p-4 sm:p-5">
+                    <div className="flex min-h-[18rem] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:min-h-[24rem]">
+                      {activeCurriculumVisual ? <TrainingVisualFrame visual={activeCurriculumVisual} /> : <div className="max-w-xl text-center text-sm leading-6 text-slate-300">This module does not include a separate uploaded slide image for this step yet, so the curriculum viewer is showing the mapped lesson narrative and reference structure instead.</div>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{activeCurriculumSlide?.stageLabel ?? "Curriculum"}</Badge>
+                    {activeCurriculumVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{activeCurriculumVisual.pageLabel}</Badge> : null}
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold text-white">{activeCurriculumSlide?.slide.title ?? selectedModule.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-300">{activeCurriculumSlide?.slide.narrative ?? presentation?.heroSummary ?? "Open the matching curriculum for this module and return to the lesson when ready."}</p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide takeaways</p>
+                  <div className="mt-4 space-y-3">
+                    {(activeCurriculumSlide?.slide.bullets ?? []).map((bullet: string) => (
+                      <div key={bullet} className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-200">{bullet}</div>
+                    ))}
+                    {!activeCurriculumSlide?.slide.bullets?.length ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-300">This curriculum step is narrative-led, so the main coaching cue is in the module summary above.</div> : null}
+                  </div>
+                </div>
+                <div className="rounded-[1.4rem] border border-[#FCBC34]/20 bg-[#FCBC34]/10 p-5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#FCBC34]">Return path</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-100">Use this viewer as a companion reference, then return directly to the lesson flow without losing your current place in the Training Zone.</p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              {activeCurriculumVisual?.imageUrl ? <a href={activeCurriculumVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-4 py-2 text-sm font-medium text-[#FCBC34] transition hover:border-[#FCBC34]/50 hover:bg-[#FCBC34]/15 hover:text-white">Open full-size slide</a> : null}
+              <Button type="button" onClick={() => setCurriculumViewerOpen(false)} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Return to lesson</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SectionShell>
     </Surface>
   );
