@@ -62,6 +62,8 @@ describe("learner training layout helpers", () => {
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
     expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
+    expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
     expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Match bank");
@@ -179,6 +181,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain("Training pages");
     expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
+    expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
     expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Resources");

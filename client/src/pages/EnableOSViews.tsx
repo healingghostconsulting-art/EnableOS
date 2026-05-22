@@ -2737,6 +2737,9 @@ export function TrainingExperienceView() {
   }, [moduleIndex, visibleModuleIndexes]);
 
   const selectedModule = modules[moduleIndex] ?? null;
+  const selectedModuleTitle = selectedModule?.title ?? requestedModuleId ?? "Training module";
+  const selectedModuleFormatLabel = selectedModule?.format ?? "Guided lesson";
+  const selectedModuleSkillFocus = selectedModule?.skillFocus ?? "behavior change";
   const effectiveJourneyTitle = targetedAssignment?.journeyTitle ?? targetedJourney ?? activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
   const effectiveCompetencyGap = targetedAssignment?.skillFocus ?? activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
   const effectiveCoachingTitle = targetedAssignment ? `Targeted retraining for ${targetedAssignment.skillFocus}` : activePreview?.coachingTitle ?? learner.data?.nextCoachingSession.title ?? "your next coaching session";
@@ -2869,13 +2872,13 @@ export function TrainingExperienceView() {
           id: "brief",
           label: "Learn",
           title: "Learn the core workflow behavior",
-          body: `This ${selectedModule.format.toLowerCase()} turns ${selectedModule.skillFocus.toLowerCase()} into a focused lesson path inside ${effectiveJourneyTitle}.`,
+          body: `This ${selectedModuleFormatLabel.toLowerCase()} turns ${selectedModuleSkillFocus.toLowerCase()} into a focused lesson path inside ${effectiveJourneyTitle}.`,
         },
         {
           id: "practice",
           label: "Practice",
           title: "Choose how to rehearse the behavior",
-          body: `Before the next coaching checkpoint, decide how you would practice ${selectedModule.skillFocus.toLowerCase()} in a realistic workflow moment.`,
+          body: `Before the next coaching checkpoint, decide how you would practice ${selectedModuleSkillFocus.toLowerCase()} in a realistic workflow moment.`,
         },
         {
           id: "apply",
@@ -3794,11 +3797,11 @@ export function TrainingExperienceView() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Focused player</Badge>
-                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModule.format}</Badge>
+                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModuleFormatLabel}</Badge>
                         <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
                         {featuredDeckVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge> : null}
                       </div>
-                      <h2 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">{selectedModule.title}</h2>
+                      <h2 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">{selectedModuleTitle}</h2>
                       <p className="mt-2 text-sm leading-6 text-slate-200">Lesson first, with compact progress and support controls.</p>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -4843,7 +4846,7 @@ export function TrainingExperienceView() {
         <Dialog open={curriculumViewerOpen} onOpenChange={setCurriculumViewerOpen}>
           <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl">
             <DialogHeader>
-              <DialogTitle>{selectedModule.title} curriculum</DialogTitle>
+              <DialogTitle>{selectedModuleTitle} curriculum</DialogTitle>
               <DialogDescription className="text-slate-400">Review the mapped slide deck for this module without leaving the focused player. The viewer opens to the curriculum section closest to the active lesson step.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
@@ -4851,7 +4854,7 @@ export function TrainingExperienceView() {
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum slide</p>
-                    <p className="mt-2 text-sm font-medium text-white">{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModule.title}</p>
+                    <p className="mt-2 text-sm font-medium text-white">{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</p>
                     <p className="mt-1 text-xs leading-5 text-slate-400">{activeCurriculumSlide?.stageLabel ?? "Lesson curriculum"} · Slide {Math.min(selectedCurriculumSlideIndex + 1, Math.max(curriculumDeck.length, 1))} of {curriculumDeck.length || 1}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -4879,7 +4882,7 @@ export function TrainingExperienceView() {
                     <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{activeCurriculumSlide?.stageLabel ?? "Curriculum"}</Badge>
                     {activeCurriculumVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{activeCurriculumVisual.pageLabel}</Badge> : null}
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold text-white">{activeCurriculumSlide?.slide.title ?? selectedModule.title}</h3>
+                  <h3 className="mt-4 text-xl font-semibold text-white">{activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-300">{activeCurriculumSlide?.slide.narrative ?? presentation?.heroSummary ?? "Open the matching curriculum for this module and return to the lesson when ready."}</p>
                 </div>
                 <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-5">

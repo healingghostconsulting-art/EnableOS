@@ -430,3 +430,5 @@
 - [x] Map each Training Zone module to its appropriate curriculum slide deck and expose that deck through a contextual in-app viewer.
 - [x] Implement a Training Zone curriculum modal or drawer with module-aware title, slide navigation, and a strong return-to-lesson flow.
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the curriculum-viewer pass.
+- [x] Fix the Training Zone null-title crash on the lesson page by guarding the curriculum viewer and related lesson UI against missing selected-module state during initial render or invalid routing.
+- [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the null-title crash fix.
