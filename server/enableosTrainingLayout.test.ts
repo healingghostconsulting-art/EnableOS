@@ -245,12 +245,17 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("/library?assetId=library-service-foundations-core");
     expect(trainingViewSource).toContain("assetTitle=Quality%20Assurance%20Essentials");
     expect(trainingViewSource).toContain("journey-coach-practice-atlas");
+    expect(trainingViewSource).toContain("journey-service-foundations-lf");
+    expect(trainingViewSource).toContain("journey-performance-leadership-lf");
+    expect(trainingViewSource).toContain("journey-exec-culture-hc");
+    expect(trainingViewSource).toContain("const CONTENT_LIBRARY_TRAINING_TARGET_ALIASES");
     expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");
     expect(trainingViewSource).toContain("const requestedAssetTitle = queryParams.get(\"assetTitle\")");
     expect(trainingViewSource).toContain("if (matchedAsset && libraryMode !== \"launcher\")");
     expect(trainingViewSource).toContain("journeyId: journeyId ?? resolvedTrainingTarget?.journeyId");
     expect(trainingViewSource).toContain("moduleId: moduleId ?? resolvedTrainingTarget?.moduleId");
     expect(trainingViewSource).toContain("const requestedTrainingTarget = useMemo(() => resolveTrainingTargetByJourneyId(requestedJourneyId), [requestedJourneyId])");
+    expect(trainingViewSource).toContain("return preset ? { journeyId: normalizedJourneyKey, ...preset } : null;");
   });
 
   it("applies the compact authenticated workspace header across every primary role-based surface", () => {

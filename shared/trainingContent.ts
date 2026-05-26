@@ -1418,8 +1418,774 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
   },
 };
 
+type CurriculumMigrationPresentationConfig = {
+  heroTitle: string;
+  heroSummary: string;
+  evidenceLabel: string;
+  deckTitle: string;
+  accentColor: string;
+  lessonTitle: string;
+  lessonNarrative: string;
+  lessonBullets: [string, string, string];
+  workflowTitle: string;
+  workflowNarrative: string;
+  workflowBullets: [string, string, string];
+  transferTitle: string;
+  transferNarrative: string;
+  transferBullets: [string, string, string];
+  scenarioTitle: string;
+  scenarioSituation: string;
+  learnerTask: string;
+  successSignals: [string, string, string];
+  chartTitle: string;
+  chartDescription: string;
+  chartMetricLabel: string;
+  chartData: TrainingInsightDatum[];
+  chartInsight: string;
+  coachPrompts: [string, string, ...string[]];
+  reflectionPrompts: [string, string, ...string[]];
+  resourceActions: Array<{ label: string; detail: string }>;
+};
+
+function createTrainingDeckVisualDataUrl(title: string, subtitle: string, accentColor: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none"><rect width="1600" height="900" rx="52" fill="#07111F"/><rect x="60" y="60" width="1480" height="780" rx="42" fill="#0F1E31" stroke="${accentColor}" stroke-opacity="0.4"/><rect x="108" y="116" width="1384" height="118" rx="28" fill="${accentColor}" fill-opacity="0.14"/><text x="128" y="168" fill="#F8FAFC" font-family="Montserrat, Arial, sans-serif" font-size="52" font-weight="700">${title}</text><text x="128" y="220" fill="#CBD5E1" font-family="Montserrat, Arial, sans-serif" font-size="28">${subtitle}</text><rect x="128" y="292" width="620" height="380" rx="30" fill="#13263E" stroke="#FFFFFF" stroke-opacity="0.08"/><rect x="786" y="292" width="686" height="176" rx="30" fill="#0B1727" stroke="#FFFFFF" stroke-opacity="0.08"/><rect x="786" y="496" width="686" height="176" rx="30" fill="#0B1727" stroke="#FFFFFF" stroke-opacity="0.08"/><text x="172" y="372" fill="#F8FAFC" font-family="Montserrat, Arial, sans-serif" font-size="30" font-weight="600">Mapped lesson view</text><text x="172" y="422" fill="#94A3B8" font-family="Montserrat, Arial, sans-serif" font-size="24">Deck cues, coaching prompts, and transfer signals stay visible in-platform.</text><text x="828" y="364" fill="#F8FAFC" font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="600">Operational proof points</text><text x="828" y="412" fill="#94A3B8" font-family="Montserrat, Arial, sans-serif" font-size="24">The learner sees exactly what to document, review, and reinforce after practice.</text><text x="828" y="568" fill="#F8FAFC" font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="600">Coaching rhythm</text><text x="828" y="616" fill="#94A3B8" font-family="Montserrat, Arial, sans-serif" font-size="24">Lesson framing, rehearsal expectations, and follow-through prompts stay aligned.</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function buildCurriculumMigrationPresentation(
+  module: ModuleLike,
+  config: CurriculumMigrationPresentationConfig,
+): Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz"> {
+  const secondarySignal = config.successSignals[1] ?? config.workflowBullets[1];
+  const tertiarySignal = config.successSignals[2] ?? config.transferBullets[0];
+
+  return {
+    heroTitle: config.heroTitle,
+    heroSummary: config.heroSummary,
+    evidenceLabel: config.evidenceLabel,
+    deckVisuals: [
+      {
+        id: `${module.id}-visual-1`,
+        title: config.lessonTitle,
+        caption: `${config.deckTitle} is framed as a visible lesson page so ${module.skillFocus.toLowerCase()} stays grounded in a real module sequence rather than a generic fallback view.`,
+        imageUrl: createTrainingDeckVisualDataUrl(config.lessonTitle, module.title, config.accentColor),
+        sourceDeck: config.deckTitle,
+        pageLabel: "Lesson frame 1",
+      },
+      {
+        id: `${module.id}-visual-2`,
+        title: config.workflowTitle,
+        caption: `The curriculum view now keeps the workflow and coaching cues visible while the learner studies ${config.workflowTitle.toLowerCase()} and prepares for rehearsal.`,
+        imageUrl: createTrainingDeckVisualDataUrl(config.workflowTitle, config.scenarioTitle, config.accentColor),
+        sourceDeck: config.deckTitle,
+        pageLabel: "Lesson frame 2",
+      },
+      {
+        id: `${module.id}-visual-3`,
+        title: config.transferTitle,
+        caption: `Transfer prompts, proof points, and review expectations are presented as part of the module so the learner knows exactly what success should look like after launch.`,
+        imageUrl: createTrainingDeckVisualDataUrl(config.transferTitle, tertiarySignal, config.accentColor),
+        sourceDeck: config.deckTitle,
+        pageLabel: "Transfer frame",
+      },
+    ],
+    insightCharts: [
+      {
+        id: `${module.id}-chart-1`,
+        title: config.chartTitle,
+        description: config.chartDescription,
+        metricLabel: config.chartMetricLabel,
+        chartType: "comparison",
+        insightNote: config.chartInsight,
+        data: config.chartData,
+      },
+    ],
+    slides: [
+      {
+        id: `${module.id}-lesson-1`,
+        eyebrow: "Lesson focus",
+        title: config.lessonTitle,
+        narrative: config.lessonNarrative,
+        bullets: [...config.lessonBullets],
+        speakerNotes: [
+          `Use ${config.lessonTitle.toLowerCase()} as the opening lesson anchor so the learner can name the behavior before moving to process detail.`,
+          `Tie every coaching note back to ${module.skillFocus.toLowerCase()} so the transfer signal stays measurable.`,
+        ],
+        visualTone: "Lesson frame",
+      },
+      {
+        id: `${module.id}-lesson-2`,
+        eyebrow: "Workflow cue",
+        title: config.workflowTitle,
+        narrative: config.workflowNarrative,
+        bullets: [...config.workflowBullets],
+        speakerNotes: [
+          `This page should make the module's workflow standard observable enough for QA, coaching, or leadership review.`,
+          `If the learner cannot point to proof, revisit the module before moving to rehearsal.`,
+        ],
+        visualTone: "Workflow signal",
+      },
+      {
+        id: `${module.id}-lesson-3`,
+        eyebrow: "Transfer expectation",
+        title: config.transferTitle,
+        narrative: config.transferNarrative,
+        bullets: [...config.transferBullets],
+        speakerNotes: [
+          `The learner should leave this page knowing which proof point to document after the next live example.`,
+          `Coaches can use these bullets as the debrief frame after a monitored interaction or review cycle.`,
+        ],
+        visualTone: "Transfer plan",
+      },
+    ],
+    practiceSlides: [
+      {
+        id: `${module.id}-practice-1`,
+        eyebrow: "Guided rehearsal",
+        title: config.scenarioTitle,
+        narrative: config.scenarioSituation,
+        bullets: [...config.successSignals],
+        speakerNotes: [
+          `Listen for whether the learner can make ${config.successSignals[0].toLowerCase()} audible without overexplaining.`,
+          `The rehearsal should sound coached, specific, and ready for live work.`,
+        ],
+        visualTone: "Guided rehearsal",
+      },
+      {
+        id: `${module.id}-practice-2`,
+        eyebrow: "Coach cue",
+        title: `What good rehearsal sounds like for ${module.title}`,
+        narrative: `Use ${config.workflowTitle.toLowerCase()} to keep rehearsal tied to a visible operational standard instead of a generic confidence check.`,
+        bullets: [...config.workflowBullets],
+        speakerNotes: [
+          `Rehearsal should sound like a coached proof point, not a vague summary of the lesson.`,
+          `If the learner skips a signal, pause and restate the expected move before progressing.`,
+        ],
+        visualTone: "Observable coaching",
+      },
+    ],
+    applySlides: [
+      {
+        id: `${module.id}-apply-1`,
+        eyebrow: "Transfer",
+        title: config.transferTitle,
+        narrative: config.transferNarrative,
+        bullets: [...config.transferBullets],
+        speakerNotes: [
+          `Make the learner name where this lesson will show up in live work during the next shift or review window.`,
+          `A strong answer should connect the deck message to one concrete observation point.`,
+        ],
+        visualTone: "Transfer proof",
+      },
+      {
+        id: `${module.id}-apply-2`,
+        eyebrow: "Proof point",
+        title: "What to document after the next live example",
+        narrative: `Capture one example where ${secondarySignal.toLowerCase()} and ${tertiarySignal.toLowerCase()} appeared together so the follow-up conversation has real evidence to review.`,
+        bullets: [
+          `Document the specific moment where ${config.successSignals[0].toLowerCase()} became visible.`,
+          `Tie the outcome back to ${module.skillFocus.toLowerCase()} so the lesson stays measurable.`,
+          "Use the proof point in the next QA, manager, or coaching follow-up instead of relying on recall alone.",
+        ],
+        speakerNotes: [
+          "This page exists to stop the module from feeling complete until the learner can describe what success will look like in live work.",
+          "The review conversation should start with proof, not with general confidence.",
+        ],
+        visualTone: "Operational evidence",
+      },
+    ],
+    coachPrompts: [...config.coachPrompts],
+    reflectionPrompts: [...config.reflectionPrompts],
+    practiceScenario: {
+      title: config.scenarioTitle,
+      situation: config.scenarioSituation,
+      learnerTask: config.learnerTask,
+      successSignals: [...config.successSignals],
+    },
+    applicationActivity: {
+      title: `Apply ${module.title}`,
+      objective: `Confirm the learner can turn ${module.skillFocus.toLowerCase()} into a live-work plan with observable proof.`,
+      instructions: "Pass at least 80% of the questions to confirm the lesson can transfer into monitored work, review, or leadership follow-through.",
+      passingScore: 3,
+      passingPercent: 80,
+      passMessage: "Passed. The lesson can now transfer into a documented action plan with a clear coaching or review proof point.",
+      failMessage: "Not yet passed. Revisit the lesson and rehearsal frames until the transfer signals are specific enough to coach or review without guesswork.",
+      style: "kahoot",
+      questions: [
+        createMultipleChoiceQuestion(
+          `${module.id}-apply-q1`,
+          `Which move best represents the opening lesson focus for ${module.skillFocus.toLowerCase()}?`,
+          config.lessonBullets[0],
+          [config.workflowBullets[0], config.transferBullets[0]],
+          "Correct. That move reflects the opening module behavior the learner should recognize immediately.",
+          "Not yet. Revisit the first lesson page and choose the behavior the module makes most visible from the start.",
+        ),
+        createMultipleChoiceQuestion(
+          `${module.id}-apply-q2`,
+          `Which success signal should a coach or reviewer hear in ${config.scenarioTitle.toLowerCase()}?`,
+          config.successSignals[0],
+          [config.successSignals[1], config.transferBullets[1]],
+          "Correct. That signal is part of the rehearsal standard the learner should demonstrate before moving on.",
+          "Not yet. The strongest answer matches the rehearsal success signals shown beside the scenario.",
+        ),
+        createShortAnswerQuestion(
+          `${module.id}-apply-q3`,
+          "Write the proof point the learner should document after using this lesson in live work.",
+          [config.transferBullets[0], config.transferBullets[1], module.skillFocus],
+          `Example: ${config.transferBullets[0]}`,
+          "Correct. Your answer names a proof point that can be reviewed in the next follow-up conversation.",
+          `Use one of the transfer cues such as "${config.transferBullets[0]}" or another phrase directly tied to ${module.skillFocus.toLowerCase()}.`,
+        ),
+      ],
+    },
+    resourceActions: config.resourceActions.map((resource, index) => ({
+      id: `${module.id}-resource-${index + 1}`,
+      label: resource.label,
+      detail: resource.detail,
+    })),
+  };
+}
+
+function buildExpandedCurriculumMigrationPresentation(module: ModuleLike): Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz"> | null {
+  switch (module.id) {
+    case "mod-wp-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Verification confidence and workflow control",
+        heroSummary: "This lesson turns verification, documentation, and next-step control into one visible workflow sequence so quality review conversations can coach precision instead of generic compliance reminders.",
+        evidenceLabel: "Workflow Precision curriculum mapped into a module-aware QA and launch-readiness lesson",
+        deckTitle: "Quality Assurance Essentials",
+        accentColor: "#38BDF8",
+        lessonTitle: "What accurate verification sounds like",
+        lessonNarrative: "Verification is not a preamble. It is the first proof that the learner can control workflow risk, keep the record clean, and prepare the next step without confusion.",
+        lessonBullets: [
+          "Open with the exact verification point that protects the rest of the workflow from rework.",
+          "State the process step in plain language so the learner sounds accurate instead of scripted.",
+          "Confirm the record and next move before shifting into resolution or escalation.",
+        ],
+        workflowTitle: "Documentation and handoff discipline",
+        workflowNarrative: "The workflow standard is visible when documentation, ownership, and follow-through cues remain clear enough for QA, coaching, and launch support to review later.",
+        workflowBullets: [
+          "Tie the verified detail directly to the note or workflow field that will be reviewed later.",
+          "Use one clean handoff phrase so ownership never becomes ambiguous.",
+          "Close the step with a visible next action instead of assuming the workflow is obvious.",
+        ],
+        transferTitle: "How to prove workflow precision in live work",
+        transferNarrative: "After rehearsal, the learner should be able to show where verification protected the customer, the process, and the downstream reviewer at the same time.",
+        transferBullets: [
+          "Save one example where the verified detail prevented a documentation miss.",
+          "Note the moment where the next step was stated clearly enough for a reviewer to track later.",
+          "Use the example in the next QA or manager review to prove the workflow standard held under pressure.",
+        ],
+        scenarioTitle: "Launch-readiness verification drill",
+        scenarioSituation: "A new process update has changed the fields and review expectations for a high-volume interaction. The learner must verify the key detail, document the evidence, and keep the next step unmistakable.",
+        learnerTask: "Deliver the verification statement, log the field-level proof point, and transition into the next action without losing ownership.",
+        successSignals: [
+          "The verified detail is stated clearly before any process explanation begins.",
+          "Documentation language matches the workflow field the reviewer expects to see later.",
+          "The next action is specific enough for QA or coaching follow-up.",
+        ],
+        chartTitle: "Workflow precision adoption",
+        chartDescription: "This evidence view shows whether the lesson is producing stronger verification and documentation discipline in monitored work.",
+        chartMetricLabel: "% of reviewed interactions",
+        chartData: [
+          { label: "Verified detail stated", value: 88, benchmark: 82 },
+          { label: "Documentation aligned", value: 84, benchmark: 78 },
+          { label: "Next step explicit", value: 80, benchmark: 76 },
+        ],
+        chartInsight: "The coaching conversation should link verification language to both the note trail and the next-step clarity score.",
+        coachPrompts: [
+          "Which exact phrase made the verified detail unmistakable before the workflow explanation started?",
+          "Where in the record could a QA reviewer see proof that the learner controlled the handoff instead of assuming it?",
+        ],
+        reflectionPrompts: [
+          "What part of the workflow became easier once the verification point was said out loud first?",
+          "How would you prove documentation discipline to a reviewer who only sees the notes and the close?",
+        ],
+        resourceActions: [
+          { label: "Verification phrase bank", detail: "Review the approved verification openers before the next monitored workflow example." },
+          { label: "Documentation proof checklist", detail: "Use the checklist to confirm the verified detail, field update, and next-step note all match." },
+          { label: "QA review handoff", detail: "Bring one saved proof point into the next QA or manager review conversation." },
+        ],
+      });
+    case "mod-rtc-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Trust-building coaching that creates movement",
+        heroSummary: "This lesson turns coaching presence, observable feedback, and follow-through into a real practice sequence so the conversation produces ownership instead of a polite but forgettable check-in.",
+        evidenceLabel: "Real-time Coaching curriculum mapped into a module-aware coaching-practice lesson",
+        deckTitle: "Real-time Coaching",
+        accentColor: "#F59E0B",
+        lessonTitle: "What strong coaching presence looks like",
+        lessonNarrative: "The opening minute of a coaching conversation should reduce defensiveness, make the standard visible, and give the learner a reason to stay in the conversation instead of waiting for the correction to end.",
+        lessonBullets: [
+          "Open with one observed strength or anchor so the learner feels grounded before the gap is discussed.",
+          "Describe the behavior in plain language instead of labeling the person or guessing at intent.",
+          "Ask for reflection early enough that the learner becomes part of the coaching move, not just the recipient of it.",
+        ],
+        workflowTitle: "Observable feedback and ownership",
+        workflowNarrative: "A coaching conversation becomes useful when the feedback is specific, the next move is co-owned, and the manager can revisit the agreement later without ambiguity.",
+        workflowBullets: [
+          "Tie the feedback to one visible behavior the learner can hear or see again later.",
+          "Turn the conversation into one actionable improvement move instead of a list of reminders.",
+          "Document the follow-through expectation before the conversation closes.",
+        ],
+        transferTitle: "How to carry the coaching move into follow-through",
+        transferNarrative: "The learner should leave this module ready to use the same structure in the next live coaching moment, including the recap and accountability checkpoint.",
+        transferBullets: [
+          "Capture the agreed next move in language the learner could repeat back accurately.",
+          "Schedule the follow-up checkpoint while the conversation is still fresh.",
+          "Use the follow-up to review behavior evidence, not just confidence or intent.",
+        ],
+        scenarioTitle: "High-friction coaching follow-up",
+        scenarioSituation: "A recent review showed inconsistency in call control. The coach must open the conversation calmly, describe the behavior precisely, and secure a real improvement commitment without making the learner defensive.",
+        learnerTask: "Lead the opening coaching exchange, name the behavior, and document the follow-through action the learner will complete before the next review.",
+        successSignals: [
+          "The coach names one observed behavior instead of making a personality judgment.",
+          "The learner is asked to reflect before the action plan is finalized.",
+          "The follow-up expectation is documented clearly enough to review later.",
+        ],
+        chartTitle: "Coaching follow-through reliability",
+        chartDescription: "This view tracks whether coaching conversations are producing documented next steps and observable ownership signals.",
+        chartMetricLabel: "% of coaching cycles",
+        chartData: [
+          { label: "Behavior named clearly", value: 91, benchmark: 84 },
+          { label: "Learner reflection captured", value: 83, benchmark: 76 },
+          { label: "Follow-up documented", value: 86, benchmark: 80 },
+        ],
+        chartInsight: "The module works best when the coach moves from behavior evidence into one clear follow-up checkpoint without drifting into generic encouragement.",
+        coachPrompts: [
+          "What exact behavior did the learner hear from you, and how do you know it was specific enough to act on?",
+          "Where in the recap did you make the next follow-up date or proof point unmistakable?",
+        ],
+        reflectionPrompts: [
+          "Which opening phrase reduced defensiveness and made the learner willing to stay engaged?",
+          "How will you know the next coaching conversation is reviewing evidence rather than repeating advice?",
+        ],
+        resourceActions: [
+          { label: "Coaching opener guide", detail: "Use the guide to frame the first minute with calm clarity and one visible strength." },
+          { label: "Behavior-to-action recap", detail: "Review the recap structure that links observed behavior, learner reflection, and the next commitment." },
+          { label: "Follow-up checkpoint template", detail: "Log the date, proof point, and owner for the next coaching review." },
+        ],
+      });
+    case "mod-dl-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Reading KPIs without losing the operational story",
+        heroSummary: "This lesson turns KPI review into a practical leadership rhythm so score movement, root-cause questions, and decision quality stay connected instead of becoming isolated dashboard commentary.",
+        evidenceLabel: "Data-led leadership curriculum mapped into a module-aware KPI interpretation lesson",
+        deckTitle: "Unlocking the Power of Data",
+        accentColor: "#8B5CF6",
+        lessonTitle: "What the KPI is really signaling",
+        lessonNarrative: "A metric matters only when the leader can explain what behavior it reflects, where the risk is forming, and which follow-up question should come next.",
+        lessonBullets: [
+          "Start with the behavior or workflow the KPI is measuring before reacting to the score itself.",
+          "Compare the movement against the benchmark so the trend has context instead of drama.",
+          "State the next operational question that should guide the review conversation.",
+        ],
+        workflowTitle: "Root-cause framing before action",
+        workflowNarrative: "Strong KPI interpretation slows the rush to action just long enough to validate the pattern, ask the right question, and prevent overcorrection.",
+        workflowBullets: [
+          "Separate signal from noise by naming the time period, segment, or comparison point involved.",
+          "Ask which workflow, behavior, or leader action could be creating the movement.",
+          "Choose one next review step that will confirm the story before a broader rollout happens.",
+        ],
+        transferTitle: "How to turn the metric into a decision-ready review",
+        transferNarrative: "The lesson should help the learner leave the dashboard with a sharper operating question, a cleaner comparison, and one decision-ready follow-up action.",
+        transferBullets: [
+          "Document the comparison point that makes the KPI trend meaningful.",
+          "Record the root-cause hypothesis that needs to be checked next.",
+          "Bring the finding into the next leadership review with one evidence-backed recommendation.",
+        ],
+        scenarioTitle: "Executive KPI review huddle",
+        scenarioSituation: "A service line has improved on volume but slipped on downstream quality. The executive must explain what the KPI trend may mean without overreacting, then guide the team into a better follow-up question.",
+        learnerTask: "Interpret the KPI, frame the likely story behind the movement, and set the next evidence check before the team commits to action.",
+        successSignals: [
+          "The KPI is tied to a clear operational behavior instead of treated as an isolated number.",
+          "A benchmark or comparison point is named before conclusions are made.",
+          "The next review question is specific enough to guide the team into evidence-based action.",
+        ],
+        chartTitle: "Decision-ready KPI review behavior",
+        chartDescription: "This chart tracks whether leaders are turning score movement into better questions, better comparisons, and better next-step decisions.",
+        chartMetricLabel: "% of leadership reviews",
+        chartData: [
+          { label: "Behavior tied to KPI", value: 82, benchmark: 78 },
+          { label: "Benchmark referenced", value: 79, benchmark: 74 },
+          { label: "Next question defined", value: 76, benchmark: 72 },
+        ],
+        chartInsight: "Leaders improve fastest when they state the comparison point before they state the conclusion.",
+        coachPrompts: [
+          "What behavior or workflow did you connect to the KPI before the team moved into reaction mode?",
+          "Which next question did you choose, and why was it the best evidence check before action?",
+        ],
+        reflectionPrompts: [
+          "Where are you most tempted to react to the score before naming the comparison point?",
+          "How could one stronger follow-up question improve the next leadership review conversation?",
+        ],
+        resourceActions: [
+          { label: "KPI interpretation guide", detail: "Use the guide to connect score movement to the operational behavior it reflects." },
+          { label: "Benchmark comparison note", detail: "Capture the comparison point before the next executive review begins." },
+          { label: "Decision-ready recap", detail: "Summarize the likely story, the open question, and the next validation step for the team." },
+        ],
+      });
+    case "mod-lfs-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Professional clarity inside regulated conversations",
+        heroSummary: "This lesson brings regulated service conversations into a visible module sequence so clarity, composure, and secure workflow language stay aligned under compliance pressure.",
+        evidenceLabel: "Regulated service curriculum mapped into a module-aware clarity and compliance lesson",
+        deckTitle: "Soft Skills & Customer/Patient Service Foundation",
+        accentColor: "#0EA5E9",
+        lessonTitle: "What calm clarity sounds like under pressure",
+        lessonNarrative: "In regulated service work, clarity must sound composed, accurate, and safe enough for both the customer and the reviewer to trust the interaction.",
+        lessonBullets: [
+          "Open with a calm explanation of what can be confirmed right now.",
+          "Use precise language that protects the process without sounding cold or evasive.",
+          "Keep ownership visible while you move through the required secure steps.",
+        ],
+        workflowTitle: "Secure handoff discipline",
+        workflowNarrative: "Professional clarity matters most when the learner can hold the compliance line and still make the next step understandable to the customer.",
+        workflowBullets: [
+          "State the secure verification requirement before moving deeper into the request.",
+          "Use a handoff phrase that keeps the customer informed without overpromising.",
+          "Confirm the protected next step before closing the interaction.",
+        ],
+        transferTitle: "How to prove clarity in a regulated workflow",
+        transferNarrative: "The learner should be able to show where calm language protected the process while still building trust and keeping the record reviewable.",
+        transferBullets: [
+          "Save one example where clarity reduced confusion without bypassing a secure step.",
+          "Document the exact phrase that kept ownership visible during the handoff.",
+          "Use the example in the next compliance or manager review conversation.",
+        ],
+        scenarioTitle: "Regulated-service reassurance drill",
+        scenarioSituation: "A customer is frustrated by a required secure step and wants the agent to move faster. The learner must hold the compliance line, reassure clearly, and preserve trust.",
+        learnerTask: "Explain the secure step calmly, keep ownership visible, and confirm the protected next action without sounding defensive.",
+        successSignals: [
+          "The secure requirement is explained clearly before the interaction moves forward.",
+          "Reassurance language sounds calm and accurate rather than vague.",
+          "Ownership of the next step remains visible through the close.",
+        ],
+        chartTitle: "Regulated conversation clarity",
+        chartDescription: "This view tracks whether regulated interactions show stronger composure, secure-step clarity, and customer-ready next-step control.",
+        chartMetricLabel: "% of reviewed interactions",
+        chartData: [
+          { label: "Secure step explained", value: 85, benchmark: 80 },
+          { label: "Reassurance accurate", value: 82, benchmark: 76 },
+          { label: "Ownership retained", value: 79, benchmark: 74 },
+        ],
+        chartInsight: "The best conversations make the secure step feel controlled rather than obstructive because the ownership language stays clear.",
+        coachPrompts: [
+          "Which phrase protected the secure process without making the customer feel blocked?",
+          "How did you keep ownership visible while the compliance step stayed in place?",
+        ],
+        reflectionPrompts: [
+          "What language helps you sound both accurate and human when the process tightens?",
+          "Where in the conversation can you make the next step clearer without overpromising?",
+        ],
+        resourceActions: [
+          { label: "Regulated-language guide", detail: "Review the calm, compliant phrases that protect the process without sounding evasive." },
+          { label: "Secure handoff recap", detail: "Use the recap structure to confirm the step, the owner, and the next update." },
+          { label: "Compliance review proof", detail: "Bring one saved interaction into the next compliance or coaching review." },
+        ],
+      });
+    case "mod-lfd-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Bias-aware data interpretation for leadership reviews",
+        heroSummary: "This lesson helps leaders slow down long enough to test assumptions, validate comparisons, and keep data analysis from drifting into convenient stories.",
+        evidenceLabel: "Leadership data curriculum mapped into a module-aware bias and validation lesson",
+        deckTitle: "Unlocking the Power of Data",
+        accentColor: "#A855F7",
+        lessonTitle: "What a biased read looks like",
+        lessonNarrative: "A strong analyst can spot where a conclusion is moving faster than the evidence and pause the conversation before the wrong story becomes the plan.",
+        lessonBullets: [
+          "Name the assumption hiding inside the first conclusion.",
+          "Check whether the comparison point actually supports that conclusion.",
+          "Slow the team down long enough to validate the pattern before action begins.",
+        ],
+        workflowTitle: "Validation before rollout",
+        workflowNarrative: "Validation is a leadership discipline. It protects decisions from recency bias, single-team assumptions, and noisy comparisons that should not drive action alone.",
+        workflowBullets: [
+          "Compare the trend across another team, period, or segment before escalating it.",
+          "Ask what evidence would disprove the first conclusion rather than only what confirms it.",
+          "Define the next validation check before the recommendation is formalized.",
+        ],
+        transferTitle: "How to prove better analysis discipline",
+        transferNarrative: "The learner should leave this lesson ready to challenge the first story, validate the pattern, and present a cleaner recommendation in the next leadership review.",
+        transferBullets: [
+          "Document the assumption you challenged before the recommendation moved forward.",
+          "Record the validating comparison that strengthened or weakened the original conclusion.",
+          "Use the refined story in the next cross-team review instead of repeating the first draft conclusion.",
+        ],
+        scenarioTitle: "Cross-team trend validation review",
+        scenarioSituation: "One team appears to be outperforming another, but the time periods and case mix are different. The leader must avoid a premature conclusion and validate the comparison before recommending action.",
+        learnerTask: "State the hidden assumption, choose the validation comparison, and explain how the recommendation should change based on the stronger evidence.",
+        successSignals: [
+          "The first assumption is named before the recommendation is finalized.",
+          "A stronger comparison point is selected to validate the story.",
+          "The next decision reflects the validated evidence rather than the first convenient conclusion.",
+        ],
+        chartTitle: "Validation discipline in leadership reviews",
+        chartDescription: "This chart measures whether leaders are checking assumptions and comparisons before turning trend movement into action.",
+        chartMetricLabel: "% of review cycles",
+        chartData: [
+          { label: "Assumption named", value: 81, benchmark: 75 },
+          { label: "Comparison validated", value: 78, benchmark: 72 },
+          { label: "Decision refined", value: 74, benchmark: 70 },
+        ],
+        chartInsight: "The strongest improvement comes when leaders say what could disprove the first conclusion before they defend it.",
+        coachPrompts: [
+          "Which assumption did you surface first, and how did that change the direction of the conversation?",
+          "What comparison did you choose to validate the story before the recommendation moved forward?",
+        ],
+        reflectionPrompts: [
+          "Where are you most likely to trust the first plausible explanation without validating it?",
+          "How would stronger comparison discipline improve the next executive recommendation you make?",
+        ],
+        resourceActions: [
+          { label: "Assumption check prompt", detail: "Use the prompt set to surface hidden assumptions before the next leadership review." },
+          { label: "Comparison validation worksheet", detail: "Record the segment, timeframe, and evidence needed to validate the trend." },
+          { label: "Decision refinement recap", detail: "Summarize how the recommendation changed after the evidence was tested." },
+        ],
+      });
+    case "mod-hcs-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Human service language for fast digital care",
+        heroSummary: "This lesson keeps digital-service tone, ownership, and speed aligned so fast channels still sound human, reassuring, and accountable.",
+        evidenceLabel: "Digital care service curriculum mapped into a module-aware tone and ownership lesson",
+        deckTitle: "Customer Service Foundations for Digital Care",
+        accentColor: "#14B8A6",
+        lessonTitle: "What human service language sounds like in a fast channel",
+        lessonNarrative: "When the channel is fast, the learner still has to sound present, human, and in control. Speed cannot replace warmth, clarity, or issue ownership.",
+        lessonBullets: [
+          "Acknowledge the customer’s need in plain language before moving into the workflow step.",
+          "Use short phrases that sound human rather than clipped or transactional.",
+          "Keep ownership visible even when the channel requires brevity.",
+        ],
+        workflowTitle: "Fast-channel ownership cues",
+        workflowNarrative: "A digital interaction still needs a visible owner, a clean transition, and a close that tells the customer what happens next.",
+        workflowBullets: [
+          "State who is taking the next step instead of implying that the system will handle it.",
+          "Make the transition clean so the customer never has to guess what is happening.",
+          "Close with one confidence-building next step instead of an abrupt end.",
+        ],
+        transferTitle: "How to prove tone and ownership under speed",
+        transferNarrative: "The learner should be able to show where brevity stayed human and where ownership remained visible through the transfer or close.",
+        transferBullets: [
+          "Save one interaction where a short reply still sounded warm and accountable.",
+          "Document the phrase that made the next step clear without adding clutter.",
+          "Use the example in the next digital-care review or coaching session.",
+        ],
+        scenarioTitle: "Digital-care tone reset",
+        scenarioSituation: "A customer in a fast channel is frustrated by an unresolved issue. The learner must respond quickly, sound human, and keep the next step clear without overloading the message.",
+        learnerTask: "Write the short response that acknowledges the issue, keeps ownership visible, and clarifies the next action.",
+        successSignals: [
+          "The message sounds human before it sounds procedural.",
+          "Ownership of the next action is visible in the response.",
+          "The customer can tell what will happen next without needing a second explanation.",
+        ],
+        chartTitle: "Digital-care tone adoption",
+        chartDescription: "This view shows whether fast-channel interactions keep warmth, ownership, and next-step clarity visible at the same time.",
+        chartMetricLabel: "% of reviewed digital interactions",
+        chartData: [
+          { label: "Human tone visible", value: 84, benchmark: 78 },
+          { label: "Ownership named", value: 80, benchmark: 74 },
+          { label: "Next step clear", value: 82, benchmark: 76 },
+        ],
+        chartInsight: "The best responses stay short without sounding detached because ownership and next-step clarity remain explicit.",
+        coachPrompts: [
+          "Which short phrase made the reply sound human before it sounded operational?",
+          "How did you keep ownership visible without slowing the interaction down?",
+        ],
+        reflectionPrompts: [
+          "Where do you tend to sound too abrupt when the pace of the channel increases?",
+          "What wording helps you preserve warmth and control in the same reply?",
+        ],
+        resourceActions: [
+          { label: "Digital tone examples", detail: "Review high-performing short replies that still sound human and accountable." },
+          { label: "Ownership phrase set", detail: "Use the phrase set to keep the next action visible in fast channels." },
+          { label: "Digital-care proof log", detail: "Save one reviewed example for the next coaching or calibration session." },
+        ],
+      });
+    case "mod-lfp-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Performance segmentation that leads to better coaching",
+        heroSummary: "This lesson turns performance buckets into a practical leadership discipline so segmentation, fairness, and coaching action stay connected instead of becoming an abstract dashboard exercise.",
+        evidenceLabel: "Performance-management curriculum mapped into a module-aware segmentation and calibration lesson",
+        deckTitle: "Utilizing Performance Management to Maximize Results",
+        accentColor: "#FB7185",
+        lessonTitle: "What a useful performance bucket does",
+        lessonNarrative: "A performance bucket is only useful when it helps the leader see the right coaching move, protect fairness, and avoid treating different problems as if they were the same.",
+        lessonBullets: [
+          "Name the pattern that places the learner in the bucket rather than jumping straight to the intervention.",
+          "Compare the pattern against the fairness standard before escalating it.",
+          "Use the bucket to choose one coaching move that matches the real need.",
+        ],
+        workflowTitle: "Calibration before coaching action",
+        workflowNarrative: "Segmentation creates value when the leader can explain why the bucket fits, what evidence supports it, and what action should happen next without bias.",
+        workflowBullets: [
+          "Check the evidence against another reviewer, segment, or period before finalizing the bucket.",
+          "State the difference between a skill gap, a consistency issue, and an accountability issue.",
+          "Choose one coaching move that matches the segment instead of using the same response for everyone.",
+        ],
+        transferTitle: "How to prove fair segmentation in leadership rhythm",
+        transferNarrative: "The learner should leave able to justify the segment, explain the coaching move, and show why the decision was fair enough to defend in calibration.",
+        transferBullets: [
+          "Document the evidence that justified the chosen performance bucket.",
+          "Record the calibration check that protected the decision from bias.",
+          "Use the note in the next performance review or coaching-planning cycle.",
+        ],
+        scenarioTitle: "Manager segmentation review",
+        scenarioSituation: "A team member's scores and workflow signals are drifting, but the pattern is mixed. The manager must decide which bucket fits, explain the evidence, and choose a fair coaching move.",
+        learnerTask: "Name the segment, justify it with evidence, and outline the coaching action that best matches the actual need.",
+        successSignals: [
+          "The segment is tied to a clear pattern instead of a vague impression.",
+          "A fairness or calibration check is named before the coaching action is finalized.",
+          "The coaching move matches the actual segment rather than a generic response.",
+        ],
+        chartTitle: "Performance segmentation quality",
+        chartDescription: "This chart tracks whether leaders are using evidence, fairness checks, and tailored follow-through when placing learners into performance buckets.",
+        chartMetricLabel: "% of performance reviews",
+        chartData: [
+          { label: "Pattern defined", value: 86, benchmark: 80 },
+          { label: "Calibration check named", value: 79, benchmark: 74 },
+          { label: "Action matched", value: 82, benchmark: 76 },
+        ],
+        chartInsight: "Segmentation becomes credible when leaders can explain the evidence and the fairness check before they explain the intervention.",
+        coachPrompts: [
+          "What evidence made the performance bucket defensible rather than convenient?",
+          "How did you confirm the coaching move matched the real segment instead of a generic plan?",
+        ],
+        reflectionPrompts: [
+          "Where might bias show up if you skip the calibration check?",
+          "How would a more precise segment change the way you plan the next coaching conversation?",
+        ],
+        resourceActions: [
+          { label: "Performance bucket guide", detail: "Review the signs that distinguish skill, consistency, and accountability patterns." },
+          { label: "Calibration recap", detail: "Use the recap to validate the bucket before the coaching plan is finalized." },
+          { label: "Leadership action planner", detail: "Document the coaching move and the follow-up proof point for the next review." },
+        ],
+      });
+    case "mod-hce-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Recognition systems that create repeatable engagement",
+        heroSummary: "This lesson turns gamification and recognition into a leadership operating rhythm so motivation, fairness, and measurable reinforcement stay connected instead of becoming one-off morale tactics.",
+        evidenceLabel: "Engagement-design curriculum mapped into a module-aware recognition and motivation lesson",
+        deckTitle: "Gamification for Remote Teams: Engaging and Empowering Leaders",
+        accentColor: "#22C55E",
+        lessonTitle: "What a healthy recognition system actually reinforces",
+        lessonNarrative: "A recognition system should make desired behaviors more visible, more repeatable, and easier for the team to understand without creating noise or favoritism.",
+        lessonBullets: [
+          "Define the behavior the recognition system is meant to reinforce before designing the reward.",
+          "Keep the criteria clear enough that the team can predict what earns recognition.",
+          "Make the reinforcement rhythm consistent so motivation does not depend on randomness.",
+        ],
+        workflowTitle: "Fairness and operating rhythm",
+        workflowNarrative: "Recognition works when leaders can explain why a reward happened, how often it should happen, and what signal shows the system is working for the whole team.",
+        workflowBullets: [
+          "Use visible criteria so recognition does not feel arbitrary or personality-driven.",
+          "Choose a cadence that matches the team's working rhythm instead of overwhelming it.",
+          "Measure whether the reinforced behavior is actually showing up more often over time.",
+        ],
+        transferTitle: "How to prove engagement design is working",
+        transferNarrative: "The learner should be able to explain the behavior, the cadence, and the measurement plan before launching the next recognition or gamification move.",
+        transferBullets: [
+          "Document the behavior the recognition system is meant to amplify.",
+          "Record the cadence and visibility rule so the rhythm can be reviewed later.",
+          "Bring one engagement metric into the next leadership or culture review.",
+        ],
+        scenarioTitle: "Recognition-rhythm design review",
+        scenarioSituation: "A remote team has become inconsistent in engagement and the current rewards feel random. The leader must redesign the rhythm so recognition supports the right behavior and can be measured over time.",
+        learnerTask: "Define the target behavior, explain the cadence, and show how the team will know the system is fair and working.",
+        successSignals: [
+          "The recognized behavior is named clearly before rewards are discussed.",
+          "The cadence is practical enough for the team to experience consistently.",
+          "A measurable signal is chosen to prove the system is reinforcing the right pattern.",
+        ],
+        chartTitle: "Recognition-system stability",
+        chartDescription: "This chart shows whether the leadership rhythm is making engagement behavior more visible, more predictable, and easier to sustain.",
+        chartMetricLabel: "% of team cycles",
+        chartData: [
+          { label: "Criteria clear", value: 87, benchmark: 80 },
+          { label: "Cadence consistent", value: 81, benchmark: 75 },
+          { label: "Behavior rising", value: 78, benchmark: 72 },
+        ],
+        chartInsight: "Recognition systems hold better when leaders define the behavior first and the reward second.",
+        coachPrompts: [
+          "What behavior did you decide to reinforce, and how will the team know the criteria are fair?",
+          "How will you prove the recognition rhythm is changing behavior rather than just creating novelty?",
+        ],
+        reflectionPrompts: [
+          "Where could randomness or favoritism creep into your current engagement rhythm?",
+          "What would make your next recognition system easier for the whole team to trust?",
+        ],
+        resourceActions: [
+          { label: "Recognition criteria template", detail: "Define the behavior, evidence, and eligibility rule before launching the next reward cycle." },
+          { label: "Cadence planner", detail: "Choose the review rhythm that fits the team's work pattern without overwhelming it." },
+          { label: "Engagement metric recap", detail: "Bring one engagement signal into the next leadership check-in to validate the design." },
+        ],
+      });
+    case "mod-hcd-1":
+      return buildCurriculumMigrationPresentation(module, {
+        heroTitle: "Engagement visibility that leaders can operate from",
+        heroSummary: "This lesson helps leaders connect culture and engagement signals to operating rhythm, measurement, and follow-through so motivation work becomes decision-ready instead of anecdotal.",
+        evidenceLabel: "Executive culture curriculum mapped into a module-aware engagement-visibility lesson",
+        deckTitle: "Culture Momentum and Readiness Visibility",
+        accentColor: "#F97316",
+        lessonTitle: "What engagement metrics are actually telling you",
+        lessonNarrative: "A culture metric matters only when the leader can explain what behavior or rhythm it reflects and what operating question should come next.",
+        lessonBullets: [
+          "Start with the engagement behavior or cadence the metric is supposed to reveal.",
+          "Compare the signal against a meaningful benchmark or prior period before reacting.",
+          "Use the metric to open one operating question, not to close the conversation prematurely.",
+        ],
+        workflowTitle: "Operating rhythm before broad conclusions",
+        workflowNarrative: "Executive culture work becomes credible when the signal is tied to leadership rhythm, reinforcement, and one clear follow-up action instead of generalized optimism or concern.",
+        workflowBullets: [
+          "Link the metric to one leadership habit or cadence that can be reviewed directly.",
+          "State what follow-up check would validate the cultural story behind the number.",
+          "Choose one leadership action that keeps reinforcement visible after the review ends.",
+        ],
+        transferTitle: "How to prove culture visibility in leadership review",
+        transferNarrative: "The learner should leave able to explain what the engagement signal means, what rhythm supports it, and what evidence will confirm the story over time.",
+        transferBullets: [
+          "Document the leadership habit or cadence connected to the engagement score.",
+          "Record the validation check that should happen before the next executive conclusion.",
+          "Use the note to guide the next operating-rhythm review across the leadership team.",
+        ],
+        scenarioTitle: "Executive engagement review",
+        scenarioSituation: "A distributed team is showing signs of engagement fatigue, but the underlying causes are unclear. The executive must interpret the signal carefully, connect it to operating rhythm, and choose the next validation step.",
+        learnerTask: "Explain what the metric may be revealing, identify the leadership rhythm behind it, and define the next check before broad action is taken.",
+        successSignals: [
+          "The engagement signal is tied to a specific operating rhythm or leadership habit.",
+          "A benchmark or validation check is named before the conclusion hardens.",
+          "The next leadership action keeps reinforcement visible rather than symbolic.",
+        ],
+        chartTitle: "Culture visibility in leadership rhythm",
+        chartDescription: "This chart measures whether executives are turning engagement signals into clearer rhythm, validation, and follow-through behavior.",
+        chartMetricLabel: "% of executive reviews",
+        chartData: [
+          { label: "Rhythm tied to metric", value: 80, benchmark: 74 },
+          { label: "Validation defined", value: 77, benchmark: 71 },
+          { label: "Action sustained", value: 75, benchmark: 69 },
+        ],
+        chartInsight: "Engagement visibility improves when leaders name the operating rhythm behind the score before proposing a fix.",
+        coachPrompts: [
+          "Which operating rhythm or habit did you connect to the engagement signal, and why?",
+          "What validation check keeps the executive conversation evidence-based instead of symbolic?",
+        ],
+        reflectionPrompts: [
+          "Where do culture conversations become too abstract for you to act on?",
+          "What leadership rhythm would you review first the next time engagement momentum slips?",
+        ],
+        resourceActions: [
+          { label: "Engagement rhythm recap", detail: "Use the recap to connect a culture score to a specific leadership cadence or habit." },
+          { label: "Validation check planner", detail: "Define the next evidence check before the executive story hardens into action." },
+          { label: "Culture review note", detail: "Carry one documented signal into the next executive operating-rhythm meeting." },
+        ],
+      });
+    default:
+      return null;
+  }
+}
+
 export function getTrainingPresentation(module: ModuleLike, journeyTitle: string, competencyGap: string): TrainingPresentation {
-  const mapped = trainingPresentationByModuleId[module.id];
+  const mapped = trainingPresentationByModuleId[module.id] ?? buildExpandedCurriculumMigrationPresentation(module);
 
   if (mapped) {
     return enrichPresentation(module, mapped);

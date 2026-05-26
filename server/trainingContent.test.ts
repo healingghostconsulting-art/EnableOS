@@ -102,6 +102,55 @@ describe("getTrainingPresentation", () => {
     expect(presentation.resourceActions[0]?.label).toBe("Recovery storyboard");
   });
 
+  it("returns curated curriculum presentations for the expanded migration families", () => {
+    const workflowPresentation = getTrainingPresentation(
+      {
+        id: "mod-wp-1",
+        title: "Verification and Workflow Accuracy",
+        format: "Playbook",
+        durationMinutes: 9,
+        skillFocus: "Process discipline",
+      },
+      "Quality Assurance Essentials",
+      "Coaching consistency on workflow accuracy and documentation",
+    );
+    const regulatedServicePresentation = getTrainingPresentation(
+      {
+        id: "mod-lfs-1",
+        title: "Professional clarity under compliance pressure",
+        format: "Microlearning",
+        durationMinutes: 9,
+        skillFocus: "Composure",
+      },
+      "Soft Skills & Customer/Patient Service Foundation",
+      "Professional confidence in regulated conversations",
+    );
+    const engagementPresentation = getTrainingPresentation(
+      {
+        id: "mod-hce-1",
+        title: "Foundations of Engagement and Gamification",
+        format: "Playbook",
+        durationMinutes: 9,
+        skillFocus: "Recognition and motivation design",
+      },
+      "Gamification for Remote Teams: Engaging and Empowering Leaders",
+      "Recognition rhythm for hybrid teams",
+    );
+
+    expect(workflowPresentation.heroTitle).toBe("Verification confidence and workflow control");
+    expect(workflowPresentation.evidenceLabel).toContain("module-aware QA and launch-readiness lesson");
+    expect(workflowPresentation.deckVisuals[0]?.imageUrl).toContain("data:image/svg+xml");
+    expect(workflowPresentation.practiceScenario.title).toBe("Launch-readiness verification drill");
+
+    expect(regulatedServicePresentation.heroTitle).toBe("Professional clarity inside regulated conversations");
+    expect(regulatedServicePresentation.slides[0]?.title).toBe("What calm clarity sounds like under pressure");
+    expect(regulatedServicePresentation.resourceActions[0]?.label).toBe("Regulated-language guide");
+
+    expect(engagementPresentation.heroTitle).toBe("Recognition systems that create repeatable engagement");
+    expect(engagementPresentation.applySlides[0]?.title).toBe("How to prove engagement design is working");
+    expect(engagementPresentation.finalQuiz.questions).toHaveLength(5);
+  });
+
   it("builds a fallback workflow lesson with QA visuals and weighted scoring charts when the module points to quality operations", () => {
     const presentation = getTrainingPresentation(
       {

@@ -442,3 +442,9 @@
 - [x] Add ingestion-side review and status cues that show whether uploaded content is mapped, pending curriculum alignment, or ready for a training handoff.
 - [x] Tighten upload-side data handling so newly ingested assets preserve the metadata needed for future Content Missions to Training Zone launches and curriculum maintenance.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the structured curriculum-ingestion workflow slice.
+- [x] Confirm the next approved CHCG EnableOS development-list setup after the structured curriculum-ingestion workflow slice and map the relevant implementation seams.
+- [x] Implement the next approved CHCG EnableOS setup from the development list once its scope is confirmed.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the next approved development-list setup.
+- [x] Expand the mapped curriculum migration across the remaining seven-module training families so each major Content Missions path carries explicit journey, module, and curriculum-viewer alignment.
+- [x] Reconcile library assets, training presets, and launch-target helpers so the broader curriculum catalog opens with consistent module-aware deck context instead of fallback states.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the broader curriculum-migration slice.

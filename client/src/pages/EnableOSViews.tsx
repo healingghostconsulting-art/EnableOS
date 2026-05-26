@@ -1005,6 +1005,26 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open Active Listening in the focused player",
   },
+  "journey-service-foundations-lf": {
+    moduleId: "mod-lfs-1",
+    journeyTitle: "Soft Skills & Customer/Patient Service Foundation",
+    moduleTitle: "Professional clarity under compliance pressure",
+    moduleFormat: "Microlearning",
+    skillFocus: "Composure",
+    previewScenarioId: "active",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Professional clarity under compliance pressure in the focused player",
+  },
+  "journey-service-foundations-hc": {
+    moduleId: "mod-hcs-1",
+    journeyTitle: "Customer Service Foundations for Digital Care",
+    moduleTitle: "Human service language in fast channels",
+    moduleFormat: "Microlearning",
+    skillFocus: "Tone control",
+    previewScenarioId: "active",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Human service language in fast channels in the focused player",
+  },
   "journey-workflow-precision": {
     moduleId: "mod-wp-1",
     journeyTitle: "Quality Assurance Essentials",
@@ -1015,7 +1035,27 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open Verification and Workflow Accuracy in the focused player",
   },
-  "journey-coach-practice": {
+  "journey-coach-practice-atlas": {
+    moduleId: "mod-rtc-1",
+    journeyTitle: "Real Time Coaching",
+    moduleTitle: "5 Coaching Pillars",
+    moduleFormat: "Playbook",
+    skillFocus: "Trust-building and self-discovery",
+    previewScenarioId: "coach-supervision",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open 5 Coaching Pillars in the focused player",
+  },
+  "journey-coach-practice-lf": {
+    moduleId: "mod-rtc-1",
+    journeyTitle: "Real Time Coaching",
+    moduleTitle: "5 Coaching Pillars",
+    moduleFormat: "Playbook",
+    skillFocus: "Trust-building and self-discovery",
+    previewScenarioId: "coach-supervision",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open 5 Coaching Pillars in the focused player",
+  },
+  "journey-coach-practice-hc": {
     moduleId: "mod-rtc-1",
     journeyTitle: "Real Time Coaching",
     moduleTitle: "5 Coaching Pillars",
@@ -1035,7 +1075,17 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open Reading and Understanding KPIs in the focused player",
   },
-  "journey-performance-leadership": {
+  "journey-data-led-leadership-lf": {
+    moduleId: "mod-lfd-1",
+    journeyTitle: "Unlocking the Power of Data",
+    moduleTitle: "Avoiding Pitfalls in Data Analysis",
+    moduleFormat: "Microlearning",
+    skillFocus: "Bias-aware interpretation",
+    previewScenarioId: "leadership",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Avoiding Pitfalls in Data Analysis in the focused player",
+  },
+  "journey-performance-leadership-lf": {
     moduleId: "mod-lfp-1",
     journeyTitle: "Utilizing Performance Management to Maximize Results",
     moduleTitle: "The 3 Performance Buckets",
@@ -1045,7 +1095,7 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open The 3 Performance Buckets in the focused player",
   },
-  "journey-engagement-systems": {
+  "journey-engagement-systems-hc": {
     moduleId: "mod-hce-1",
     journeyTitle: "Gamification for Remote Teams: Engaging and Empowering Leaders",
     moduleTitle: "Foundations of Engagement and Gamification",
@@ -1055,6 +1105,22 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open Foundations of Engagement and Gamification in the focused player",
   },
+  "journey-exec-culture-hc": {
+    moduleId: "mod-hcd-1",
+    journeyTitle: "Culture Momentum and Readiness Visibility",
+    moduleTitle: "Engagement metrics that matter",
+    moduleFormat: "Playbook",
+    skillFocus: "Engagement measurement",
+    previewScenarioId: "leadership",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Engagement metrics that matter in the focused player",
+  },
+};
+
+const CONTENT_LIBRARY_TRAINING_TARGET_ALIASES: Record<string, string> = {
+  "journey-coach-practice": "journey-coach-practice-atlas",
+  "journey-performance-leadership": "journey-performance-leadership-lf",
+  "journey-engagement-systems": "journey-engagement-systems-hc",
 };
 
 const CONTENT_LIBRARY_INGEST_SOURCE_OPTIONS: Array<{ value: ContentLibraryIngestionSourceType; label: string; description: string }> = [
@@ -1084,12 +1150,13 @@ function normalizeTrainingJourneyKey(journeyId?: string | null) {
     return null;
   }
 
-  if (journeyId.startsWith("journey-service-foundations")) return "journey-service-foundations";
-  if (journeyId.startsWith("journey-workflow-precision")) return "journey-workflow-precision";
-  if (journeyId.startsWith("journey-coach-practice")) return "journey-coach-practice";
-  if (journeyId.startsWith("journey-data-led-leadership")) return "journey-data-led-leadership";
-  if (journeyId.startsWith("journey-performance-leadership")) return "journey-performance-leadership";
-  if (journeyId.startsWith("journey-engagement-systems")) return "journey-engagement-systems";
+  if (CONTENT_LIBRARY_TRAINING_TARGET_PRESETS[journeyId]) {
+    return journeyId;
+  }
+
+  if (CONTENT_LIBRARY_TRAINING_TARGET_ALIASES[journeyId]) {
+    return CONTENT_LIBRARY_TRAINING_TARGET_ALIASES[journeyId];
+  }
 
   return journeyId;
 }
@@ -1105,7 +1172,7 @@ function resolveTrainingTargetByJourneyId(journeyId?: string | null): ContentLib
   }
 
   const preset = CONTENT_LIBRARY_TRAINING_TARGET_PRESETS[normalizedJourneyKey];
-  return preset ? { journeyId, ...preset } : null;
+  return preset ? { journeyId: normalizedJourneyKey, ...preset } : null;
 }
 
 function resolveContentLibraryPlannedTrainingTarget(asset?: any): ContentLibraryTrainingTarget | null {
