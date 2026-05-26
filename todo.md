@@ -432,3 +432,9 @@
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the curriculum-viewer pass.
 - [x] Fix the Training Zone null-title crash on the lesson page by guarding the curriculum viewer and related lesson UI against missing selected-module state during initial render or invalid routing.
 - [x] Update Training Zone regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the null-title crash fix.
+- [x] Review the approved CHCG EnableOS development plan spreadsheet and extract the prioritized implementation backlog, dependencies, and sequencing for the current web project.
+- [x] Translate the approved development plan into concrete CHCG EnableOS build tasks and begin implementing the highest-priority approved slice.
+- [x] Update regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the first approved development-plan execution pass.
+- [x] Strengthen the Content Missions course-detail and launch flow so the selected module panel behaves like a clearer assignment console with denser curriculum context and stronger next-action cues.
+- [x] Tighten the Content Missions to Training Zone handoff so journey, module, asset, and curriculum state travel consistently into the focused training player.
+- [x] Extend regression coverage for the content-to-training launch path and the first approved development-plan slice before checkpointing.

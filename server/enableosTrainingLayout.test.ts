@@ -204,7 +204,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Launch brief reviewed for the");
     expect(trainingViewSource).toContain("Source label ·");
     expect(trainingViewSource).toContain("Receiving lane ·");
-    expect(trainingViewSource).toContain("Launch focused player");
+    expect(trainingViewSource).toContain("Launch training");
+    expect(trainingViewSource).toContain("selectedAssetNextActionLabel");
     expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
 
@@ -212,10 +213,11 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Content Missions Library");
     expect(trainingViewSource).toContain("Compact rows");
     expect(trainingViewSource).toContain("Training queue");
-    expect(trainingViewSource).toContain("Selected module detail");
+    expect(trainingViewSource).toContain("Selected course detail");
     expect(trainingViewSource).toContain("Course detail staging");
-    expect(trainingViewSource).toContain("Launch sequence");
-    expect(trainingViewSource).toContain("Launch focused player");
+    expect(trainingViewSource).toContain("Curriculum preview");
+    expect(trainingViewSource).toContain("Curriculum handoff");
+    expect(trainingViewSource).toContain("Launch training");
     expect(trainingViewSource).toContain("Open compact shelves");
   });
 
@@ -242,6 +244,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");
     expect(trainingViewSource).toContain("const requestedAssetTitle = queryParams.get(\"assetTitle\")");
     expect(trainingViewSource).toContain("if (matchedAsset && libraryMode !== \"launcher\")");
+    expect(trainingViewSource).toContain("journeyId: journeyId ?? resolvedTrainingTarget?.journeyId");
+    expect(trainingViewSource).toContain("moduleId: moduleId ?? resolvedTrainingTarget?.moduleId");
+    expect(trainingViewSource).toContain("const requestedTrainingTarget = useMemo(() => resolveTrainingTargetByJourneyId(requestedJourneyId), [requestedJourneyId])");
   });
 
   it("applies the compact authenticated workspace header across every primary role-based surface", () => {

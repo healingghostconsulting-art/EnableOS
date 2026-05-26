@@ -979,6 +979,120 @@ function buildTrainingLaunchPath({
   return params.toString() ? `/training?${params.toString()}` : "/training";
 }
 
+type ContentLibraryTrainingTarget = {
+  journeyId: string;
+  moduleId: string;
+  journeyTitle: string;
+  moduleTitle: string;
+  moduleFormat: string;
+  skillFocus: string;
+  previewScenarioId: string;
+  curriculumStatusLabel: string;
+  nextActionLabel: string;
+};
+
+const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibraryTrainingTarget, "journeyId">> = {
+  "journey-service-foundations": {
+    moduleId: "mod-sf-1",
+    journeyTitle: "Soft Skills & Customer/Patient Service Foundation",
+    moduleTitle: "Active Listening",
+    moduleFormat: "Microlearning",
+    skillFocus: "Listening precision",
+    previewScenarioId: "active",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Active Listening in the focused player",
+  },
+  "journey-workflow-precision": {
+    moduleId: "mod-wp-1",
+    journeyTitle: "Quality Assurance Essentials",
+    moduleTitle: "Verification and Workflow Accuracy",
+    moduleFormat: "Playbook",
+    skillFocus: "Process discipline",
+    previewScenarioId: "workflow",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Verification and Workflow Accuracy in the focused player",
+  },
+  "journey-coach-practice": {
+    moduleId: "mod-rtc-1",
+    journeyTitle: "Real Time Coaching",
+    moduleTitle: "5 Coaching Pillars",
+    moduleFormat: "Playbook",
+    skillFocus: "Trust-building and self-discovery",
+    previewScenarioId: "coach-supervision",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open 5 Coaching Pillars in the focused player",
+  },
+  "journey-data-led-leadership": {
+    moduleId: "mod-dl-1",
+    journeyTitle: "Unlocking the Power of Data",
+    moduleTitle: "Reading and Understanding KPIs",
+    moduleFormat: "Playbook",
+    skillFocus: "KPI interpretation",
+    previewScenarioId: "leadership",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Reading and Understanding KPIs in the focused player",
+  },
+  "journey-performance-leadership": {
+    moduleId: "mod-lfp-1",
+    journeyTitle: "Utilizing Performance Management to Maximize Results",
+    moduleTitle: "The 3 Performance Buckets",
+    moduleFormat: "Playbook",
+    skillFocus: "Performance segmentation",
+    previewScenarioId: "performance",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open The 3 Performance Buckets in the focused player",
+  },
+  "journey-engagement-systems": {
+    moduleId: "mod-hce-1",
+    journeyTitle: "Gamification for Remote Teams: Engaging and Empowering Leaders",
+    moduleTitle: "Foundations of Engagement and Gamification",
+    moduleFormat: "Playbook",
+    skillFocus: "Recognition and motivation design",
+    previewScenarioId: "engagement",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open Foundations of Engagement and Gamification in the focused player",
+  },
+};
+
+function normalizeTrainingJourneyKey(journeyId?: string | null) {
+  if (!journeyId) {
+    return null;
+  }
+
+  if (journeyId.startsWith("journey-service-foundations")) return "journey-service-foundations";
+  if (journeyId.startsWith("journey-workflow-precision")) return "journey-workflow-precision";
+  if (journeyId.startsWith("journey-coach-practice")) return "journey-coach-practice";
+  if (journeyId.startsWith("journey-data-led-leadership")) return "journey-data-led-leadership";
+  if (journeyId.startsWith("journey-performance-leadership")) return "journey-performance-leadership";
+  if (journeyId.startsWith("journey-engagement-systems")) return "journey-engagement-systems";
+
+  return journeyId;
+}
+
+function resolveTrainingTargetByJourneyId(journeyId?: string | null): ContentLibraryTrainingTarget | null {
+  if (!journeyId) {
+    return null;
+  }
+
+  const normalizedJourneyKey = normalizeTrainingJourneyKey(journeyId);
+  if (!normalizedJourneyKey) {
+    return null;
+  }
+
+  const preset = CONTENT_LIBRARY_TRAINING_TARGET_PRESETS[normalizedJourneyKey];
+  return preset ? { journeyId, ...preset } : null;
+}
+
+function resolveContentLibraryTrainingTarget(asset?: any): ContentLibraryTrainingTarget | null {
+  if (!asset?.linkedJourneyIds?.length) {
+    return null;
+  }
+
+  return asset.linkedJourneyIds
+    .map((journeyId: string) => resolveTrainingTargetByJourneyId(journeyId))
+    .find((target: ContentLibraryTrainingTarget | null): target is ContentLibraryTrainingTarget => Boolean(target)) ?? null;
+}
+
 export function buildLearnerWorkspaceReturnPath({
   assignmentId,
   moduleId,
@@ -2485,6 +2599,7 @@ export function TrainingExperienceView() {
   }, [moduleIndex]);
 
   const [previewScenarioId, setPreviewScenarioId] = useState("active");
+  const requestedTrainingTarget = useMemo(() => resolveTrainingTargetByJourneyId(requestedJourneyId), [requestedJourneyId]);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -2681,6 +2796,14 @@ export function TrainingExperienceView() {
   }, [effectiveTrainingRoleFilter, liveJourney, learner.data?.nextCoachingSession.title, requestedRoleFilter, viewerGrantRole]);
 
   useEffect(() => {
+    if (!requestedTrainingTarget || !previewScenarios.some((scenario) => scenario.id === requestedTrainingTarget.previewScenarioId)) {
+      return;
+    }
+
+    setPreviewScenarioId((current) => current === requestedTrainingTarget.previewScenarioId ? current : requestedTrainingTarget.previewScenarioId);
+  }, [previewScenarios, requestedTrainingTarget]);
+
+  useEffect(() => {
     if (!previewScenarios.length) {
       return;
     }
@@ -2691,6 +2814,10 @@ export function TrainingExperienceView() {
   }, [previewScenarioId, previewScenarios]);
 
   const activePreview = previewScenarios.find((scenario) => scenario.id === previewScenarioId) ?? previewScenarios[0];
+  const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
+  const launchedAsset = journeyResources.find((asset: any) => asset.id === requestedAssetId)
+    ?? journeyResources.find((asset: any) => asset.title === requestedAssetTitle)
+    ?? null;
   const targetedAssignment = learner.data?.retrainingAssignments?.find((assignment: any) => {
     if (requestedAssignmentId) {
       return assignment.id === requestedAssignmentId;
@@ -2710,7 +2837,16 @@ export function TrainingExperienceView() {
       skillFocus: targetedAssignment.skillFocus,
       completionRate: 0,
     }]
-    : activePreview?.modules ?? [];
+    : requestedTrainingTarget && requestedModuleId
+      ? [{
+        id: requestedModuleId,
+        title: requestedTrainingTarget.moduleTitle,
+        format: requestedTrainingTarget.moduleFormat,
+        durationMinutes: activePreview?.modules?.[0]?.durationMinutes ?? 18,
+        skillFocus: requestedTrainingTarget.skillFocus,
+        completionRate: 0,
+      }]
+      : activePreview?.modules ?? [];
   const modules = targetedModules;
   const filteredModuleEntries = useMemo(
     () => filterTrainingRecords(
@@ -2740,13 +2876,9 @@ export function TrainingExperienceView() {
   const selectedModuleTitle = selectedModule?.title ?? requestedModuleId ?? "Training module";
   const selectedModuleFormatLabel = selectedModule?.format ?? "Guided lesson";
   const selectedModuleSkillFocus = selectedModule?.skillFocus ?? "behavior change";
-  const effectiveJourneyTitle = targetedAssignment?.journeyTitle ?? targetedJourney ?? activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
-  const effectiveCompetencyGap = targetedAssignment?.skillFocus ?? activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
+  const effectiveJourneyTitle = targetedAssignment?.journeyTitle ?? requestedTrainingTarget?.journeyTitle ?? targetedJourney ?? activePreview?.journeyTitle ?? liveJourney?.title ?? "Enablement journey";
+  const effectiveCompetencyGap = targetedAssignment?.skillFocus ?? requestedTrainingTarget?.skillFocus ?? activePreview?.competencyGap ?? liveJourney?.competencyGap ?? "Behavior consistency";
   const effectiveCoachingTitle = targetedAssignment ? `Targeted retraining for ${targetedAssignment.skillFocus}` : activePreview?.coachingTitle ?? learner.data?.nextCoachingSession.title ?? "your next coaching session";
-  const journeyResources = learner.data?.workflowLibraryMix.journeyResources ?? [];
-  const launchedAsset = journeyResources.find((asset: any) => asset.id === requestedAssetId)
-    ?? journeyResources.find((asset: any) => asset.title === requestedAssetTitle)
-    ?? null;
   const moduleKeywords = `${selectedModule?.title ?? ""} ${selectedModule?.skillFocus ?? ""} ${effectiveCompetencyGap} ${launchedAsset?.title ?? ""} ${launchedAsset?.tags?.join(" ") ?? ""}`
     .toLowerCase()
     .split(/\s+/)
@@ -5025,6 +5157,7 @@ export function ContentLibraryView() {
   }, [assets, libraryMode, location, selectedAssetId, selectedAssetRole]);
 
   const selectedAsset = useMemo(() => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null, [assets, selectedAssetId]);
+  const selectedAssetTrainingTarget = useMemo(() => resolveContentLibraryTrainingTarget(selectedAsset), [selectedAsset]);
   const selectedAssetRoleOptions = useMemo(() => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [], [selectedAsset]);
   const selectedAssetWorkflowBrief = useMemo(() => getOperationalLaunchReadinessBrief(selectedAssetRole), [selectedAssetRole]);
   const selectedAssetBriefCards = useMemo<BriefFlashCardItem[]>(() => {
@@ -5125,14 +5258,22 @@ export function ContentLibraryView() {
     ].slice(0, 3);
   }, [selectedAsset]);
   const selectedAssetStatusLabel = selectedAsset
-    ? selectedAsset.sourceKind === "chcg"
-      ? "Ready for detail review"
-      : "Client-configured and ready for launch"
+    ? selectedAssetTrainingTarget
+      ? selectedAsset.sourceKind === "chcg"
+        ? "Mapped and ready for launch"
+        : "Client-configured and mapped for launch"
+      : selectedAsset.sourceKind === "chcg"
+        ? "Ready for detail review"
+        : "Client-configured and ready for review"
     : "Select an asset to begin";
   const selectedAssetStatusSupport = selectedAsset
-    ? `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
+    ? selectedAssetTrainingTarget
+      ? `${selectedAssetTrainingTarget.journeyTitle} · ${selectedAssetTrainingTarget.moduleTitle} · ${selectedAssetTrainingTarget.curriculumStatusLabel}`
+      : `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
     : "Choose a shelf item to activate the course detail view.";
   const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Learner";
+  const selectedAssetCurriculumStatusLabel = selectedAssetTrainingTarget?.curriculumStatusLabel ?? "Curriculum deck not mapped yet";
+  const selectedAssetNextActionLabel = selectedAssetTrainingTarget?.nextActionLabel ?? "Choose a mapped course to unlock a direct training launch.";
   const libraryProgressSteps = ["Browse library", "Review course detail", "Launch player"];
   const libraryProgressValue = selectedAsset ? (libraryMode === "launcher" ? 66 : 33) : 0;
   const selectedTrackTitle = trackFilter === "all" ? "All tracks" : library.data?.tracks.find((track: any) => track.id === trackFilter)?.title ?? "All tracks";
@@ -5158,7 +5299,14 @@ export function ContentLibraryView() {
   }, [selectedAsset?.id, selectedAssetRole]);
 
   function handleStartTraining(asset?: any, role?: DemoRole, journeyId?: string, moduleId?: string, assignmentId?: string) {
-    const path = buildTrainingLaunchPath({ asset, role, journeyId, moduleId, assignmentId });
+    const resolvedTrainingTarget = resolveContentLibraryTrainingTarget(asset ?? selectedAsset);
+    const path = buildTrainingLaunchPath({
+      asset,
+      role,
+      journeyId: journeyId ?? resolvedTrainingTarget?.journeyId,
+      moduleId: moduleId ?? resolvedTrainingTarget?.moduleId,
+      assignmentId,
+    });
     setLibraryLaunchTitle(asset?.title ?? selectedAsset?.title ?? "Focused training window");
     setLibraryLaunchPath(path);
     setLibraryLaunchOpen(true);
@@ -5396,8 +5544,8 @@ export function ContentLibraryView() {
                     <CardHeader className="space-y-3" id="library-launcher-mode">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <CardTitle className="text-white">Selected module detail</CardTitle>
-                          <CardDescription className="text-slate-400">Keep objectives, launch fit, and the next action in the same panel instead of routing through another long page.</CardDescription>
+                          <CardTitle className="text-white">Selected course detail</CardTitle>
+                          <CardDescription className="text-slate-400">Keep objectives, curriculum fit, and the next action in the same assignment-style panel instead of routing through another long page.</CardDescription>
                         </div>
                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{libraryProgressValue}% staged</Badge>
                       </div>
@@ -5415,9 +5563,11 @@ export function ContentLibraryView() {
                             <h3 className="mt-2 text-[1.9rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
                             <p className="mt-3 text-sm leading-7 text-slate-300">{selectedAsset.summary}</p>
                           </div>
-                          <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum preview</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCurriculumStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetTrainingTarget?.journeyTitle ?? "Use shelf review until a launch target is mapped."}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sections</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSectionCount}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Knowledge gates</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCheckpointCount} checkpoints</p></div>
                           </div>
@@ -5428,6 +5578,14 @@ export function ContentLibraryView() {
                             </div>
                             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} /></div>
                             <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Curriculum handoff</p>
+                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-emerald-300/25 bg-emerald-400/12 text-emerald-100">Deck available</Badge> : <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Review only</Badge>}
+                            </div>
+                            <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `The focused player will open ${selectedAssetTrainingTarget.journeyTitle} on ${selectedAssetTrainingTarget.moduleTitle}, keeping the journey, module, and curriculum state aligned through launch.` : "This asset remains visible for shelf review, but it does not yet carry a direct player route."}</p>
                           </div>
                           <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside this module</p>
@@ -5454,7 +5612,7 @@ export function ContentLibraryView() {
                             ))}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch focused player</Button>
+                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch training</Button>
                             <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Back to shelves</Button>
                           </div>
                         </>
@@ -5481,12 +5639,21 @@ export function ContentLibraryView() {
                             <h3 className="mt-2 text-[1.7rem] font-semibold text-white">{selectedAsset.title}</h3>
                             <p className="mt-2 text-sm leading-7 text-slate-100">{selectedAsset.summary}</p>
                           </div>
-                          <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="grid gap-3 sm:grid-cols-3">
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Lane</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetCurriculumStatusLabel}</p></div>
+                          </div>
+                          <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch next action</p>
+                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Deck available</Badge> : null}
+                            </div>
+                            <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `${selectedAssetTrainingTarget.journeyTitle} will open on ${selectedAssetTrainingTarget.moduleTitle} so the Training Zone inherits the mapped curriculum context immediately.` : "Open compact shelves to choose a course with a mapped training route."}</p>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch focused player</Button>
+                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch training</Button>
                             <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
                           </div>
                         </>
