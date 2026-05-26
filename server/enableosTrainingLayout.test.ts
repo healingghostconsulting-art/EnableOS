@@ -205,6 +205,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Source label ·");
     expect(trainingViewSource).toContain("Receiving lane ·");
     expect(trainingViewSource).toContain("Launch training");
+    expect(trainingViewSource).toContain("Launch pending alignment");
     expect(trainingViewSource).toContain("selectedAssetNextActionLabel");
     expect(trainingViewSource).toContain("setLaunchBriefCardIndex(index)");
   });
@@ -217,7 +218,10 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Course detail staging");
     expect(trainingViewSource).toContain("Curriculum preview");
     expect(trainingViewSource).toContain("Curriculum handoff");
-    expect(trainingViewSource).toContain("Launch training");
+    expect(trainingViewSource).toContain("Structured ingestion lane");
+    expect(trainingViewSource).toContain("Curriculum maintenance plan");
+    expect(trainingViewSource).toContain("Launch-readiness note");
+    expect(trainingViewSource).toContain("Add structured asset");
     expect(trainingViewSource).toContain("Open compact shelves");
   });
 

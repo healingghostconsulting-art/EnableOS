@@ -438,3 +438,7 @@
 - [x] Strengthen the Content Missions course-detail and launch flow so the selected module panel behaves like a clearer assignment console with denser curriculum context and stronger next-action cues.
 - [x] Tighten the Content Missions to Training Zone handoff so journey, module, asset, and curriculum state travel consistently into the focused training player.
 - [x] Extend regression coverage for the content-to-training launch path and the first approved development-plan slice before checkpointing.
+- [x] Build a structured Content Missions ingestion workflow for curriculum maintenance so uploaded material can capture source type, mapped journey, target module, and launch-readiness metadata before it enters the library.
+- [x] Add ingestion-side review and status cues that show whether uploaded content is mapped, pending curriculum alignment, or ready for a training handoff.
+- [x] Tighten upload-side data handling so newly ingested assets preserve the metadata needed for future Content Missions to Training Zone launches and curriculum maintenance.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the structured curriculum-ingestion workflow slice.

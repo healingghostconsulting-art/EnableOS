@@ -312,6 +312,11 @@ export type ContentLibraryAsset = {
   linkedJourneyIds: string[];
   linkedInterventionRuleIds: string[];
   sourceLabel: string;
+  sourceType?: "Client SOP" | "QA finding" | "Compliance update" | "Program rollout" | "Leadership enablement";
+  curriculumStatus?: "mapped_ready" | "pending_alignment" | "review_only";
+  maintenanceJourneyId?: string;
+  maintenanceModuleId?: string;
+  launchReadinessNote?: string;
   fileName?: string;
   fileUrl?: string;
   createdAt: string;
@@ -326,6 +331,11 @@ export type CreateClientContentInput = {
   linkedRoles: Array<DemoRole | "all">;
   tags: string[];
   sourceLabel: string;
+  sourceType?: ContentLibraryAsset["sourceType"];
+  curriculumStatus?: ContentLibraryAsset["curriculumStatus"];
+  maintenanceJourneyId?: string;
+  maintenanceModuleId?: string;
+  launchReadinessNote?: string;
   fileName?: string;
   fileUrl?: string;
 };
@@ -1626,9 +1636,14 @@ export function createClientContent(input: CreateClientContentInput) {
     format: input.format,
     linkedRoles: input.linkedRoles,
     tags: input.tags,
-    linkedJourneyIds: [],
+    linkedJourneyIds: input.curriculumStatus === "mapped_ready" && input.maintenanceJourneyId ? [input.maintenanceJourneyId] : [],
     linkedInterventionRuleIds: [],
     sourceLabel: input.sourceLabel,
+    sourceType: input.sourceType,
+    curriculumStatus: input.curriculumStatus,
+    maintenanceJourneyId: input.maintenanceJourneyId,
+    maintenanceModuleId: input.maintenanceModuleId,
+    launchReadinessNote: input.launchReadinessNote,
     fileName: input.fileName,
     fileUrl: input.fileUrl,
     createdAt: new Date().toISOString(),

@@ -656,6 +656,11 @@ describe("demo router", () => {
       linkedRoles: ["manager"],
       tags: ["launch", "workflow"],
       sourceLabel: "Enablement office",
+      sourceType: "Program rollout",
+      curriculumStatus: "pending_alignment",
+      maintenanceJourneyId: "journey-workflow-precision",
+      maintenanceModuleId: "mod-wp-1",
+      launchReadinessNote: "Awaiting final curriculum review before direct launch is enabled.",
     });
 
     const atlasLibrary = await caller.demo.library({ tenantId: "atlas-operations", role: "all" });
@@ -665,7 +670,18 @@ describe("demo router", () => {
       expect.arrayContaining([expect.objectContaining({ title: "Soft Skills & Customer/Patient Service Foundation" })]),
     );
     expect(atlasLibrary.importedAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Workflow launch guide", tenantId: "atlas-operations" })]),
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Workflow launch guide",
+          tenantId: "atlas-operations",
+          sourceType: "Program rollout",
+          curriculumStatus: "pending_alignment",
+          maintenanceJourneyId: "journey-workflow-precision",
+          maintenanceModuleId: "mod-wp-1",
+          launchReadinessNote: "Awaiting final curriculum review before direct launch is enabled.",
+          linkedJourneyIds: [],
+        }),
+      ]),
     );
     expect(lighthouseLibrary.importedAssets.some((asset) => asset.title === "Workflow launch guide")).toBe(false);
   });
@@ -688,14 +704,34 @@ describe("demo router", () => {
       linkedRoles: ["client_admin", "manager"],
       tags: ["scorecard", "governance", "reviews"],
       sourceLabel: "Program office",
+      sourceType: "Leadership enablement",
+      curriculumStatus: "mapped_ready",
+      maintenanceJourneyId: "journey-data-led-leadership",
+      maintenanceModuleId: "mod-dl-1",
+      launchReadinessNote: "Ready for manager rollout once the scorecard narrative is approved.",
     });
 
     expect(created.sourceKind).toBe("client_upload");
     expect(created.tenantId).toBe("atlas-operations");
+    expect(created.sourceType).toBe("Leadership enablement");
+    expect(created.curriculumStatus).toBe("mapped_ready");
+    expect(created.maintenanceJourneyId).toBe("journey-data-led-leadership");
+    expect(created.maintenanceModuleId).toBe("mod-dl-1");
+    expect(created.launchReadinessNote).toBe("Ready for manager rollout once the scorecard narrative is approved.");
+    expect(created.linkedJourneyIds).toEqual(["journey-data-led-leadership"]);
 
     const scopedLibrary = await caller.demo.secureLibrary({ tenantId: "atlas-operations", role: "client_admin" });
     expect(scopedLibrary.importedAssets).toEqual(
-      expect.arrayContaining([expect.objectContaining({ title: "Scorecard adoption checklist" })]),
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Scorecard adoption checklist",
+          sourceType: "Leadership enablement",
+          curriculumStatus: "mapped_ready",
+          maintenanceJourneyId: "journey-data-led-leadership",
+          maintenanceModuleId: "mod-dl-1",
+          linkedJourneyIds: ["journey-data-led-leadership"],
+        }),
+      ]),
     );
   });
 

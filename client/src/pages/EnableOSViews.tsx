@@ -991,6 +991,9 @@ type ContentLibraryTrainingTarget = {
   nextActionLabel: string;
 };
 
+type ContentLibraryIngestionSourceType = "Client SOP" | "QA finding" | "Compliance update" | "Program rollout" | "Leadership enablement";
+type ContentLibraryCurriculumStatus = "mapped_ready" | "pending_alignment" | "review_only";
+
 const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibraryTrainingTarget, "journeyId">> = {
   "journey-service-foundations": {
     moduleId: "mod-sf-1",
@@ -1054,6 +1057,28 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
   },
 };
 
+const CONTENT_LIBRARY_INGEST_SOURCE_OPTIONS: Array<{ value: ContentLibraryIngestionSourceType; label: string; description: string }> = [
+  { value: "Client SOP", label: "Client SOP", description: "Standard operating procedures, scripts, and service guides maintained by the tenant." },
+  { value: "QA finding", label: "QA finding", description: "Calibration gaps, audit themes, or recurring quality findings that need retraining support." },
+  { value: "Compliance update", label: "Compliance update", description: "Policy changes, documentation updates, or regulatory adjustments that need controlled rollout." },
+  { value: "Program rollout", label: "Program rollout", description: "Launch kits, adoption plans, or enablement packages for new workflow releases." },
+  { value: "Leadership enablement", label: "Leadership enablement", description: "Manager, coach, or executive materials that support operational oversight and reinforcement." },
+];
+
+const CONTENT_LIBRARY_CURRICULUM_STATUS_OPTIONS: Array<{ value: ContentLibraryCurriculumStatus; label: string; detail: string }> = [
+  { value: "mapped_ready", label: "Mapped and launch-ready", detail: "The uploaded asset can hand off directly into a focused Training Zone launch." },
+  { value: "pending_alignment", label: "Pending curriculum alignment", detail: "The asset has a planned journey and module target but still needs final deck alignment before launch." },
+  { value: "review_only", label: "Shelf review only", detail: "The asset should remain reviewable in Content Missions without a direct Training Zone handoff yet." },
+];
+
+const CONTENT_LIBRARY_INGEST_JOURNEY_OPTIONS = Object.entries(CONTENT_LIBRARY_TRAINING_TARGET_PRESETS).map(([journeyId, preset]) => ({
+  journeyId,
+  journeyTitle: preset.journeyTitle,
+  moduleId: preset.moduleId,
+  moduleTitle: preset.moduleTitle,
+  previewScenarioId: preset.previewScenarioId,
+}));
+
 function normalizeTrainingJourneyKey(journeyId?: string | null) {
   if (!journeyId) {
     return null;
@@ -1083,14 +1108,32 @@ function resolveTrainingTargetByJourneyId(journeyId?: string | null): ContentLib
   return preset ? { journeyId, ...preset } : null;
 }
 
-function resolveContentLibraryTrainingTarget(asset?: any): ContentLibraryTrainingTarget | null {
-  if (!asset?.linkedJourneyIds?.length) {
+function resolveContentLibraryPlannedTrainingTarget(asset?: any): ContentLibraryTrainingTarget | null {
+  const candidateJourneyIds = [asset?.maintenanceJourneyId, ...(asset?.linkedJourneyIds ?? [])].filter(Boolean) as string[];
+  if (!candidateJourneyIds.length) {
     return null;
   }
 
-  return asset.linkedJourneyIds
-    .map((journeyId: string) => resolveTrainingTargetByJourneyId(journeyId))
+  return candidateJourneyIds
+    .map((journeyId) => resolveTrainingTargetByJourneyId(journeyId))
     .find((target: ContentLibraryTrainingTarget | null): target is ContentLibraryTrainingTarget => Boolean(target)) ?? null;
+}
+
+function resolveContentLibraryTrainingTarget(asset?: any): ContentLibraryTrainingTarget | null {
+  const plannedTarget = resolveContentLibraryPlannedTrainingTarget(asset);
+  if (!plannedTarget) {
+    return null;
+  }
+
+  if (asset?.sourceKind === "chcg") {
+    return plannedTarget;
+  }
+
+  if (asset?.curriculumStatus === "pending_alignment" || asset?.curriculumStatus === "review_only") {
+    return null;
+  }
+
+  return asset?.linkedJourneyIds?.length ? plannedTarget : null;
 }
 
 export function buildLearnerWorkspaceReturnPath({
@@ -5058,6 +5101,10 @@ export function ContentLibraryView() {
   const [linkedRole, setLinkedRole] = useState<DemoRole | "all">("manager");
   const [tags, setTags] = useState("implementation, client import");
   const [sourceLabel, setSourceLabel] = useState("Client enablement team");
+  const [ingestionSourceType, setIngestionSourceType] = useState<ContentLibraryIngestionSourceType>("Program rollout");
+  const [curriculumStatus, setCurriculumStatus] = useState<ContentLibraryCurriculumStatus>("mapped_ready");
+  const [maintenanceJourneyId, setMaintenanceJourneyId] = useState("journey-service-foundations");
+  const [launchReadinessNote, setLaunchReadinessNote] = useState("Ready for client-admin review and direct launch once the receiving audience is aligned.");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -5072,7 +5119,15 @@ export function ContentLibraryView() {
   const library = trpc.demo.secureLibrary.useQuery(tenantId ? { tenantId, role: roleFilter } : { role: roleFilter }, { enabled: Boolean(tenantId) });
   const uploadMutation = trpc.demo.secureUploadContent.useMutation({
     onSuccess: async (created) => {
-      setUploadNotice(`${created.title} is now visible in the tenant library.`);
+      const createdPlannedTarget = resolveContentLibraryPlannedTrainingTarget(created);
+      const createdStatusLabel = created.curriculumStatus === "pending_alignment"
+        ? "pending curriculum alignment"
+        : created.curriculumStatus === "review_only"
+          ? "review only"
+          : createdPlannedTarget
+            ? `launch-ready for ${createdPlannedTarget.moduleTitle}`
+            : "now visible in the tenant library";
+      setUploadNotice(`${created.title} is now visible in the tenant library and marked ${createdStatusLabel}.`);
       setTitle("");
       setSummary("");
       setCategory("Client enablement");
@@ -5080,6 +5135,10 @@ export function ContentLibraryView() {
       setLinkedRole("manager");
       setTags("implementation, client import");
       setSourceLabel("Client enablement team");
+      setIngestionSourceType("Program rollout");
+      setCurriculumStatus("mapped_ready");
+      setMaintenanceJourneyId("journey-service-foundations");
+      setLaunchReadinessNote("Ready for client-admin review and direct launch once the receiving audience is aligned.");
       setSelectedFile(null);
       setLibraryMode("explore");
       await library.refetch();
@@ -5157,6 +5216,7 @@ export function ContentLibraryView() {
   }, [assets, libraryMode, location, selectedAssetId, selectedAssetRole]);
 
   const selectedAsset = useMemo(() => assets.find((asset: any) => asset.id === selectedAssetId) ?? assets[0] ?? null, [assets, selectedAssetId]);
+  const selectedAssetPlannedTrainingTarget = useMemo(() => resolveContentLibraryPlannedTrainingTarget(selectedAsset), [selectedAsset]);
   const selectedAssetTrainingTarget = useMemo(() => resolveContentLibraryTrainingTarget(selectedAsset), [selectedAsset]);
   const selectedAssetRoleOptions = useMemo(() => selectedAsset ? resolveSelectedAssetWorkflowRoles(selectedAsset.linkedRoles) : [], [selectedAsset]);
   const selectedAssetWorkflowBrief = useMemo(() => getOperationalLaunchReadinessBrief(selectedAssetRole), [selectedAssetRole]);
@@ -5257,23 +5317,56 @@ export function ContentLibraryView() {
       ...selectedAsset.tags.slice(0, 2).map((tag: string) => `Reinforce ${tag.replaceAll("-", " ")} during the guided lesson.`),
     ].slice(0, 3);
   }, [selectedAsset]);
+  const selectedAssetCurriculumState = selectedAsset?.curriculumStatus as ContentLibraryCurriculumStatus | undefined;
   const selectedAssetStatusLabel = selectedAsset
     ? selectedAssetTrainingTarget
       ? selectedAsset.sourceKind === "chcg"
         ? "Mapped and ready for launch"
         : "Client-configured and mapped for launch"
-      : selectedAsset.sourceKind === "chcg"
-        ? "Ready for detail review"
-        : "Client-configured and ready for review"
+      : selectedAssetCurriculumState === "pending_alignment"
+        ? "Pending curriculum alignment"
+        : selectedAssetCurriculumState === "review_only"
+          ? "Shelf review configured"
+          : selectedAsset.sourceKind === "chcg"
+            ? "Ready for detail review"
+            : selectedAssetPlannedTrainingTarget
+              ? "Curriculum target staged"
+              : "Client-configured and ready for review"
     : "Select an asset to begin";
+  const selectedAssetCurriculumStatusLabel = selectedAssetTrainingTarget?.curriculumStatusLabel
+    ?? (selectedAssetCurriculumState === "pending_alignment"
+      ? "Curriculum alignment in progress"
+      : selectedAssetCurriculumState === "review_only"
+        ? "Shelf review only"
+        : selectedAssetPlannedTrainingTarget
+          ? "Curriculum target selected"
+          : "Curriculum deck not mapped yet");
   const selectedAssetStatusSupport = selectedAsset
     ? selectedAssetTrainingTarget
       ? `${selectedAssetTrainingTarget.journeyTitle} · ${selectedAssetTrainingTarget.moduleTitle} · ${selectedAssetTrainingTarget.curriculumStatusLabel}`
-      : `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
+      : selectedAssetPlannedTrainingTarget
+        ? `${selectedAssetPlannedTrainingTarget.journeyTitle} · ${selectedAssetPlannedTrainingTarget.moduleTitle} · ${selectedAssetCurriculumStatusLabel}`
+        : `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
     : "Choose a shelf item to activate the course detail view.";
   const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Learner";
-  const selectedAssetCurriculumStatusLabel = selectedAssetTrainingTarget?.curriculumStatusLabel ?? "Curriculum deck not mapped yet";
-  const selectedAssetNextActionLabel = selectedAssetTrainingTarget?.nextActionLabel ?? "Choose a mapped course to unlock a direct training launch.";
+  const selectedAssetNextActionLabel = selectedAssetTrainingTarget?.nextActionLabel
+    ?? (selectedAssetPlannedTrainingTarget
+      ? selectedAssetCurriculumState === "pending_alignment"
+        ? `Finish curriculum alignment for ${selectedAssetPlannedTrainingTarget.moduleTitle}`
+        : `Keep ${selectedAssetPlannedTrainingTarget.moduleTitle} staged for later launch`
+      : "Choose a mapped course to unlock a direct training launch.");
+  const selectedAssetSourceTypeLabel = selectedAsset?.sourceType ?? (selectedAsset?.sourceKind === "client_upload" ? "Client upload" : "CHCG core asset");
+  const selectedAssetLaunchReadinessNote = selectedAsset?.launchReadinessNote ?? (selectedAssetTrainingTarget
+    ? `This asset can move directly into ${selectedAssetTrainingTarget.moduleTitle} once the receiving lane is confirmed.`
+    : selectedAssetPlannedTrainingTarget
+      ? `The planned handoff is staged for ${selectedAssetPlannedTrainingTarget.moduleTitle}, but the launch path still needs final curriculum readiness.`
+      : "Use the assignment console to review the asset before launching or maintaining curriculum alignment.");
+  const selectedIngestionTarget = useMemo(() => curriculumStatus === "review_only" ? null : resolveTrainingTargetByJourneyId(maintenanceJourneyId), [curriculumStatus, maintenanceJourneyId]);
+  const selectedCurriculumStatusOption = useMemo(
+    () => CONTENT_LIBRARY_CURRICULUM_STATUS_OPTIONS.find((option) => option.value === curriculumStatus) ?? CONTENT_LIBRARY_CURRICULUM_STATUS_OPTIONS[0],
+    [curriculumStatus],
+  );
+  const canLaunchSelectedAsset = Boolean(selectedAssetTrainingTarget);
   const libraryProgressSteps = ["Browse library", "Review course detail", "Launch player"];
   const libraryProgressValue = selectedAsset ? (libraryMode === "launcher" ? 66 : 33) : 0;
   const selectedTrackTitle = trackFilter === "all" ? "All tracks" : library.data?.tracks.find((track: any) => track.id === trackFilter)?.title ?? "All tracks";
@@ -5352,6 +5445,8 @@ export function ContentLibraryView() {
       .map((tag) => tag.trim().toLowerCase())
       .filter(Boolean)
       .slice(0, 8);
+    const normalizedMaintenanceJourneyId = curriculumStatus === "review_only" ? undefined : maintenanceJourneyId;
+    const normalizedMaintenanceTarget = normalizedMaintenanceJourneyId ? resolveTrainingTargetByJourneyId(normalizedMaintenanceJourneyId) : null;
 
     const payload: any = {
       tenantId,
@@ -5362,6 +5457,11 @@ export function ContentLibraryView() {
       linkedRoles: [linkedRole],
       tags: normalizedTags,
       sourceLabel,
+      sourceType: ingestionSourceType,
+      curriculumStatus,
+      maintenanceJourneyId: normalizedMaintenanceJourneyId,
+      maintenanceModuleId: normalizedMaintenanceTarget?.moduleId,
+      launchReadinessNote,
     };
 
     if (selectedFile) {
@@ -5567,9 +5667,9 @@ export function ContentLibraryView() {
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum preview</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCurriculumStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetTrainingTarget?.journeyTitle ?? "Use shelf review until a launch target is mapped."}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sections</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSectionCount}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Knowledge gates</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCheckpointCount} checkpoints</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetTrainingTarget?.journeyTitle ?? selectedAssetPlannedTrainingTarget?.journeyTitle ?? "Use shelf review until a launch target is mapped."}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Source type</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSourceTypeLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch note</p><p className="mt-2 text-sm leading-6 text-white">{selectedAssetLaunchReadinessNote}</p></div>
                           </div>
                           <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                             <div className="flex items-center justify-between gap-3">
@@ -5582,10 +5682,10 @@ export function ContentLibraryView() {
                           <div className="rounded-[1.2rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-4">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Curriculum handoff</p>
-                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-emerald-300/25 bg-emerald-400/12 text-emerald-100">Deck available</Badge> : <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Review only</Badge>}
+                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-emerald-300/25 bg-emerald-400/12 text-emerald-100">Deck available</Badge> : selectedAssetPlannedTrainingTarget ? <Badge className="rounded-full border-amber-300/25 bg-amber-400/12 text-amber-100">Staged target</Badge> : <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Review only</Badge>}
                             </div>
                             <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `The focused player will open ${selectedAssetTrainingTarget.journeyTitle} on ${selectedAssetTrainingTarget.moduleTitle}, keeping the journey, module, and curriculum state aligned through launch.` : "This asset remains visible for shelf review, but it does not yet carry a direct player route."}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `The focused player will open ${selectedAssetTrainingTarget.journeyTitle} on ${selectedAssetTrainingTarget.moduleTitle}, keeping the journey, module, and curriculum state aligned through launch.` : selectedAssetPlannedTrainingTarget ? `${selectedAssetPlannedTrainingTarget.journeyTitle} is already staged around ${selectedAssetPlannedTrainingTarget.moduleTitle}, but the asset remains in curriculum-maintenance mode until launch readiness is complete.` : "This asset remains visible for shelf review, but it does not yet carry a direct player route."}</p>
                           </div>
                           <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
                             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside this module</p>
@@ -5612,7 +5712,7 @@ export function ContentLibraryView() {
                             ))}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch training</Button>
+                            <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
                             <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Back to shelves</Button>
                           </div>
                         </>
@@ -5642,7 +5742,7 @@ export function ContentLibraryView() {
                           <div className="grid gap-3 sm:grid-cols-3">
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
                             <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Lane</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetCurriculumStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetCurriculumStatusLabel}</p></div>
                           </div>
                           <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -5650,10 +5750,10 @@ export function ContentLibraryView() {
                               {selectedAssetTrainingTarget ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Deck available</Badge> : null}
                             </div>
                             <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `${selectedAssetTrainingTarget.journeyTitle} will open on ${selectedAssetTrainingTarget.moduleTitle} so the Training Zone inherits the mapped curriculum context immediately.` : "Open compact shelves to choose a course with a mapped training route."}</p>
+                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `${selectedAssetTrainingTarget.journeyTitle} will open on ${selectedAssetTrainingTarget.moduleTitle} so the Training Zone inherits the mapped curriculum context immediately.` : selectedAssetPlannedTrainingTarget ? `${selectedAssetPlannedTrainingTarget.journeyTitle} is staged on ${selectedAssetPlannedTrainingTarget.moduleTitle}, but this asset stays in curriculum-maintenance mode until mapping is launch-ready.` : "Open compact shelves to choose a course with a mapped training route."}</p>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">Launch training</Button>
+                            <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
                             <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
                           </div>
                         </>
@@ -5711,26 +5811,44 @@ export function ContentLibraryView() {
               </TabsContent>
 
               <TabsContent value="ingest" className="mt-0" id="library-ingest-mode">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
                   <PremiumCard>
                     <CardHeader>
-                      <CardTitle className="text-white">Upload lane</CardTitle>
-                      <CardDescription className="text-slate-400">Bring in tenant-specific material without breaking the compact browse and detail flow.</CardDescription>
+                      <CardTitle className="text-white">Structured ingestion lane</CardTitle>
+                      <CardDescription className="text-slate-400">Capture curriculum-maintenance metadata before the asset reaches the shelf so launch readiness and review state stay visible from the start.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">CHCG core assets</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.chcgAssets}</p></div>
                         <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Client imports</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.importedAssets}</p></div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Mapped journeys</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.mappedJourneys}</p></div>
                       </div>
-                      <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 text-sm leading-6 text-slate-100">
-                        Uploaded assets return to the same compact shelf model, inherit role filters, and open in the same module-detail panel instead of creating a separate browsing branch.
+                      <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Curriculum maintenance plan</p>
+                          <Badge className="rounded-full border-cyan-300/20 bg-cyan-400/12 text-cyan-100">{selectedCurriculumStatusOption.label}</Badge>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-slate-100">{selectedCurriculumStatusOption.detail}</p>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Source type</p><p className="mt-2 text-sm font-medium text-white">{ingestionSourceType}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p><p className="mt-2 text-sm font-medium text-white">{linkedRole === "all" ? "All roles" : getRoleLabel(linkedRole)}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Target journey</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.journeyTitle ?? "Shelf review only"}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Target module</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.moduleTitle ?? "No direct launch target yet"}</p></div>
+                        </div>
+                        <div className="mt-4 rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch-readiness note</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-100">{launchReadinessNote}</p>
+                        </div>
+                      </div>
+                      <div className="rounded-[1.2rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-4 text-sm leading-6 text-slate-100">
+                        Uploaded assets still return to the same compact shelf model, but now they arrive with explicit curriculum-maintenance status, planned journey/module context, and clearer handoff expectations.
                       </div>
                     </CardContent>
                   </PremiumCard>
                   <PremiumCard>
                     <CardHeader>
                       <CardTitle className="text-white">Add tenant-specific content</CardTitle>
-                      <CardDescription className="text-slate-400">This keeps imported materials searchable, role-mapped, and ready for the compact detail-and-launch flow.</CardDescription>
+                      <CardDescription className="text-slate-400">This workflow keeps imported materials searchable, role-mapped, and staged for either direct launch or curriculum maintenance.</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <form onSubmit={handleUpload} className="grid gap-4">
@@ -5767,6 +5885,37 @@ export function ContentLibraryView() {
                             <input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
                           </label>
                         </div>
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                          <label className="grid gap-2 text-sm text-slate-300 xl:col-span-1">
+                            <span>Source type</span>
+                            <select value={ingestionSourceType} onChange={(event) => setIngestionSourceType(event.target.value as ContentLibraryIngestionSourceType)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none">
+                              {CONTENT_LIBRARY_INGEST_SOURCE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                            </select>
+                          </label>
+                          <label className="grid gap-2 text-sm text-slate-300 xl:col-span-1">
+                            <span>Curriculum state</span>
+                            <select value={curriculumStatus} onChange={(event) => setCurriculumStatus(event.target.value as ContentLibraryCurriculumStatus)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none">
+                              {CONTENT_LIBRARY_CURRICULUM_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                            </select>
+                          </label>
+                          <label className="grid gap-2 text-sm text-slate-300 xl:col-span-1">
+                            <span>Target journey</span>
+                            <select value={maintenanceJourneyId} onChange={(event) => setMaintenanceJourneyId(event.target.value)} disabled={curriculumStatus === "review_only"} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none disabled:cursor-not-allowed disabled:opacity-55">
+                              {CONTENT_LIBRARY_INGEST_JOURNEY_OPTIONS.map((option) => <option key={option.journeyId} value={option.journeyId}>{option.journeyTitle}</option>)}
+                            </select>
+                          </label>
+                          <div className="grid gap-2 text-sm text-slate-300 xl:col-span-1">
+                            <span>Target module</span>
+                            <div className="flex min-h-11 items-center rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white">{selectedIngestionTarget?.moduleTitle ?? "No direct launch target"}</div>
+                          </div>
+                        </div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-4 text-sm leading-6 text-slate-200">
+                          {selectedCurriculumStatusOption.detail}
+                        </div>
+                        <label className="grid gap-2 text-sm text-slate-300">
+                          <span>Launch-readiness note</span>
+                          <textarea value={launchReadinessNote} onChange={(event) => setLaunchReadinessNote(event.target.value)} required rows={3} className="rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 py-3 text-white outline-none" />
+                        </label>
                         <label className="grid gap-2 text-sm text-slate-300">
                           <span>Tags</span>
                           <input value={tags} onChange={(event) => setTags(event.target.value)} className="h-11 rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-white outline-none" />
@@ -5777,7 +5926,7 @@ export function ContentLibraryView() {
                         </label>
                         {uploadNotice ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{uploadNotice}</div> : null}
                         <div className="flex flex-wrap gap-2">
-                          <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">{uploadMutation.isPending ? "Uploading..." : "Add asset to library"}</Button>
+                          <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">{uploadMutation.isPending ? "Uploading..." : "Add structured asset"}</Button>
                           <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
                         </div>
                       </form>
