@@ -85,6 +85,9 @@ describe("demo router", () => {
           retryDependency: 29,
           attemptsLast14Days: 64,
           skillDomain: "Verification discipline",
+          assetId: "library-workflow-precision-kit",
+          journeyId: "journey-workflow-precision",
+          moduleId: "mod-wp-1",
         }),
       ]),
     );
@@ -122,6 +125,9 @@ describe("demo router", () => {
           learner: "Nina Patel",
           assignmentCount: 3,
           module: "Workflow verification essentials",
+          assetId: "library-workflow-precision-kit",
+          journeyId: "journey-workflow-precision",
+          moduleId: "mod-wp-1",
         }),
       ]),
     );

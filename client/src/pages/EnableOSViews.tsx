@@ -979,6 +979,28 @@ function buildTrainingLaunchPath({
   return params.toString() ? `/training?${params.toString()}` : "/training";
 }
 
+function buildLibraryDetailPath({
+  assetId,
+  assetTitle,
+  role,
+  journeyId,
+  moduleId,
+}: {
+  assetId?: string;
+  assetTitle?: string;
+  role?: DemoRole;
+  journeyId?: string;
+  moduleId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (assetId) params.set("assetId", assetId);
+  if (assetTitle) params.set("assetTitle", assetTitle);
+  if (role) params.set("role", role);
+  if (journeyId) params.set("journeyId", journeyId);
+  if (moduleId) params.set("moduleId", moduleId);
+  return params.toString() ? `/library?${params.toString()}` : "/library";
+}
+
 type ContentLibraryTrainingTarget = {
   journeyId: string;
   moduleId: string;
@@ -1348,11 +1370,13 @@ function RetrainingHistorySection({
   description,
   assignments,
   emptyLabel = "No past retraining has been completed yet.",
+  launchRole,
 }: {
   title: string;
   description: string;
   assignments: any[];
   emptyLabel?: string;
+  launchRole?: DemoRole;
 }) {
   return (
     <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
@@ -1377,6 +1401,13 @@ function RetrainingHistorySection({
               <span>{assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</span>
               <span>·</span>
               <span>Assigned by {assignment.requestedByRole}</span>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href={buildTrainingLaunchPath({ role: launchRole, journeyId: assignment.journeyId, moduleId: assignment.moduleId, assignmentId: assignment.id })}>
+                <Button variant="outline" className="w-full rounded-full border-white/10 bg-white/6 text-white hover:bg-white/12 hover:text-white sm:w-auto">
+                  {assignment.status === "completed" ? "Review exact module" : "Open exact assignment"}
+                </Button>
+              </Link>
             </div>
           </div>
         )) : (
@@ -2278,7 +2309,7 @@ export function LandingView() {
                   Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.
                 </p>
               </div>
-              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
                 <label className="block min-w-0 space-y-2 text-sm text-[#1B303C]">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search mission hub</span>
                   <div className="flex items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
@@ -2292,13 +2323,13 @@ export function LandingView() {
                   </div>
                 </label>
                 <Link href={viewer.data ? viewerHomeHref : buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", freshStart: true })}>
-                  <Button className="h-11 rounded-[1.05rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
+                  <Button className="h-11 w-full rounded-[1.05rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d] md:w-auto">
                     {viewer.data ? "Resume my mission" : "Launch next"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href={buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1" })}>
-                  <Button variant="outline" className="h-11 rounded-[1.05rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
+                  <Button variant="outline" className="h-11 w-full rounded-[1.05rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] md:w-auto">
                     Preview player
                   </Button>
                 </Link>
@@ -2326,7 +2357,7 @@ export function LandingView() {
               <div className="space-y-2.5">
                 {compactMissionQueue.length > 0 ? compactMissionQueue.map((record, index) => (
                   <Link key={`${record.href}-${record.title}`} href={record.href}>
-                    <button type="button" className="flex w-full items-center justify-between gap-4 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/85 px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32 hover:bg-white">
+                    <button type="button" className="flex w-full flex-col items-start justify-between gap-3 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/85 px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32 hover:bg-white sm:flex-row sm:items-center sm:gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">{index + 1}</span>
@@ -2335,7 +2366,7 @@ export function LandingView() {
                         <p className="mt-2 line-clamp-1 text-sm font-semibold text-[#1B303C]">{record.title}</p>
                         <p className="mt-1 line-clamp-1 text-xs leading-5 text-[#4A6373]">{record.subtitle}</p>
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="shrink-0 text-left sm:text-right">
                         <p className="text-sm font-semibold text-[#1B303C]">{index % 3 === 0 ? "61% complete" : index % 3 === 1 ? "Start now" : "Review"}</p>
                         <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#6B7E8A]">{record.cta}</p>
                       </div>
@@ -2401,7 +2432,7 @@ export function LandingView() {
           </div>
 
           <TabsContent value="overview" className="mt-0">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.06fr)_minmax(320px,0.94fr)]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.06fr)_minmax(320px,0.94fr)]">
               <div className="grid gap-4 md:grid-cols-3">
                 <MetricCard label="Live queue" value="6 visible" supporting="Compressed browse rows show status, runtime, and next action in one scan path." icon={<Layers3 className="h-5 w-5 text-cyan-300" />} />
                 <MetricCard label="Mission pace" value="1-screen launch" supporting="Search and launch controls stay inside the first shell rather than below long narrative sections." icon={<Gauge className="h-5 w-5 text-cyan-300" />} />
@@ -6915,6 +6946,19 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
     supervisorEmail: data.executive.email,
     managerOfSupervisorEmail: data.executive.email,
   };
+  const buildExecutiveTrainingTargetPath = (entry: { assetId?: string; assetTitle?: string; journeyId?: string; moduleId?: string }) => buildTrainingLaunchPath({
+    asset: entry.assetId || entry.assetTitle ? { id: entry.assetId, title: entry.assetTitle } : undefined,
+    role: "executive",
+    journeyId: entry.journeyId,
+    moduleId: entry.moduleId,
+  });
+  const buildExecutiveLibraryTargetPath = (entry: { assetId?: string; assetTitle?: string; journeyId?: string; moduleId?: string }) => buildLibraryDetailPath({
+    assetId: entry.assetId,
+    assetTitle: entry.assetTitle,
+    role: "executive",
+    journeyId: entry.journeyId,
+    moduleId: entry.moduleId,
+  });
 
   return (
     <div className="space-y-6">
@@ -7197,6 +7241,14 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                       </div>
                       <p className="mt-4 text-sm leading-6 text-slate-300">{entry.trend}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended coaching action:</span> {entry.coachingAction}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Link href={buildExecutiveTrainingTargetPath(entry)}>
+                          <Button variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/12 hover:text-white">Open exact module</Button>
+                        </Link>
+                        <Link href={buildExecutiveLibraryTargetPath(entry)}>
+                          <Button variant="outline" className="w-full rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-50 hover:bg-cyan-400/18 hover:text-cyan-50 sm:w-auto">Review source detail</Button>
+                        </Link>
+                      </div>
                     </div>
                   );
                 })}
@@ -7220,6 +7272,19 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                       </div>
                       <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Observed change:</span> {entry.behaviorChange}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Escalation path:</span> {entry.recommendedEscalation}</p>
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+                        <span>Completion rate {entry.completionRate}</span>
+                        <span>·</span>
+                        <span>Exact-target tracking enabled</span>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Link href={buildExecutiveTrainingTargetPath(entry)}>
+                          <Button variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/12 hover:text-white">Open exact module</Button>
+                        </Link>
+                        <Link href={buildExecutiveLibraryTargetPath(entry)}>
+                          <Button variant="outline" className="w-full rounded-full border-amber-400/20 bg-amber-400/10 text-amber-50 hover:bg-amber-400/18 hover:text-amber-50 sm:w-auto">Review source detail</Button>
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </CardContent>
@@ -7570,7 +7635,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
               <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
             </div>
-            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the supervision lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." />
+            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the supervision lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
             <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="coach" learnerName={data.directLearner.name} onUpdated={onUpdated} />
           </CardContent>
         </PremiumCard>
@@ -7777,8 +7842,8 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coach-oversight")} actionLabel="Review coach oversight" />
       </div>
 
-      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-amber-400/18 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] xl:items-start">
+      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-amber-400/18 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-4 py-5 shadow-[0_26px_80px_rgba(8,15,35,0.24)] sm:px-5 md:px-6 md:py-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <Badge className="mission-chip rounded-full border-amber-300/20 bg-amber-300/12 text-amber-50">Manager operations mission</Badge>
@@ -7803,7 +7868,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         </div>
       </div>
 
-      <div id="manager-signal-trend" className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] scroll-mt-24">
+      <div id="manager-signal-trend" className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] scroll-mt-24">
         <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
@@ -8002,7 +8067,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                             </div>
                           </div>
                         </div>
-                        <RetrainingHistorySection title="Targeted retraining history" description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane." assignments={filteredHistory} emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`} />
+                        <RetrainingHistorySection title="Targeted retraining history" description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane." assignments={filteredHistory} emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`} launchRole="manager" />
                       </div>
                     </div>
                   );
@@ -8253,9 +8318,9 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
           </div>
         </div>
 
-        <TabsContent value="journey" className="mt-0 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+        <TabsContent value="journey" className="mt-0 grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
           <PremiumCard className="overflow-hidden">
-            <CardContent className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
+            <CardContent className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
               <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
@@ -8326,7 +8391,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                 ))}
               </CardContent>
             </PremiumCard>
-            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Review what was already finished before the next intervention starts." assignments={retrainingHistory} /> : null}
+            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Review what was already finished before the next intervention starts." assignments={retrainingHistory} launchRole="learner" /> : null}
             <WorkflowLibraryPanel title="Journey resource mix" description="Your learning path can now blend CHCG core modules with tenant-provided launch or compliance materials." resources={data.workflowLibraryMix.journeyResources} />
           </div>
         </TabsContent>

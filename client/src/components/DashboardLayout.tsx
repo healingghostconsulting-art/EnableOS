@@ -343,7 +343,7 @@ function DashboardLayoutContent({
                         <p className="mt-1 text-[13px] leading-5 text-[#4A6373] xl:text-[13.5px]">{subtitle}</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Mode</p>
                         <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Live</p>
@@ -409,7 +409,8 @@ function DashboardLayoutContent({
 
           <SidebarFooter className="border-t border-[#1B303C]/10 p-3">
             {!isCollapsed ? (
-              <div className="mb-3 grid grid-cols-3 gap-2 rounded-[1.5rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-3.5 text-[#1B303C]">
+                  <div className="mb-3 grid grid-cols-1 gap-2 rounded-[1.5rem] border border-[#1B303C]/10 bg-[#F7F8FA] p-3.5 text-[#1B303C] sm:grid-cols-3">
+
                 <div>
                   <div className="flex items-center gap-1 text-[#4A6373]"><Compass className="h-3.5 w-3.5" /><span className="text-[11px] uppercase tracking-[0.2em]">Nav</span></div>
                   <p className="mt-1.5 text-[15px] font-medium">Clear</p>
@@ -475,7 +476,7 @@ function DashboardLayoutContent({
           </button>
         ) : null}
         {isMobile ? (
-          <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#1B303C]/10 bg-white/92 px-3 backdrop-blur-xl">
+          <div className="sticky top-0 z-40 flex min-h-16 items-center justify-between border-b border-[#1B303C]/10 bg-white/92 px-3 py-2 backdrop-blur-xl">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-9 w-9 rounded-xl border border-[#1B303C]/10 bg-[#F7F8FA] text-[#1B303C]" />
               <div>
@@ -485,10 +486,10 @@ function DashboardLayoutContent({
             </div>
           </div>
         ) : (
-          <div className="sticky top-0 z-30 px-4 pt-4 md:px-7 xl:px-8">
+          <div className="sticky top-0 z-30 px-3 pt-3 sm:px-4 sm:pt-4 md:px-6 xl:px-8">
             <div className={useCompactWorkspaceHeader ? "command-band px-4 py-3 md:px-5 md:py-4" : "command-band px-4 py-4 md:px-5 md:py-5"}>
               {useCompactWorkspaceHeader ? (
-                <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                   <div className="min-w-0 space-y-2">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
@@ -500,7 +501,7 @@ function DashboardLayoutContent({
                       <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{commandSignal.next}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 xl:max-w-[34rem] xl:justify-end">
+                  <div className="flex flex-wrap gap-2 lg:max-w-[34rem] lg:justify-end">
                     <div className="command-pill flex items-center gap-2 px-3 py-2 text-[11px] text-[#1B303C]">
                       <Compass className="h-3.5 w-3.5 text-[#4A6373]" />
                       <span className="uppercase tracking-[0.16em] text-[#6B7E8A]">{commandSignal.focus}</span>
@@ -512,7 +513,7 @@ function DashboardLayoutContent({
                   </div>
                 </div>
               ) : (
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.8fr)] xl:items-center">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.8fr)] lg:items-center">
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Badge className="command-pill px-3 py-1 text-[10px] uppercase tracking-[0.26em] text-[#1B303C]">{commandSignal.eyebrow}</Badge>
@@ -529,7 +530,7 @@ function DashboardLayoutContent({
                       </div>
                     </div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     <div className="trophy-card px-4 py-3.5">
                       <div className="flex items-center gap-2 text-[#4A6373]">
                         <Compass className="h-4 w-4" />
@@ -557,7 +558,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className={`flex-1 p-4 pt-5 md:p-7 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>
+        <main className={`flex-1 p-3 pt-4 sm:p-4 sm:pt-5 md:p-6 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>
       </SidebarInset>
     </>
   );

@@ -448,3 +448,9 @@
 - [x] Expand the mapped curriculum migration across the remaining seven-module training families so each major Content Missions path carries explicit journey, module, and curriculum-viewer alignment.
 - [x] Reconcile library assets, training presets, and launch-target helpers so the broader curriculum catalog opens with consistent module-aware deck context instead of fallback states.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the broader curriculum-migration slice.
+- [x] Extend exact-target launch treatment into reporting and assignment analytics so clicks preserve the precise journey, module, and asset context for tracking and follow-through.
+- [x] Reconcile reporting and assignment analytics drill-down flows with the existing Content Missions and Training Zone target-resolution helpers so analytics launches avoid generic fallback routes.
+- [x] Confirm and begin the next approved CHCG EnableOS development-plan step immediately after the analytics-targeting slice is validated.
+- [x] Run the next approved product-wide UI consistency pass so the primary CHCG EnableOS workspaces share tighter spacing, card hierarchy, CTA treatment, and launch affordances.
+- [x] Improve tablet and mobile responsiveness across the mission hub, reporting, and assignment-heavy workspaces so dense operational cards stay readable and actionable below desktop widths.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the UI consistency and responsiveness slice.

@@ -120,7 +120,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
   });
 
-  it("keeps executive question reporting visible with peer comparison and high-alert language", () => {
+  it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
     expect(trainingViewSource).toContain("Client reporting workspace");
     expect(trainingViewSource).toContain("Assessment question reporting");
     expect(trainingViewSource).toContain("Miss rate");
@@ -129,6 +129,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Recommended coaching action:");
     expect(trainingViewSource).toContain("Retry dependency");
     expect(trainingViewSource).toContain("High alert");
+    expect(trainingViewSource).toContain("Review source detail");
+    expect(trainingViewSource).toContain("buildExecutiveTrainingTargetPath");
+    expect(trainingViewSource).toContain("buildExecutiveLibraryTargetPath");
   });
 
   it("keeps tenure-aware lifecycle reporting visible for staged cohort comparison", () => {
@@ -142,7 +145,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("peer position");
   });
 
-  it("keeps executive proof-of-impact evidence visible without causal overclaiming", () => {
+  it("keeps executive proof-of-impact evidence visible without causal overclaiming and routes repeat assignments into exact targets", () => {
     expect(trainingViewSource).not.toContain("Peer benchmark watch");
     expect(trainingViewSource).toContain("Repeat-module escalation watch");
     expect(trainingViewSource).toContain("Coaching consistency reporting");
@@ -154,6 +157,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Sustained readiness evidence");
     expect(trainingViewSource).toContain("Evidence note:");
     expect(trainingViewSource).toContain("without overstating causation");
+    expect(trainingViewSource).toContain("Exact-target tracking enabled");
+    expect(trainingViewSource).toContain("Review exact module");
+    expect(trainingViewSource).toContain("launchRole=\"manager\"");
   });
 
   it("keeps reporting available as a dedicated workspace with interactive trend charts", () => {
