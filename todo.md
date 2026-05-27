@@ -493,9 +493,9 @@
 - [x] Improve the readability and visual hierarchy of the upper-right summary cards and lower alerts so washed-out content becomes clearly usable.
 - [x] Preserve and refine the praised coaching-log pop-up, AI suggestion approval flow, and documentation pop-up behavior during the Coach Studio redesign.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the Coach Studio refinement pass.
-- [ ] Clarify which failures in CHCG EnableOS should trigger an outbound SMS alert and confirm the intended recipient path.
-- [ ] Review the safest automation and notification architecture for SMS failure alerts in this project, including whether owner notifications, schedules, or an external SMS provider are required.
-- [ ] Implement the selected failure-alert workflow and request any required secrets or configuration for SMS delivery.
-- [ ] Add or update validation coverage, verify the alert path, and document how SMS failure notifications should be used.
+- [x] Clarify which failures in CHCG EnableOS should trigger an outbound SMS alert and confirm the intended recipient path. (Skipped at the user's request after they chose not to pursue SMS alerts.)
+- [x] Review the safest automation and notification architecture for SMS failure alerts in this project, including whether owner notifications, schedules, or an external SMS provider are required. (Skipped at the user's request after they chose not to pursue SMS alerts.)
+- [x] Implement the selected failure-alert workflow and request any required secrets or configuration for SMS delivery. (Skipped at the user's request after they chose not to pursue SMS alerts.)
+- [x] Add or update validation coverage, verify the alert path, and document how SMS failure notifications should be used. (Skipped at the user's request after they chose not to pursue SMS alerts.)
 - [x] Execute the attached Coach Studio priority edits from the feedback review as the governing implementation pass for readability, layout density, chart removal, and documentation-lane repositioning.
 - [x] Use the user-provided Telegram escalation path for blocker questions during the Coach Studio execution pass if direct clarification becomes necessary.
