@@ -77,17 +77,17 @@ describe("demo router", () => {
     expect(executive.questionReporting).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          module: "Workflow verification essentials",
+          module: "QA Calibration and Fair Score Interpretation",
           alert: "high",
           missRate: 42,
           peerPercentile: 18,
           firstPassSuccess: 48,
           retryDependency: 29,
           attemptsLast14Days: 64,
-          skillDomain: "Verification discipline",
+          skillDomain: "Evaluation rigor",
           assetId: "library-workflow-precision-kit",
           journeyId: "journey-workflow-precision",
-          moduleId: "mod-wp-1",
+          moduleId: "mod-wp-3",
         }),
       ]),
     );
@@ -124,10 +124,10 @@ describe("demo router", () => {
         expect.objectContaining({
           learner: "Nina Patel",
           assignmentCount: 3,
-          module: "Workflow verification essentials",
+          module: "QA Calibration and Fair Score Interpretation",
           assetId: "library-workflow-precision-kit",
           journeyId: "journey-workflow-precision",
-          moduleId: "mod-wp-1",
+          moduleId: "mod-wp-3",
         }),
       ]),
     );
