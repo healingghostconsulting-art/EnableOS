@@ -2839,6 +2839,7 @@ export function TrainingExperienceView() {
   const [slideInteractionResult, setSlideInteractionResult] = useState<any | null>(null);
   const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
+  const [knowledgeCheckSuccessSoundMuted, setKnowledgeCheckSuccessSoundMuted] = useState(false);
 
   const armTimedChallengeWindow = () => {
     if (currentSlideInteraction?.kind !== "timed_challenge") {
@@ -2860,6 +2861,8 @@ export function TrainingExperienceView() {
   const trainingProgressHydratedRef = useRef(false);
   const trainingRoleFilterHydratedRef = useRef(false);
   const pendingLearnerReturnPathRef = useRef<string | null>(null);
+  const knowledgeCheckAudioContextRef = useRef<AudioContext | null>(null);
+  const previousKnowledgeCheckCelebrationRef = useRef(false);
 
   useEffect(() => {
     setModuleIndex(0);
@@ -3359,11 +3362,27 @@ export function TrainingExperienceView() {
   const contextualDeckVisual = stageVisuals[Math.min(lessonPageIndex, Math.max(stageVisuals.length - 1, 0))] ?? featuredDeckVisual;
   const currentSlideInteraction = buildSlideInteraction(currentLessonPage, selectedModule?.skillFocus ?? "", lessonPageIndex);
   const slideInteractionPassed = Boolean(slideInteractionResult?.passed);
+  const slideInteractionCelebrationActive = slideInteractionSubmitted && slideInteractionPassed;
   const slideInteractionProgress = currentSlideInteraction?.kind === "click_to_reveal"
     ? Math.round((revealedCardIds.length / Math.max(currentSlideInteraction.revealCards?.length ?? 1, 1)) * 100)
     : (slideInteractionResult?.score ?? 0);
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
+
+  useEffect(() => {
+    if (slideInteractionCelebrationActive && !previousKnowledgeCheckCelebrationRef.current && !knowledgeCheckSuccessSoundMuted) {
+      playCorrectAnswerSuccessSound(knowledgeCheckAudioContextRef);
+    }
+
+    previousKnowledgeCheckCelebrationRef.current = slideInteractionCelebrationActive;
+  }, [knowledgeCheckSuccessSoundMuted, slideInteractionCelebrationActive]);
+
+  useEffect(() => () => {
+    if (knowledgeCheckAudioContextRef.current && knowledgeCheckAudioContextRef.current.state !== "closed") {
+      void knowledgeCheckAudioContextRef.current.close();
+      knowledgeCheckAudioContextRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !trainingProgressStorageKey || !modules.length || !stages.length) {
@@ -4705,6 +4724,16 @@ export function TrainingExperienceView() {
                                         <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white" onClick={resetSlideInteractionForRetry}>
                                           Review lesson and retry
                                         </Button>
+
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white"
+                                          onClick={() => setKnowledgeCheckSuccessSoundMuted((current) => !current)}
+                                        >
+                                          {knowledgeCheckSuccessSoundMuted ? <VolumeX className="mr-2 h-4 w-4" /> : <Volume2 className="mr-2 h-4 w-4" />}
+                                          {knowledgeCheckSuccessSoundMuted ? "Knowledge-check sound muted" : "Knowledge-check sound on"}
+                                        </Button>
                                       </div>
 
                                       {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? (
@@ -4712,13 +4741,20 @@ export function TrainingExperienceView() {
                                       ) : null}
                                     </div>
                                     {slideInteractionSubmitted && slideInteractionResult ? (
-                                      <div className={`mt-4 rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
+                                      <div className={`relative mt-4 overflow-hidden rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
+                                        <CorrectAnswerCelebration active={slideInteractionCelebrationActive} compact />
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <div>
                                             <p className={`text-[11px] uppercase tracking-[0.22em] ${slideInteractionPassed ? "text-emerald-200/85" : "text-amber-200/85"}`}>Knowledge-check result</p>
                                             <p className={`mt-2 text-lg font-semibold ${slideInteractionPassed ? "text-emerald-50" : "text-amber-50"}`}>{slideInteractionResult.score}% · {slideInteractionPassed ? "Passed" : "Retry required"}</p>
                                           </div>
-                                          <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-300/30 bg-emerald-300/18 text-emerald-50" : "border-amber-300/30 bg-amber-300/18 text-amber-50"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <Badge className={`rounded-full ${slideInteractionPassed ? "border-emerald-300/30 bg-emerald-300/18 text-emerald-50" : "border-amber-300/30 bg-amber-300/18 text-amber-50"}`}>{slideInteractionPassed ? currentSlideInteraction.successMessage : currentSlideInteraction.retryMessage}</Badge>
+                                            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium ${knowledgeCheckSuccessSoundMuted ? "bg-slate-800/80 text-slate-200" : "bg-emerald-300/18 text-emerald-50"}`}>
+                                              {knowledgeCheckSuccessSoundMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                                              {knowledgeCheckSuccessSoundMuted ? "Knowledge-check sound muted" : "Knowledge-check sound ready"}
+                                            </div>
+                                          </div>
                                         </div>
                                         {slideInteractionResult.strengths?.length ? (
                                           <div className="mt-3 space-y-2 text-sm leading-6 text-emerald-100">

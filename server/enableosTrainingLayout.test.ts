@@ -246,9 +246,13 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Retry required");
     expect(trainingViewSource).toContain("CorrectAnswerCelebration");
     expect(trainingViewSource).toContain("playCorrectAnswerSuccessSound");
+    expect(trainingViewSource).toContain("slideInteractionCelebrationActive");
     expect(trainingViewSource).toContain("Success sound");
     expect(trainingViewSource).toContain("Success sound muted");
     expect(trainingViewSource).toContain("Sound ready");
+    expect(trainingViewSource).toContain("Knowledge-check sound on");
+    expect(trainingViewSource).toContain("Knowledge-check sound muted");
+    expect(trainingViewSource).toContain("Knowledge-check sound ready");
     expect(trainingViewSource).toContain("enableos-confetti-fall");
     expect(trainingViewSource).toContain("enableos-balloon-float");
     expect(trainingViewSource).toContain("compact");

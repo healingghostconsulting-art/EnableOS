@@ -460,3 +460,6 @@
 - [x] Add a subtle success sound effect that plays when a learner answers a training question correctly.
 - [x] Add a learner-facing mute toggle so the correct-answer sound can be turned off without affecting the visual celebration or assessment flow.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the correct-answer success sound enhancement.
+- [x] Fix the learner celebration bug so balloons, confetti, and the correct-answer success sound fire on every active knowledge check across all quizzes, including Soft Skills, QA, and other module families.
+- [x] Reconcile the global learner quiz answer-result flow so celebration triggers attach to each correct knowledge-check outcome instead of only a subset of quiz surfaces.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the global knowledge-check celebration bug fix.
