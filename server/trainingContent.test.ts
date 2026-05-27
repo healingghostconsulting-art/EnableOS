@@ -253,6 +253,94 @@ describe("getTrainingPresentation", () => {
     expect(cultureRhythmPresentation.resourceActions[0]?.label).toBe("Cadence map");
   });
 
+  it("returns curated third-module curriculum presentations for the next roadmap-depth tranche", () => {
+    const workflowCalibrationPresentation = getTrainingPresentation(
+      {
+        id: "mod-wp-3",
+        title: "QA Calibration and Fair Score Interpretation",
+        format: "Checklist",
+        durationMinutes: 6,
+        skillFocus: "Evaluation rigor",
+      },
+      "Quality Assurance Essentials",
+      "Coaching consistency on workflow accuracy and documentation",
+    );
+    const accountabilityConversationPresentation = getTrainingPresentation(
+      {
+        id: "mod-rtc-3",
+        title: "Learning Styles and Accountability Conversations",
+        format: "Scenario",
+        durationMinutes: 10,
+        skillFocus: "Personalized coaching and ownership",
+      },
+      "Real-time Coaching",
+      "Consistent field coaching with observable follow-through",
+    );
+    const reportingValidationPresentation = getTrainingPresentation(
+      {
+        id: "mod-dl-3",
+        title: "Validating Conclusions and Building Better Reports",
+        format: "Checklist",
+        durationMinutes: 8,
+        skillFocus: "Decision-ready data review",
+      },
+      "Unlocking the Power of Data",
+      "Intervention-to-outcome visibility",
+    );
+    const reassuranceTrustPresentation = getTrainingPresentation(
+      {
+        id: "mod-lfs-3",
+        title: "Reassurance phrases that build trust",
+        format: "Playbook",
+        durationMinutes: 10,
+        skillFocus: "Trust-building",
+      },
+      "Soft Skills & Customer/Patient Service Foundation",
+      "Professional confidence in regulated conversations",
+    );
+    const tailoredPlanPresentation = getTrainingPresentation(
+      {
+        id: "mod-lfp-3",
+        title: "Tailored Performance Plans and Leadership Rituals",
+        format: "Checklist",
+        durationMinutes: 9,
+        skillFocus: "Performance planning and follow-through",
+      },
+      "Utilizing Performance Management to Maximize Results",
+      "Performance segmentation without bias",
+    );
+    const engagementIterationPresentation = getTrainingPresentation(
+      {
+        id: "mod-hce-3",
+        title: "Measuring Engagement and Iterating the Program",
+        format: "Checklist",
+        durationMinutes: 8,
+        skillFocus: "Continuous improvement",
+      },
+      "Gamification for Remote Teams: Engaging and Empowering Leaders",
+      "Recognition rhythm for hybrid teams",
+    );
+
+    expect(workflowCalibrationPresentation.heroTitle).toBe("Calibration habits that make QA scoring fair");
+    expect(workflowCalibrationPresentation.applySlides.map((slide) => slide.title)).toContain("How to prove calibration improved the decision");
+    expect(workflowCalibrationPresentation.finalQuiz.questions).toHaveLength(5);
+
+    expect(accountabilityConversationPresentation.heroTitle).toBe("Accountability conversations that match the learner");
+    expect(accountabilityConversationPresentation.slides.map((slide) => slide.title)).toContain("What personalized accountability actually sounds like");
+
+    expect(reportingValidationPresentation.heroTitle).toBe("Validating data stories before leaders act on them");
+    expect(reportingValidationPresentation.resourceActions[0]?.label).toBe("Validation sequence guide");
+
+    expect(reassuranceTrustPresentation.heroTitle).toBe("Reassurance language that protects trust under pressure");
+    expect(reassuranceTrustPresentation.practiceScenario.successSignals[1]).toContain("next step");
+
+    expect(tailoredPlanPresentation.evidenceLabel).toContain("tailored performance-plan lesson");
+    expect(tailoredPlanPresentation.slides.map((slide) => slide.title)).toContain("What a tailored performance plan must include");
+
+    expect(engagementIterationPresentation.heroTitle).toBe("Measuring engagement so the program keeps improving");
+    expect(engagementIterationPresentation.resourceActions[0]?.label).toBe("Engagement metrics planner");
+  });
+
   it("builds a fallback workflow lesson with QA visuals and weighted scoring charts when the module points to quality operations", () => {
     const presentation = getTrainingPresentation(
       {

@@ -1,0 +1,9 @@
+- pnpm test — run the full Vitest suite.
+- pnpm exec vitest run server/trainingContent.test.ts — focused curriculum-mapping regression.
+- pnpm exec vitest run server/enableosTrainingLayout.test.ts — focused learner training layout and preference/regression checks.
+- pnpm exec tsc --noEmit — project type validation.
+- pnpm drizzle-kit generate — generate migration SQL after schema edits; inspect generated SQL before applying outside Serena.
+- grep -n "pattern" server/... shared/... client/... — quick shell search when semantic lookup is not necessary.
+- tail -n 120 /tmp/<logfile> — inspect recent validation output saved from test or typecheck runs.
+- manus-mcp-cli tool list --server serena — inspect available Serena tools.
+- manus-mcp-cli tool call <tool_name> --server serena --input '<json>' — invoke Serena semantic retrieval or editing tools from the project root.

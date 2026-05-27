@@ -1,0 +1,8 @@
+- Keep todo.md as the durable task ledger; append new unchecked items for every new user-requested feature or bug before implementation and mark them complete immediately after validation.
+- Prefer editing feature files listed by the template and avoid framework internals under server/_core unless the task truly extends infrastructure.
+- Curriculum depth convention: use dedicated module-aware mappings in shared/trainingContent.ts for production-depth modules; preserve the lesson/practice/apply/checkpoint/final-quiz contract rather than creating ad hoc structures.
+- Launch-context convention: journey/module IDs in server/demoPlatform.ts are the stable keys that must stay aligned with training launches, reporting, analytics, and learner return paths.
+- Test convention: even when source logic lives under shared/, regression coverage often belongs in server/*.test.ts because that is what Vitest runs by default in this project.
+- Editing convention: prefer narrow, high-signal changes that preserve existing role-based UX and module-family naming; avoid broad rewrites when adding the next curriculum tranche.
+- Validation convention: do not treat browser preview or health views as a substitute for Vitest and TypeScript checks.
+- Delivery convention: verify todo accuracy before checkpointing, then save a checkpoint before handing significant webdev work back to the user.

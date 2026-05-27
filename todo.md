@@ -470,3 +470,8 @@
 - [x] Save learner sound and motion preferences so celebration audio and animation settings persist across sessions.
 - [x] Reconcile the learner training settings flow so persisted sound and motion preferences load correctly for every quiz and knowledge-check surface.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the persisted learner preference enhancement.
+- [x] Perform a fresh end-to-end scope audit for the full seven-family curriculum migration and identify every remaining production-depth gap across learner and leadership tracks.
+- [x] Use semantic codebase analysis to map the current training-content architecture, module-family coverage, launch wiring, and fallback seams before implementing the next tranche.
+- [x] Implement the next full production-depth curriculum tranche for the remaining unmapped module-depth gaps across learner and leadership families.
+- [ ] Reconcile curriculum launches, module-detail views, training-player surfaces, and analytics context so the expanded tranche stays aligned across the LMS.
+- [x] Extend regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the broader production-depth curriculum migration pass.

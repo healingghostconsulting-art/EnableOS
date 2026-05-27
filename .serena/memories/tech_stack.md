@@ -1,0 +1,9 @@
+- Language: TypeScript across client, server, shared, and tests.
+- Frontend: React 19 with Vite; Tailwind CSS 4; shadcn-style UI components under client/src/components/ui.
+- Backend: Express 4 + tRPC 11; Manus OAuth/auth context already wired under server/_core.
+- Data layer: Drizzle schema and generated SQL migrations; project has db, server, and user features enabled.
+- Package manager and scripts: pnpm.
+- Testing: Vitest; include pattern is server/**/*.test.ts and server/**/*.spec.ts.
+- Type validation commonly uses pnpm exec tsc --noEmit.
+- Shared curriculum and training-player logic lives in shared/ and is usually validated through server-side regression suites.
+- Platform/runtime constraint: single Node.js process deployment; avoid non-Node runtime assumptions and long-lived background workers in app code.

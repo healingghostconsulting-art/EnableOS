@@ -1,0 +1,5 @@
+- Minimum validation for code changes: pnpm exec tsc --noEmit and pnpm test.
+- If curriculum mappings or learner-training UI behavior changed, also run the most relevant focused Vitest file (commonly server/trainingContent.test.ts or server/enableosTrainingLayout.test.ts) before the full suite.
+- After impactful web changes, refresh project health through the managed status check before reporting completion.
+- Before checkpointing, review todo.md and ensure completed items are marked [x].
+- Before handing work back in the webdev flow, save a checkpoint so the user can review or restore the exact validated state.

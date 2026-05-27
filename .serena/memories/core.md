@@ -1,0 +1,10 @@
+- Managed web app at /home/ubuntu/chcg-enableos-demo.
+- Read `mem:tech_stack` for framework/runtime/package-manager details.
+- Read `mem:conventions` before editing curriculum, training-player, routing, or tests.
+- Read `mem:task_completion` before declaring a coding task done.
+- Primary curriculum seam: shared/trainingContent.ts builds module presentations; dedicated production-depth mappings live in trainingPresentationByModuleId and buildExpandedCurriculumMigrationPresentation. Unmapped modules fall back to generated family-based lessons.
+- Primary seeded demo/source-of-truth inventory: server/demoPlatform.ts defines journey/module IDs used by routing, launch context, analytics, and LMS previews.
+- Runtime test seam: Vitest executes server/**/*.test.ts; server-side regression files often validate shared curriculum behavior even when source lives under shared/.
+- Project workflow invariant: keep todo.md updated for every new feature or bug request; mark items complete immediately after validation; save checkpoints before handing work back.
+- Web framework invariant: avoid editing server/_core unless extending infrastructure; most feature work belongs in client/src/pages, client/src/components, server/routers.ts, server/db.ts, shared/, and drizzle/schema.ts.
+- Training-product invariant: learner and leadership experiences depend on module-aware launch context, guided lesson slides, required checkpoints, and high-threshold final quizzes, so curriculum edits must preserve those contracts across all surfaces.
