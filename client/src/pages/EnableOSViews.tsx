@@ -95,7 +95,125 @@ type PersistedTrainingProgress = {
   coachCheckpointSubmitted: boolean;
 };
 
+type PersistedLearnerFeedbackPreferences = {
+  successSoundMuted: boolean;
+  reducedMotion: boolean;
+};
+
 const TRAINING_PROGRESS_STORAGE_PREFIX = "chcg-enableos-training-progress";
+const LEARNER_FEEDBACK_PREFERENCES_STORAGE_PREFIX = "chcg-enableos-learner-feedback";
+
+export function buildLearnerFeedbackPreferencesStorageKey({
+  tenantId,
+  requestedRoleFilter,
+}: {
+  tenantId?: string | null;
+  requestedRoleFilter?: DemoRole | null;
+}) {
+  return [
+    LEARNER_FEEDBACK_PREFERENCES_STORAGE_PREFIX,
+    tenantId ?? "tenantless",
+    `role=${requestedRoleFilter ?? "learner"}`,
+  ].join(":");
+}
+
+export function normalizePersistedLearnerFeedbackPreferences(parsed: Partial<PersistedLearnerFeedbackPreferences>) {
+  return {
+    successSoundMuted: Boolean(parsed.successSoundMuted),
+    reducedMotion: Boolean(parsed.reducedMotion),
+  };
+}
+
+export function readMotionPreferenceFromMediaQuery() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function loadLearnerFeedbackPreferences(
+  storageKey: string,
+  fallbackReducedMotion = false,
+): PersistedLearnerFeedbackPreferences {
+  if (typeof window === "undefined") {
+    return {
+      successSoundMuted: false,
+      reducedMotion: fallbackReducedMotion,
+    };
+  }
+
+  const savedPreferences = window.localStorage.getItem(storageKey);
+  if (!savedPreferences) {
+    return {
+      successSoundMuted: false,
+      reducedMotion: fallbackReducedMotion,
+    };
+  }
+
+  try {
+    return normalizePersistedLearnerFeedbackPreferences(JSON.parse(savedPreferences) as Partial<PersistedLearnerFeedbackPreferences>);
+  } catch {
+    window.localStorage.removeItem(storageKey);
+    return {
+      successSoundMuted: false,
+      reducedMotion: fallbackReducedMotion,
+    };
+  }
+}
+
+export function persistLearnerFeedbackPreferences(
+  storageKey: string,
+  preferences: PersistedLearnerFeedbackPreferences,
+) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(storageKey, JSON.stringify(preferences));
+}
+
+export function getLearnerFeedbackStatusLabel({
+  soundMuted,
+  reducedMotion,
+}: {
+  soundMuted: boolean;
+  reducedMotion: boolean;
+}) {
+  return `${soundMuted ? "Sound muted" : "Sound on"} · ${reducedMotion ? "Reduced motion" : "Motion on"}`;
+}
+
+export function getLearnerFeedbackStatusClass({
+  soundMuted,
+  reducedMotion,
+  mutedClass,
+  activeClass,
+}: {
+  soundMuted: boolean;
+  reducedMotion: boolean;
+  mutedClass: string;
+  activeClass: string;
+}) {
+  return soundMuted || reducedMotion ? mutedClass : activeClass;
+}
+
+export function getLearnerFeedbackDescription(reducedMotion: boolean) {
+  return reducedMotion
+    ? "Reduced motion keeps the success state visible while toning down balloons and confetti."
+    : "Celebration motion adds balloons and confetti when the learner clears the active knowledge check correctly.";
+}
+
+export function getLearnerFeedbackMotionLabel(reducedMotion: boolean) {
+  return reducedMotion ? "Celebration motion reduced" : "Celebration motion on";
+}
+
+export function getLearnerFeedbackMotionStatus(reducedMotion: boolean) {
+  return reducedMotion ? "Reduced motion" : "Motion ready";
+}
+
+export function getLearnerFeedbackMotionIcon(reducedMotion: boolean) {
+  return reducedMotion ? PauseCircle : Sparkles;
+}
 
 export function clampTrainingProgressIndex(value: number | null | undefined, upperBound: number) {
   const numeric = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : 0;
@@ -2840,6 +2958,7 @@ export function TrainingExperienceView() {
   const [revealedCardIds, setRevealedCardIds] = useState<string[]>([]);
   const [timerStartedAt, setTimerStartedAt] = useState<number | null>(null);
   const [knowledgeCheckSuccessSoundMuted, setKnowledgeCheckSuccessSoundMuted] = useState(false);
+  const [knowledgeCheckCelebrationMotionReduced, setKnowledgeCheckCelebrationMotionReduced] = useState(false);
 
   const armTimedChallengeWindow = () => {
     if (currentSlideInteraction?.kind !== "timed_challenge") {
@@ -2988,6 +3107,10 @@ export function TrainingExperienceView() {
     previewScenarioId,
     requestedFreshStart,
   }), [previewScenarioId, requestedAssignmentId, requestedFreshStart, requestedJourneyId, requestedModuleId, requestedRoleFilter, tenantId]);
+  const learnerFeedbackPreferencesStorageKey = useMemo(() => buildLearnerFeedbackPreferencesStorageKey({
+    tenantId,
+    requestedRoleFilter,
+  }), [requestedRoleFilter, tenantId]);
 
   useEffect(() => {
     setLessonPageIndex(0);
@@ -3368,6 +3491,20 @@ export function TrainingExperienceView() {
     : (slideInteractionResult?.score ?? 0);
   const narrationScript = buildLessonNarrationScript(currentLessonPage, presentation);
   const miniAudioBarTitle = currentLessonPage?.title ?? currentStage?.title ?? selectedModule?.title ?? "Lesson narration";
+
+  useEffect(() => {
+    const fallbackReducedMotion = readMotionPreferenceFromMediaQuery();
+    const preferences = loadLearnerFeedbackPreferences(learnerFeedbackPreferencesStorageKey, fallbackReducedMotion);
+    setKnowledgeCheckSuccessSoundMuted(preferences.successSoundMuted);
+    setKnowledgeCheckCelebrationMotionReduced(preferences.reducedMotion);
+  }, [learnerFeedbackPreferencesStorageKey]);
+
+  useEffect(() => {
+    persistLearnerFeedbackPreferences(learnerFeedbackPreferencesStorageKey, {
+      successSoundMuted: knowledgeCheckSuccessSoundMuted,
+      reducedMotion: knowledgeCheckCelebrationMotionReduced,
+    });
+  }, [knowledgeCheckCelebrationMotionReduced, knowledgeCheckSuccessSoundMuted, learnerFeedbackPreferencesStorageKey]);
 
   useEffect(() => {
     if (slideInteractionCelebrationActive && !previousKnowledgeCheckCelebrationRef.current && !knowledgeCheckSuccessSoundMuted) {
@@ -4734,6 +4871,16 @@ export function TrainingExperienceView() {
                                           {knowledgeCheckSuccessSoundMuted ? <VolumeX className="mr-2 h-4 w-4" /> : <Volume2 className="mr-2 h-4 w-4" />}
                                           {knowledgeCheckSuccessSoundMuted ? "Knowledge-check sound muted" : "Knowledge-check sound on"}
                                         </Button>
+
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          className="rounded-full border-white/12 bg-white/6 px-5 text-white hover:bg-white/12 hover:text-white"
+                                          onClick={() => setKnowledgeCheckCelebrationMotionReduced((current) => !current)}
+                                        >
+                                          {knowledgeCheckCelebrationMotionReduced ? <PauseCircle className="mr-2 h-4 w-4" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                          {getLearnerFeedbackMotionLabel(knowledgeCheckCelebrationMotionReduced)}
+                                        </Button>
                                       </div>
 
                                       {currentSlideInteraction.kind === "timed_challenge" && currentSlideInteraction.timeLimitSeconds ? (
@@ -4742,7 +4889,7 @@ export function TrainingExperienceView() {
                                     </div>
                                     {slideInteractionSubmitted && slideInteractionResult ? (
                                       <div className={`relative mt-4 overflow-hidden rounded-[1.45rem] border p-4 ${slideInteractionPassed ? "border-emerald-400/25 bg-emerald-500/10" : "border-amber-400/25 bg-amber-500/10"}`}>
-                                        <CorrectAnswerCelebration active={slideInteractionCelebrationActive} compact />
+                                        <CorrectAnswerCelebration active={slideInteractionCelebrationActive && !knowledgeCheckCelebrationMotionReduced} compact />
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <div>
                                             <p className={`text-[11px] uppercase tracking-[0.22em] ${slideInteractionPassed ? "text-emerald-200/85" : "text-amber-200/85"}`}>Knowledge-check result</p>
@@ -4754,8 +4901,23 @@ export function TrainingExperienceView() {
                                               {knowledgeCheckSuccessSoundMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
                                               {knowledgeCheckSuccessSoundMuted ? "Knowledge-check sound muted" : "Knowledge-check sound ready"}
                                             </div>
+                                            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium ${getLearnerFeedbackStatusClass({
+                                              soundMuted: false,
+                                              reducedMotion: knowledgeCheckCelebrationMotionReduced,
+                                              mutedClass: "bg-slate-800/80 text-slate-200",
+                                              activeClass: "bg-emerald-300/18 text-emerald-50",
+                                            })}`}>
+                                              {knowledgeCheckCelebrationMotionReduced ? <PauseCircle className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+                                              {getLearnerFeedbackMotionStatus(knowledgeCheckCelebrationMotionReduced)}
+                                            </div>
                                           </div>
-                                        </div>
+                                          </div>
+                                          <p className={`mt-3 text-xs leading-5 ${slideInteractionPassed ? "text-emerald-100/85" : "text-amber-100/85"}`}>
+                                            {getLearnerFeedbackStatusLabel({
+                                              soundMuted: knowledgeCheckSuccessSoundMuted,
+                                              reducedMotion: knowledgeCheckCelebrationMotionReduced,
+                                            })}. {getLearnerFeedbackDescription(knowledgeCheckCelebrationMotionReduced)}
+                                          </p>
                                         {slideInteractionResult.strengths?.length ? (
                                           <div className="mt-3 space-y-2 text-sm leading-6 text-emerald-100">
                                             {slideInteractionResult.strengths.map((strength: string) => <p key={strength}>{strength}</p>)}

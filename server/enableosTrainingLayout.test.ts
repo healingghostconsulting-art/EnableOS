@@ -1,12 +1,60 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { getBriefBoxPages, getBriefCompletionStatus, getModalCheckpointResetKey, getStageNavigatorLabel } from "../client/src/pages/EnableOSViews";
+import {
+  buildLearnerFeedbackPreferencesStorageKey,
+  getBriefBoxPages,
+  getBriefCompletionStatus,
+  getLearnerFeedbackDescription,
+  getLearnerFeedbackMotionLabel,
+  getLearnerFeedbackMotionStatus,
+  getLearnerFeedbackStatusLabel,
+  getModalCheckpointResetKey,
+  getStageNavigatorLabel,
+  loadLearnerFeedbackPreferences,
+  persistLearnerFeedbackPreferences,
+  readMotionPreferenceFromMediaQuery,
+} from "../client/src/pages/EnableOSViews";
+import { afterEach, vi } from "vitest";
 
 describe("learner training layout helpers", () => {
   const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
   const trainingViewSource = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
   const dashboardLayoutSource = readFileSync(join(process.cwd(), "client/src/components/DashboardLayout.tsx"), "utf8");
+
+  const createWindowStub = (
+    initialStorage: Record<string, string> = {},
+    reducedMotion = false,
+  ) => {
+    const storage = new Map(Object.entries(initialStorage));
+
+    return {
+      localStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          storage.set(key, value);
+        },
+        removeItem: (key: string) => {
+          storage.delete(key);
+        },
+      },
+      matchMedia: vi.fn().mockImplementation(() => ({
+        matches: reducedMotion,
+        media: "(prefers-reduced-motion: reduce)",
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn().mockReturnValue(false),
+      })),
+    } as unknown as Window & typeof globalThis;
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it("anchors the first brief window at the start of the stage", () => {
     const result = getBriefBoxPages(pages, 0);
@@ -57,6 +105,66 @@ describe("learner training layout helpers", () => {
     expect(getModalCheckpointResetKey({ id: "brief-6", assessmentKey: "briefCheckpoint" })).toBe("brief-6-briefCheckpoint");
     expect(getModalCheckpointResetKey({ id: "apply-2", assessmentKey: "applicationActivity" })).toBe("apply-2-applicationActivity");
     expect(getModalCheckpointResetKey(null)).toBe("default-none");
+  });
+
+  it("scopes learner feedback preference storage keys by tenant and role", () => {
+    expect(buildLearnerFeedbackPreferencesStorageKey({ tenantId: "tenant-west", requestedRoleFilter: "learner" })).toBe(
+      "chcg-enableos-learner-feedback:tenant-west:role=learner",
+    );
+    expect(buildLearnerFeedbackPreferencesStorageKey({ tenantId: null, requestedRoleFilter: null })).toBe(
+      "chcg-enableos-learner-feedback:tenantless:role=learner",
+    );
+    expect(buildLearnerFeedbackPreferencesStorageKey({ tenantId: "tenant-west", requestedRoleFilter: "manager" })).toBe(
+      "chcg-enableos-learner-feedback:tenant-west:role=manager",
+    );
+  });
+
+  it("loads and persists learner feedback preferences with reduced-motion fallback awareness", () => {
+    const storageKey = buildLearnerFeedbackPreferencesStorageKey({ tenantId: "tenant-west", requestedRoleFilter: "learner" });
+    const windowStub = createWindowStub({}, true);
+    vi.stubGlobal("window", windowStub);
+
+    expect(readMotionPreferenceFromMediaQuery()).toBe(true);
+    expect(loadLearnerFeedbackPreferences(storageKey, readMotionPreferenceFromMediaQuery())).toEqual({
+      successSoundMuted: false,
+      reducedMotion: true,
+    });
+
+    persistLearnerFeedbackPreferences(storageKey, {
+      successSoundMuted: true,
+      reducedMotion: false,
+    });
+
+    expect(windowStub.localStorage.getItem(storageKey)).toBe(JSON.stringify({
+      successSoundMuted: true,
+      reducedMotion: false,
+    }));
+    expect(loadLearnerFeedbackPreferences(storageKey, true)).toEqual({
+      successSoundMuted: true,
+      reducedMotion: false,
+    });
+  });
+
+  it("drops invalid learner feedback preference payloads and reverts to the provided motion fallback", () => {
+    const storageKey = buildLearnerFeedbackPreferencesStorageKey({ tenantId: "tenant-west", requestedRoleFilter: "learner" });
+    const windowStub = createWindowStub({ [storageKey]: "not-json" }, false);
+    vi.stubGlobal("window", windowStub);
+
+    expect(loadLearnerFeedbackPreferences(storageKey, true)).toEqual({
+      successSoundMuted: false,
+      reducedMotion: true,
+    });
+    expect(windowStub.localStorage.getItem(storageKey)).toBeNull();
+  });
+
+  it("returns explicit learner feedback status and motion-toggle copy for active and reduced celebration states", () => {
+    expect(getLearnerFeedbackStatusLabel({ soundMuted: false, reducedMotion: false })).toBe("Sound on · Motion on");
+    expect(getLearnerFeedbackStatusLabel({ soundMuted: true, reducedMotion: true })).toBe("Sound muted · Reduced motion");
+    expect(getLearnerFeedbackMotionLabel(false)).toBe("Celebration motion on");
+    expect(getLearnerFeedbackMotionLabel(true)).toBe("Celebration motion reduced");
+    expect(getLearnerFeedbackMotionStatus(false)).toBe("Motion ready");
+    expect(getLearnerFeedbackMotionStatus(true)).toBe("Reduced motion");
+    expect(getLearnerFeedbackDescription(true)).toContain("Reduced motion keeps the success state visible");
   });
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
