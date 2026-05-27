@@ -226,6 +226,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("composerProps: WeeklyCoachingLogComposerProps");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+    expect(trainingViewSource).toContain("Complete the remaining required coaching fields before saving");
+    expect(trainingViewSource).toContain("Attendance needs a short status note.");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {

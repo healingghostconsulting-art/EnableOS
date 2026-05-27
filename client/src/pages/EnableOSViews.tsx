@@ -6820,6 +6820,42 @@ function ReviewLogComposer({
   );
 }
 
+const WEEKLY_COACHING_MINIMUMS = {
+  attendance: 3,
+  followUpFromPrevious: 5,
+  coachingComments: 5,
+  smartGoalCommitment: 5,
+  additionalSupport: 3,
+} as const;
+
+function getWeeklyCoachingValidationMessages(input: {
+  attendance: string;
+  followUpFromPrevious: string;
+  coachingComments: string;
+  smartGoalCommitment: string;
+  additionalSupport: string;
+}) {
+  const validationMessages: string[] = [];
+
+  if (input.attendance.trim().length < WEEKLY_COACHING_MINIMUMS.attendance) {
+    validationMessages.push("Attendance needs a short status note.");
+  }
+  if (input.followUpFromPrevious.trim().length < WEEKLY_COACHING_MINIMUMS.followUpFromPrevious) {
+    validationMessages.push("Add a brief follow-up from the previous coaching.");
+  }
+  if (input.coachingComments.trim().length < WEEKLY_COACHING_MINIMUMS.coachingComments) {
+    validationMessages.push("Add at least a short coaching comment.");
+  }
+  if (input.smartGoalCommitment.trim().length < WEEKLY_COACHING_MINIMUMS.smartGoalCommitment) {
+    validationMessages.push("Add the coaching commitment or next step.");
+  }
+  if (input.additionalSupport.trim().length < WEEKLY_COACHING_MINIMUMS.additionalSupport) {
+    validationMessages.push("Add the support plan before saving.");
+  }
+
+  return validationMessages;
+}
+
 type WeeklyCoachingLogComposerProps = {
   tenantId: string;
   subjectUserId: string;
@@ -6856,7 +6892,21 @@ function WeeklyCoachingLogComposer({
   const [smartGoalCommitment, setSmartGoalCommitment] = useState("");
   const [additionalSupport, setAdditionalSupport] = useState("");
   const [agentTakeaways, setAgentTakeaways] = useState("");
-  const createWeeklyCoachingLog = trpc.demo.previewCreateWeeklyCoachingLog.useMutation({
+  const trimmedAttendance = attendance.trim();
+  const trimmedFollowUpFromPrevious = followUpFromPrevious.trim();
+  const trimmedCoachingComments = coachingComments.trim();
+  const trimmedSmartGoalCommitment = smartGoalCommitment.trim();
+  const trimmedAdditionalSupport = additionalSupport.trim();
+  const trimmedAgentTakeaways = agentTakeaways.trim();
+  const coachingValidationMessages = getWeeklyCoachingValidationMessages({
+    attendance: trimmedAttendance,
+    followUpFromPrevious: trimmedFollowUpFromPrevious,
+    coachingComments: trimmedCoachingComments,
+    smartGoalCommitment: trimmedSmartGoalCommitment,
+    additionalSupport: trimmedAdditionalSupport,
+  });
+  const canSaveWeeklyCoachingLog = coachingValidationMessages.length === 0;
+  const createWeeklyCoachingLog = trpc.demo.secureCreateWeeklyCoachingLog.useMutation({
     onSuccess: () => {
       setAttendance("");
       setFollowUpFromPrevious("");
@@ -6927,15 +6977,32 @@ function WeeklyCoachingLogComposer({
           <textarea value={agentTakeaways} onChange={(event) => setAgentTakeaways(event.target.value)} rows={3} placeholder="The agent's own response or take-aways can be entered now or added later from the learner view." className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`} />
         </label>
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-start gap-3">
         <Button
+          type="button"
           className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
-          disabled={createWeeklyCoachingLog.isPending || attendance.trim().length < 5 || followUpFromPrevious.trim().length < 10 || coachingComments.trim().length < 10 || smartGoalCommitment.trim().length < 10 || additionalSupport.trim().length < 5}
-          onClick={() => createWeeklyCoachingLog.mutate({ tenantId, subjectUserId, coachRole, sessionDate, attendance, followUpFromPrevious, coachingComments, smartGoalCommitment, additionalSupport, managerOfSupervisorEmail, agentTakeaways: agentTakeaways.trim() || undefined })}
+          disabled={createWeeklyCoachingLog.isPending || !canSaveWeeklyCoachingLog}
+          onClick={() => createWeeklyCoachingLog.mutate({
+            tenantId,
+            subjectUserId,
+            coachRole,
+            sessionDate,
+            attendance: trimmedAttendance,
+            followUpFromPrevious: trimmedFollowUpFromPrevious,
+            coachingComments: trimmedCoachingComments,
+            smartGoalCommitment: trimmedSmartGoalCommitment,
+            additionalSupport: trimmedAdditionalSupport,
+            managerOfSupervisorEmail,
+            agentTakeaways: trimmedAgentTakeaways || undefined,
+          })}
         >
           {createWeeklyCoachingLog.isPending ? "Saving..." : "Save weekly coaching log"}
         </Button>
-        {createWeeklyCoachingLog.isSuccess ? <span className="text-sm text-emerald-300">Weekly coaching log saved with learner and supervisor copy details.</span> : null}
+        <div className="space-y-1 text-sm">
+          {!canSaveWeeklyCoachingLog ? <p className="text-amber-200">Complete the remaining required coaching fields before saving: {coachingValidationMessages.join(" ")}</p> : null}
+          {createWeeklyCoachingLog.isError ? <p className="text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
+          {createWeeklyCoachingLog.isSuccess ? <p className="text-emerald-300">Weekly coaching log saved with learner and supervisor copy details.</p> : null}
+        </div>
       </div>
     </div>
   );
@@ -7018,7 +7085,7 @@ function WeeklyCoachingLogTimeline({
     agentTakeaways: string;
   }>>(() => buildStructuredLogDrafts(logs));
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
-  const updateTakeaways = trpc.demo.previewUpdateWeeklyCoachingTakeaways.useMutation({
+  const updateTakeaways = trpc.demo.secureUpdateWeeklyCoachingTakeaways.useMutation({
     onSuccess: () => {
       onUpdated?.();
     },
@@ -7056,11 +7123,8 @@ function WeeklyCoachingLogTimeline({
             additionalSupport: log.additionalSupport,
             agentTakeaways: log.agentTakeaways ?? "",
           };
-          const canSaveStructuredLog = structuredDraft.attendance.trim().length >= 5
-            && structuredDraft.followUpFromPrevious.trim().length >= 10
-            && structuredDraft.coachingComments.trim().length >= 10
-            && structuredDraft.smartGoalCommitment.trim().length >= 10
-            && structuredDraft.additionalSupport.trim().length >= 5;
+          const structuredValidationMessages = getWeeklyCoachingValidationMessages(structuredDraft);
+          const canSaveStructuredLog = structuredValidationMessages.length === 0;
 
           return (
             <div key={log.id} className="rounded-[1.7rem] border border-white/12 bg-slate-950/82 p-5 shadow-[0_22px_55px_rgba(2,8,23,0.28)]">
@@ -7163,8 +7227,9 @@ function WeeklyCoachingLogTimeline({
                       className={`min-h-[96px] ${FORM_INPUT_SURFACE_CLASS}`}
                     />
                   </label>
-                  <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+                  <div className="md:col-span-2 flex flex-wrap items-start gap-3">
                     <Button
+                      type="button"
                       className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
                       disabled={updateStructuredLog.isPending || !canSaveStructuredLog}
                       onClick={() => updateStructuredLog.mutate({
@@ -7181,7 +7246,11 @@ function WeeklyCoachingLogTimeline({
                     >
                       {updateStructuredLog.isPending ? "Saving..." : "Save updated coaching log"}
                     </Button>
-                    <span className="text-sm text-slate-300">Updates refresh the same coaching record, linked review, and downstream documentation summary.</span>
+                    <div className="space-y-1 text-sm">
+                      {!canSaveStructuredLog ? <p className="text-amber-200">Complete the remaining required coaching fields before saving: {structuredValidationMessages.join(" ")}</p> : null}
+                      {updateStructuredLog.isError ? <p className="text-rose-300">{updateStructuredLog.error.message}</p> : null}
+                      <p className="text-slate-300">Updates refresh the same coaching record, linked review, and downstream documentation summary.</p>
+                    </div>
                   </div>
                 </div>
               ) : (

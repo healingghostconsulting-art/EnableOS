@@ -475,3 +475,6 @@
 - [x] Implement the next full production-depth curriculum tranche for the remaining unmapped module-depth gaps across learner and leadership families.
 - [x] Reconcile curriculum launches, module-detail views, training-player surfaces, and analytics context so the expanded tranche stays aligned across the LMS.
 - [x] Extend regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the broader production-depth curriculum migration pass.
+- [x] Diagnose why the coaching log cannot be saved from the current CHCG EnableOS workflow.
+- [x] Repair the coaching-log save flow across the affected UI and data-handling surfaces.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the coaching-log save repair.

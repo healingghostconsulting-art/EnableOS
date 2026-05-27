@@ -433,6 +433,47 @@ describe("demo router", () => {
     expect(created.coachEmail).toContain('@');
   });
 
+  it("accepts concise weekly coaching notes during secure create and edit saves", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    const created = await caller.demo.secureCreateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      subjectUserId: "u-learn-1",
+      coachRole: "manager",
+      sessionDate: "2026-05-05",
+      attendance: "Here",
+      followUpFromPrevious: "Met it",
+      coachingComments: "Solid",
+      smartGoalCommitment: "Retry",
+      additionalSupport: "N/A",
+    });
+
+    expect(created.attendance).toBe("Here");
+    expect(created.followUpFromPrevious).toBe("Met it");
+
+    const updated = await caller.demo.secureUpdateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      weeklyCoachingLogId: created.id,
+      sessionDate: "2026-05-06",
+      attendance: "Back",
+      followUpFromPrevious: "Held it",
+      coachingComments: "Clear",
+      smartGoalCommitment: "Track",
+      additionalSupport: "Job",
+      agentTakeaways: "Ready",
+    });
+
+    expect(updated.attendance).toBe("Back");
+    expect(updated.smartGoalCommitment).toBe("Track");
+    expect(updated.agentTakeaways).toBe("Ready");
+  });
+
   it("allows the learner role to add takeaways back to a weekly coaching log", async () => {
     const caller = appRouter.createCaller(
       createContext({
