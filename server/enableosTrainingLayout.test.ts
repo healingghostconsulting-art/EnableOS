@@ -244,6 +244,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");
     expect(trainingViewSource).toContain("Checkpoint cleared");
     expect(trainingViewSource).toContain("Retry required");
+    expect(trainingViewSource).toContain("CorrectAnswerCelebration");
+    expect(trainingViewSource).toContain("enableos-confetti-fall");
+    expect(trainingViewSource).toContain("enableos-balloon-float");
     expect(trainingViewSource).toContain("compact");
   });
 

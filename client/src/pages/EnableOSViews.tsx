@@ -1797,6 +1797,101 @@ export function getAssessmentResultStyles(passed: boolean) {
     };
 }
 
+const celebrationPalette = ["#f59e0b", "#10b981", "#38bdf8", "#f472b6", "#fde047", "#c084fc"] as const;
+
+function CorrectAnswerCelebration({
+  active,
+  compact = false,
+}: {
+  active: boolean;
+  compact?: boolean;
+}) {
+  const [burstKey, setBurstKey] = useState(0);
+  const wasActiveRef = useRef(false);
+  const confettiPieces = useMemo(
+    () => Array.from({ length: compact ? 14 : 20 }, (_, index) => ({
+      id: `confetti-${index}`,
+      left: 6 + ((index * 11) % 88),
+      size: compact ? 6 + (index % 3) * 2 : 8 + (index % 4) * 2,
+      color: celebrationPalette[index % celebrationPalette.length],
+      delay: Number((index * 0.03).toFixed(2)),
+      duration: Number((1.55 + (index % 4) * 0.14).toFixed(2)),
+      spinDuration: Number((0.85 + (index % 3) * 0.18).toFixed(2)),
+      rotation: (index % 2 === 0 ? 1 : -1) * (18 + index * 7),
+    })),
+    [compact],
+  );
+  const balloons = useMemo(
+    () => Array.from({ length: compact ? 3 : 4 }, (_, index) => ({
+      id: `balloon-${index}`,
+      left: 14 + index * 20,
+      color: celebrationPalette[(index + 1) % celebrationPalette.length],
+      delay: Number((0.12 + index * 0.08).toFixed(2)),
+      duration: Number((1.45 + index * 0.16).toFixed(2)),
+    })),
+    [compact],
+  );
+
+  useEffect(() => {
+    if (active && !wasActiveRef.current) {
+      setBurstKey((current) => current + 1);
+    }
+
+    wasActiveRef.current = active;
+  }, [active]);
+
+  if (!active || burstKey === 0) {
+    return null;
+  }
+
+  return (
+    <div key={burstKey} className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden="true">
+      <style>{`@keyframes enableos-confetti-fall { 0% { opacity: 0; transform: translate3d(-50%, -18%, 0) rotate(0deg) scale(0.7); } 12% { opacity: 1; } 100% { opacity: 0; transform: translate3d(-50%, 320%, 0) rotate(540deg) scale(1); } } @keyframes enableos-confetti-spin { 0% { filter: saturate(1); } 100% { filter: saturate(1.2); } } @keyframes enableos-balloon-float { 0% { opacity: 0; transform: translate3d(-50%, 18%, 0) scale(0.7); } 12% { opacity: 0.95; } 100% { opacity: 0; transform: translate3d(-50%, -240%, 0) scale(1.05); } }`}</style>
+      <div className="absolute inset-0">
+        {confettiPieces.map((piece) => (
+          <span
+            key={piece.id}
+            className="absolute top-[-8%] rounded-full shadow-[0_10px_24px_rgba(15,23,42,0.18)]"
+            style={{
+              left: `${piece.left}%`,
+              width: `${piece.size}px`,
+              height: `${Math.max(piece.size * 1.9, piece.size + 8)}px`,
+              backgroundColor: piece.color,
+              opacity: 0,
+              animation: `enableos-confetti-fall ${piece.duration}s ${piece.delay}s cubic-bezier(0.18,0.72,0.22,1) forwards, enableos-confetti-spin ${piece.spinDuration}s ${piece.delay}s linear 2`,
+              transform: `translate3d(-50%, -18%, 0) rotate(${piece.rotation}deg)`,
+            }}
+          />
+        ))}
+        {balloons.map((balloon) => (
+          <div
+            key={balloon.id}
+            className="absolute bottom-[-14%] flex flex-col items-center"
+            style={{
+              left: `${balloon.left}%`,
+              opacity: 0,
+              animation: `enableos-balloon-float ${balloon.duration}s ${balloon.delay}s ease-out forwards`,
+            }}
+          >
+            <span
+              className="block rounded-full shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
+              style={{
+                width: compact ? "18px" : "24px",
+                height: compact ? "24px" : "32px",
+                backgroundColor: balloon.color,
+              }}
+            />
+            <span
+              className="mt-1 block w-px rounded-full bg-white/45"
+              style={{ height: compact ? "18px" : "24px" }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AssessmentPanel({
   eyebrow,
   assessment,
@@ -1842,6 +1937,7 @@ function AssessmentPanel({
       : "text-cyan-100/80";
 
   const resultStyles = getAssessmentResultStyles(passed);
+  const showAssessmentCelebration = submitted && passed;
 
   return (
     <div className={compact ? "space-y-3" : "space-y-4"}>
@@ -1864,7 +1960,8 @@ function AssessmentPanel({
           const questionOptions = question.options ?? [];
 
           return (
-            <div key={question.id} className={`min-w-0 overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
+            <div key={question.id} className={`relative min-w-0 overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
+              <CorrectAnswerCelebration active={submitted && questionCorrect} compact={compact} />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
                   {assessment.style === "kahoot" ? `Quiz question ${questionIndex + 1}` : `Checkpoint question ${questionIndex + 1}`}
@@ -1959,7 +2056,8 @@ function AssessmentPanel({
           </div>
         </div>
         {submitted ? (
-          <div className={`mt-4 rounded-2xl border p-4 ${resultStyles.containerClass}`}>
+          <div className={`relative mt-4 overflow-hidden rounded-2xl border p-4 ${resultStyles.containerClass}`}>
+            <CorrectAnswerCelebration active={showAssessmentCelebration} compact={compact} />
             <p className={`text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
             <p className={`mt-2 text-sm leading-6 ${resultStyles.bodyClass}`}>
               {passed ? assessment.passMessage : assessment.failMessage}
@@ -2017,6 +2115,7 @@ function InlineAssessmentShell({
   const activeQuestion = questions[boundedQuestionIndex];
   const activeAnswerValue = activeQuestion ? answers[activeQuestion.id] ?? "" : "";
   const currentQuestionAnswered = activeQuestion ? hasAssessmentAnswer(activeQuestion, { [activeQuestion.id]: activeAnswerValue }) : false;
+  const activeQuestionCorrect = submitted && activeQuestion ? isAssessmentQuestionCorrect(activeQuestion, activeAnswerValue) : false;
   const isFinalQuiz = trigger.assessmentKey === "finalQuiz";
   const title = isFinalQuiz ? "Final Quiz" : assessment.title;
   const outlineEntries = [
@@ -2169,7 +2268,8 @@ function InlineAssessmentShell({
                 </div>
               </div>
               {submitted ? (
-                <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                <div className={`relative mt-6 overflow-hidden rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                  <CorrectAnswerCelebration active={activeQuestionCorrect || passed} />
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
                       {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}

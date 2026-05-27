@@ -454,3 +454,6 @@
 - [x] Run the next approved product-wide UI consistency pass so the primary CHCG EnableOS workspaces share tighter spacing, card hierarchy, CTA treatment, and launch affordances.
 - [x] Improve tablet and mobile responsiveness across the mission hub, reporting, and assignment-heavy workspaces so dense operational cards stay readable and actionable below desktop widths.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the UI consistency and responsiveness slice.
+- [x] Add animated balloons and confetti feedback when a learner answers a training question correctly.
+- [x] Integrate the celebration effect into the existing learner answer-result flow without disrupting module progression, scoring, or retry behavior.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the correct-answer celebration enhancement.
