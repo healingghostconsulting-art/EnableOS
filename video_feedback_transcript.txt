@@ -1,0 +1,112 @@
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/coaching_zone_feedback_20260527.mp4, file size: 126.10 MB
+File size exceeds limit, converting to audio (64kbps)...
+Converting video to audio (bitrate: 64k)...
+Audio conversion completed. Saved to: /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147.mp3
+Transcribing audio file: /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147.mp3, file size: 0.96 MB
+Transcription may take some time depending on file size and audio length...
+Transcription completed successfully!
+
+TRANSCRIPTION RESULT:
+Total Duration: 125.3 seconds
+Language: english
+Timestamped segments:
+[00:00.0 - 00:03.0]  What is going on Manus?
+[00:03.0 - 00:05.0]  All right, we got another round of feedback.
+[00:05.0 - 00:07.0]  We're doing a really, really good job.
+[00:07.0 - 00:11.0]  First and foremost about what we got.
+[00:11.0 - 00:13.0]  So we're going to really start to focus on the coach studio
+[00:13.0 - 00:16.0]  and then we'll flip back to the training.
+[00:16.0 - 00:19.0]  So this all looks pretty good.
+[00:19.0 - 00:21.0]  Just first, a little bit of feedback.
+[00:21.0 - 00:28.0]  This area as well as these areas are pretty washed out.
+[00:28.0 - 00:30.0]  So we're not able to use those.
+[00:30.0 - 00:32.0]  This is a good kind of guy room there.
+[00:32.0 - 00:37.0]  I love this is so much better than what we had before.
+[00:37.0 - 00:39.0]  Clean, good, it saves.
+[00:39.0 - 00:42.0]  It tells them that they have to complete everything before saving it.
+[00:42.0 - 00:47.0]  Absolutely love this part.
+[00:47.0 - 00:51.0]  This part, it's a little bit messy.
+[00:51.0 - 00:56.0]  I don't think we need these visible trends to take up this much room.
+[00:56.0 - 01:00.0]  Along with this part, I think it really should just be like a quick hit.
+[01:00.0 - 01:04.0]  Hey, here's what we can go ahead and send that agent.
+[01:04.0 - 01:06.0]  If we can go ahead and approve that.
+[01:06.0 - 01:07.0]  Love that portion.
+[01:07.0 - 01:10.0]  Great.
+[01:10.0 - 01:12.0]  And then it is still a little bit scroll heavy.
+[01:12.0 - 01:15.0]  So I'm starting to kind of think of how we can go about that.
+[01:15.0 - 01:17.0]  Give me any options.
+[01:17.0 - 01:20.0]  But I'm almost thinking that if we delete this part,
+[01:20.0 - 01:22.0]  because we have that main log part,
+[01:22.0 - 01:24.0]  and you scroll down a little bit,
+[01:24.0 - 01:27.0]  it can almost take this part right here.
+[01:27.0 - 01:31.0]  We move it up, and then it'd be like a side channel box.
+[01:31.0 - 01:35.0]  And then as you click through each one of these, boom,
+[01:35.0 - 01:37.0]  you get that documentation.
+[01:37.0 - 01:39.0]  I love the open documentation that we have.
+[01:39.0 - 01:41.0]  That's solid.
+[01:41.0 - 01:43.0]  And then the alerts, yeah.
+[01:43.0 - 01:46.0]  Still, these, again, are a bit washed out.
+[01:46.0 - 01:49.0]  So we can make sure that those are a little bit more visible.
+[01:49.0 - 01:51.0]  But in terms of the coaching lane,
+[01:52.0 - 01:56.0]  I think this one is the closest thing to done that we got in there.
+[01:56.0 - 01:59.0]  So love, love, love that.
+[01:59.0 - 02:05.0]  So I think with those couple edits, let's go ahead and get those done.
+Complete transcription result saved to: /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147_transcription_20260527_193157.json
+Plain text transcription saved to: /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147_transcription_20260527_193157.txt
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147.mp3
+[2J[H[3Jmanus-speech-to-text /home/ubuntu/Downloads/coaching_zone_feedback_20260527.mp4
+Starting Speech-to-Text conversion...
+Video file detected: /home/ubuntu/Downloads/coaching_zone_feedback_20260527.mp4, file size: 126.10 MB
+File size exceeds limit, converting to audio (64kbps)...
+Transcribing audio file: /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147.mp3, file size: 0.96 MB
+Transcription may take some time depending on file size and audio length...
+
+Snippet of transcribed content:
+[00:00.0 - 00:03.0] What is going on Manus?
+[00:03.0 - 00:05.0] All right, we got another round of feedback.
+[00:05.0 - 00:07.0] We're doing a really, really good job.
+[00:07.0 - 00:11.0] First and foremost about what we got.
+[00:11.0 - 00:13.0] So we're going to really start to focus on the coach studio
+[00:13.0 - 00:16.0] and then we'll flip back to the training.
+[00:16.0 - 00:19.0] So this all looks pretty good.
+[00:19.0 - 00:21.0] Just first, a little bit of feedback.
+[00:21.0 - 00:28.0] This area as well as these areas are pretty washed out.
+[00:28.0 - 00:30.0] So we're not able to use those.
+[00:30.0 - 00:32.0] This is a good kind of guy room there.
+[00:32.0 - 00:37.0] I love this is so much better than what we had before.
+[00:37.0 - 00:39.0] Clean, good, it saves.
+[00:39.0 - 00:42.0] It tells them that they have to complete everything before saving it.
+[00:42.0 - 00:47.0] Absolutely love this part.
+[00:47.0 - 00:51.0] This part, it's a little bit messy.
+[00:51.0 - 00:56.0] I don't think we need these visible trends to take up this much room.
+[00:56.0 - 01:00.0] Along with this part, I think it really should just be like a quick hit.
+[01:00.0 - 01:04.0] Hey, here's what we can go ahead and send that agent.
+[01:04.0 - 01:06.0] If we can go ahead and approve that.
+[01:06.0 - 01:07.0] Love that portion.
+[01:07.0 - 01:10.0] Great.
+[01:10.0 - 01:12.0] And then it is still a little bit scroll heavy.
+[01:12.0 - 01:15.0] So I'm starting to kind of think of how we can go about that.
+[01:15.0 - 01:17.0] Give me any options.
+[01:17.0 - 01:20.0] But I'm almost thinking that if we delete this part,
+[01:20.0 - 01:22.0] because we have that main log part,
+[01:22.0 - 01:24.0] and you scroll down a little bit,
+[01:24.0 - 01:27.0] it can almost take this part right here.
+[01:27.0 - 01:31.0] We move it up, and then it'd be like a side channel box.
+[01:31.0 - 01:35.0] And then as you click through each one of these, boom,
+[01:35.0 - 01:37.0] you get that documentation.
+[01:37.0 - 01:39.0] I love the open documentation that we have.
+[01:39.0 - 01:41.0] That's solid.
+[01:41.0 - 01:43.0] And then the alerts, yeah.
+[01:43.0 - 01:46.0] Still, these, again, are a bit washed out.
+[01:46.0 - 01:49.0] So we can make sure that those are a little bit more visible.
+[01:49.0 - 01:51.0] But in terms of the coaching lane,
+[01:52.0 - 01:56.0] I think this one is the closest thing to done that we got in there.
+[01:56.0 - 01:59.0] So love, love, love that.
+[01:59.0 - 02:05.0] So I think with those couple edits, let's go ahead and get those done.
+
+The video has been automatically converted to an audio file and saved at /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147.mp3
+
+Completed transcription, JSON saved to /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147_transcription_20260527_193157.json
+Plain text transcription saved to /home/ubuntu/Downloads/coaching_zone_feedback_20260527_converted_20260527_193147_transcription_20260527_193157.txt

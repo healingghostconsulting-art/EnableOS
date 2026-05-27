@@ -487,3 +487,15 @@
 - [x] Audit the shared sitewide workspace banners and identify every surface where the obstructive header chips and banner treatments still appear.
 - [x] Remove the nonessential banner elements across shared workspace surfaces so the page content starts immediately without the blocking header treatment.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the sitewide banner-removal cleanup.
+- [x] Audit the current Coach Studio layout and identify the exact implementation seams for the washed-out cards, alert visibility, trend-chart removal, and reduced-scroll redesign.
+- [x] Design a more polished Apple-inspired Coach Studio visual treatment with stronger contrast, calmer surfaces, tighter hierarchy, and cleaner spacing while preserving the approved workflow patterns.
+- [x] Rework Coach Studio by removing or shrinking the coach-wide signal trend area, moving the coaching-needs and documentation lane higher in the layout, and reducing overall page scroll depth.
+- [x] Improve the readability and visual hierarchy of the upper-right summary cards and lower alerts so washed-out content becomes clearly usable.
+- [x] Preserve and refine the praised coaching-log pop-up, AI suggestion approval flow, and documentation pop-up behavior during the Coach Studio redesign.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the Coach Studio refinement pass.
+- [ ] Clarify which failures in CHCG EnableOS should trigger an outbound SMS alert and confirm the intended recipient path.
+- [ ] Review the safest automation and notification architecture for SMS failure alerts in this project, including whether owner notifications, schedules, or an external SMS provider are required.
+- [ ] Implement the selected failure-alert workflow and request any required secrets or configuration for SMS delivery.
+- [ ] Add or update validation coverage, verify the alert path, and document how SMS failure notifications should be used.
+- [x] Execute the attached Coach Studio priority edits from the feedback review as the governing implementation pass for readability, layout density, chart removal, and documentation-lane repositioning.
+- [x] Use the user-provided Telegram escalation path for blocker questions during the Coach Studio execution pass if direct clarification becomes necessary.

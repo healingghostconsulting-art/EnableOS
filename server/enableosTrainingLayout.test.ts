@@ -291,6 +291,13 @@ describe("learner training layout helpers", () => {
 
   it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
     expect(trainingViewSource).toContain("Coach studio mission");
+    expect(trainingViewSource).toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
+    expect(trainingViewSource).toContain("Coach supervision lane");
+    expect(trainingViewSource).toContain("Coach needs");
+    expect(trainingViewSource).toContain("Open full documentation lane");
+    expect(trainingViewSource).toContain("Coach alerts");
+    expect(trainingViewSource).toContain("Open full alerts lane");
+    expect(trainingViewSource).not.toContain("Coach-visible signal trend");
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");
     expect(trainingViewSource).toContain("Training transfer");

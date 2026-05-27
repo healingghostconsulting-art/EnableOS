@@ -8173,6 +8173,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   const [activeTab, setActiveTab] = useState<"coaching" | "transfer" | "documentation" | "alerts">("coaching");
   const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
   const [selectedAlertId, setSelectedAlertId] = useState<string>(data.notifications[0]?.id ?? "");
+  const [selectedCoachNeedEntryId, setSelectedCoachNeedEntryId] = useState<string | null>(null);
 
   const openCoachView = (tab: "coaching" | "transfer" | "documentation" | "alerts", sectionId: string) => {
     setActiveTab(tab);
@@ -8195,23 +8196,77 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
   const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
   const selectedAlert = data.notifications.find((item: any) => item.id === selectedAlertId) ?? data.notifications[0] ?? null;
+  const coachNeedEntries = data.documentationEntries.slice(0, 3);
+  const selectedCoachNeedEntry = selectedCoachNeedEntryId
+    ? data.documentationEntries.find((entry: any) => entry.id === selectedCoachNeedEntryId) ?? null
+    : null;
+  const selectedCoachNeedWeeklyCoachingLog = selectedCoachNeedEntry?.weeklyCoachingLogId
+    ? data.weeklyCoachingLogs.find((log: any) => log.id === selectedCoachNeedEntry.weeklyCoachingLogId) ?? null
+    : null;
+  const selectedCoachNeedUsesCoachingPopup = selectedCoachNeedEntry?.sourceType === "coaching_summary" && selectedCoachNeedWeeklyCoachingLog;
+
+  const openCoachDocumentationLane = () => {
+    setActiveTab("documentation");
+    window.setTimeout(() => revealWorkspaceSection("coach-documentation-feed"), 20);
+  };
+
+  const openCoachAlertsLane = () => {
+    setActiveTab("alerts");
+    window.setTimeout(() => revealWorkspaceSection("coach-alerts-feed"), 20);
+  };
+
+  const openCoachNeed = (entryId: string) => {
+    setSelectedCoachNeedEntryId(entryId);
+  };
+
+  const overviewAlerts = data.notifications.slice(0, 3);
+
+  useEffect(() => {
+    if (!selectedAlertId && data.notifications[0]?.id) {
+      setSelectedAlertId(data.notifications[0].id);
+    }
+  }, [data.notifications, selectedAlertId]);
+
+  useEffect(() => {
+    if (!selectedCoachingSessionId && data.coachingSessions[0]?.id) {
+      setSelectedCoachingSessionId(data.coachingSessions[0].id);
+    }
+  }, [data.coachingSessions, selectedCoachingSessionId]);
+
+  useEffect(() => {
+    if (selectedCoachNeedEntryId && !data.documentationEntries.some((entry: any) => entry.id === selectedCoachNeedEntryId)) {
+      setSelectedCoachNeedEntryId(null);
+    }
+  }, [data.documentationEntries, selectedCoachNeedEntryId]);
+
+  useEffect(() => {
+    if (selectedAlertId && !data.notifications.some((entry: any) => entry.id === selectedAlertId)) {
+      setSelectedAlertId(data.notifications[0]?.id ?? "");
+    }
+  }, [data.notifications, selectedAlertId]);
+
+  useEffect(() => {
+    if (selectedCoachingSessionId && !data.coachingSessions.some((entry: any) => entry.id === selectedCoachingSessionId)) {
+      setSelectedCoachingSessionId(data.coachingSessions[0]?.id ?? "");
+    }
+  }, [data.coachingSessions, selectedCoachingSessionId]);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-signal-trend")} actionLabel="Open signal trend" />
+        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-overview")} actionLabel="Open coach overview" />
         <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-supervision-lane")} actionLabel="Open supervision lane" />
         <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
       </div>
 
-      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-400/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),linear-gradient(135deg,rgba(7,13,28,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] xl:items-start">
+      <div className="mission-hero-card overflow-hidden rounded-[2.2rem] border border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(148,163,184,0.16),transparent_26%),linear-gradient(135deg,rgba(9,18,28,0.98),rgba(20,32,44,0.96))] px-6 py-6 shadow-[0_30px_90px_rgba(15,23,42,0.18)]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Coach studio mission</Badge>
-                <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">Coach the behavior, not just the completion</span>
+                <Badge className="mission-chip rounded-full border-white/20 bg-white/12 text-white">Coach studio mission</Badge>
+                <span className="command-pill rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-100/90">Coach the behavior, not just the completion</span>
               </div>
               <WeeklyCoachingLogPopupBox
                 buttonLabel="Log a coaching"
@@ -8222,25 +8277,26 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 onCreated={onUpdated}
               />
             </div>
-            <div>
-              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">A focused coach desk keeps guidance, evidence, and follow-up in one place.</h2>
-              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">Instead of one long coaching page, the coach workspace now moves through a clear sequence: see the signal, choose the coaching lane, capture the log, and document the next observation.</p>
+            <div className="space-y-3">
+              <h2 className="max-w-4xl text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.</h2>
+              <p className="max-w-4xl text-sm leading-7 text-slate-200/92">The coach experience now stays focused on the high-value path: orient to the learner, capture the weekly coaching log, review the next action, and open the exact documentation detail without hunting through a long stacked page.</p>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current learner focus</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{data.directLearner.name}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-200">{data.directLearner.title} · {data.activeJourney.title}</p>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+            <div className="rounded-[1.7rem] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,249,0.95))] px-5 py-5 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_20px_45px_rgba(15,23,42,0.18)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Current learner focus</p>
+              <h3 className="mt-2 text-xl font-semibold text-slate-950">{data.directLearner.name}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{data.directLearner.title} · {data.activeJourney.title}</p>
             </div>
-            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Coach momentum</p>
-              <p className="mt-2 text-sm leading-6">{data.weeklyCoachingLogs.length} structured logs and {data.coachingSessions.length} active coaching threads are ready to review or extend.</p>
+            <div className="rounded-[1.7rem] border border-emerald-200/80 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(209,250,229,0.9))] px-5 py-5 text-slate-950 shadow-[0_20px_45px_rgba(16,185,129,0.14)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">Coach momentum</p>
+              <p className="mt-2 text-base font-semibold text-slate-950">{data.weeklyCoachingLogs.length} structured logs and {data.coachingSessions.length} active coaching threads are ready.</p>
+              <p className="mt-3 text-sm leading-6 text-emerald-900/80">Keep the log, next action, and follow-up visible without expanding into a long vertical briefing.</p>
             </div>
-            <div className="rounded-[1.45rem] border border-cyan-400/25 bg-cyan-400/10 p-4 shadow-[0_18px_40px_rgba(8,15,35,0.18)]">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Ribbon action</p>
+            <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
               <p className="mt-2 text-sm leading-6 text-slate-100">The primary coaching-log button now lives directly in the top coach ribbon. This support card keeps the handoff instruction visible for anyone entering the lane later.</p>
-              <div className="mt-4 rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-200">
+              <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
                 Use the gold <span className="font-semibold text-[#FCBC34]">Log a coaching</span> action in the ribbon to force the structured log to open in a focused pop-up window.
               </div>
             </div>
@@ -8248,47 +8304,164 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         </div>
       </div>
 
-      <div id="coach-signal-trend" className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] scroll-mt-24">
-        <ChartFrame title="Coach-visible signal trend" description="Frontline coaching should connect active performance signals to the next observed behavior, not just course completion.">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
-              <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
-              <Line type="monotone" dataKey="value" stroke="#67e8f9" strokeWidth={3} dot={{ r: 4, fill: "#67e8f9" }} />
-              <Line type="monotone" dataKey="target" stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartFrame>
-        <PremiumCard className="scroll-mt-24" id="coach-supervision-lane">
-          <CardHeader>
-            <CardTitle className="text-white">Coach supervision lane</CardTitle>
-            <CardDescription className="text-slate-400">The coach workspace sits between learner delivery and manager governance so weekly coaching, observed behaviors, and escalation context stay visible.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Current coach pathway</p>
-              <h3 className="mt-2 text-xl font-semibold text-white">{data.activeJourney.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-100">{data.activeJourney.competencyGap}</p>
-            </div>
-            {leadModule ? (
-              <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Next coach-focused module</p>
-                <p className="mt-2 text-lg font-medium text-white">{leadModule.title}</p>
-                <p className="mt-2 text-sm text-slate-300">{leadModule.skillFocus} · {leadModule.durationMinutes} min · {leadModule.completionRate}% completion</p>
+      <div id="coach-overview" className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr] scroll-mt-24">
+        <div className="space-y-6">
+          <PremiumCard className="scroll-mt-24" id="coach-supervision-lane">
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="max-w-2xl">
+                  <CardTitle className="text-white">Coach supervision lane</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300/82">The coach workspace now leads with the active pathway, the next observation, and the action that should happen now instead of a decorative trend chart.</CardDescription>
+                </div>
+                <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{data.coachingSessions.length} active coaching threads</Badge>
               </div>
-            ) : null}
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Escalation partner</p>
-              <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
-              <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
-            </div>
-            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the supervision lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
-            <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="coach" learnerName={data.directLearner.name} onUpdated={onUpdated} />
-          </CardContent>
-        </PremiumCard>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-[1.6rem] border border-cyan-400/18 bg-cyan-400/10 p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/82">Current coach pathway</p>
+                  <h3 className="mt-2 text-xl font-semibold text-white">{data.activeJourney.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-100">{data.activeJourney.competencyGap}</p>
+                </div>
+                {leadModule ? (
+                  <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Next coach-focused module</p>
+                    <p className="mt-2 text-lg font-medium text-white">{leadModule.title}</p>
+                    <p className="mt-2 text-sm text-slate-300">{leadModule.skillFocus} · {leadModule.durationMinutes} min · {leadModule.completionRate}% completion</p>
+                  </div>
+                ) : (
+                  <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Next coach-focused module</p>
+                    <p className="mt-2 text-lg font-medium text-white">Module detail will appear here once the active pathway resolves.</p>
+                    <p className="mt-2 text-sm text-slate-300">Keep the supervision lane focused on the active learner and documented follow-through.</p>
+                  </div>
+                )}
+              </div>
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Escalation partner</p>
+                <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
+                <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
+              </div>
+              <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="coach" learnerName={data.directLearner.name} onUpdated={onUpdated} />
+            </CardContent>
+          </PremiumCard>
+        </div>
+        <div className="space-y-6">
+          <Card id="coach-needs-rail" className="rounded-[2rem] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(248,250,252,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-slate-950">Coach needs</CardTitle>
+                  <CardDescription className="mt-2 max-w-xl text-slate-600">Keep the documentation handoff in a tighter side-channel box so the next saved detail is always visible without extra scrolling.</CardDescription>
+                </div>
+                <Button type="button" variant="outline" className="rounded-full border-slate-300 bg-white text-slate-700 hover:bg-slate-100" onClick={openCoachDocumentationLane}>
+                  Open full documentation lane
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {coachNeedEntries.length ? coachNeedEntries.map((entry: any, index: number) => {
+                const linkedWeeklyCoachingLog = entry.weeklyCoachingLogId
+                  ? data.weeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
+                  : null;
+                const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
+
+                return (
+                  <button
+                    key={entry.id ?? `${entry.title ?? "coach-need"}-${index}`}
+                    type="button"
+                    onClick={() => openCoachNeed(entry.id)}
+                    className={`w-full rounded-[1.45rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${selectedCoachNeedEntry?.id === entry.id ? "border-cyan-300 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_18px_40px_rgba(14,116,144,0.14)]" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
+                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+                      </div>
+                      <Badge className={`rounded-full ${supportsCoachingPopup ? "border-cyan-300/70 bg-cyan-100 text-cyan-800" : "border-slate-200 bg-slate-100 text-slate-700"}`}>
+                        {supportsCoachingPopup ? "Open exact coaching log" : "Open document details"}
+                      </Badge>
+                    </div>
+                    {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-600">{entry.summary}</p> : null}
+                  </button>
+                );
+              }) : (
+                <div className="rounded-[1.45rem] border border-dashed border-slate-300 bg-white px-4 py-5 text-sm leading-6 text-slate-500">
+                  Documentation items will surface here as soon as new coaching notes, follow-ups, or linked reviews are available.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card id="coach-alert-summary" className="rounded-[2rem] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(248,250,252,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-slate-950">Coach alerts</CardTitle>
+                  <CardDescription className="mt-2 max-w-xl text-slate-600">Alerts now use clearer contrast and stronger hierarchy so the coach can quickly identify what needs attention without a washed-out feed.</CardDescription>
+                </div>
+                <Button type="button" variant="outline" className="rounded-full border-slate-300 bg-white text-slate-700 hover:bg-slate-100" onClick={openCoachAlertsLane}>
+                  Open full alerts lane
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {overviewAlerts.map((item: any) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedAlertId(item.id)}
+                    className={`w-full rounded-[1.45rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${selectedAlert?.id === item.id ? "border-rose-300 bg-[linear-gradient(180deg,rgba(255,241,242,0.98),rgba(254,226,226,0.96))] shadow-[0_18px_40px_rgba(225,29,72,0.12)]" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Alert</p>
+                        <h3 className="mt-2 text-base font-semibold text-slate-950">{item.title}</h3>
+                        <p className="mt-2 text-sm text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
+                      </div>
+                      <StatusBadge value={item.priority} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-[1.6rem] border border-slate-200 bg-slate-950 px-5 py-5 text-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.24)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Selected alert</p>
+                    <h3 className="mt-2 text-lg font-semibold text-white">{selectedAlert?.title ?? "Alert detail"}</h3>
+                    {selectedAlert ? <p className="mt-2 text-sm text-slate-300">{new Date(selectedAlert.createdAt).toLocaleString()}</p> : null}
+                  </div>
+                  {selectedAlert ? <StatusBadge value={selectedAlert.priority} /> : null}
+                </div>
+                <p className="mt-4 text-sm leading-6 text-slate-200">{selectedAlert?.detail ?? "Select an alert to inspect the coach-facing recommendation and timing context."}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      <WeeklyCoachingLogDetailDialog
+        entry={selectedCoachNeedEntry}
+        log={selectedCoachNeedWeeklyCoachingLog}
+        open={Boolean(selectedCoachNeedUsesCoachingPopup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCoachNeedEntryId(null);
+          }
+        }}
+      />
+      <DocumentationEntryDetailDialog
+        entry={selectedCoachNeedUsesCoachingPopup ? null : selectedCoachNeedEntry}
+        open={Boolean(selectedCoachNeedEntry && !selectedCoachNeedUsesCoachingPopup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCoachNeedEntryId(null);
+          }
+        }}
+      />
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-4">
         <div className="command-band px-4 py-4 md:px-5">
@@ -8360,6 +8533,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </CardHeader>
             </PremiumCard>
             <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
+            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
         </TabsContent>
 
@@ -8402,35 +8576,35 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </PremiumCard>
         </TabsContent>
 
-        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.78fr_1.22fr] scroll-mt-24">
           <div className="space-y-4">
             {data.notifications.map((item: any) => (
-              <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedAlert?.id === item.id ? "border-rose-400/30 bg-rose-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
+              <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.55rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${selectedAlert?.id === item.id ? "border-rose-300 bg-[linear-gradient(180deg,rgba(255,241,242,0.98),rgba(254,226,226,0.94))] shadow-[0_20px_45px_rgba(225,29,72,0.12)]" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Alert</p>
-                    <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
-                    <p className="mt-2 text-sm text-slate-300">{new Date(item.createdAt).toLocaleString()}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Alert</p>
+                    <h3 className="mt-2 text-base font-semibold text-slate-950">{item.title}</h3>
+                    <p className="mt-2 text-sm text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
                   </div>
                   <StatusBadge value={item.priority} />
                 </div>
               </button>
             ))}
           </div>
-          <PremiumCard>
+          <Card className="rounded-[2rem] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(248,250,252,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-white">{selectedAlert?.title ?? "Alert detail"}</CardTitle>
-                  {selectedAlert ? <CardDescription className="mt-2 text-slate-400">{new Date(selectedAlert.createdAt).toLocaleString()}</CardDescription> : null}
+                  <CardTitle className="text-slate-950">{selectedAlert?.title ?? "Alert detail"}</CardTitle>
+                  {selectedAlert ? <CardDescription className="mt-2 text-slate-500">{new Date(selectedAlert.createdAt).toLocaleString()}</CardDescription> : null}
                 </div>
                 {selectedAlert ? <StatusBadge value={selectedAlert.priority} /> : null}
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-6 text-slate-300">{selectedAlert?.detail ?? "Select an alert to inspect the coach-facing recommendation and timing context."}</p>
+              <p className="text-sm leading-7 text-slate-600">{selectedAlert?.detail ?? "Select an alert to inspect the coach-facing recommendation and timing context."}</p>
             </CardContent>
-          </PremiumCard>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
