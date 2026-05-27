@@ -227,8 +227,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("<WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
+    expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");
     expect(trainingViewSource).toContain("Open exact coaching log");
+    expect(trainingViewSource).toContain("Open document details");
     expect(trainingViewSource).toContain("This documentation summary is linked to the exact weekly coaching log recorded for");
+    expect(trainingViewSource).toContain("This document captures the exact summary, evidence points, and metadata saved in the documentation stream for this record.");
+    expect(trainingViewSource).toContain("Click to review the full documentation summary, evidence points, and saved metadata.");
     expect(trainingViewSource).toContain("Complete the remaining required coaching fields before saving");
     expect(trainingViewSource).toContain("Attendance needs a short status note.");
   });

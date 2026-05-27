@@ -481,3 +481,6 @@
 - [x] Audit the documentation-section coaching summary interaction and identify the exact weekly coaching log record that should open from each summary card.
 - [x] Implement a pop-up coaching-log detail view from documentation summaries so clicking a summary opens the exact underlying coaching log copy.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the documentation coaching-log pop-up enhancement.
+- [x] Audit why only some documentation cards open the coaching-log pop-up and identify which additional document types should drill into exact underlying records.
+- [x] Repair the documentation feed so every eligible coaching-related document opens a consistent pop-up detail view from the correct linked record.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the documentation drill-down consistency fix.

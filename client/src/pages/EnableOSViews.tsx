@@ -1125,6 +1125,65 @@ function WeeklyCoachingLogDetailDialog({
   );
 }
 
+function DocumentationEntryDetailDialog({
+  entry,
+  open,
+  onOpenChange,
+}: {
+  entry: any | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!entry) {
+    return null;
+  }
+
+  const sourceLabel = String(entry.sourceType ?? "documentation_stream").replaceAll("_", " ");
+  const detailBadges = [
+    { key: `${entry.id}-source`, label: `Source · ${sourceLabel}` },
+    entry.authoredByRole ? { key: `${entry.id}-author`, label: `Authored by · ${String(entry.authoredByRole).replaceAll("_", " ")}` } : null,
+    entry.createdAt ? { key: `${entry.id}-created`, label: `Created · ${String(entry.createdAt)}` } : null,
+  ].filter(Boolean) as { key: string; label: string }[];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{entry.title ?? "Documentation detail"}</DialogTitle>
+          <DialogDescription className="text-slate-400">
+            This document captures the exact summary, evidence points, and metadata saved in the documentation stream for this record.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {detailBadges.map((badge) => (
+              <Badge key={badge.key} variant="outline" className="rounded-full border-white/12 bg-slate-900/90 text-slate-100">{badge.label}</Badge>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-cyan-400/18 bg-cyan-400/10 p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Documentation summary</p>
+            <p className="mt-2 text-sm leading-6 text-slate-100">{entry.summary ?? "No summary was captured for this documentation record."}</p>
+          </div>
+          <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Evidence points</p>
+            {Array.isArray(entry.evidencePoints) && entry.evidencePoints.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {entry.evidencePoints.map((point: string, index: number) => (
+                  <div key={`${entry.id}-evidence-${index}`} className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-3 text-sm leading-6 text-slate-100">
+                    {point}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm leading-6 text-slate-300">No additional evidence points were stored for this record.</p>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function DocumentationFeed({ entries, weeklyCoachingLogs = [] }: { entries: any[]; weeklyCoachingLogs?: any[] }) {
   const [selectedDocumentationEntryId, setSelectedDocumentationEntryId] = useState<string | null>(null);
 
@@ -1140,6 +1199,7 @@ function DocumentationFeed({ entries, weeklyCoachingLogs = [] }: { entries: any[
   const selectedWeeklyCoachingLog = selectedDocumentationEntry?.weeklyCoachingLogId
     ? weeklyCoachingLogs.find((log: any) => log.id === selectedDocumentationEntry.weeklyCoachingLogId) ?? null
     : null;
+  const selectedEntryUsesCoachingPopup = selectedDocumentationEntry?.sourceType === "coaching_summary" && selectedWeeklyCoachingLog;
 
   return (
     <>
@@ -1150,41 +1210,53 @@ function DocumentationFeed({ entries, weeklyCoachingLogs = [] }: { entries: any[
             : null;
           const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
 
-          return supportsCoachingPopup ? (
+          return (
             <button
               key={entry.id ?? `${entry.title ?? "documentation"}-${index}`}
               type="button"
               onClick={() => setSelectedDocumentationEntryId(entry.id)}
-              className="w-full rounded-2xl border border-cyan-400/18 bg-slate-950/55 px-4 py-4 text-left transition hover:border-cyan-300/40 hover:bg-slate-900/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
+              className={`w-full rounded-2xl px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60 ${
+                supportsCoachingPopup
+                  ? "border border-cyan-400/18 bg-slate-950/55 hover:border-cyan-300/40 hover:bg-slate-900/90"
+                  : "border border-white/10 bg-slate-950/55 hover:border-white/20 hover:bg-slate-900/90"
+              }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
                 </div>
-                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Open exact coaching log</Badge>
+                <Badge className={`rounded-full ${
+                  supportsCoachingPopup
+                    ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-100"
+                    : "border-white/12 bg-white/8 text-slate-100"
+                }`}>
+                  {supportsCoachingPopup ? "Open exact coaching log" : "Open document details"}
+                </Badge>
               </div>
               {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cyan-100/80">Click to review the full coaching record, recipients, and learner take-aways.</p>
+              <p className={`mt-3 text-xs uppercase tracking-[0.2em] ${supportsCoachingPopup ? "text-cyan-100/80" : "text-slate-400"}`}>
+                {supportsCoachingPopup
+                  ? "Click to review the full coaching record, recipients, and learner take-aways."
+                  : "Click to review the full documentation summary, evidence points, and saved metadata."}
+              </p>
             </button>
-          ) : (
-            <div key={entry.id ?? `${entry.title ?? "documentation"}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
-                </div>
-                {entry.updatedAt ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{String(entry.updatedAt)}</Badge> : null}
-              </div>
-              {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
-            </div>
           );
         })}
       </div>
       <WeeklyCoachingLogDetailDialog
         entry={selectedDocumentationEntry}
         log={selectedWeeklyCoachingLog}
-        open={Boolean(selectedDocumentationEntry && selectedWeeklyCoachingLog)}
+        open={Boolean(selectedEntryUsesCoachingPopup)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedDocumentationEntryId(null);
+          }
+        }}
+      />
+      <DocumentationEntryDetailDialog
+        entry={selectedEntryUsesCoachingPopup ? null : selectedDocumentationEntry}
+        open={Boolean(selectedDocumentationEntry && !selectedEntryUsesCoachingPopup)}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedDocumentationEntryId(null);
