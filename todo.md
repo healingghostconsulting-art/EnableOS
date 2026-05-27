@@ -463,10 +463,10 @@
 - [x] Fix the learner celebration bug so balloons, confetti, and the correct-answer success sound fire on every active knowledge check across all quizzes, including Soft Skills, QA, and other module families.
 - [x] Reconcile the global learner quiz answer-result flow so celebration triggers attach to each correct knowledge-check outcome instead of only a subset of quiz surfaces.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the global knowledge-check celebration bug fix.
-- [ ] Confirm the full seven-module CHCG EnableOS curriculum migration scope, including learner and leadership tracks, and map the remaining production-depth gaps across the LMS experience.
-- [ ] Audit the current curriculum deck, quiz, and leadership-track coverage across all planned modules so the next migration tranche targets the highest-priority production gaps first.
-- [ ] Migrate the next production-depth tranche of learner and leadership curriculum into the LMS with module-aware decks, knowledge checks, final quizzes, and launch alignment.
-- [ ] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the next seven-module curriculum migration tranche.
+- [x] Confirm the full seven-module CHCG EnableOS curriculum migration scope, including learner and leadership tracks, and map the remaining production-depth gaps across the LMS experience.
+- [x] Audit the current curriculum deck, quiz, and leadership-track coverage across all planned modules so the next migration tranche targets the highest-priority production gaps first.
+- [x] Migrate the next production-depth tranche of learner and leadership curriculum into the LMS with module-aware decks, knowledge checks, final quizzes, and launch alignment.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the next seven-module curriculum migration tranche.
 - [x] Save learner sound and motion preferences so celebration audio and animation settings persist across sessions.
 - [x] Reconcile the learner training settings flow so persisted sound and motion preferences load correctly for every quiz and knowledge-check surface.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the persisted learner preference enhancement.
