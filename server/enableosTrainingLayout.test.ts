@@ -392,15 +392,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("return preset ? { journeyId: normalizedJourneyKey, ...preset } : null;");
   });
 
-  it("applies the compact authenticated workspace header across every primary role-based surface", () => {
-    expect(dashboardLayoutSource).toContain("compactWorkspaceHeaderPaths");
-    expect(dashboardLayoutSource).toContain('"/executive"');
-    expect(dashboardLayoutSource).toContain('"/reporting"');
-    expect(dashboardLayoutSource).toContain('"/manager"');
-    expect(dashboardLayoutSource).toContain('"/coach"');
-    expect(dashboardLayoutSource).toContain('"/learner"');
-    expect(dashboardLayoutSource).toContain('"/admin"');
-    expect(dashboardLayoutSource).toContain('"/chcg-admin"');
+  it("removes the obstructive desktop workspace banner while keeping the shared shell intact", () => {
+    expect(dashboardLayoutSource).not.toContain("compactWorkspaceHeaderPaths");
+    expect(dashboardLayoutSource).not.toContain("command-band px-4");
+    expect(dashboardLayoutSource).not.toContain("commandSignal.headline");
+    expect(dashboardLayoutSource).toContain("commandSignal.focus");
+    expect(dashboardLayoutSource).toContain("<main className={`flex-1 p-3 pt-4 sm:p-4 sm:pt-5 md:p-6 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>");
   });
 
   it("keeps the shared mission-control shell animated and reward-aware without overwhelming the workflow", () => {

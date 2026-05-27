@@ -1,6 +1,11 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { getDesktopSidebarUiState } from "../client/src/components/DashboardLayout";
+
+const dashboardLayoutSource = readFileSync(join(process.cwd(), "client/src/components/DashboardLayout.tsx"), "utf8");
 
 describe("getDesktopSidebarUiState", () => {
   it("uses an offcanvas desktop collapse mode with a reopen trigger when collapsed", () => {
@@ -31,5 +36,11 @@ describe("getDesktopSidebarUiState", () => {
       showFloatingTrigger: false,
       mainPaddingClass: "",
     });
+  });
+
+  it("keeps desktop workspaces free of the obstructive top banner shell", () => {
+    expect(dashboardLayoutSource).not.toContain("command-band px-4");
+    expect(dashboardLayoutSource).not.toContain("commandSignal.headline");
+    expect(dashboardLayoutSource).toContain(") : null}\n        <main className={`flex-1 p-3 pt-4 sm:p-4 sm:pt-5 md:p-6 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>");
   });
 });

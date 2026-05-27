@@ -484,3 +484,6 @@
 - [x] Audit why only some documentation cards open the coaching-log pop-up and identify which additional document types should drill into exact underlying records.
 - [x] Repair the documentation feed so every eligible coaching-related document opens a consistent pop-up detail view from the correct linked record.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the documentation drill-down consistency fix.
+- [x] Audit the shared sitewide workspace banners and identify every surface where the obstructive header chips and banner treatments still appear.
+- [x] Remove the nonessential banner elements across shared workspace surfaces so the page content starts immediately without the blocking header treatment.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the sitewide banner-removal cleanup.
