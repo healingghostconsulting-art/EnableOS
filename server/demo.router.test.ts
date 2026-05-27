@@ -406,6 +406,12 @@ describe("demo router", () => {
     const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
     expect(learner.weeklyCoachingLogs[0]?.sessionDate).toBe("2026-04-27");
     expect(learner.reviewLogs[0]?.weeklyCoachingLogId).toBe(learner.weeklyCoachingLogs[0]?.id);
+    expect(learner.documentationEntries[0]).toEqual(
+      expect.objectContaining({
+        title: expect.stringContaining("documentation summary"),
+        weeklyCoachingLogId: learner.weeklyCoachingLogs[0]?.id,
+      }),
+    );
   });
 
   it("allows leadership to create a secure weekly coaching log inside the assigned tenant", async () => {
@@ -472,6 +478,16 @@ describe("demo router", () => {
     expect(updated.attendance).toBe("Back");
     expect(updated.smartGoalCommitment).toBe("Track");
     expect(updated.agentTakeaways).toBe("Ready");
+
+    const manager = await caller.demo.secureManager({ tenantId: "atlas-operations" });
+    expect(manager.documentationEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: expect.stringContaining("Weekly coaching log updated"),
+          weeklyCoachingLogId: created.id,
+        }),
+      ]),
+    );
   });
 
   it("allows the learner role to add takeaways back to a weekly coaching log", async () => {
@@ -490,6 +506,16 @@ describe("demo router", () => {
     });
 
     expect(updated.agentTakeaways).toContain("verification language");
+
+    const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
+    expect(learner.documentationEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: expect.stringContaining("Learner takeaways added"),
+          weeklyCoachingLogId: "weekly-log-1",
+        }),
+      ]),
+    );
   });
 
   it("allows leadership to edit a secure weekly coaching log and propagates the updated structure", async () => {
@@ -526,6 +552,14 @@ describe("demo router", () => {
       ]),
     );
     expect(manager.reviewLogs.some((entry: any) => entry.nextStep.includes("escalation opening"))).toBe(true);
+    expect(manager.documentationEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: expect.stringContaining("Weekly coaching log updated"),
+          weeklyCoachingLogId: "weekly-log-1",
+        }),
+      ]),
+    );
   });
 
   it("allows tenant client admins to create custom roles that appear in secure admin data", async () => {

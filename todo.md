@@ -478,3 +478,6 @@
 - [x] Diagnose why the coaching log cannot be saved from the current CHCG EnableOS workflow.
 - [x] Repair the coaching-log save flow across the affected UI and data-handling surfaces.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the coaching-log save repair.
+- [x] Audit the documentation-section coaching summary interaction and identify the exact weekly coaching log record that should open from each summary card.
+- [x] Implement a pop-up coaching-log detail view from documentation summaries so clicking a summary opens the exact underlying coaching log copy.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the documentation coaching-log pop-up enhancement.

@@ -168,6 +168,7 @@ export type DocumentationEntry = {
   createdAt: string;
   authoredByRole: "system" | DemoRole;
   evidencePoints: string[];
+  weeklyCoachingLogId?: string;
 };
 
 export type ReviewLog = {
@@ -1229,6 +1230,7 @@ const documentationEntries: DocumentationEntry[] = [
       "Supports quarterly and annual review preparation",
       "Aligned with CHCG Performance Leadership System",
     ],
+    weeklyCoachingLogId: "weekly-log-1",
   },
 ];
 
@@ -1968,6 +1970,7 @@ export function createReviewLog(input: CreateReviewLogInput) {
       `Next step: ${input.nextStep}`,
       `Authored by: ${input.authorRole.replaceAll("_", " ")}`,
     ],
+    weeklyCoachingLogId: input.weeklyCoachingLogId,
   });
 
   return created;
@@ -2056,6 +2059,7 @@ export function updateWeeklyCoachingLogTakeaways(input: UpdateWeeklyCoachingTake
       `Coach copy: ${existing.coachEmail}`,
       `Supervisor copy: ${existing.supervisorEmail}`,
     ],
+    weeklyCoachingLogId: existing.id,
   });
 
   return existing;
@@ -2100,6 +2104,7 @@ export function updateWeeklyCoachingLog(input: UpdateWeeklyCoachingLogInput) {
       `SMART goal: ${input.smartGoalCommitment}`,
       `Additional support: ${input.additionalSupport}`,
     ],
+    weeklyCoachingLogId: existing.id,
   });
 
   return existing;

@@ -1035,7 +1035,99 @@ function MetricCard({
   );
 }
 
-function DocumentationFeed({ entries }: { entries: any[] }) {
+function WeeklyCoachingLogDetailDialog({
+  entry,
+  log,
+  open,
+  onOpenChange,
+}: {
+  entry: any | null;
+  log: any | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!entry || !log) {
+    return null;
+  }
+
+  const recipients = [
+    { key: `employee-${log.id}-${log.employeeEmail}`, label: `Employee copy · ${log.employeeEmail}` },
+    { key: `coach-${log.id}-${log.coachEmail}`, label: `Coach copy · ${log.coachEmail}` },
+    { key: `supervisor-${log.id}-${log.supervisorEmail}`, label: `Supervisor copy · ${log.supervisorEmail}` },
+    log.managerOfSupervisorEmail
+      ? { key: `leadership-${log.id}-${log.managerOfSupervisorEmail}`, label: `Optional leadership copy · ${log.managerOfSupervisorEmail}` }
+      : null,
+  ].filter(Boolean) as { key: string; label: string }[];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{entry.title ?? `Weekly coaching log · ${log.employeeName}`}</DialogTitle>
+          <DialogDescription className="text-slate-400">
+            This documentation summary is linked to the exact weekly coaching log recorded for {log.employeeName}. Review the full coaching record, routing list, and learner take-aways without leaving the documentation lane.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-cyan-400/18 bg-cyan-400/10 p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Documentation summary</p>
+            <p className="mt-2 text-sm leading-6 text-slate-100">{entry.summary}</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Session date</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.sessionDate}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Attendance</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.attendance}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Coach</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.coachName} · {log.coachEmail}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Employee</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.employeeName} · {log.employeeEmail}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Follow-up from previous coaching</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.followUpFromPrevious}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Coaching comments</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.coachingComments}</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/8 p-4 md:col-span-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-emerald-100">SMART Goal Coaching Commitment</p>
+              <p className="mt-2 text-sm leading-6 text-white">{log.smartGoalCommitment}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Additional support</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.additionalSupport}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-slate-900/88 p-4 md:col-span-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Agent take-aways</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">{log.agentTakeaways || "The learner has not added take-aways yet."}</p>
+            </div>
+          </div>
+          <div className="space-y-3 rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Shared copies</p>
+            <div className="flex flex-wrap gap-2">
+              {recipients.map((recipient) => (
+                <Badge key={recipient.key} variant="outline" className="rounded-full border-white/12 bg-slate-950/90 text-slate-100">{recipient.label}</Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DocumentationFeed({ entries, weeklyCoachingLogs = [] }: { entries: any[]; weeklyCoachingLogs?: any[] }) {
+  const [selectedDocumentationEntryId, setSelectedDocumentationEntryId] = useState<string | null>(null);
+
   if (!entries || entries.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-slate-300">
@@ -1044,21 +1136,62 @@ function DocumentationFeed({ entries }: { entries: any[] }) {
     );
   }
 
+  const selectedDocumentationEntry = entries.find((entry: any) => entry.id === selectedDocumentationEntryId) ?? null;
+  const selectedWeeklyCoachingLog = selectedDocumentationEntry?.weeklyCoachingLogId
+    ? weeklyCoachingLogs.find((log: any) => log.id === selectedDocumentationEntry.weeklyCoachingLogId) ?? null
+    : null;
+
   return (
-    <div className="space-y-3">
-      {entries.map((entry: any, index: number) => (
-        <div key={entry.id ?? `${entry.title ?? "documentation"}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+    <>
+      <div className="space-y-3">
+        {entries.map((entry: any, index: number) => {
+          const linkedWeeklyCoachingLog = entry.weeklyCoachingLogId
+            ? weeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
+            : null;
+          const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
+
+          return supportsCoachingPopup ? (
+            <button
+              key={entry.id ?? `${entry.title ?? "documentation"}-${index}`}
+              type="button"
+              onClick={() => setSelectedDocumentationEntryId(entry.id)}
+              className="w-full rounded-2xl border border-cyan-400/18 bg-slate-950/55 px-4 py-4 text-left transition hover:border-cyan-300/40 hover:bg-slate-900/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+                </div>
+                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Open exact coaching log</Badge>
+              </div>
+              {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
+              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cyan-100/80">Click to review the full coaching record, recipients, and learner take-aways.</p>
+            </button>
+          ) : (
+            <div key={entry.id ?? `${entry.title ?? "documentation"}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+                </div>
+                {entry.updatedAt ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{String(entry.updatedAt)}</Badge> : null}
+              </div>
+              {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
             </div>
-            {entry.updatedAt ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{String(entry.updatedAt)}</Badge> : null}
-          </div>
-          {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
-        </div>
-      ))}
-    </div>
+          );
+        })}
+      </div>
+      <WeeklyCoachingLogDetailDialog
+        entry={selectedDocumentationEntry}
+        log={selectedWeeklyCoachingLog}
+        open={Boolean(selectedDocumentationEntry && selectedWeeklyCoachingLog)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedDocumentationEntryId(null);
+          }
+        }}
+      />
+    </>
   );
 }
 
@@ -7896,7 +8029,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                   <CardDescription className="text-slate-400">Executives can review evidence trails produced automatically from enablement activity across service, workflow, leadership, and coaching programs.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DocumentationFeed entries={data.documentationEntries} />
+                  <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
                 </CardContent>
               </PremiumCard>
               <WorkflowLibraryPanel
@@ -8192,7 +8325,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CardDescription className="text-slate-400">Observed behavior, weekly coaching records, and review notes remain connected so the coach does not lose context between sessions.</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentationFeed entries={data.documentationEntries} />
+              <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
             </CardContent>
           </PremiumCard>
         </TabsContent>
@@ -8537,7 +8670,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                 <CardDescription className="text-slate-400">Completion evidence from service foundations, workflow precision, and intervention activity is automatically assembled for coaching use.</CardDescription>
               </CardHeader>
               <CardContent>
-                <DocumentationFeed entries={data.documentationEntries} />
+                <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
               </CardContent>
             </PremiumCard>
             <WorkflowLibraryPanel
@@ -8953,7 +9086,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
               <CardDescription className="text-slate-400">Automatically generated evidence and leadership review notes connected to your Service Foundations, Workflow Precision, and coaching history.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <DocumentationFeed entries={data.documentationEntries} />
+              <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
               <div className="space-y-3">
                 {data.reviewLogs.map((entry: any) => (
                   <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
@@ -9373,7 +9506,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                   <CardDescription className="text-slate-400">Review the generated evidence trail and authored coaching documentation across Service Foundations, Workflow Precision, Data-Led Leadership, and Performance Leadership activity.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <DocumentationFeed entries={data.documentationEntries} />
+                  <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
                   <div className="space-y-3">
                     {data.reviewLogs.map((entry: any) => (
                       <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
