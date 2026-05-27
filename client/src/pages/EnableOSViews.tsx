@@ -45,6 +45,7 @@ import {
   Sparkles,
   Target,
   Volume2,
+  VolumeX,
   Users2,
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
@@ -1799,6 +1800,45 @@ export function getAssessmentResultStyles(passed: boolean) {
 
 const celebrationPalette = ["#f59e0b", "#10b981", "#38bdf8", "#f472b6", "#fde047", "#c084fc"] as const;
 
+function playCorrectAnswerSuccessSound(audioContextRef: { current: AudioContext | null }) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const AudioContextConstructor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextConstructor) {
+    return;
+  }
+
+  const context = audioContextRef.current ?? new AudioContextConstructor();
+  audioContextRef.current = context;
+
+  if (context.state === "suspended") {
+    void context.resume();
+  }
+
+  const sequence = [523.25, 659.25, 783.99] as const;
+  const startTime = context.currentTime + 0.02;
+
+  sequence.forEach((frequency, index) => {
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    const noteStart = startTime + index * 0.09;
+    const noteDuration = 0.14;
+
+    oscillator.type = index === sequence.length - 1 ? "sine" : "triangle";
+    oscillator.frequency.setValueAtTime(frequency, noteStart);
+    gainNode.gain.setValueAtTime(0.0001, noteStart);
+    gainNode.gain.exponentialRampToValueAtTime(index === sequence.length - 1 ? 0.035 : 0.025, noteStart + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, noteStart + noteDuration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    oscillator.start(noteStart);
+    oscillator.stop(noteStart + noteDuration + 0.02);
+  });
+}
+
 function CorrectAnswerCelebration({
   active,
   compact = false,
@@ -2102,22 +2142,38 @@ function InlineAssessmentShell({
   onRetry: () => void;
   onReturn: () => void;
 }) {
-  if (!trigger || !assessment) {
-    return null;
-  }
-
-  const questions = assessment.questions ?? [];
-  if (!questions.length) {
-    return null;
-  }
-
+  const questions = assessment?.questions ?? [];
   const boundedQuestionIndex = Math.max(0, Math.min(activeQuestionIndex, Math.max(questions.length - 1, 0)));
   const activeQuestion = questions[boundedQuestionIndex];
   const activeAnswerValue = activeQuestion ? answers[activeQuestion.id] ?? "" : "";
   const currentQuestionAnswered = activeQuestion ? hasAssessmentAnswer(activeQuestion, { [activeQuestion.id]: activeAnswerValue }) : false;
   const activeQuestionCorrect = submitted && activeQuestion ? isAssessmentQuestionCorrect(activeQuestion, activeAnswerValue) : false;
-  const isFinalQuiz = trigger.assessmentKey === "finalQuiz";
-  const title = isFinalQuiz ? "Final Quiz" : assessment.title;
+  const successFeedbackActive = activeQuestionCorrect || passed;
+  const [successSoundMuted, setSuccessSoundMuted] = useState(false);
+  const successAudioContextRef = useRef<AudioContext | null>(null);
+  const previousSuccessFeedbackRef = useRef(false);
+  const isFinalQuiz = trigger?.assessmentKey === "finalQuiz";
+  const title = isFinalQuiz ? "Final Quiz" : assessment?.title ?? "Assessment";
+
+  useEffect(() => {
+    if (successFeedbackActive && !previousSuccessFeedbackRef.current && !successSoundMuted) {
+      playCorrectAnswerSuccessSound(successAudioContextRef);
+    }
+
+    previousSuccessFeedbackRef.current = successFeedbackActive;
+  }, [successFeedbackActive, successSoundMuted]);
+
+  useEffect(() => () => {
+    if (successAudioContextRef.current && successAudioContextRef.current.state !== "closed") {
+      void successAudioContextRef.current.close();
+      successAudioContextRef.current = null;
+    }
+  }, []);
+
+  if (!trigger || !assessment || !questions.length) {
+    return null;
+  }
+
   const outlineEntries = [
     ...stagePages.map((page, index) => ({
       id: page.id,
@@ -2210,6 +2266,21 @@ function InlineAssessmentShell({
                 );
               })}
             </div>
+            <div className="mt-5 flex flex-col gap-3 rounded-[1.25rem] border border-[#c9d4af] bg-white/75 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)] sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Success sound</p>
+                <p className="mt-1 text-sm leading-6 text-[#586648]">Play a subtle chime only when the learner clears the active question correctly.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSuccessSoundMuted((current) => !current)}
+                className="rounded-full border-[#b9c6a0] bg-[#f6faec] px-4 text-[#243018] hover:bg-[#eef4df]"
+              >
+                {successSoundMuted ? <VolumeX className="mr-2 h-4 w-4" /> : <Volume2 className="mr-2 h-4 w-4" />}
+                {successSoundMuted ? "Success sound muted" : "Success sound on"}
+              </Button>
+            </div>
             <div className="mt-8 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
               <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Active prompt</p>
               <p className="mt-3 text-base font-medium leading-7 text-white">{activeQuestion.prompt}</p>
@@ -2269,13 +2340,19 @@ function InlineAssessmentShell({
               </div>
               {submitted ? (
                 <div className={`relative mt-6 overflow-hidden rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
-                  <CorrectAnswerCelebration active={activeQuestionCorrect || passed} />
+                  <CorrectAnswerCelebration active={successFeedbackActive} />
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
                       {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
                       <span className={passed ? "text-emerald-700" : "text-rose-700"}>{passed ? "Checkpoint cleared" : "Retry required"}</span>
                     </div>
-                    <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>Score {score}/{questions.length}</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>Score {score}/{questions.length}</div>
+                      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium ${successSoundMuted ? "bg-slate-200 text-slate-700" : "bg-emerald-100 text-emerald-700"}`}>
+                        {successSoundMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                        {successSoundMuted ? "Sound muted" : "Sound ready"}
+                      </div>
+                    </div>
                   </div>
                   <p className={`mt-3 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
                   <div className={`mt-4 rounded-[1rem] px-4 py-3 text-sm leading-6 ${passed ? "bg-white/70 text-emerald-800" : "bg-white/70 text-rose-800"}`}>

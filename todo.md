@@ -457,3 +457,6 @@
 - [x] Add animated balloons and confetti feedback when a learner answers a training question correctly.
 - [x] Integrate the celebration effect into the existing learner answer-result flow without disrupting module progression, scoring, or retry behavior.
 - [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the correct-answer celebration enhancement.
+- [x] Add a subtle success sound effect that plays when a learner answers a training question correctly.
+- [x] Add a learner-facing mute toggle so the correct-answer sound can be turned off without affecting the visual celebration or assessment flow.
+- [x] Extend regression coverage, run the relevant Vitest suites, verify project health, and save a checkpoint for the correct-answer success sound enhancement.
