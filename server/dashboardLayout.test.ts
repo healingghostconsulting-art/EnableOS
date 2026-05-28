@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { getDesktopSidebarUiState } from "../client/src/components/DashboardLayout";
+import { getDesktopSidebarAutoCollapseDelay, getDesktopSidebarUiState } from "../client/src/components/DashboardLayout";
 
 const dashboardLayoutSource = readFileSync(join(process.cwd(), "client/src/components/DashboardLayout.tsx"), "utf8");
 
@@ -36,6 +36,13 @@ describe("getDesktopSidebarUiState", () => {
       showFloatingTrigger: false,
       mainPaddingClass: "",
     });
+  });
+
+  it("uses a 12-second desktop auto-collapse timer and disables it on mobile", () => {
+    expect(getDesktopSidebarAutoCollapseDelay(false)).toBe(12_000);
+    expect(getDesktopSidebarAutoCollapseDelay(true)).toBeNull();
+    expect(dashboardLayoutSource).toContain("onMouseEnter={restartAutoCollapseTimer}");
+    expect(dashboardLayoutSource).toContain("setOpen(false);");
   });
 
   it("keeps desktop workspaces free of the obstructive top banner shell", () => {

@@ -512,3 +512,7 @@
 - [x] Implement the Coach Studio layout consolidation so the page behaves more like a single focused control surface with less vertical scrolling.
 - [x] Add a Public/Private visibility control to the weekly coaching-log flow so private logs stay on file only while public logs trigger the related notification behavior.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the latest Coach Studio refinement pass.
+- [x] Audit the current shared sidebar ribbon behavior and identify the safest implementation seam for automatic collapse after a short idle period on the active page.
+- [x] Design the sidebar auto-collapse interaction so it triggers after roughly 10–15 seconds of inactivity and resets appropriately on user interaction or manual expansion.
+- [x] Implement the timed auto-collapse behavior in the shared workspace shell without breaking manual sidebar controls.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the sidebar auto-collapse enhancement.

@@ -24,7 +24,7 @@ import {
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Building2, ChevronLeft, ChevronRight, Compass, Flame, LogOut, Sparkles, Target, Trophy, type LucideIcon } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 
@@ -38,6 +38,7 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 348;
 const MIN_WIDTH = 276;
 const MAX_WIDTH = 460;
+const DESKTOP_SIDEBAR_AUTO_COLLAPSE_DELAY_MS = 12_000;
 const workspaceMissionSignals: Record<string, {
   eyebrow: string;
   headline: string;
@@ -144,6 +145,10 @@ export function getDesktopSidebarUiState({
     showFloatingTrigger,
     mainPaddingClass: showFloatingTrigger ? "pt-20 md:pt-24" : "",
   };
+}
+
+export function getDesktopSidebarAutoCollapseDelay(isMobile: boolean) {
+  return isMobile ? null : DESKTOP_SIDEBAR_AUTO_COLLAPSE_DELAY_MS;
 }
 
 export default function DashboardLayout({
@@ -255,10 +260,11 @@ function DashboardLayoutContent({
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, open, setOpen, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const autoCollapseTimeoutRef = useRef<number | null>(null);
   const activeMenuItem = menuItems.find((item) => item.path === location);
   const isMobile = useIsMobile();
   const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
@@ -273,11 +279,40 @@ function DashboardLayoutContent({
     .slice(0, 2)
     .toUpperCase();
 
+  const clearAutoCollapseTimer = useCallback(() => {
+    if (autoCollapseTimeoutRef.current !== null) {
+      window.clearTimeout(autoCollapseTimeoutRef.current);
+      autoCollapseTimeoutRef.current = null;
+    }
+  }, []);
+
+  const restartAutoCollapseTimer = useCallback(() => {
+    const autoCollapseDelay = getDesktopSidebarAutoCollapseDelay(isMobile);
+    clearAutoCollapseTimer();
+
+    if (!open || autoCollapseDelay === null || isResizing) {
+      return;
+    }
+
+    autoCollapseTimeoutRef.current = window.setTimeout(() => {
+      setOpen(false);
+      autoCollapseTimeoutRef.current = null;
+    }, autoCollapseDelay);
+  }, [clearAutoCollapseTimer, isMobile, isResizing, open, setOpen]);
+
   useEffect(() => {
     if (isCollapsed) {
       setIsResizing(false);
     }
   }, [isCollapsed]);
+
+  useEffect(() => {
+    restartAutoCollapseTimer();
+
+    return () => {
+      clearAutoCollapseTimer();
+    };
+  }, [clearAutoCollapseTimer, location, restartAutoCollapseTimer]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -312,7 +347,14 @@ function DashboardLayoutContent({
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar collapsible={desktopSidebarUi.collapseMode} className="border-r border-[#1B303C]/10 bg-white/90 text-[#1B303C] backdrop-blur-2xl" disableTransition={isResizing}>
+        <Sidebar
+          collapsible={desktopSidebarUi.collapseMode}
+          className="border-r border-[#1B303C]/10 bg-white/90 text-[#1B303C] backdrop-blur-2xl"
+          disableTransition={isResizing}
+          onMouseEnter={restartAutoCollapseTimer}
+          onFocusCapture={restartAutoCollapseTimer}
+          onPointerDownCapture={restartAutoCollapseTimer}
+        >
           <SidebarHeader className="h-auto border-b border-[#1B303C]/10 px-3 pb-4 pt-4">
             <div className="glass-panel energy-frame rounded-[2rem] px-3 py-3">
               <div className="flex w-full items-start gap-3 px-1">
