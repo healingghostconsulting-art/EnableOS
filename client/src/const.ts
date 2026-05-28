@@ -1,6 +1,8 @@
+import { encodeOAuthState } from "@shared/oauthState";
+
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-function normalizeReturnPath(returnPath?: string) {
+export function normalizeReturnPath(returnPath?: string) {
   if (!returnPath || !returnPath.startsWith("/") || returnPath.startsWith("//")) {
     return "/";
   }
@@ -8,19 +10,25 @@ function normalizeReturnPath(returnPath?: string) {
   return returnPath;
 }
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
-export const getLoginUrl = (returnPath = "/") => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUrl = new URL(`${window.location.origin}/api/oauth/callback`);
+type BuildLoginUrlOptions = {
+  oauthPortalUrl: string;
+  appId: string;
+  origin: string;
+  returnPath?: string;
+};
+
+export function buildLoginUrl({
+  oauthPortalUrl,
+  appId,
+  origin,
+  returnPath = "/",
+}: BuildLoginUrlOptions) {
   const normalizedReturnPath = normalizeReturnPath(returnPath);
-
-  if (normalizedReturnPath !== "/") {
-    redirectUrl.searchParams.set("returnTo", normalizedReturnPath);
-  }
-
-  const redirectUri = redirectUrl.toString();
-  const state = btoa(redirectUri);
+  const redirectUri = new URL("/api/oauth/callback", origin).toString();
+  const state = encodeOAuthState({
+    redirectUri,
+    returnTo: normalizedReturnPath !== "/" ? normalizedReturnPath : undefined,
+  });
 
   const url = new URL(`${oauthPortalUrl}/app-auth`);
   url.searchParams.set("appId", appId);
@@ -29,4 +37,13 @@ export const getLoginUrl = (returnPath = "/") => {
   url.searchParams.set("type", "signIn");
 
   return url.toString();
-};
+}
+
+// Generate login URL at runtime so redirect URI reflects the current origin.
+export const getLoginUrl = (returnPath = "/") =>
+  buildLoginUrl({
+    oauthPortalUrl: import.meta.env.VITE_OAUTH_PORTAL_URL,
+    appId: import.meta.env.VITE_APP_ID,
+    origin: window.location.origin,
+    returnPath,
+  });

@@ -1,4 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { parseOAuthState } from "@shared/oauthState";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
@@ -21,12 +22,24 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
-    const returnTo = resolveOAuthReturnPath(getQueryParam(req, "returnTo"));
 
     if (!code || !state) {
       res.status(400).json({ error: "code and state are required" });
       return;
     }
+
+    let parsedState;
+
+    try {
+      parsedState = parseOAuthState(state);
+    } catch {
+      res.status(400).json({ error: "invalid OAuth state" });
+      return;
+    }
+
+    const returnTo = resolveOAuthReturnPath(
+      parsedState.returnTo ?? getQueryParam(req, "returnTo")
+    );
 
     try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
