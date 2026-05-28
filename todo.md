@@ -499,3 +499,7 @@
 - [x] Add or update validation coverage, verify the alert path, and document how SMS failure notifications should be used. (Skipped at the user's request after they chose not to pursue SMS alerts.)
 - [x] Execute the attached Coach Studio priority edits from the feedback review as the governing implementation pass for readability, layout density, chart removal, and documentation-lane repositioning.
 - [x] Use the user-provided Telegram escalation path for blocker questions during the Coach Studio execution pass if direct clarification becomes necessary.
+- [x] Audit the current coaching-log workflow and identify the exact data, UI, and storage seams needed to support attachments of any file format.
+- [x] Design a safe coaching-log attachment model using storage-backed uploads, metadata persistence, and clear upload/download behavior across the existing coaching workflow.
+- [x] Implement multi-format attachment upload, persistence, and display within the coaching-log creation and viewing flows.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for coaching-log attachment support.

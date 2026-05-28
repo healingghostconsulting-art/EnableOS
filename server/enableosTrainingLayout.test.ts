@@ -235,6 +235,10 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Click to review the full documentation summary, evidence points, and saved metadata.");
     expect(trainingViewSource).toContain("Complete the remaining required coaching fields before saving");
     expect(trainingViewSource).toContain("Attendance needs a short status note.");
+    expect(trainingViewSource).toContain("Add supporting files");
+    expect(trainingViewSource).toContain("Attach any file type to the coaching log");
+    expect(trainingViewSource).toContain("Attach files to this log");
+    expect(trainingViewSource).toContain("function CoachingAttachmentList");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {

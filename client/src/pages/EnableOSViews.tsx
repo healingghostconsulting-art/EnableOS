@@ -1119,6 +1119,10 @@ function WeeklyCoachingLogDetailDialog({
               ))}
             </div>
           </div>
+          <div className="space-y-3 rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Attachments</p>
+            <CoachingAttachmentList attachments={log.attachments} emptyLabel="No attachments were saved on this coaching log." />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -7061,6 +7065,98 @@ function getWeeklyCoachingValidationMessages(input: {
   return validationMessages;
 }
 
+type WeeklyCoachingUploadInput = {
+  fileName: string;
+  mimeType: string;
+  dataBase64: string;
+  sizeBytes: number;
+};
+
+const WEEKLY_COACHING_ATTACHMENT_LIMIT = 5;
+const WEEKLY_COACHING_ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
+
+async function readWeeklyCoachingFileAsBase64(file: File) {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      resolve(result.includes(",") ? result.split(",")[1] ?? "" : result);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Unable to read file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function buildWeeklyCoachingAttachmentPayload(files: File[]) {
+  if (files.length > WEEKLY_COACHING_ATTACHMENT_LIMIT) {
+    throw new Error(`Attach up to ${WEEKLY_COACHING_ATTACHMENT_LIMIT} files per coaching log.`);
+  }
+
+  return await Promise.all(files.map(async (file) => {
+    if (file.size > WEEKLY_COACHING_ATTACHMENT_MAX_BYTES) {
+      throw new Error(`${file.name} exceeds the 15 MB attachment limit.`);
+    }
+
+    return {
+      fileName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      dataBase64: await readWeeklyCoachingFileAsBase64(file),
+      sizeBytes: file.size,
+    } satisfies WeeklyCoachingUploadInput;
+  }));
+}
+
+function formatWeeklyCoachingAttachmentSize(sizeBytes: number) {
+  if (sizeBytes >= 1024 * 1024) {
+    return `${(sizeBytes / (1024 * 1024)).toFixed(sizeBytes >= 10 * 1024 * 1024 ? 0 : 1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
+}
+
+function CoachingAttachmentList({
+  attachments,
+  emptyLabel = "No attachments added to this coaching log yet.",
+}: {
+  attachments?: Array<{
+    id: string;
+    fileName: string;
+    mimeType: string;
+    fileUrl: string;
+    sizeBytes: number;
+    uploadedAt: string;
+    uploadedByRole?: string;
+  }>;
+  emptyLabel?: string;
+}) {
+  if (!attachments?.length) {
+    return <p className="text-sm leading-6 text-slate-300">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="grid gap-3">
+      {attachments.map((attachment) => (
+        <a
+          key={attachment.id}
+          href={attachment.fileUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center justify-between gap-4 rounded-2xl border border-white/12 bg-slate-950/80 px-4 py-3 transition hover:border-cyan-300/50 hover:bg-slate-950"
+        >
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-white">{attachment.fileName}</p>
+            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-400">
+              {attachment.mimeType || "application/octet-stream"} · {formatWeeklyCoachingAttachmentSize(attachment.sizeBytes)}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">Uploaded {new Date(attachment.uploadedAt).toLocaleDateString()} by {String(attachment.uploadedByRole ?? "coach").replaceAll("_", " ")}</p>
+          </div>
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200 transition group-hover:text-cyan-100">Open file</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
 type WeeklyCoachingLogComposerProps = {
   tenantId: string;
   subjectUserId: string;
@@ -7097,6 +7193,9 @@ function WeeklyCoachingLogComposer({
   const [smartGoalCommitment, setSmartGoalCommitment] = useState("");
   const [additionalSupport, setAdditionalSupport] = useState("");
   const [agentTakeaways, setAgentTakeaways] = useState("");
+  const [selectedAttachments, setSelectedAttachments] = useState<File[]>([]);
+  const [attachmentNotice, setAttachmentNotice] = useState<string | null>(null);
+  const [attachmentInputKey, setAttachmentInputKey] = useState(0);
   const trimmedAttendance = attendance.trim();
   const trimmedFollowUpFromPrevious = followUpFromPrevious.trim();
   const trimmedCoachingComments = coachingComments.trim();
@@ -7119,6 +7218,9 @@ function WeeklyCoachingLogComposer({
       setSmartGoalCommitment("");
       setAdditionalSupport("");
       setAgentTakeaways("");
+      setSelectedAttachments([]);
+      setAttachmentNotice(null);
+      setAttachmentInputKey((current) => current + 1);
       onCreated?.();
     },
   });
@@ -7143,6 +7245,69 @@ function WeeklyCoachingLogComposer({
         {shareTargets.map((target) => (
           <Badge key={target.key} className="rounded-full border-white/10 bg-white/8 text-slate-200">{target.label}</Badge>
         ))}
+      </div>
+      <div className="mb-5 rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Attachments</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Attach any file type to the coaching log for scorecards, screenshots, recordings, or supporting notes. Upload up to five files, 15 MB each.</p>
+          </div>
+          <label className="cursor-pointer rounded-full border border-white/12 bg-slate-950/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900">
+            Add supporting files
+            <input
+              key={attachmentInputKey}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                const incomingFiles = Array.from(event.target.files ?? []);
+                if (!incomingFiles.length) {
+                  return;
+                }
+
+                const oversizedFiles = incomingFiles.filter((file) => file.size > WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+                const validFiles = incomingFiles.filter((file) => file.size <= WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+
+                setSelectedAttachments((current) => {
+                  const deduped = validFiles.filter((file) => !current.some((existing) => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified));
+                  return [...current, ...deduped].slice(0, WEEKLY_COACHING_ATTACHMENT_LIMIT);
+                });
+
+                if (oversizedFiles.length) {
+                  setAttachmentNotice(`${oversizedFiles[0]?.name ?? "A file"} exceeds the 15 MB attachment limit.`);
+                } else if ((selectedAttachments.length + validFiles.length) > WEEKLY_COACHING_ATTACHMENT_LIMIT) {
+                  setAttachmentNotice(`Only the first ${WEEKLY_COACHING_ATTACHMENT_LIMIT} files will be attached.`);
+                } else {
+                  setAttachmentNotice(null);
+                }
+
+                event.currentTarget.value = "";
+              }}
+            />
+          </label>
+        </div>
+        {selectedAttachments.length ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selectedAttachments.map((file) => {
+              const fileKey = `${file.name}-${file.lastModified}-${file.size}`;
+              return (
+                <button
+                  key={fileKey}
+                  type="button"
+                  onClick={() => {
+                    setSelectedAttachments((current) => current.filter((entry) => `${entry.name}-${entry.lastModified}-${entry.size}` !== fileKey));
+                    setAttachmentNotice(null);
+                  }}
+                  className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-left text-xs text-cyan-100 transition hover:bg-cyan-400/16"
+                >
+                  {file.name} · {formatWeeklyCoachingAttachmentSize(file.size)} · Remove
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm leading-6 text-slate-400">No attachment selected yet.</p>
+        )}
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm text-slate-300">
@@ -7187,26 +7352,36 @@ function WeeklyCoachingLogComposer({
           type="button"
           className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
           disabled={createWeeklyCoachingLog.isPending || !canSaveWeeklyCoachingLog}
-          onClick={() => createWeeklyCoachingLog.mutate({
-            tenantId,
-            subjectUserId,
-            coachRole,
-            sessionDate,
-            attendance: trimmedAttendance,
-            followUpFromPrevious: trimmedFollowUpFromPrevious,
-            coachingComments: trimmedCoachingComments,
-            smartGoalCommitment: trimmedSmartGoalCommitment,
-            additionalSupport: trimmedAdditionalSupport,
-            managerOfSupervisorEmail,
-            agentTakeaways: trimmedAgentTakeaways || undefined,
-          })}
+          onClick={async () => {
+            try {
+              setAttachmentNotice(null);
+              const attachments = await buildWeeklyCoachingAttachmentPayload(selectedAttachments);
+              await createWeeklyCoachingLog.mutateAsync({
+                tenantId,
+                subjectUserId,
+                coachRole,
+                sessionDate,
+                attendance: trimmedAttendance,
+                followUpFromPrevious: trimmedFollowUpFromPrevious,
+                coachingComments: trimmedCoachingComments,
+                smartGoalCommitment: trimmedSmartGoalCommitment,
+                additionalSupport: trimmedAdditionalSupport,
+                managerOfSupervisorEmail,
+                agentTakeaways: trimmedAgentTakeaways || undefined,
+                attachments: attachments.length ? attachments : undefined,
+              });
+            } catch (error) {
+              setAttachmentNotice(error instanceof Error ? error.message : "Unable to prepare the selected attachments.");
+            }
+          }}
         >
           {createWeeklyCoachingLog.isPending ? "Saving..." : "Save weekly coaching log"}
         </Button>
         <div className="space-y-1 text-sm">
           {!canSaveWeeklyCoachingLog ? <p className="text-amber-200">Complete the remaining required coaching fields before saving: {coachingValidationMessages.join(" ")}</p> : null}
+          {attachmentNotice ? <p className="text-amber-200">{attachmentNotice}</p> : null}
           {createWeeklyCoachingLog.isError ? <p className="text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
-          {createWeeklyCoachingLog.isSuccess ? <p className="text-emerald-300">Weekly coaching log saved with learner and supervisor copy details.</p> : null}
+          {createWeeklyCoachingLog.isSuccess ? <p className="text-emerald-300">Weekly coaching log saved with learner, supervisor, and attachment details.</p> : null}
         </div>
       </div>
     </div>
@@ -7290,6 +7465,9 @@ function WeeklyCoachingLogTimeline({
     agentTakeaways: string;
   }>>(() => buildStructuredLogDrafts(logs));
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [pendingAttachmentFiles, setPendingAttachmentFiles] = useState<Record<string, File[]>>({});
+  const [attachmentNoticeByLog, setAttachmentNoticeByLog] = useState<Record<string, string | null>>({});
+  const [attachmentInputKeys, setAttachmentInputKeys] = useState<Record<string, number>>({});
   const updateTakeaways = trpc.demo.secureUpdateWeeklyCoachingTakeaways.useMutation({
     onSuccess: () => {
       onUpdated?.();
@@ -7301,10 +7479,21 @@ function WeeklyCoachingLogTimeline({
       onUpdated?.();
     },
   });
+  const addWeeklyCoachingAttachments = trpc.demo.secureAddWeeklyCoachingLogAttachments.useMutation({
+    onSuccess: (_, variables) => {
+      setPendingAttachmentFiles((current) => ({ ...current, [variables.weeklyCoachingLogId]: [] }));
+      setAttachmentNoticeByLog((current) => ({ ...current, [variables.weeklyCoachingLogId]: null }));
+      setAttachmentInputKeys((current) => ({ ...current, [variables.weeklyCoachingLogId]: (current[variables.weeklyCoachingLogId] ?? 0) + 1 }));
+      onUpdated?.();
+    },
+  });
 
   useEffect(() => {
     setTakeawayDrafts(Object.fromEntries(logs.map((log: any) => [log.id, log.agentTakeaways ?? ""])));
     setStructuredLogDrafts(buildStructuredLogDrafts(logs));
+    setPendingAttachmentFiles((current) => Object.fromEntries(logs.map((log: any) => [log.id, current[log.id] ?? []])));
+    setAttachmentNoticeByLog((current) => Object.fromEntries(logs.map((log: any) => [log.id, current[log.id] ?? null])));
+    setAttachmentInputKeys((current) => Object.fromEntries(logs.map((log: any) => [log.id, current[log.id] ?? 0])));
   }, [logs]);
 
   return (
@@ -7493,6 +7682,114 @@ function WeeklyCoachingLogTimeline({
                     ].filter(Boolean) as { key: string; label: string }[]).map((recipient) => (
                       <Badge key={recipient.key} variant="outline" className="rounded-full border-white/12 bg-slate-900/90 text-slate-100">{recipient.label}</Badge>
                     ))}
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-white/12 bg-slate-900/88 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Attachments</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">Add any file type to keep screenshots, QA exports, or supporting evidence attached to the same coaching record.</p>
+                      </div>
+                      {allowLogEditing ? (
+                        <label className="cursor-pointer rounded-full border border-white/12 bg-slate-950/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-950">
+                          Add attachments
+                          <input
+                            key={attachmentInputKeys[log.id] ?? 0}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(event) => {
+                              const incomingFiles = Array.from(event.target.files ?? []);
+                              if (!incomingFiles.length) {
+                                return;
+                              }
+
+                              const oversizedFiles = incomingFiles.filter((file) => file.size > WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+                              const validFiles = incomingFiles.filter((file) => file.size <= WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+
+                              setPendingAttachmentFiles((current) => {
+                                const currentFiles = current[log.id] ?? [];
+                                const deduped = validFiles.filter((file) => !currentFiles.some((existing) => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified));
+                                return {
+                                  ...current,
+                                  [log.id]: [...currentFiles, ...deduped].slice(0, WEEKLY_COACHING_ATTACHMENT_LIMIT),
+                                };
+                              });
+
+                              if (oversizedFiles.length) {
+                                setAttachmentNoticeByLog((current) => ({ ...current, [log.id]: `${oversizedFiles[0]?.name ?? "A file"} exceeds the 15 MB attachment limit.` }));
+                              } else if (((pendingAttachmentFiles[log.id] ?? []).length + validFiles.length) > WEEKLY_COACHING_ATTACHMENT_LIMIT) {
+                                setAttachmentNoticeByLog((current) => ({ ...current, [log.id]: `Only the first ${WEEKLY_COACHING_ATTACHMENT_LIMIT} files will be attached.` }));
+                              } else {
+                                setAttachmentNoticeByLog((current) => ({ ...current, [log.id]: null }));
+                              }
+
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                        </label>
+                      ) : null}
+                    </div>
+                    <div className="mt-4">
+                      <CoachingAttachmentList attachments={log.attachments} />
+                    </div>
+                    {allowLogEditing ? (
+                      <div className="mt-4 space-y-3">
+                        {(pendingAttachmentFiles[log.id] ?? []).length ? (
+                          <div className="flex flex-wrap gap-2">
+                            {(pendingAttachmentFiles[log.id] ?? []).map((file) => {
+                              const fileKey = `${file.name}-${file.lastModified}-${file.size}`;
+                              return (
+                                <button
+                                  key={fileKey}
+                                  type="button"
+                                  onClick={() => {
+                                    setPendingAttachmentFiles((current) => ({
+                                      ...current,
+                                      [log.id]: (current[log.id] ?? []).filter((entry) => `${entry.name}-${entry.lastModified}-${entry.size}` !== fileKey),
+                                    }));
+                                    setAttachmentNoticeByLog((current) => ({ ...current, [log.id]: null }));
+                                  }}
+                                  className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-left text-xs text-cyan-100 transition hover:bg-cyan-400/16"
+                                >
+                                  {file.name} · {formatWeeklyCoachingAttachmentSize(file.size)} · Remove
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm leading-6 text-slate-400">No new attachments selected for this record.</p>
+                        )}
+                        <div className="flex flex-wrap items-start gap-3">
+                          <Button
+                            type="button"
+                            className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                            disabled={addWeeklyCoachingAttachments.isPending || !(pendingAttachmentFiles[log.id] ?? []).length}
+                            onClick={async () => {
+                              try {
+                                setAttachmentNoticeByLog((current) => ({ ...current, [log.id]: null }));
+                                const attachments = await buildWeeklyCoachingAttachmentPayload(pendingAttachmentFiles[log.id] ?? []);
+                                await addWeeklyCoachingAttachments.mutateAsync({
+                                  tenantId,
+                                  weeklyCoachingLogId: log.id,
+                                  attachments,
+                                });
+                              } catch (error) {
+                                setAttachmentNoticeByLog((current) => ({
+                                  ...current,
+                                  [log.id]: error instanceof Error ? error.message : "Unable to prepare the selected attachments.",
+                                }));
+                              }
+                            }}
+                          >
+                            {addWeeklyCoachingAttachments.isPending ? "Uploading..." : "Attach files to this log"}
+                          </Button>
+                          <div className="space-y-1 text-sm">
+                            {attachmentNoticeByLog[log.id] ? <p className="text-amber-200">{attachmentNoticeByLog[log.id]}</p> : null}
+                            <p className="text-slate-300">Existing attachments stay connected to the coaching record and documentation drill-down.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="mt-4 rounded-2xl border border-white/12 bg-slate-900/88 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Agent take-aways</p>

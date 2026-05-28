@@ -1,5 +1,14 @@
 import { TRPCError } from "@trpc/server";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("./storage", () => ({
+  storagePut: vi.fn(async (relKey: string) => ({
+    key: `mocked-${relKey.replace(/[^a-zA-Z0-9._/-]/g, "-")}`,
+    url: `/manus-storage/mocked-${relKey.replace(/[^a-zA-Z0-9._/-]/g, "-")}`,
+  })),
+}));
+
+const { storagePut } = await import("./storage");
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -29,6 +38,9 @@ function createContext(overrides?: Partial<NonNullable<TrpcContext["user"]>>): T
 }
 
 describe("demo router", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it("returns landing data with multiple sanitized tenants and featured metrics", async () => {
     const caller = appRouter.createCaller(createContext());
 
@@ -414,6 +426,48 @@ describe("demo router", () => {
     );
   });
 
+  it("stores coaching-log attachments when leadership creates a secure weekly coaching log", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    const created = await caller.demo.secureCreateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      subjectUserId: "u-learn-1",
+      coachRole: "manager",
+      sessionDate: "2026-05-01",
+      attendance: "Present and engaged.",
+      followUpFromPrevious: "The learner met the prior target and now needs to document the escalation reset phrase consistently.",
+      coachingComments: "Attached the latest QA worksheet and screenshot evidence to the weekly coaching record for the next review.",
+      smartGoalCommitment: "Use the escalation reset phrase on every monitored escalation call before 2026-05-08.",
+      additionalSupport: "Manager will attach supporting QA evidence and review it live in the next side-by-side.",
+      attachments: [
+        {
+          fileName: "qa-calibration-notes.pdf",
+          mimeType: "application/pdf",
+          dataBase64: "dGVzdC1wZGY=",
+          sizeBytes: 2048,
+        },
+      ],
+    });
+
+    expect(created.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "qa-calibration-notes.pdf",
+          mimeType: "application/pdf",
+          fileUrl: expect.stringContaining("/manus-storage/"),
+          uploadedByRole: "manager",
+        }),
+      ]),
+    );
+    expect(storagePut).toHaveBeenCalled();
+  });
+
   it("allows leadership to create a secure weekly coaching log inside the assigned tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
@@ -514,6 +568,47 @@ describe("demo router", () => {
           title: expect.stringContaining("Learner takeaways added"),
           weeklyCoachingLogId: "weekly-log-1",
         }),
+      ]),
+    );
+  });
+
+  it("allows leadership to append attachments to an existing weekly coaching log", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-coach",
+        role: "user",
+        name: "Enterprise Coach Supervisor",
+      }),
+    );
+
+    const updated = await caller.demo.secureAddWeeklyCoachingLogAttachments({
+      tenantId: "atlas-operations",
+      weeklyCoachingLogId: "weekly-log-1",
+      attachments: [
+        {
+          fileName: "call-snippet.mp3",
+          mimeType: "audio/mpeg",
+          dataBase64: "YXVkaW8tdGVzdA==",
+          sizeBytes: 4096,
+        },
+      ],
+    });
+
+    expect(updated.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "call-snippet.mp3",
+          mimeType: "audio/mpeg",
+          fileUrl: expect.stringContaining("/manus-storage/"),
+          uploadedByRole: "coach",
+        }),
+      ]),
+    );
+
+    const coach = await caller.demo.secureCoach({ tenantId: "atlas-operations" });
+    expect(coach.weeklyCoachingLogs.find((entry: any) => entry.id === "weekly-log-1")?.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ fileName: "call-snippet.mp3" }),
       ]),
     );
   });

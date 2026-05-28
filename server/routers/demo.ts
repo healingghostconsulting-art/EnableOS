@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
 import {
+  addWeeklyCoachingLogAttachments,
   applyCoachingGuidance,
   createChcgTenant,
   createClientContent,
@@ -77,6 +78,13 @@ const reviewLogInput = z.object({
   nextStep: z.string().min(5).max(240),
 });
 
+const coachingAttachmentUploadInput = z.object({
+  fileName: z.string().min(1).max(180),
+  mimeType: z.string().min(1).max(160).optional(),
+  dataBase64: z.string().min(1).max(20_000_000),
+  sizeBytes: z.number().int().min(1).max(15 * 1024 * 1024),
+});
+
 const weeklyCoachingLogInput = z.object({
   tenantId: z.string(),
   subjectUserId: z.string(),
@@ -89,6 +97,7 @@ const weeklyCoachingLogInput = z.object({
   additionalSupport: z.string().min(3).max(600),
   managerOfSupervisorEmail: z.string().email().optional(),
   agentTakeaways: z.string().max(800).optional(),
+  attachments: z.array(coachingAttachmentUploadInput).max(5).optional(),
 });
 
 const weeklyCoachingTakeawaysInput = z.object({
@@ -107,6 +116,12 @@ const weeklyCoachingLogEditInput = z.object({
   smartGoalCommitment: z.string().min(5).max(800),
   additionalSupport: z.string().min(3).max(800),
   agentTakeaways: z.string().max(800).optional(),
+});
+
+const weeklyCoachingAttachmentAddInput = z.object({
+  tenantId: z.string(),
+  weeklyCoachingLogId: z.string(),
+  attachments: z.array(coachingAttachmentUploadInput).min(1).max(5),
 });
 
 const customTenantRoleInput = z.object({
@@ -187,6 +202,43 @@ function assertTenantMembership(openId: string | undefined, appRole: string | un
   }
 
   return { grant, tenantId };
+}
+
+function sanitizeUploadFileName(fileName: string) {
+  return fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+async function uploadWeeklyCoachingAttachments(
+  tenantId: string,
+  uploadedByRole: "manager" | "coach" | "executive" | "client_admin",
+  attachments?: Array<z.infer<typeof coachingAttachmentUploadInput>>,
+) {
+  if (!attachments?.length) {
+    return [];
+  }
+
+  const batchTimestamp = Date.now();
+  const uploadedAt = new Date().toISOString();
+
+  return await Promise.all(attachments.map(async (attachment, index) => {
+    const safeFileName = sanitizeUploadFileName(attachment.fileName);
+    const upload = await storagePut(
+      `weekly-coaching-attachments/${tenantId}/${batchTimestamp}-${index + 1}-${safeFileName}`,
+      Buffer.from(attachment.dataBase64, "base64"),
+      attachment.mimeType || "application/octet-stream",
+    );
+
+    return {
+      id: `weekly-attachment-${batchTimestamp}-${index + 1}`,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType || "application/octet-stream",
+      fileUrl: upload.url,
+      storageKey: upload.key,
+      sizeBytes: attachment.sizeBytes,
+      uploadedAt,
+      uploadedByRole,
+    };
+  }));
 }
 
 export const demoRouter = router({
@@ -329,8 +381,11 @@ export const demoRouter = router({
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));
     return createReviewLog({ ...input, tenantId });
   }),
-  previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(({ input }) => createWeeklyCoachingLog(input)),
-  secureCreateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogInput).mutation(({ ctx, input }) => {
+  previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(async ({ input }) => {
+    const attachments = await uploadWeeklyCoachingAttachments(input.tenantId, input.coachRole, input.attachments);
+    return createWeeklyCoachingLog({ ...input, attachments });
+  }),
+  secureCreateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogInput).mutation(async ({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
 
     if (!["manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
@@ -338,7 +393,8 @@ export const demoRouter = router({
     }
 
     const coachRole = (grant.role === "platform_admin" ? input.coachRole : grant.role) as "manager" | "coach" | "executive" | "client_admin";
-    return createWeeklyCoachingLog({ ...input, tenantId, coachRole });
+    const attachments = await uploadWeeklyCoachingAttachments(tenantId, coachRole, input.attachments);
+    return createWeeklyCoachingLog({ ...input, tenantId, coachRole, attachments });
   }),
   previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
   secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {
@@ -359,6 +415,17 @@ export const demoRouter = router({
     }
 
     return updateWeeklyCoachingLog({ ...input, tenantId });
+  }),
+  secureAddWeeklyCoachingLogAttachments: protectedProcedure.input(weeklyCoachingAttachmentAddInput).mutation(async ({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+
+    if (!["manager", "coach", "executive", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only leadership roles can attach files to weekly coaching logs." });
+    }
+
+    const uploadedByRole = (grant.role === "platform_admin" ? "client_admin" : grant.role) as "manager" | "coach" | "executive" | "client_admin";
+    const attachments = await uploadWeeklyCoachingAttachments(tenantId, uploadedByRole, input.attachments);
+    return addWeeklyCoachingLogAttachments({ ...input, tenantId, attachments });
   }),
   secureCreateTenantCustomRole: protectedProcedure.input(customTenantRoleInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");

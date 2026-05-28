@@ -196,6 +196,17 @@ export type CreateReviewLogInput = {
   weeklyCoachingLogId?: string;
 };
 
+export type WeeklyCoachingAttachment = {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  fileUrl: string;
+  storageKey?: string;
+  sizeBytes: number;
+  uploadedAt: string;
+  uploadedByRole: "manager" | "coach" | "executive" | "client_admin";
+};
+
 export type WeeklyCoachingLog = {
   id: string;
   tenantId: string;
@@ -220,6 +231,7 @@ export type WeeklyCoachingLog = {
   createdAt: string;
   updatedAt: string;
   linkedReviewLogId?: string;
+  attachments: WeeklyCoachingAttachment[];
 };
 
 export type CreateWeeklyCoachingLogInput = {
@@ -234,6 +246,7 @@ export type CreateWeeklyCoachingLogInput = {
   additionalSupport: string;
   managerOfSupervisorEmail?: string;
   agentTakeaways?: string;
+  attachments?: WeeklyCoachingAttachment[];
 };
 
 export type UpdateWeeklyCoachingTakeawaysInput = {
@@ -252,6 +265,12 @@ export type UpdateWeeklyCoachingLogInput = {
   smartGoalCommitment: string;
   additionalSupport: string;
   agentTakeaways?: string;
+};
+
+export type AddWeeklyCoachingLogAttachmentsInput = {
+  tenantId: string;
+  weeklyCoachingLogId: string;
+  attachments: WeeklyCoachingAttachment[];
 };
 
 export type TenantCustomRole = {
@@ -1299,6 +1318,7 @@ const weeklyCoachingLogs: WeeklyCoachingLog[] = [
     createdAt: "2026-04-20T14:30:00.000Z",
     updatedAt: "2026-04-20T14:30:00.000Z",
     linkedReviewLogId: "review-1",
+    attachments: [],
   },
 ];
 
@@ -2019,6 +2039,7 @@ export function createWeeklyCoachingLog(input: CreateWeeklyCoachingLogInput) {
     createdAt,
     updatedAt: createdAt,
     linkedReviewLogId: review.id,
+    attachments: input.attachments ?? [],
   };
 
   weeklyCoachingLogs.unshift(created);
@@ -2079,6 +2100,7 @@ export function updateWeeklyCoachingLog(input: UpdateWeeklyCoachingLogInput) {
   existing.smartGoalCommitment = input.smartGoalCommitment;
   existing.additionalSupport = input.additionalSupport;
   existing.agentTakeaways = input.agentTakeaways ?? existing.agentTakeaways;
+  existing.attachments = existing.attachments ?? [];
   existing.updatedAt = new Date().toISOString();
 
   const linkedReview = existing.linkedReviewLogId
@@ -2103,6 +2125,35 @@ export function updateWeeklyCoachingLog(input: UpdateWeeklyCoachingLogInput) {
       `Attendance: ${input.attendance}`,
       `SMART goal: ${input.smartGoalCommitment}`,
       `Additional support: ${input.additionalSupport}`,
+    ],
+    weeklyCoachingLogId: existing.id,
+  });
+
+  return existing;
+}
+
+export function addWeeklyCoachingLogAttachments(input: AddWeeklyCoachingLogAttachmentsInput) {
+  const existing = weeklyCoachingLogs.find((entry) => entry.tenantId === input.tenantId && entry.id === input.weeklyCoachingLogId);
+
+  if (!existing) {
+    throw new Error(`Weekly coaching log not found for ${input.weeklyCoachingLogId}`);
+  }
+
+  existing.attachments = [...(existing.attachments ?? []), ...input.attachments];
+  existing.updatedAt = new Date().toISOString();
+
+  documentationEntries.unshift({
+    id: `doc-weekly-log-attachment-${documentationEntries.length + 1}`,
+    tenantId: input.tenantId,
+    subjectUserId: existing.subjectUserId,
+    sourceType: "coaching_summary",
+    title: `Weekly coaching attachment${input.attachments.length === 1 ? "" : "s"} added for ${existing.employeeName}`,
+    summary: `${input.attachments.length} attachment${input.attachments.length === 1 ? "" : "s"} added to the weekly coaching record.`,
+    createdAt: existing.updatedAt,
+    authoredByRole: existing.coachRole,
+    evidencePoints: [
+      `Weekly coaching log: ${existing.id}`,
+      ...input.attachments.map((attachment) => `Attachment: ${attachment.fileName}`),
     ],
     weeklyCoachingLogId: existing.id,
   });
