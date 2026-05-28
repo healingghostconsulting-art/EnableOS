@@ -63,6 +63,7 @@ import {
 } from "../../../shared/trainingPlayer";
 import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
+import { getLoginUrl } from "@/const";
 
 export const learnerWorkspaceCopy = {
   routeSubtitle: "Complete assignments tied to skill opportunities, coaching actions, and readiness progress.",
@@ -2699,9 +2700,6 @@ export function LandingView() {
   const landing = trpc.demo.landing.useQuery();
   const viewer = trpc.auth.me.useQuery();
   const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
-  const featuredTenants = landing.data?.tenants ?? [];
-  const [landingSearchQuery, setLandingSearchQuery] = useState("");
-  const [missionHubMode, setMissionHubMode] = useState<"overview" | "workspaces" | "tracks">("overview");
   const viewerHomeHref = viewerAccess.data?.grant.role === "platform_admin"
     ? "/chcg-admin"
     : viewerAccess.data?.grant.role === "client_admin"
@@ -2713,281 +2711,172 @@ export function LandingView() {
           : viewerAccess.data?.grant.role === "coach"
             ? "/coach"
             : "/learner";
-  const landingTrainingRecords = useMemo(
-    () => [
-      {
-        title: "Soft Skills & Customer/Patient Service Foundation",
-        subtitle: "Customer service, active listening, empathy, de-escalation, and professionalism.",
-        keywords: ["learner", "service foundations", "soft skills", "communication"],
-        href: "/library?assetId=library-service-foundations-core&assetTitle=Soft%20Skills%20%26%20Customer%2FPatient%20Service%20Foundation&role=learner",
-        cta: "Review module detail",
-      },
-      {
-        title: "Quality Assurance Essentials",
-        subtitle: "Verification, QA discipline, documentation accuracy, and workflow execution.",
-        keywords: ["manager", "workflow precision", "qa", "documentation"],
-        href: "/library?assetId=library-workflow-precision-kit&assetTitle=Quality%20Assurance%20Essentials&role=manager",
-        cta: "Open QA detail",
-      },
-      {
-        title: "Unlocking the Power of Data",
-        subtitle: "KPI interpretation, trend review, and decision-quality leadership.",
-        keywords: ["executive", "leadership", "data", "kpi"],
-        href: "/library?assetTitle=Unlocking%20the%20Power%20of%20Data&role=executive",
-        cta: "Open leadership detail",
-      },
-      {
-        title: "Real-time Coaching",
-        subtitle: "In-the-moment coaching responses, reinforcement, and follow-through cues.",
-        keywords: ["coach", "coaching", "feedback", "leadership"],
-        href: buildTrainingLaunchPath({ role: "coach", journeyId: "journey-coach-practice-atlas", moduleId: "mod-rtc-1" }),
-        cta: "Open coaching player",
-      },
-      {
-        title: "Utilizing Performance Management to Maximize Results",
-        subtitle: "Calibration, improvement planning, and performance accountability rhythms.",
-        keywords: ["manager", "performance", "calibration", "reviews"],
-        href: "/library?assetId=library-performance-governance&assetTitle=Utilizing%20Performance%20Management%20to%20Maximize%20Results&role=manager",
-        cta: "Open performance detail",
-      },
-      {
-        title: "Gamification for Remote Teams: Engaging and Empowering Leaders",
-        subtitle: "Recognition rhythms, gamification, and hybrid-team motivation design.",
-        keywords: ["manager", "engagement", "recognition", "remote teams"],
-        href: "/library?assetId=library-gamified-engagement&assetTitle=Gamification%20for%20Remote%20Teams%3A%20Engaging%20and%20Empowering%20Leaders&role=manager",
-        cta: "Open engagement detail",
-      },
-      ...Object.values(roleMeta).map((item) => ({
-        title: item.title,
-        subtitle: item.subtitle,
-        keywords: [item.eyebrow, item.title],
-        href: item.route,
-        cta: `Open ${item.eyebrow} workspace`,
-      })),
-    ],
-    [],
-  );
-  const landingSearchResults = useMemo(
-    () => filterTrainingRecords(landingTrainingRecords, landingSearchQuery).slice(0, 6),
-    [landingSearchQuery, landingTrainingRecords],
-  );
   const landingMetricHighlights = landing.data?.featuredMetrics ?? [
     { label: "Ready to launch", value: 12 },
     { label: "Due this week", value: 4 },
     { label: "Avg. progress", value: "61%" },
     { label: "In coaching", value: 9 },
   ];
-  const compactMissionQueue = landingSearchQuery.trim() ? landingSearchResults : landingTrainingRecords.slice(0, 6);
-  const compactWorkspaceCards = featuredTenants.slice(0, 4).map((tenant: any, index) => ({
-    ...tenant,
-    href: viewer.data
-      ? viewerHomeHref
-      : index === 0
-        ? "/executive"
-        : index === 1
-          ? "/manager"
-          : index === 2
-            ? "/coach"
-            : "/admin",
-  }));
+  const workspaceEntryOptions = useMemo(
+    () => [
+      {
+        role: "executive" as DemoRole,
+        title: "Executive command",
+        route: "/executive",
+        icon: Gauge,
+        eyebrow: "Executive",
+        subtitle: "Open ROI, readiness, and reporting decisions for the client account.",
+      },
+      {
+        role: "manager" as DemoRole,
+        title: "Manager operations",
+        route: "/manager",
+        icon: ShieldCheck,
+        eyebrow: "Manager",
+        subtitle: "Launch intervention tracking, assignment follow-through, and quality movement work.",
+      },
+      {
+        role: "coach" as DemoRole,
+        title: "Coach studio",
+        route: "/coach",
+        icon: Users2,
+        eyebrow: "Coach / Supervisor",
+        subtitle: "Run coaching cycles, document weekly sessions, and connect evidence back to live performance.",
+      },
+      {
+        role: "learner" as DemoRole,
+        title: "Learner journey",
+        route: "/learner",
+        icon: BookOpen,
+        eyebrow: "Learner",
+        subtitle: "Continue assigned re-engagements, learning missions, and training completions.",
+      },
+      {
+        role: "client_admin" as DemoRole,
+        title: "Client control",
+        route: "/admin",
+        icon: Building2,
+        eyebrow: "Client Admin",
+        subtitle: "Manage brand settings, workspace access, and client-level configuration safely.",
+      },
+    ],
+    [],
+  );
 
   return (
     <Surface>
       <div className="workspace-stack">
         <div className="glass-panel overflow-hidden rounded-[2rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(247,248,250,0.94))] shadow-[0_24px_70px_rgba(27,48,60,0.08)]">
-          <div className="grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-6">
-            <div className="space-y-4">
+          <div className="grid gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:px-7 lg:py-7">
+            <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.28em]">
-                  EnableOS mission hub
+                  EnableOS entry
                 </Badge>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Primary queue</span>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Workspace launch</span>
+                <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Workspace-first login</span>
               </div>
-              <div className="max-w-4xl space-y-2.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Operations home</p>
-                <h1 className="max-w-[16ch] text-[2rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.45rem] md:leading-[1.04] xl:text-[2.8rem]">
-                  Start with the next assigned action.
+              <div className="max-w-4xl space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Front door</p>
+                <h1 className="max-w-[14ch] text-[2.05rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.55rem] md:leading-[1.04] xl:text-[2.9rem]">
+                  Choose your workspace.
                 </h1>
-                <p className="max-w-3xl text-[0.95rem] leading-6 text-[#4A6373]">
-                  Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.
+                <p className="max-w-3xl text-[0.98rem] leading-6 text-[#4A6373]">
+                  Start with a simple role choice. Select the workspace that matches your day and the entry flow will take you straight into sign-in before opening the right EnableOS experience.
                 </p>
               </div>
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-                <label className="block min-w-0 space-y-2 text-sm text-[#1B303C]">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search mission hub</span>
-                  <div className="flex items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                    <Search className="h-4 w-4 text-[#4A6373]" />
-                    <input
-                      value={landingSearchQuery}
-                      onChange={(event) => setLandingSearchQuery(event.target.value)}
-                      placeholder="Search data, coaching, QA, learner, manager..."
-                      className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]"
-                    />
+              <div className="grid gap-3 sm:grid-cols-3">
+                {landingMetricHighlights.slice(0, 3).map((item: any) => (
+                  <div key={item.label} className="rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
+                    <p className="mt-2 text-[1.4rem] font-semibold tracking-tight text-[#1B303C]">{String(item.value)}</p>
                   </div>
-                </label>
-                <Link href={viewer.data ? viewerHomeHref : buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", freshStart: true })}>
-                  <Button className="h-11 w-full rounded-[1.05rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d] md:w-auto">
-                    {viewer.data ? "Resume my mission" : "Launch next"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href={buildTrainingLaunchPath({ role: "learner", journeyId: "journey-service-foundations", moduleId: "mod-sf-1" })}>
-                  <Button variant="outline" className="h-11 w-full rounded-[1.05rem] border-[#1B303C]/12 bg-white px-5 text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C] md:w-auto">
-                    Preview player
-                  </Button>
-                </Link>
+                ))}
               </div>
             </div>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {landingMetricHighlights.map((item: any) => (
-                <div key={item.label} className="rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
-                  <p className="mt-2 text-[1.45rem] font-semibold tracking-tight text-[#1B303C]">{String(item.value)}</p>
+            <div className="rounded-[1.6rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.94),rgba(248,250,252,0.92))] p-5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Entry status</p>
+              {viewerAccess.data ? (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1B303C]">Signed in to {viewerAccess.data.tenant.name}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">
+                      This account will only open workspaces granted to {viewerAccess.data.permittedRoles.join(", ")}. Use the selector below to continue, or jump directly to your assigned home.
+                    </p>
+                  </div>
+                  <Link href={viewerHomeHref}>
+                    <Button className="h-11 w-full rounded-[1.05rem] bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
+                      Open my assigned workspace
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1B303C]">Select a workspace, then sign in</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">
+                      Each workspace card below routes into login with the correct return path, so the user lands in the right role context immediately after authentication.
+                    </p>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-[#FCBC34]/24 bg-[linear-gradient(160deg,rgba(255,251,240,0.92),rgba(255,255,255,0.95))] px-4 py-3.5 text-sm leading-6 text-[#4A6373]">
+                    After sign-in, access is still limited by tenant mapping and assigned role entitlements.
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="grid gap-5 border-t border-[#1B303C]/8 px-5 py-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] lg:px-6 lg:py-6 xl:px-7 xl:py-7">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Training queue</p>
-                  <p className="mt-1 text-sm text-[#4A6373]">Dense rows keep titles, status, runtime, and next action in the same frame.</p>
-                </div>
-                <Badge className="rounded-full border-[#1B303C]/10 bg-white text-[#1B303C]">{compactMissionQueue.length} visible</Badge>
-              </div>
-              <div className="space-y-2.5">
-                {compactMissionQueue.length > 0 ? compactMissionQueue.map((record, index) => (
-                  <Link key={`${record.href}-${record.title}`} href={record.href}>
-                    <button type="button" className="flex w-full flex-col items-start justify-between gap-3 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/85 px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32 hover:bg-white sm:flex-row sm:items-center sm:gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">{index + 1}</span>
-                          <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-[#F7F8FA] text-[#4A6373]">{record.keywords[0]}</Badge>
-                        </div>
-                        <p className="mt-2 line-clamp-1 text-sm font-semibold text-[#1B303C]">{record.title}</p>
-                        <p className="mt-1 line-clamp-1 text-xs leading-5 text-[#4A6373]">{record.subtitle}</p>
-                      </div>
-                      <div className="shrink-0 text-left sm:text-right">
-                        <p className="text-sm font-semibold text-[#1B303C]">{index % 3 === 0 ? "61% complete" : index % 3 === 1 ? "Start now" : "Review"}</p>
-                        <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#6B7E8A]">{record.cta}</p>
-                      </div>
-                    </button>
-                  </Link>
-                )) : (
-                  <div className="rounded-[1.2rem] border border-dashed border-[#1B303C]/14 bg-white/70 px-4 py-5 text-sm text-[#4A6373]">
-                    No matching mission yet. Try a broader keyword to repopulate the queue.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
+          <div className="border-t border-[#1B303C]/8 px-5 py-6 lg:px-7 lg:py-7">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Workspace launchers</p>
-                <p className="mt-1 text-sm text-[#4A6373]">Keep tenant context and the primary action in short cards instead of long previews.</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Workspace selector</p>
+                <p className="mt-1 text-sm leading-6 text-[#4A6373]">Keep the front page focused on one decision: choose the workspace, then move into login.</p>
               </div>
-              <div className="grid gap-2.5">
-                {compactWorkspaceCards.length > 0 ? compactWorkspaceCards.map((tenant: any) => (
-                  <Link key={tenant.id} href={tenant.href}>
-                    <button type="button" className="w-full rounded-[1.2rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(245,247,250,0.94))] px-4 py-3 text-left shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/32">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="line-clamp-1 text-sm font-semibold text-[#1B303C]">{tenant.name}</p>
-                          <p className="mt-1 line-clamp-1 text-xs uppercase tracking-[0.18em] text-[#6B7E8A]">{tenant.industry}</p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-[#1B303C]" />
+              <p className="text-xs uppercase tracking-[0.2em] text-[#6B7E8A]">Five role-based entry points</p>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {workspaceEntryOptions.map((item) => {
+                const Icon = item.icon;
+                const canOpenDirectly = viewerAccess.data ? viewerAccess.data.permittedRoles.includes(item.role) : false;
+
+                return (
+                  <button
+                    key={item.route}
+                    type="button"
+                    onClick={() => {
+                      if (viewer.data) {
+                        window.location.href = canOpenDirectly ? item.route : viewerHomeHref;
+                        return;
+                      }
+
+                      window.location.href = getLoginUrl(item.route);
+                    }}
+                    className="group flex h-full flex-col rounded-[1.35rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.92),rgba(245,247,250,0.94))] px-4 py-4 text-left shadow-[0_16px_38px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30 hover:bg-white"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.16)]">
+                        <Icon className="h-5 w-5" />
                       </div>
-                    </button>
-                  </Link>
-                )) : (
-                  <div className="rounded-[1.2rem] border border-dashed border-[#1B303C]/14 bg-white/70 px-4 py-5 text-sm text-[#4A6373]">
-                    Tenant launchers will appear here once landing data is available.
-                  </div>
-                )}
-              </div>
-              <div className="rounded-[1.3rem] border border-[#FCBC34]/22 bg-[linear-gradient(160deg,rgba(255,251,240,0.92),rgba(255,255,255,0.95))] px-4 py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Access model</p>
-                <p className="mt-2 text-sm leading-6 text-[#4A6373]">
-                  {viewerAccess.data
-                    ? `Signed in to ${viewerAccess.data.tenant.name}. This account only sees the workspaces and training lanes granted to ${viewerAccess.data.permittedRoles.join(", ")}.`
-                    : "After sign-in, users land directly in their assigned client context instead of seeing a cross-client training picker."}
-                </p>
-              </div>
+                      <span className="rounded-full border border-[#1B303C]/10 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">
+                        {item.eyebrow}
+                      </span>
+                    </div>
+                    <div className="mt-5 flex-1 space-y-2">
+                      <p className="text-base font-semibold text-[#1B303C]">{item.title}</p>
+                      <p className="text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#1B303C]/8 pt-4">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">
+                        {viewer.data ? (canOpenDirectly ? "Open workspace" : "Open assigned workspace") : "Select and sign in"}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-[#1B303C] transition group-hover:translate-x-0.5" />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-
-        <Tabs value={missionHubMode} onValueChange={(value) => setMissionHubMode(value as "overview" | "workspaces" | "tracks")} className="space-y-4">
-          <div className="command-band px-4 py-3.5 md:px-5">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Compact mission navigation</p>
-                <p className="mt-1 text-sm text-[#4A6373]">Each mode is denser and shorter so users can compare, choose, and move without losing context.</p>
-              </div>
-              <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[1.25rem] border border-[#1B303C]/10 bg-white/75 p-1.5">
-                <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Command</TabsTrigger>
-                <TabsTrigger value="workspaces" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Workspaces</TabsTrigger>
-                <TabsTrigger value="tracks" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Tracks</TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
-
-          <TabsContent value="overview" className="mt-0">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.06fr)_minmax(320px,0.94fr)]">
-              <div className="grid gap-4 md:grid-cols-3">
-                <MetricCard label="Live queue" value="6 visible" supporting="Compressed browse rows show status, runtime, and next action in one scan path." icon={<Layers3 className="h-5 w-5 text-cyan-300" />} />
-                <MetricCard label="Mission pace" value="1-screen launch" supporting="Search and launch controls stay inside the first shell rather than below long narrative sections." icon={<Gauge className="h-5 w-5 text-cyan-300" />} />
-                <MetricCard label="Training entry" value="Focused player" supporting="Course detail and player launch now behave as a contained step instead of a long page continuation." icon={<BookOpen className="h-5 w-5 text-cyan-300" />} />
-              </div>
-              <div className="guide-card px-5 py-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Why this is faster</p>
-                <div className="mt-3 space-y-3 text-sm leading-6 text-[#4A6373]">
-                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Actionable modules appear immediately instead of after stacked hero content.</span></div>
-                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Search, browse, and resume controls live in the same compact frame.</span></div>
-                  <div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#1B303C]" /><span>Training and workspace entry points are visible without forcing another full-screen detour.</span></div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="workspaces" className="mt-0">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {Object.values(roleMeta).map((item) => (
-                <Link key={item.route} href={item.route}>
-                  <button type="button" className="w-full rounded-[1.35rem] border border-[#1B303C]/10 bg-white/85 px-4 py-4 text-left shadow-[0_16px_38px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.eyebrow}</p>
-                    <p className="mt-2 text-base font-semibold text-[#1B303C]">{item.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
-                  </button>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tracks" className="mt-0">
-            <div className="grid gap-3">
-              {landingTrainingRecords.slice(0, 6).map((record) => (
-                <Link key={`track-${record.href}-${record.title}`} href={record.href}>
-                  <button type="button" className="flex w-full items-center justify-between gap-4 rounded-[1.25rem] border border-[#1B303C]/10 bg-white/88 px-4 py-3.5 text-left shadow-[0_16px_40px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {record.keywords.slice(0, 2).map((keyword) => (
-                          <Badge key={`${record.title}-${keyword}`} variant="outline" className="rounded-full border-[#1B303C]/10 bg-[#F7F8FA] text-[#4A6373]">{keyword}</Badge>
-                        ))}
-                      </div>
-                      <p className="mt-2 text-sm font-semibold text-[#1B303C]">{record.title}</p>
-                      <p className="mt-1 text-xs leading-5 text-[#4A6373]">{record.subtitle}</p>
-                    </div>
-                    <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7E8A]">{record.cta}</span>
-                  </button>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </Surface>
   );

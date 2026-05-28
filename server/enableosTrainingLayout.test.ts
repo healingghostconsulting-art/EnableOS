@@ -195,23 +195,24 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open narration controls and the page transcript only when needed.");
   });
 
-  it("keeps the public-facing brand hierarchy product-first with CHCG as the supporting methodology layer", () => {
-    expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.");
+  it("keeps the public-facing brand hierarchy product-first while simplifying the landing choice into workspace-first entry", () => {
+    expect(trainingViewSource).toContain("EnableOS entry");
+    expect(trainingViewSource).toContain("Choose your workspace.");
+    expect(trainingViewSource).toContain("Select the workspace that matches your day");
     expect(trainingViewSource).toContain("CHCG core");
     expect(trainingViewSource).toContain("CHCG asset");
     expect(trainingViewSource).toContain("Client upload");
   });
 
-  it("keeps the landing page denser and more proof-led after the compact mission-hub approval", () => {
-    expect(trainingViewSource).toContain("EnableOS mission hub");
-    expect(trainingViewSource).toContain("Primary queue");
-    expect(trainingViewSource).toContain("Workspace launch");
-    expect(trainingViewSource).toContain("Operations home");
-    expect(trainingViewSource).toContain("Start with the next assigned action.");
-    expect(trainingViewSource).toContain("Search, resume, and launch from one operational console so users can move into training, coaching, and workspace tasks without crossing showcase-style hero content first.");
-    expect(trainingViewSource).toContain("Training queue");
-    expect(trainingViewSource).toContain("Workspace launchers");
+  it("uses a cleaner workspace-first landing flow that routes users into login after role selection", () => {
+    expect(trainingViewSource).toContain("EnableOS entry");
+    expect(trainingViewSource).toContain("Workspace-first login");
+    expect(trainingViewSource).toContain("Choose your workspace.");
+    expect(trainingViewSource).toContain("Select a workspace, then sign in");
+    expect(trainingViewSource).toContain("Each workspace card below routes into login with the correct return path");
+    expect(trainingViewSource).toContain("Workspace selector");
+    expect(trainingViewSource).toContain("Select and sign in");
+    expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
   it("gives coaching workspaces a visible ribbon-level pop-up logging path while preserving the shared composer", () => {
@@ -386,13 +387,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("compact");
   });
 
-  it("routes the landing mission queue into exact library detail states or focused player launches instead of generic same-screen fallbacks", () => {
-    expect(trainingViewSource).toContain("/library?assetId=library-service-foundations-core");
-    expect(trainingViewSource).toContain("assetTitle=Quality%20Assurance%20Essentials");
-    expect(trainingViewSource).toContain("journey-coach-practice-atlas");
-    expect(trainingViewSource).toContain("journey-service-foundations-lf");
-    expect(trainingViewSource).toContain("journey-performance-leadership-lf");
-    expect(trainingViewSource).toContain("journey-exec-culture-hc");
+  it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {
     expect(trainingViewSource).toContain("const CONTENT_LIBRARY_TRAINING_TARGET_ALIASES");
     expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");
     expect(trainingViewSource).toContain("const requestedAssetTitle = queryParams.get(\"assetTitle\")");
@@ -401,6 +396,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("moduleId: moduleId ?? resolvedTrainingTarget?.moduleId");
     expect(trainingViewSource).toContain("const requestedTrainingTarget = useMemo(() => resolveTrainingTargetByJourneyId(requestedJourneyId), [requestedJourneyId])");
     expect(trainingViewSource).toContain("return preset ? { journeyId: normalizedJourneyKey, ...preset } : null;");
+    expect(trainingViewSource).toContain("window.location.href = getLoginUrl(item.route)");
+    expect(trainingViewSource).toContain("Open assigned workspace");
   });
 
   it("removes the obstructive desktop workspace banner while keeping the shared shell intact", () => {

@@ -503,3 +503,7 @@
 - [x] Design a safe coaching-log attachment model using storage-backed uploads, metadata persistence, and clear upload/download behavior across the existing coaching workflow.
 - [x] Implement multi-format attachment upload, persistence, and display within the coaching-log creation and viewing flows.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for coaching-log attachment support.
+- [x] Audit the current front-page layout and identify the exact entry-flow seams for replacing the existing launch surface with a cleaner workspace selector.
+- [x] Design a simplified front page where users first choose their workspace context and are then routed into a focused login step.
+- [x] Implement the cleaner workspace-selection landing flow and preserve the correct role-specific login handoff.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the front-page entry-flow redesign.

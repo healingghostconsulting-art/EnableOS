@@ -198,7 +198,8 @@ export default function DashboardLayout({
           </div>
           <Button
             onClick={() => {
-              window.location.href = getLoginUrl();
+              const returnPath = `${window.location.pathname}${window.location.search}`;
+              window.location.href = getLoginUrl(returnPath);
             }}
             size="lg"
             className="mt-8 w-full rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]"
