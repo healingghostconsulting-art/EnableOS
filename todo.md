@@ -519,3 +519,20 @@
 - [x] Audit the current workspace-first login flow and OAuth callback path to identify why sign-in reaches the callback without the required code/state payload.
 - [x] Repair the affected client and server login handoff so workspace sign-in consistently preserves and returns the required OAuth state data.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the login callback repair.
+- [x] Document the current video review workflow and identify the reusable steps, inputs, and outputs needed for a skill.
+- [x] Create a reusable video review skill package with clear triggers, workflow instructions, and any supporting resources.
+- [x] Validate the new skill and deliver the packaged SKILL.md attachment for reuse.
+- [x] Encode the five-step video review workflow into the reusable skill: Google Drive intake, first-pass review, summary plus execution plan, explicit approval gate, and post-approval feedback execution.
+- [x] Ensure the skill instructs Manus to pause after presenting the summary and execution plan until the user explicitly approves the next step.
+- [x] Package and validate the video review skill for delivery as a reusable SKILL.md attachment.
+- [x] Update the reusable skill metadata and trigger wording so "Video Review" is the clear invocation phrase.
+- [x] Review the newly provided Google Drive video under the Video Review workflow and extract the key observations.
+- [x] Deliver a first-pass summary and execution plan for the reviewed video, then pause for explicit user approval before any follow-up execution.
+- [x] Convert the approved Video Review feedback into a concrete implementation brief for design and engineering.
+- [x] Deliver the post-approval implementation brief with prioritized changes, rationale, and recommended next actions.
+- [x] Implement the approved Coaching Studio edits from the video review in the live app.
+- [x] Replace the fixed learner profile with a selector that supports switching across team learners in Coaching Studio.
+- [x] Remove the oversized standalone AI suggestion block from the main Coaching Studio scroll path and relocate that intelligence into the training recommendations or transfers area.
+- [x] Add clearer transfer context showing which agents received transfers and when AI drove or recommended them.
+- [x] Improve readability and contrast in the harder-to-read Coaching Studio cards while preserving the existing clean layout.
+- [x] Add or update tests, validate the revised Coaching Studio experience, and save a checkpoint for review.

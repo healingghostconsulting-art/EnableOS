@@ -440,6 +440,8 @@ const users: DemoUser[] = [
   { id: "u-mgr-1", tenantId: "atlas-operations", name: "Marcus Bell", email: "marcus.bell@enterpriseworkspace.demo", title: "Performance Enablement Manager", role: "manager", team: "Core Service Delivery", avatarFallback: "MB", readinessScore: 78 },
   { id: "u-coach-1", tenantId: "atlas-operations", name: "Renee Lawson", email: "renee.lawson@enterpriseworkspace.demo", title: "Frontline Coach Supervisor", role: "coach", team: "Core Service Delivery", avatarFallback: "RL", readinessScore: 79 },
   { id: "u-learn-1", tenantId: "atlas-operations", name: "Nina Patel", email: "nina.patel@enterpriseworkspace.demo", title: "Senior Service Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "NP", readinessScore: 72 },
+  { id: "u-learn-1b", tenantId: "atlas-operations", name: "Avery Chen", email: "avery.chen@enterpriseworkspace.demo", title: "Service Specialist II", role: "learner", team: "Core Service Delivery", avatarFallback: "AC", readinessScore: 76 },
+  { id: "u-learn-1c", tenantId: "atlas-operations", name: "Maya Johnson", email: "maya.johnson@enterpriseworkspace.demo", title: "Customer Resolution Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "MJ", readinessScore: 68 },
   { id: "u-admin-1", tenantId: "atlas-operations", name: "Jared Kim", email: "jared.kim@enterpriseworkspace.demo", title: "Client Admin", role: "client_admin", team: "Enablement Governance", avatarFallback: "JK", readinessScore: 90 },
   { id: "u-exec-2", tenantId: "lighthouse-finance", name: "Leah Porter", email: "leah.porter@regulatedworkspace.demo", title: "Chief Service Officer", role: "executive", team: "Enterprise", avatarFallback: "LP", readinessScore: 86 },
   { id: "u-mgr-2", tenantId: "lighthouse-finance", name: "Darius Cole", email: "darius.cole@regulatedworkspace.demo", title: "Quality and Coaching Supervisor", role: "manager", team: "Resolution Operations", avatarFallback: "DC", readinessScore: 80 },
@@ -805,6 +807,44 @@ const coachingSessions: CoachingSession[] = [
       "Set next-quarter growth focus",
     ],
   },
+  {
+    id: "coach-3",
+    tenantId: "atlas-operations",
+    managerUserId: "u-mgr-1",
+    learnerUserId: "u-learn-1b",
+    title: "Escalation confidence tune-up",
+    status: "scheduled",
+    dueDate: "2026-04-24",
+    notes: "Focused on confident transfer framing, escalation ownership, and tighter wrap-up language after complex workflows.",
+    auditTrail: [
+      { at: "2026-04-20T09:10:00Z", detail: "Coach flagged repeated hesitation during escalation handoffs." },
+      { at: "2026-04-20T12:20:00Z", detail: "Follow-up session scheduled with a transfer-observation checklist." },
+    ],
+    actionPlan: [
+      "Use the approved transfer explanation before warm handoff",
+      "State ownership before placing the customer on hold",
+      "Log the exact escalation reason in the coaching follow-up",
+    ],
+  },
+  {
+    id: "coach-4",
+    tenantId: "atlas-operations",
+    managerUserId: "u-mgr-1",
+    learnerUserId: "u-learn-1c",
+    title: "Empathy transfer follow-up",
+    status: "follow_up_due",
+    dueDate: "2026-04-26",
+    notes: "Focused on reassurance phrasing, documentation clarity, and making AI-recommended training visible inside the next coaching cycle.",
+    auditTrail: [
+      { at: "2026-04-19T11:40:00Z", detail: "Documentation review showed inconsistent explanation of next steps after complex contacts." },
+      { at: "2026-04-20T15:15:00Z", detail: "Coach requested a short empathy-to-action follow-up after the latest review." },
+    ],
+    actionPlan: [
+      "Pair empathy language with one explicit ownership statement",
+      "Reference the assigned refresher inside the next weekly coaching log",
+      "Document the exact follow-through action for the learner",
+    ],
+  },
 ];
 
 const notifications: NotificationItem[] = [
@@ -1126,6 +1166,34 @@ const aiSuggestions: AiSuggestion[] = [
     ],
     overrideAvailable: true,
   },
+  {
+    id: "ai-2",
+    tenantId: "atlas-operations",
+    managerUserId: "u-mgr-1",
+    learnerUserId: "u-learn-1b",
+    summary: "Coach Avery on escalation ownership and transfer explanations while reinforcing workflow accuracy.",
+    recommendation: "Use the next one-on-one to review one complex transfer, capture the handoff explanation Avery used, and assign a targeted workflow refresher only if the transfer explanation still breaks down under pressure.",
+    rationale: [
+      "Recent coaching notes show Avery is moving quickly through the workflow but still sounds uncertain when explaining why an escalation is happening.",
+      "The best next step is a transfer-specific coaching review tied to a concrete call example rather than a broad coaching reset.",
+      "A focused training assignment should stay attached to the transfer lane so the coach can connect the recommendation to operational follow-through.",
+    ],
+    overrideAvailable: true,
+  },
+  {
+    id: "ai-3",
+    tenantId: "atlas-operations",
+    managerUserId: "u-mgr-1",
+    learnerUserId: "u-learn-1c",
+    summary: "Coach Maya on empathy-to-action transitions and keep the AI-driven follow-up visible in the transfer workspace.",
+    recommendation: "Review one recent customer interaction, focus on how Maya shifts from reassurance into next-step ownership, and reinforce the assigned refresher inside the documented coaching follow-up.",
+    rationale: [
+      "Recent documentation shows Maya is strong on empathy but inconsistent when turning that empathy into a clear next action for the customer.",
+      "A coaching-led review with a visible transfer assignment will help connect the behavior expectation to the learner's next module.",
+      "The team needs clearer traceability when AI drives follow-up actions, so the recommendation should remain attached to transfer context.",
+    ],
+    overrideAvailable: true,
+  },
 ];
 
 const retrainingAssignments: RetrainingAssignment[] = [
@@ -1191,6 +1259,47 @@ const retrainingAssignments: RetrainingAssignment[] = [
     dueAt: "2026-04-20T14:00:00Z",
     completedAt: "2026-04-19T18:05:00Z",
   },
+  {
+    id: "retraining-seeded-3",
+    tenantId: "atlas-operations",
+    learnerUserId: "u-learn-1b",
+    journeyId: "journey-workflow-precision",
+    journeyTitle: "Quality Assurance Essentials",
+    moduleId: "mod-wp-1",
+    moduleTitle: "Verification and Workflow Accuracy",
+    moduleFormat: "Playbook",
+    skillFocus: "Transfer accuracy",
+    sourceSuggestionId: "ai-2",
+    requestedByRole: "coach",
+    requestedByUserId: "u-coach-1",
+    deliveryMode: "ai_approved",
+    summary: "Coach Avery on escalation ownership and transfer explanations while reinforcing workflow accuracy.",
+    guidanceNote: "Renee Lawson approved the AI transfer recommendation and kept the exact workflow refresher visible in the coach transfer lane.",
+    status: "assigned",
+    createdAt: "2026-05-06T10:30:00Z",
+    dueAt: "2026-05-08T10:30:00Z",
+  },
+  {
+    id: "retraining-seeded-4",
+    tenantId: "atlas-operations",
+    learnerUserId: "u-learn-1c",
+    journeyId: "journey-service-foundations",
+    journeyTitle: "Service Foundations",
+    moduleId: "mod-sf-1",
+    moduleTitle: "Active listening in high-friction interactions",
+    moduleFormat: "Scenario",
+    skillFocus: "Empathy-to-action transitions",
+    sourceSuggestionId: "ai-3",
+    requestedByRole: "coach",
+    requestedByUserId: "u-coach-1",
+    deliveryMode: "manual_override",
+    summary: "Coach Maya on empathy-to-action transitions and keep the AI-driven follow-up visible in the transfer workspace.",
+    guidanceNote: "Renee Lawson overrode the broader suggestion and assigned a focused service-foundations refresher that Maya has already completed.",
+    status: "completed",
+    createdAt: "2026-05-01T09:15:00Z",
+    dueAt: "2026-05-03T09:15:00Z",
+    completedAt: "2026-05-02T15:45:00Z",
+  },
 ];
 
 const documentationEntries: DocumentationEntry[] = [
@@ -1254,6 +1363,53 @@ const documentationEntries: DocumentationEntry[] = [
       "Aligned with CHCG Performance Leadership System",
     ],
     weeklyCoachingLogId: "weekly-log-1",
+  },
+  {
+    id: "doc-5",
+    tenantId: "atlas-operations",
+    subjectUserId: "u-learn-1b",
+    sourceType: "coaching_summary",
+    title: "Transfer coaching summary ready for review",
+    summary: "The documentation lane now captures Avery's transfer-language follow-up and links directly to the structured weekly coaching log.",
+    createdAt: "2026-04-20T17:00:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Focus area: escalation ownership and transfer explanations",
+      "Linked transfer refresher remains visible to the coach",
+      "Supports follow-up review without leaving Documentation mode",
+    ],
+    weeklyCoachingLogId: "weekly-log-2",
+  },
+  {
+    id: "doc-6",
+    tenantId: "atlas-operations",
+    subjectUserId: "u-learn-1b",
+    sourceType: "intervention_completion",
+    title: "Transfer workflow evidence packet",
+    summary: "Avery's workflow evidence now combines the latest transfer assignment, coaching notes, and observed call-handling expectations in one record.",
+    createdAt: "2026-04-20T18:10:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Assigned refresher: Verification and Workflow Accuracy",
+      "Expected transfer: clearer escalation explanation before handoff",
+      "Coach-visible next check: confirm ownership language in the next session",
+    ],
+  },
+  {
+    id: "doc-7",
+    tenantId: "atlas-operations",
+    subjectUserId: "u-learn-1c",
+    sourceType: "coaching_summary",
+    title: "Empathy follow-through packet prepared",
+    summary: "Maya's follow-up now links the completed refresher, the latest weekly coaching log, and the expected next-step language for the next monitored interaction.",
+    createdAt: "2026-04-20T18:25:00Z",
+    authoredByRole: "system",
+    evidencePoints: [
+      "Completed refresher: Active listening in high-friction interactions",
+      "Expected behavior: connect reassurance language to a clear next action",
+      "Visible to coach and documentation reviewers in the same lane",
+    ],
+    weeklyCoachingLogId: "weekly-log-3",
   },
 ];
 
@@ -1322,6 +1478,58 @@ const weeklyCoachingLogs: WeeklyCoachingLog[] = [
     createdAt: "2026-04-20T14:30:00.000Z",
     updatedAt: "2026-04-20T14:30:00.000Z",
     linkedReviewLogId: "review-1",
+    visibility: "public",
+    attachments: [],
+  },
+  {
+    id: "weekly-log-2",
+    tenantId: "atlas-operations",
+    subjectUserId: "u-learn-1b",
+    coachUserId: "u-coach-1",
+    coachRole: "coach",
+    coachName: "Renee Lawson",
+    coachEmail: "renee.lawson@enterpriseworkspace.demo",
+    employeeName: "Avery Chen",
+    employeeEmail: "avery.chen@enterpriseworkspace.demo",
+    supervisorUserId: "u-mgr-1",
+    supervisorName: "Marcus Bell",
+    supervisorEmail: "marcus.bell@enterpriseworkspace.demo",
+    managerOfSupervisorEmail: "alicia.warren@enterpriseworkspace.demo",
+    sessionDate: "2026-04-21",
+    attendance: "Present and engaged; Avery brought the most recent transfer examples and reviewed the exact escalation path used on two calls.",
+    followUpFromPrevious: "Avery improved documentation accuracy, but still rushes through why a transfer is needed when the conversation becomes complex.",
+    coachingComments: "Reviewed one escalation example, captured the transfer language used, and agreed that the coach will reinforce a cleaner ownership statement before each warm handoff.",
+    smartGoalCommitment: "By 2026-04-28, Avery will explain the transfer reason and next owner on every monitored escalation call and document the handoff reason in the same workflow note.",
+    additionalSupport: "Coach will provide one annotated transfer example and keep the targeted workflow refresher visible in the transfer lane until the next follow-up.",
+    agentTakeaways: "I need to explain the handoff clearly before I move the customer so the transfer feels intentional instead of abrupt.",
+    createdAt: "2026-04-21T15:10:00.000Z",
+    updatedAt: "2026-04-21T15:10:00.000Z",
+    visibility: "public",
+    attachments: [],
+  },
+  {
+    id: "weekly-log-3",
+    tenantId: "atlas-operations",
+    subjectUserId: "u-learn-1c",
+    coachUserId: "u-coach-1",
+    coachRole: "coach",
+    coachName: "Renee Lawson",
+    coachEmail: "renee.lawson@enterpriseworkspace.demo",
+    employeeName: "Maya Johnson",
+    employeeEmail: "maya.johnson@enterpriseworkspace.demo",
+    supervisorUserId: "u-mgr-1",
+    supervisorName: "Marcus Bell",
+    supervisorEmail: "marcus.bell@enterpriseworkspace.demo",
+    managerOfSupervisorEmail: "alicia.warren@enterpriseworkspace.demo",
+    sessionDate: "2026-04-22",
+    attendance: "Present and reflective; Maya reviewed the prior refresher and connected it to the latest customer-call examples.",
+    followUpFromPrevious: "Maya used reassuring language consistently, but the coaching review showed that the final next-step explanation still needed to be more direct.",
+    coachingComments: "The coach tied the completed refresher to a new behavior target: move from empathy into a clear owner-and-next-step statement before closing the interaction.",
+    smartGoalCommitment: "By 2026-04-29, Maya will pair reassurance with an explicit next-step statement on every monitored callback and document the follow-through action in the coaching notes.",
+    additionalSupport: "Coach will use the completed refresher as the anchor for the next monitored-call review and keep the behavior target visible in Documentation mode.",
+    agentTakeaways: "I know how to reassure people; now I need to be just as clear about what happens next and who owns it.",
+    createdAt: "2026-04-22T16:00:00.000Z",
+    updatedAt: "2026-04-22T16:00:00.000Z",
     visibility: "public",
     attachments: [],
   },
@@ -2792,16 +3000,23 @@ export function getCoachDashboard(tenantId?: string) {
   const manager = getUser("manager", tenant.id);
   const branding = getTenantBranding(tenant.id);
   const workflowLibraryMix = getWorkflowLibraryMix(tenant.id, "coach");
-  const coachingSessions = getTenantCoachingSessions(tenant.id).filter((session) => session.learnerUserId === learner.id);
+  const teamLearners = users.filter((user) => user.tenantId === tenant.id && user.role === "learner" && user.team === coach.team);
+  const teamLearnerIds = new Set(teamLearners.map((entry) => entry.id));
+  const teamCoachingSessions = getTenantCoachingSessions(tenant.id).filter((session) => teamLearnerIds.has(session.learnerUserId));
+  const teamWeeklyCoachingLogs = weeklyCoachingLogs.filter((log) => log.tenantId === tenant.id && teamLearnerIds.has(log.subjectUserId));
+  const teamDocumentationEntries = documentationEntries.filter((entry) => entry.tenantId === tenant.id && teamLearnerIds.has(entry.subjectUserId));
+  const teamAiSuggestions = aiSuggestions.filter((suggestion) => suggestion.tenantId === tenant.id && teamLearnerIds.has(suggestion.learnerUserId));
+  const teamRetrainingAssignments = retrainingAssignments.filter((assignment) => assignment.tenantId === tenant.id && teamLearnerIds.has(assignment.learnerUserId));
+  const coachingSessions = teamCoachingSessions.filter((session) => session.learnerUserId === learner.id);
   const openSignals = getTenantSignals(tenant.id).slice(0, 3);
-  const weeklyLogs = getWeeklyCoachingLogs(tenant.id, learner.id);
-  const aiSuggestion = aiSuggestions.find((suggestion) => suggestion.tenantId === tenant.id && suggestion.learnerUserId === learner.id) ?? aiSuggestions[0];
-  const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
-  const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
+  const weeklyLogs = teamWeeklyCoachingLogs.filter((log) => log.subjectUserId === learner.id);
+  const directLearnerAssignments = teamRetrainingAssignments.filter((assignment) => assignment.learnerUserId === learner.id);
+  const aiSuggestion = teamAiSuggestions.find((suggestion) => suggestion.learnerUserId === learner.id) ?? teamAiSuggestions[0] ?? aiSuggestions[0];
+  const currentRetrainingAssignment = getCurrentRetrainingAssignment(directLearnerAssignments);
   const activeRetrainingAssignments = currentRetrainingAssignment && currentRetrainingAssignment.status !== "completed"
     ? [currentRetrainingAssignment]
     : [];
-  const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);
+  const retrainingHistory = getHistoricalRetrainingAssignments(directLearnerAssignments, currentRetrainingAssignment?.id);
   const retrainingCatalog = journeys
     .filter((journey) => journey.tenantId === tenant.id)
     .map((journey) => ({
@@ -2821,19 +3036,25 @@ export function getCoachDashboard(tenantId?: string) {
     branding,
     coach,
     directLearner: learner,
+    teamLearners,
     escalationPartner: manager,
     activeJourney: getTenantJourneys(tenant.id, "coach"),
     openSignals,
     coachingSessions,
+    teamCoachingSessions,
     weeklyCoachingLogs: weeklyLogs,
+    teamWeeklyCoachingLogs,
     reviewLogs: getReviewLogs(tenant.id, learner.id),
-    documentationEntries: getDocumentationEntries(tenant.id, learner.id),
+    documentationEntries: teamDocumentationEntries.filter((entry) => entry.subjectUserId === learner.id),
+    teamDocumentationEntries,
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "manager" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
     aiSuggestion,
+    teamAiSuggestions,
     currentRetrainingAssignment,
     activeRetrainingAssignments,
-    retrainingAssignments,
+    retrainingAssignments: directLearnerAssignments,
+    teamRetrainingAssignments,
     retrainingHistory,
     retrainingCatalog,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "coach" || item.audience === "manager" || item.audience === "all")).slice(0, 4),

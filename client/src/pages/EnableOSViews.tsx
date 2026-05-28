@@ -8426,10 +8426,34 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
 
 function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
   const leadModule = data.activeJourney?.modules?.[0] ?? null;
+  const teamLearners = data.teamLearners?.length ? data.teamLearners : [data.directLearner];
+  const teamCoachingSessions = data.teamCoachingSessions?.length ? data.teamCoachingSessions : data.coachingSessions;
+  const teamWeeklyCoachingLogs = data.teamWeeklyCoachingLogs?.length ? data.teamWeeklyCoachingLogs : data.weeklyCoachingLogs;
+  const teamDocumentationEntries = data.teamDocumentationEntries?.length ? data.teamDocumentationEntries : data.documentationEntries;
+  const teamAiSuggestions = data.teamAiSuggestions?.length ? data.teamAiSuggestions : [data.aiSuggestion].filter(Boolean);
+  const teamRetrainingAssignments = data.teamRetrainingAssignments?.length ? data.teamRetrainingAssignments : data.retrainingAssignments;
+  const [selectedLearnerId, setSelectedLearnerId] = useState<string>(data.directLearner.id);
   const [activeTab, setActiveTab] = useState<"coaching" | "transfer" | "documentation" | "alerts">("coaching");
   const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
   const [selectedAlertId, setSelectedAlertId] = useState<string>(data.notifications[0]?.id ?? "");
   const [selectedCoachNeedEntryId, setSelectedCoachNeedEntryId] = useState<string | null>(null);
+
+  const selectedLearner = teamLearners.find((learner: any) => learner.id === selectedLearnerId) ?? data.directLearner;
+  const selectedCoachingSessions = teamCoachingSessions.filter((session: any) => session.learnerUserId === selectedLearner.id);
+  const selectedWeeklyCoachingLogs = teamWeeklyCoachingLogs.filter((log: any) => log.subjectUserId === selectedLearner.id);
+  const selectedDocumentationEntries = teamDocumentationEntries.filter((entry: any) => entry.subjectUserId === selectedLearner.id);
+  const selectedAiSuggestion = teamAiSuggestions.find((suggestion: any) => suggestion?.learnerUserId === selectedLearner.id) ?? data.aiSuggestion;
+  const selectedRetrainingAssignments = teamRetrainingAssignments
+    .filter((assignment: any) => assignment.learnerUserId === selectedLearner.id)
+    .sort((left: any, right: any) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+  const selectedCurrentRetrainingAssignment = selectedRetrainingAssignments.find((assignment: any) => assignment.status !== "completed") ?? null;
+  const selectedRetrainingHistory = selectedRetrainingAssignments.filter((assignment: any) => assignment.status === "completed");
+  const transferRoster = teamRetrainingAssignments
+    .map((assignment: any) => ({
+      ...assignment,
+      learner: teamLearners.find((learner: any) => learner.id === assignment.learnerUserId) ?? data.directLearner,
+    }))
+    .sort((left: any, right: any) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 
   const openCoachView = (tab: "coaching" | "transfer" | "documentation" | "alerts", sectionId: string) => {
     setActiveTab(tab);
@@ -8438,26 +8462,26 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
   const coachWeeklyCoachingLogProps = {
     tenantId: data.tenant.id,
-    subjectUserId: data.directLearner.id,
+    subjectUserId: selectedLearner.id,
     coachRole: "coach" as const,
     title: "Capture a weekly coaching log from the coach workspace",
-    employeeName: data.directLearner.name,
-    employeeEmail: data.directLearner.email,
+    employeeName: selectedLearner.name,
+    employeeEmail: selectedLearner.email,
     coachName: data.coach.name,
     coachEmail: data.coach.email,
     supervisorName: data.escalationPartner.name,
     supervisorEmail: data.escalationPartner.email,
-    managerOfSupervisorEmail: data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail,
+    managerOfSupervisorEmail: selectedWeeklyCoachingLogs[0]?.managerOfSupervisorEmail ?? data.weeklyCoachingLogs[0]?.managerOfSupervisorEmail,
   };
 
-  const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
+  const selectedCoachingSession = selectedCoachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? selectedCoachingSessions[0] ?? null;
   const selectedAlert = data.notifications.find((item: any) => item.id === selectedAlertId) ?? data.notifications[0] ?? null;
-  const coachNeedEntries = data.documentationEntries.slice(0, 3);
+  const coachNeedEntries = selectedDocumentationEntries.slice(0, 3);
   const selectedCoachNeedEntry = selectedCoachNeedEntryId
-    ? data.documentationEntries.find((entry: any) => entry.id === selectedCoachNeedEntryId) ?? null
+    ? selectedDocumentationEntries.find((entry: any) => entry.id === selectedCoachNeedEntryId) ?? null
     : null;
   const selectedCoachNeedWeeklyCoachingLog = selectedCoachNeedEntry?.weeklyCoachingLogId
-    ? data.weeklyCoachingLogs.find((log: any) => log.id === selectedCoachNeedEntry.weeklyCoachingLogId) ?? null
+    ? selectedWeeklyCoachingLogs.find((log: any) => log.id === selectedCoachNeedEntry.weeklyCoachingLogId) ?? null
     : null;
   const selectedCoachNeedUsesCoachingPopup = selectedCoachNeedEntry?.sourceType === "coaching_summary" && selectedCoachNeedWeeklyCoachingLog;
 
@@ -8478,22 +8502,28 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   const overviewAlerts = data.notifications.slice(0, 3);
 
   useEffect(() => {
+    if (!teamLearners.some((entry: any) => entry.id === selectedLearnerId)) {
+      setSelectedLearnerId(data.directLearner.id);
+    }
+  }, [data.directLearner.id, selectedLearnerId, teamLearners]);
+
+  useEffect(() => {
     if (!selectedAlertId && data.notifications[0]?.id) {
       setSelectedAlertId(data.notifications[0].id);
     }
   }, [data.notifications, selectedAlertId]);
 
   useEffect(() => {
-    if (!selectedCoachingSessionId && data.coachingSessions[0]?.id) {
-      setSelectedCoachingSessionId(data.coachingSessions[0].id);
+    if (!selectedCoachingSessionId && selectedCoachingSessions[0]?.id) {
+      setSelectedCoachingSessionId(selectedCoachingSessions[0].id);
     }
-  }, [data.coachingSessions, selectedCoachingSessionId]);
+  }, [selectedCoachingSessionId, selectedCoachingSessions]);
 
   useEffect(() => {
-    if (selectedCoachNeedEntryId && !data.documentationEntries.some((entry: any) => entry.id === selectedCoachNeedEntryId)) {
+    if (selectedCoachNeedEntryId && !selectedDocumentationEntries.some((entry: any) => entry.id === selectedCoachNeedEntryId)) {
       setSelectedCoachNeedEntryId(null);
     }
-  }, [data.documentationEntries, selectedCoachNeedEntryId]);
+  }, [selectedCoachNeedEntryId, selectedDocumentationEntries]);
 
   useEffect(() => {
     if (selectedAlertId && !data.notifications.some((entry: any) => entry.id === selectedAlertId)) {
@@ -8502,17 +8532,17 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   }, [data.notifications, selectedAlertId]);
 
   useEffect(() => {
-    if (selectedCoachingSessionId && !data.coachingSessions.some((entry: any) => entry.id === selectedCoachingSessionId)) {
-      setSelectedCoachingSessionId(data.coachingSessions[0]?.id ?? "");
+    if (selectedCoachingSessionId && !selectedCoachingSessions.some((entry: any) => entry.id === selectedCoachingSessionId)) {
+      setSelectedCoachingSessionId(selectedCoachingSessions[0]?.id ?? "");
     }
-  }, [data.coachingSessions, selectedCoachingSessionId]);
+  }, [selectedCoachingSessionId, selectedCoachingSessions]);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-overview")} actionLabel="Open coach overview" />
-        <MetricCard label="Learner focus" value={data.directLearner.name} supporting={data.directLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-supervision-lane")} actionLabel="Open supervision lane" />
-        <MetricCard label="Weekly logs" value={`${data.weeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
+        <MetricCard label="Learner focus" value={selectedLearner.name} supporting={selectedLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-supervision-lane")} actionLabel="Open supervision lane" />
+        <MetricCard label="Weekly logs" value={`${selectedWeeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
       </div>
 
@@ -8526,7 +8556,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </div>
               <WeeklyCoachingLogPopupBox
                 buttonLabel="Log a coaching"
-                dialogTitle={`Weekly coaching log · ${data.directLearner.name}`}
+                dialogTitle={`Weekly coaching log · ${selectedLearner.name}`}
                 dialogDescription="Capture the weekly coaching record in a focused pop-up, save it, and return to the coach lane with history refreshed."
                 buttonClassName="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
                 composerProps={coachWeeklyCoachingLogProps}
@@ -8540,18 +8570,33 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
             <div className="rounded-[1.7rem] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,249,0.95))] px-5 py-5 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_20px_45px_rgba(15,23,42,0.18)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Current learner focus</p>
-              <h3 className="mt-2 text-xl font-semibold text-slate-950">{data.directLearner.name}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{data.directLearner.title} · {data.activeJourney.title}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Current learner focus</p>
+                  <h3 className="mt-2 text-xl font-semibold text-slate-950">{selectedLearner.name}</h3>
+                </div>
+                <Badge className="rounded-full border-slate-200 bg-slate-100 text-slate-700">{selectedLearner.readinessScore} readiness</Badge>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{selectedLearner.title} · {selectedLearner.team}</p>
+              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
+                <SelectTrigger className="mt-4 h-auto rounded-[1.1rem] border-slate-200 bg-white py-3 text-left text-slate-950 shadow-none">
+                  <SelectValue placeholder="Choose learner" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamLearners.map((learner: any) => (
+                    <SelectItem key={learner.id} value={learner.id}>{learner.name} · {learner.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="rounded-[1.7rem] border border-emerald-200/80 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(209,250,229,0.9))] px-5 py-5 text-slate-950 shadow-[0_20px_45px_rgba(16,185,129,0.14)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">Coach momentum</p>
-              <p className="mt-2 text-base font-semibold text-slate-950">{data.weeklyCoachingLogs.length} structured logs and {data.coachingSessions.length} active coaching threads are ready.</p>
-              <p className="mt-3 text-sm leading-6 text-emerald-900/80">Keep the log, next action, and follow-up visible without expanding into a long vertical briefing.</p>
+              <p className="mt-2 text-base font-semibold text-slate-950">{selectedWeeklyCoachingLogs.length} structured logs and {selectedCoachingSessions.length} active coaching threads are ready for {selectedLearner.name.split(" ")[0]}.</p>
+              <p className="mt-3 text-sm leading-6 text-emerald-900/80">Switch learners instantly, keep the log and follow-up visible, and route AI-guided transfer actions into the dedicated transfer lane.</p>
             </div>
             <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The primary coaching-log button now lives directly in the top coach ribbon. This support card keeps the handoff instruction visible for anyone entering the lane later.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">The primary coaching-log button now lives directly in the top coach ribbon, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching scroll path.</p>
               <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
                 Use the gold <span className="font-semibold text-[#FCBC34]">Log a coaching</span> action in the ribbon to force the structured log to open in a focused pop-up window.
               </div>
@@ -8568,69 +8613,68 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <CardTitle className="text-white">Coach control surface</CardTitle>
                 <CardDescription className="mt-2 text-slate-300/82">The coach workspace now keeps supervision, documentation, and alerts in one tighter command surface so the next action is visible without dropping into a long side column.</CardDescription>
               </div>
-              <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{data.coachingSessions.length} active coaching threads</Badge>
+              <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-100">{selectedCoachingSessions.length} active coaching threads</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[1.6rem] border border-cyan-400/18 bg-cyan-400/10 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/82">Current coach pathway</p>
-                  <h3 className="mt-2 text-xl font-semibold text-white">{data.activeJourney.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-100">{data.activeJourney.competencyGap}</p>
+                <div className="rounded-[1.6rem] border border-cyan-200 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.92))] p-4 text-slate-950 shadow-[0_20px_45px_rgba(14,116,144,0.08)]">
+                  <p className="text-xs uppercase tracking-[0.22em] text-cyan-700">Current coach pathway</p>
+                  <h3 className="mt-2 text-xl font-semibold text-slate-950">{data.activeJourney.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{data.activeJourney.competencyGap}</p>
                 </div>
                 {leadModule ? (
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Next coach-focused module</p>
-                    <p className="mt-2 text-lg font-medium text-white">{leadModule.title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{leadModule.skillFocus} · {leadModule.durationMinutes} min · {leadModule.completionRate}% completion</p>
+                  <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Next coach-focused module</p>
+                    <p className="mt-2 text-lg font-medium text-slate-950">{leadModule.title}</p>
+                    <p className="mt-2 text-sm text-slate-600">{leadModule.skillFocus} · {leadModule.durationMinutes} min · {leadModule.completionRate}% completion</p>
                   </div>
                 ) : (
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Next coach-focused module</p>
-                    <p className="mt-2 text-lg font-medium text-white">Module detail will appear here once the active pathway resolves.</p>
-                    <p className="mt-2 text-sm text-slate-300">Keep the supervision lane focused on the active learner and documented follow-through.</p>
+                  <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Next coach-focused module</p>
+                    <p className="mt-2 text-lg font-medium text-slate-950">Module detail will appear here once the active pathway resolves.</p>
+                    <p className="mt-2 text-sm text-slate-600">Keep the supervision lane focused on the active learner and documented follow-through.</p>
                   </div>
                 )}
-                <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4 md:col-span-2">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Escalation partner</p>
-                  <p className="mt-2 text-lg font-medium text-white">{data.escalationPartner.name}</p>
-                  <p className="mt-1 text-sm text-slate-300">{data.escalationPartner.title}</p>
+                <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)] md:col-span-2">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Escalation partner</p>
+                  <p className="mt-2 text-lg font-medium text-slate-950">{data.escalationPartner.name}</p>
+                  <p className="mt-1 text-sm text-slate-600">{data.escalationPartner.title}</p>
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-                <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
+                <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Documentation mode</p>
-                      <p className="mt-2 text-base font-semibold text-white">Coach needs now live inside Documentation mode</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Documentation mode</p>
+                      <p className="mt-2 text-base font-semibold text-slate-950">Coach needs now live inside Documentation mode</p>
                     </div>
-                    <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={openCoachDocumentationLane}>
+                    <Button type="button" variant="outline" className="rounded-full border-slate-200 bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950" onClick={openCoachDocumentationLane}>
                       Open documentation
                     </Button>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">Open the focused documentation tab to review coach needs, linked weekly logs, and saved follow-up notes in the same working area.</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">Open the focused documentation tab to review coach needs, linked weekly logs, and saved follow-up notes in the same working area.</p>
                 </div>
-                <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
+                <div className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Alerts mode</p>
-                      <p className="mt-2 text-base font-semibold text-white">Alerts mode keeps the coach queue compact until detail is needed.</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Alerts mode</p>
+                      <p className="mt-2 text-base font-semibold text-slate-950">Alerts mode keeps the coach queue compact until detail is needed.</p>
                     </div>
-                    <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" onClick={openCoachAlertsLane}>
+                    <Button type="button" variant="outline" className="rounded-full border-slate-200 bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950" onClick={openCoachAlertsLane}>
                       Open alerts
                     </Button>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">{selectedAlert?.title ?? overviewAlerts[0]?.title ?? "The next alert will appear here."}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{selectedAlert?.title ?? overviewAlerts[0]?.title ?? "The next alert will appear here."}</p>
                 </div>
-                <div className="rounded-[1.6rem] border border-emerald-400/20 bg-emerald-400/10 p-4 md:col-span-2 xl:col-span-1">
-                  <p className="text-xs uppercase tracking-[0.22em] text-emerald-100">Weekly coaching signal</p>
-                  <p className="mt-2 text-base font-semibold text-white">{data.weeklyCoachingLogs.length} coaching logs are ready with explicit public-private visibility and linked documentation.</p>
-                  <p className="mt-3 text-sm leading-6 text-emerald-50/90">Use the gold ribbon action to keep the structured coaching log capture in a focused pop-up while the rest of the desk stays compact.</p>
+                <div className="rounded-[1.6rem] border border-emerald-200 bg-[linear-gradient(180deg,rgba(240,253,244,0.98),rgba(220,252,231,0.92))] p-4 text-slate-950 shadow-[0_20px_45px_rgba(16,185,129,0.1)] md:col-span-2 xl:col-span-1">
+                  <p className="text-xs uppercase tracking-[0.22em] text-emerald-700">Weekly coaching signal</p>
+                  <p className="mt-2 text-base font-semibold text-slate-950">{selectedWeeklyCoachingLogs.length} coaching logs are ready for {selectedLearner.name} with explicit visibility and linked documentation.</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700">Use the gold ribbon action to keep structured log capture in a focused pop-up while the transfer lane handles AI and assignment follow-through.</p>
                 </div>
               </div>
             </div>
-            <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="coach" learnerName={data.directLearner.name} onUpdated={onUpdated} />
           </CardContent>
         </PremiumCard>
       </div>
@@ -8673,7 +8717,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
         <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div className="space-y-4">
-            {data.coachingSessions.map((session: any) => (
+            {selectedCoachingSessions.map((session: any) => (
               <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -8685,6 +8729,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </div>
               </button>
             ))}
+            {!selectedCoachingSessions.length ? (
+              <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-400">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
+            ) : null}
           </div>
           <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
             {selectedCoachingSession ? (
@@ -8716,7 +8763,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                   </div>
                   <WeeklyCoachingLogPopupBox
                     buttonLabel="Open coaching log pop-up"
-                    dialogTitle={`Weekly coaching log · ${data.directLearner.name}`}
+                    dialogTitle={`Weekly coaching log · ${selectedLearner.name}`}
                     dialogDescription="Capture the full weekly coaching record in a focused pop-up, then return to the coach lane with the history refreshed."
                     composerProps={coachWeeklyCoachingLogProps}
                     onCreated={onUpdated}
@@ -8724,32 +8771,71 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </div>
               </CardHeader>
             </PremiumCard>
-            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
-            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={data.retrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
+            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
+            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
         </TabsContent>
 
         <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.82fr_1.18fr] scroll-mt-24">
-          <WorkflowLibraryPanel title="Coach-ready content mix" description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning." resources={data.workflowLibraryMix.documentationResources} />
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Training-transfer focus</CardTitle>
-              <CardDescription className="text-slate-400">The coach lane bridges course completion to observed behavior, so lessons, QA signals, and next coaching moves stay in one working view.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {data.activeJourney.modules.map((module: any) => (
-                <div key={module.id} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-medium text-white">{module.title}</p>
-                      <p className="mt-1 text-sm text-slate-300">{module.skillFocus} · {module.durationMinutes} min · {module.format}</p>
+          <div className="space-y-6">
+            <WorkflowLibraryPanel title="Coach-ready content mix" description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning." resources={data.workflowLibraryMix.documentationResources} />
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Transfer attribution across the team</CardTitle>
+                <CardDescription className="text-slate-400">This lane now shows exactly which learners received transfers, whether AI drove the recommendation, and what status each assignment is in.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {transferRoster.length ? transferRoster.map((assignment: any) => (
+                  <div key={assignment.id} className={`rounded-[1.45rem] border p-4 ${assignment.learnerUserId === selectedLearner.id ? "border-cyan-400/25 bg-cyan-400/10" : "border-white/10 bg-white/5"}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{assignment.deliveryMode === "ai_approved" ? "AI-driven transfer" : "Coach-directed transfer"}</p>
+                        <h3 className="mt-2 text-base font-semibold text-white">{assignment.learner.name} · {assignment.moduleTitle}</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{assignment.guidanceNote}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <StatusBadge value={assignment.status} />
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{assignment.requestedByRole.replace("_", " ")}</Badge>
+                      </div>
                     </div>
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{module.completionRate}% complete</Badge>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                      <span>Assigned {new Date(assignment.createdAt).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>Due {new Date(assignment.dueAt).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>{assignment.skillFocus}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </PremiumCard>
+                )) : (
+                  <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-400">Transfer assignments will appear here once the coach or AI creates the next training handoff.</div>
+                )}
+              </CardContent>
+            </PremiumCard>
+          </div>
+          <div className="space-y-6">
+            {selectedAiSuggestion ? (
+              <GuidanceActionPanel tenantId={data.tenant.id} suggestion={selectedAiSuggestion} catalog={data.retrainingCatalog} assignments={selectedCurrentRetrainingAssignment ? [selectedCurrentRetrainingAssignment] : []} actorRole="coach" learnerName={selectedLearner.name} onUpdated={onUpdated} />
+            ) : null}
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Training-transfer focus</CardTitle>
+                <CardDescription className="text-slate-400">The coach lane bridges course completion to observed behavior, so lessons, QA signals, and next coaching moves stay in one working view.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.activeJourney.modules.map((module: any) => (
+                  <div key={module.id} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-medium text-white">{module.title}</p>
+                        <p className="mt-1 text-sm text-slate-300">{module.skillFocus} · {module.durationMinutes} min · {module.format}</p>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{module.completionRate}% complete</Badge>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+          </div>
         </TabsContent>
 
         <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
@@ -8762,7 +8848,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CardContent className="space-y-3">
                 {coachNeedEntries.length ? coachNeedEntries.map((entry: any, index: number) => {
                   const linkedWeeklyCoachingLog = entry.weeklyCoachingLogId
-                    ? data.weeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
+                    ? selectedWeeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
                     : null;
                   const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
 
@@ -8792,7 +8878,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 )}
               </CardContent>
             </PremiumCard>
-            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={data.directLearner.id} authorRole="coach" title="Write a coach follow-up or observational review" onCreated={onUpdated} />
+            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={selectedLearner.id} authorRole="coach" title="Write a coach follow-up or observational review" onCreated={onUpdated} />
             <WorkflowLibraryPanel title="Coach observation resources" description="Use methodology references and tenant materials to keep observation notes aligned with the lesson evidence and coaching standard." resources={data.workflowLibraryMix.interventionResources} />
           </div>
           <PremiumCard>
@@ -8801,7 +8887,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CardDescription className="text-slate-400">Observed behavior, weekly coaching records, and review notes remain connected so the coach does not lose context between sessions.</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
+              <DocumentationFeed entries={selectedDocumentationEntries} weeklyCoachingLogs={selectedWeeklyCoachingLogs} />
             </CardContent>
           </PremiumCard>
         </TabsContent>

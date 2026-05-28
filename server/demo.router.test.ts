@@ -982,6 +982,27 @@ describe("demo router", () => {
     expect(coach.directLearner.role).toBe("learner");
     expect(coach.escalationPartner.role).toBe("manager");
     expect(coach.activeJourney.role).toBe("coach");
+    expect(coach.teamLearners.length).toBeGreaterThan(1);
+    expect(coach.teamLearners).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: "learner" }),
+      ]),
+    );
+    expect(coach.teamCoachingSessions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ learnerUserId: coach.directLearner.id }),
+      ]),
+    );
+    expect(coach.teamAiSuggestions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ learnerUserId: coach.directLearner.id }),
+      ]),
+    );
+    expect(coach.teamRetrainingAssignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ learnerUserId: coach.directLearner.id }),
+      ]),
+    );
     expect(coach.weeklyCoachingLogs.length).toBeGreaterThan(0);
     expect(coach.workflowLibraryMix.documentationResources).toEqual(
       expect.arrayContaining([
