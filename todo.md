@@ -507,3 +507,8 @@
 - [x] Design a simplified front page where users first choose their workspace context and are then routed into a focused login step.
 - [x] Implement the cleaner workspace-selection landing flow and preserve the correct role-specific login handoff.
 - [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the front-page entry-flow redesign.
+- [x] Audit the current Coach Studio tab layout, documentation lane, and alert/feed surfaces to identify the exact seams for reducing scroll by consolidating right-side content into the mode system.
+- [x] Design a tighter Coach Studio interaction model where documentation, coach needs, and alerts live inside focused mode panels instead of a separate scroll-heavy lower column.
+- [x] Implement the Coach Studio layout consolidation so the page behaves more like a single focused control surface with less vertical scrolling.
+- [x] Add a Public/Private visibility control to the weekly coaching-log flow so private logs stay on file only while public logs trigger the related notification behavior.
+- [x] Add or update regression coverage, run TypeScript and the full Vitest suite, verify project health, and save a checkpoint for the latest Coach Studio refinement pass.

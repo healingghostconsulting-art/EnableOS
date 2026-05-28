@@ -409,8 +409,10 @@ describe("demo router", () => {
       additionalSupport: "Coach will provide two annotated call samples and one live side-by-side review.",
       managerOfSupervisorEmail: "executive-copy@enterpriseworkspace.demo",
       agentTakeaways: "I need to slow down before the final summary so my next steps sound confident.",
+      visibility: "public",
     });
 
+    expect(created.visibility).toBe("public");
     expect(created.supervisorEmail).toContain('@');
     expect(created.managerOfSupervisorEmail).toBe("executive-copy@enterpriseworkspace.demo");
     expect(created.agentTakeaways).toContain("slow down");
@@ -423,6 +425,43 @@ describe("demo router", () => {
         title: expect.stringContaining("documentation summary"),
         weeklyCoachingLogId: learner.weeklyCoachingLogs[0]?.id,
       }),
+    );
+  });
+
+
+  it("keeps private weekly coaching logs off the learner workspace while preserving leadership visibility", async () => {
+    const caller = appRouter.createCaller(
+      createContext({
+        openId: "atlas-manager",
+        role: "user",
+        name: "Enterprise Manager",
+      }),
+    );
+
+    const created = await caller.demo.secureCreateWeeklyCoachingLog({
+      tenantId: "atlas-operations",
+      subjectUserId: "u-learn-1",
+      coachRole: "manager",
+      sessionDate: "2026-05-02",
+      attendance: "Present and reflective.",
+      followUpFromPrevious: "The previous goal needs another observation cycle before it is shared back to the learner.",
+      coachingComments: "Manager recorded an internal coaching note that should stay private until the leadership team is ready to release it.",
+      smartGoalCommitment: "Validate the pattern privately across the next three monitored contacts before publishing a learner-facing plan.",
+      additionalSupport: "Leadership will review the evidence and decide whether a public coaching log should follow.",
+      visibility: "private",
+    });
+
+    expect(created.visibility).toBe("private");
+
+    const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
+    expect(learner.weeklyCoachingLogs.find((entry: any) => entry.id === created.id)).toBeUndefined();
+    expect(learner.documentationEntries.find((entry: any) => entry.weeklyCoachingLogId === created.id)).toBeUndefined();
+
+    const manager = await caller.demo.secureManager({ tenantId: "atlas-operations" });
+    expect(manager.weeklyCoachingLogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: created.id, visibility: "private" }),
+      ]),
     );
   });
 

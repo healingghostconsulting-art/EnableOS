@@ -97,6 +97,7 @@ const weeklyCoachingLogInput = z.object({
   additionalSupport: z.string().min(3).max(600),
   managerOfSupervisorEmail: z.string().email().optional(),
   agentTakeaways: z.string().max(800).optional(),
+  visibility: z.enum(["public", "private"]).default("public"),
   attachments: z.array(coachingAttachmentUploadInput).max(5).optional(),
 });
 

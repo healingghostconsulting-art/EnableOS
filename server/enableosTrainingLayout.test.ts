@@ -240,6 +240,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Attach any file type to the coaching log");
     expect(trainingViewSource).toContain("Attach files to this log");
     expect(trainingViewSource).toContain("function CoachingAttachmentList");
+    expect(trainingViewSource).toContain("Public / Private visibility");
+    expect(trainingViewSource).toContain("Public coaching log");
+    expect(trainingViewSource).toContain("Private coaching note");
+    expect(trainingViewSource).toContain("Private stays on file for leadership only and does not notify the learner.");
+    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
+    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
@@ -297,11 +303,11 @@ describe("learner training layout helpers", () => {
   it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
     expect(trainingViewSource).toContain("Coach studio mission");
     expect(trainingViewSource).toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
-    expect(trainingViewSource).toContain("Coach supervision lane");
-    expect(trainingViewSource).toContain("Coach needs");
-    expect(trainingViewSource).toContain("Open full documentation lane");
-    expect(trainingViewSource).toContain("Coach alerts");
-    expect(trainingViewSource).toContain("Open full alerts lane");
+    expect(trainingViewSource).toContain("Coach control surface");
+    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
+    expect(trainingViewSource).toContain("Open documentation");
+    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
+    expect(trainingViewSource).toContain("Open alerts");
     expect(trainingViewSource).not.toContain("Coach-visible signal trend");
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");

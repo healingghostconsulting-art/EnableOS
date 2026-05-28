@@ -207,6 +207,8 @@ export type WeeklyCoachingAttachment = {
   uploadedByRole: "manager" | "coach" | "executive" | "client_admin";
 };
 
+export type WeeklyCoachingVisibility = "public" | "private";
+
 export type WeeklyCoachingLog = {
   id: string;
   tenantId: string;
@@ -231,6 +233,7 @@ export type WeeklyCoachingLog = {
   createdAt: string;
   updatedAt: string;
   linkedReviewLogId?: string;
+  visibility: WeeklyCoachingVisibility;
   attachments: WeeklyCoachingAttachment[];
 };
 
@@ -246,6 +249,7 @@ export type CreateWeeklyCoachingLogInput = {
   additionalSupport: string;
   managerOfSupervisorEmail?: string;
   agentTakeaways?: string;
+  visibility?: WeeklyCoachingVisibility;
   attachments?: WeeklyCoachingAttachment[];
 };
 
@@ -1318,6 +1322,7 @@ const weeklyCoachingLogs: WeeklyCoachingLog[] = [
     createdAt: "2026-04-20T14:30:00.000Z",
     updatedAt: "2026-04-20T14:30:00.000Z",
     linkedReviewLogId: "review-1",
+    visibility: "public",
     attachments: [],
   },
 ];
@@ -2039,19 +2044,23 @@ export function createWeeklyCoachingLog(input: CreateWeeklyCoachingLogInput) {
     createdAt,
     updatedAt: createdAt,
     linkedReviewLogId: review.id,
+    visibility: input.visibility ?? "public",
     attachments: input.attachments ?? [],
   };
 
   weeklyCoachingLogs.unshift(created);
-  notifications.unshift({
-    id: `note-weekly-coaching-${notifications.length + 1}`,
-    tenantId: input.tenantId,
-    audience: "learner",
-    title: "Weekly coaching log ready for your takeaways",
-    detail: `${coach.name} documented a weekly coaching log for ${learner.name}. The log includes agent, supervisor, and optional leadership copy details for follow-up sharing.`,
-    priority: "info",
-    createdAt,
-  });
+
+  if (created.visibility === "public") {
+    notifications.unshift({
+      id: `note-weekly-coaching-${notifications.length + 1}`,
+      tenantId: input.tenantId,
+      audience: "learner",
+      title: "Weekly coaching log ready for your takeaways",
+      detail: `${coach.name} documented a weekly coaching log for ${learner.name}. The log includes agent, supervisor, and optional leadership copy details for follow-up sharing.`,
+      priority: "info",
+      createdAt,
+    });
+  }
 
   return created;
 }
@@ -2928,6 +2937,10 @@ export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboar
   const retrainingAssignments = getRetrainingAssignmentsForLearner(tenant.id, learner.id);
   const currentRetrainingAssignment = getCurrentRetrainingAssignment(retrainingAssignments);
   const retrainingHistory = getHistoricalRetrainingAssignments(retrainingAssignments, currentRetrainingAssignment?.id);
+  const learnerVisibleWeeklyCoachingLogs = getWeeklyCoachingLogs(tenant.id, learner.id).filter((entry) => (entry.visibility ?? "public") === "public");
+  const learnerVisibleWeeklyCoachingLogIds = new Set(learnerVisibleWeeklyCoachingLogs.map((entry) => entry.id));
+  const learnerVisibleDocumentationEntries = getDocumentationEntries(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
+  const learnerVisibleReviewLogs = getReviewLogs(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
 
   return {
     tenant,
@@ -2940,9 +2953,9 @@ export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboar
     retrainingHistory,
     methodologyAssets: methodologyAssets.filter((asset) => asset.linkedRole === "learner" || asset.linkedRole === "all"),
     methodologyMappings: methodologyMappings.filter((mapping) => mapping.tenantId === tenant.id || mapping.tenantId === "all"),
-    documentationEntries: getDocumentationEntries(tenant.id, learner.id),
-    reviewLogs: getReviewLogs(tenant.id, learner.id),
-    weeklyCoachingLogs: getWeeklyCoachingLogs(tenant.id, learner.id),
+    documentationEntries: learnerVisibleDocumentationEntries,
+    reviewLogs: learnerVisibleReviewLogs,
+    weeklyCoachingLogs: learnerVisibleWeeklyCoachingLogs,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "learner" || item.audience === "all")),
     nextCoachingSession: getTenantCoachingSessions(tenant.id).find((session) => session.learnerUserId === learner.id) ?? coachingSessions[0],
     workflowLibraryMix,
