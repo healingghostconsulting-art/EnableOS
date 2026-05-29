@@ -36,10 +36,9 @@ describe("workspace navigation resolution", () => {
     ]);
   });
 
-  it("keeps reporting as an executive-only top-level section while removing it from the manager workspace", () => {
+  it("keeps reporting as the executive-facing top-level section while removing it from the manager workspace", () => {
     expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
       "/mission-hub",
-      "/executive",
       "/reporting",
     ]);
     expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
@@ -51,7 +50,8 @@ describe("workspace navigation resolution", () => {
       "/admin",
       "/library",
     ]);
-    expect(adminWorkspaceMenu.map((item) => item.path)).toEqual(expect.arrayContaining(["/reporting", "/executive"]));
+    expect(adminWorkspaceMenu.map((item) => item.path)).toEqual(expect.arrayContaining(["/reporting"]));
+    expect(adminWorkspaceMenu.map((item) => item.path)).not.toContain("/executive");
   });
 
   it("adds CHCG command only for platform admins when no override is supplied", () => {
@@ -79,9 +79,9 @@ describe("workspace navigation resolution", () => {
     expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[0]?.path).toBe("/mission-hub?role=manager");
   });
 
-  it("keeps learner and executive shells path-scoped even when the viewer has broader navigation grants", () => {
+  it("keeps learner and reporting shells path-scoped even when the viewer has broader navigation grants", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/executive" })).toEqual(executiveWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/reporting" })).toEqual(executiveWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
@@ -90,13 +90,13 @@ describe("workspace navigation resolution", () => {
 
   it("redirects each role back to its allowed home view when a route is blocked", () => {
     expect(resolveRoleHomePath("platform_admin")).toBe("/chcg-admin");
+    expect(resolveRoleHomePath("executive")).toBe("/reporting");
     expect(resolveRoleHomePath("manager")).toBe("/manager");
     expect(resolveRoleHomePath("coach")).toBe("/coach");
     expect(resolveRoleHomePath("learner")).toBe("/learner");
   });
 
   it("enforces route access by workspace role", () => {
-    expect(canAccessWorkspacePath("/executive", "manager")).toBe(false);
     expect(canAccessWorkspacePath("/reporting", "manager")).toBe(false);
     expect(canAccessWorkspacePath("/reporting", "executive")).toBe(true);
     expect(canAccessWorkspacePath("/admin", "manager")).toBe(true);

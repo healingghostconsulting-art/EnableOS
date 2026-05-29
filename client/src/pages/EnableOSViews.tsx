@@ -280,10 +280,10 @@ export function normalizePersistedTrainingProgress(
 
 const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string; subtitle: string }> = {
   executive: {
-    title: "Executive command view",
-    route: "/executive",
-    eyebrow: "Executive",
-    subtitle: "Measure ROI, team readiness, and intervention impact across the tenant.",
+    title: "Reporting workspace",
+    route: "/reporting",
+    eyebrow: "Reporting",
+    subtitle: "Review ROI, team readiness, and intervention impact across the tenant.",
   },
   manager: {
     title: "Manager intervention workspace",
@@ -2746,7 +2746,7 @@ export function LandingView() {
     : viewerAccess.data?.grant.role === "client_admin"
       ? "/admin"
       : viewerAccess.data?.grant.role === "executive"
-        ? "/executive"
+        ? "/reporting"
         : viewerAccess.data?.grant.role === "manager"
           ? "/manager"
           : viewerAccess.data?.grant.role === "coach"
@@ -2760,14 +2760,6 @@ export function LandingView() {
   ];
   const workspaceEntryOptions = useMemo(
     () => [
-      {
-        role: "executive" as DemoRole,
-        title: "Executive command",
-        route: "/executive",
-        icon: Gauge,
-        eyebrow: "Executive",
-        subtitle: "Open ROI, readiness, and reporting decisions for the client account.",
-      },
       {
         role: "manager" as DemoRole,
         title: "Manager operations",
@@ -2873,7 +2865,7 @@ export function LandingView() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Workspace selector</p>
                 <p className="mt-1 text-sm leading-6 text-[#4A6373]">Keep the front page focused on one decision: choose the workspace, then move into login.</p>
               </div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#6B7E8A]">Five role-based entry points</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#6B7E8A]">Four role-based entry points</p>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {workspaceEntryOptions.map((item) => {
@@ -2977,9 +2969,9 @@ export function MissionHubView() {
       ],
     },
     executive: {
-      eyebrow: "Executive command",
+      eyebrow: "Reporting hub",
       title: "Focus the program on lift, proof, and risk.",
-      description: "Start with the highest-value enterprise signals, then move into trends, risk, and documentation only when a decision needs deeper proof.",
+      description: "Start with reporting signals, then move into trends, risk, and documentation only when a decision needs deeper proof.",
       activeGoals: [
         "Close the readiness gap to target.",
         "Review QA movement before expanding intervention volume.",

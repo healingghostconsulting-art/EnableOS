@@ -565,3 +565,6 @@
 - [x] Add a sitewide fade-only page transition so every route change fades the incoming page from opacity 0 to 1 over 280ms with an ease-out curve.
 - [x] Ensure the transition applies consistently to home-to-workspace, workspace-to-workspace, and sidebar-driven navigation without introducing slide motion.
 - [x] Update or add regression coverage, rerun validation, confirm project health, and save a checkpoint for the transition update.
+- [x] Remove Executive Command from the product navigation and entry surfaces.
+- [x] Update routes, role access behavior, and any dependent workspace flows so removing Executive Command does not break Reporting or other valid paths.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the Executive Command removal.

@@ -53,13 +53,6 @@ const workspaceMissionSignals: Record<string, {
     next: "Search, resume, or jump directly into the right workspace.",
     reward: "Queue visible",
   },
-  "/executive": {
-    eyebrow: "Executive command",
-    headline: "Review lift, risk, and ROI.",
-    focus: "Executive summary",
-    next: "Scan the top trend changes and open the evidence that needs a decision.",
-    reward: "Evidence ready",
-  },
   "/reporting": {
     eyebrow: "Reporting hub",
     headline: "Compare movement without extra chrome.",

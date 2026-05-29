@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BarChart3, BookOpen, BookText, Building2, Gauge, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { BarChart3, BookOpen, BookText, Building2, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
@@ -14,7 +14,6 @@ export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive"
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
-  { icon: Gauge, label: "Executive Command", path: "/executive" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
@@ -31,11 +30,10 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
 
 export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
   item.path === "/mission-hub"
-  || item.path === "/executive"
   || item.path === "/reporting"
 ));
 
-export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/executive" && item.path !== "/reporting");
+export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/reporting");
 
 export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
   item.path === "/coach"
@@ -92,7 +90,7 @@ export function resolveRoleHomePath(grantRole?: string | null) {
     case "client_admin":
       return "/admin";
     case "executive":
-      return "/executive";
+      return "/reporting";
     case "manager":
       return "/manager";
     case "coach":
@@ -116,8 +114,6 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
   }
 
   switch (path) {
-    case "/executive":
-      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
     case "/reporting":
       return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
     case "/manager":
@@ -145,7 +141,6 @@ function resolveStaticMenuRole(options?: { workspacePath?: string | null; shared
   }
 
   switch (options?.workspacePath) {
-    case "/executive":
     case "/reporting":
       return "executive";
     case "/manager":
@@ -167,7 +162,6 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
   }
 
   switch (options?.workspacePath) {
-    case "/executive":
     case "/reporting":
       return executiveWorkspaceMenu;
     case "/manager":
@@ -286,13 +280,6 @@ function Router() {
           {() => (
             <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
               <MissionHubView />
-            </GuardedWorkspaceShell>
-          )}
-        </Route>
-        <Route path="/executive">
-          {() => (
-            <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">
-              <RoleWorkspace role="executive" />
             </GuardedWorkspaceShell>
           )}
         </Route>
