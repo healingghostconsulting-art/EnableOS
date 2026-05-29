@@ -29,6 +29,12 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
   { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
 ];
 
+export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
+  item.path === "/"
+  || item.path === "/executive"
+  || item.path === "/reporting"
+));
+
 export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/executive" && item.path !== "/reporting");
 
 export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
@@ -112,9 +118,23 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
   }
 }
 
-export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null }) {
+export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null; workspacePath?: string | null }) {
   if (options?.menuItemsOverride) {
     return options.menuItemsOverride;
+  }
+
+  switch (options?.workspacePath) {
+    case "/executive":
+    case "/reporting":
+      return executiveWorkspaceMenu;
+    case "/manager":
+      return managerWorkspaceMenu;
+    case "/coach":
+      return coachWorkspaceMenu;
+    case "/learner":
+      return learnerWorkspaceMenu;
+    default:
+      break;
   }
 
   const normalizedRole = normalizeGrantRole(options?.grantRole);
@@ -133,11 +153,12 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
   }
 }
 
-function WorkspaceShell({ children, roleLabel, menuItemsOverride }: { children: React.ReactNode; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
+function WorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { children: React.ReactNode; path: string; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const menuItems = resolveWorkspaceMenu({
     menuItemsOverride,
     grantRole: access.data?.grant.role,
+    workspacePath: path,
   });
 
   return (
@@ -173,7 +194,7 @@ function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }:
   }
 
   return (
-    <WorkspaceShell roleLabel={roleLabel} menuItemsOverride={menuItemsOverride}>
+    <WorkspaceShell path={path} roleLabel={roleLabel} menuItemsOverride={menuItemsOverride}>
       {children}
     </WorkspaceShell>
   );
@@ -213,7 +234,7 @@ function Router() {
       </Route>
       <Route path="/learner">
         {() => (
-          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
+          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
             <RoleWorkspace role="learner" />
           </GuardedWorkspaceShell>
         )}

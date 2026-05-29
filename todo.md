@@ -546,3 +546,6 @@
 - [x] Remove the small MODE / FOCUS / MOTION summary box from the live interface.
 - [x] Tidy the surrounding layout after removing the MODE / FOCUS / MOTION box so the section spacing still feels intentional.
 - [x] Validate the UI cleanup, confirm project health, and save a checkpoint for review.
+- [x] Restrict the sidebar so each selected workspace only shows the navigation items allowed for that role.
+- [x] Update the workspace-selection and mission hub navigation logic so switching into Coach Studio, Learner Journey, Manager Ops, Executive Command, or Reporting only exposes that workspace's intended sections.
+- [x] Add or update regression coverage, validate the role-scoped sidebar behavior, and save a checkpoint for review.

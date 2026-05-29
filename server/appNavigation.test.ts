@@ -4,6 +4,7 @@ import {
   adminWorkspaceMenu,
   canAccessWorkspacePath,
   coachWorkspaceMenu,
+  executiveWorkspaceMenu,
   learnerWorkspaceMenu,
   managerWorkspaceMenu,
   resolveRoleHomePath,
@@ -34,6 +35,11 @@ describe("workspace navigation resolution", () => {
   });
 
   it("keeps reporting as an executive-only top-level section while removing it from the manager workspace", () => {
+    expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
+      "/",
+      "/executive",
+      "/reporting",
+    ]);
     expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
       "/",
       "/manager",
@@ -56,6 +62,12 @@ describe("workspace navigation resolution", () => {
   it("prefers an explicit shell override so the learner route stays learner-scoped even for broader grants", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", menuItemsOverride: learnerWorkspaceMenu })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
+  });
+
+  it("keeps learner and executive shells path-scoped even when the viewer has broader navigation grants", () => {
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/executive" })).toEqual(executiveWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
   });
 
   it("redirects each role back to its allowed home view when a route is blocked", () => {
