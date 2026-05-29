@@ -549,3 +549,6 @@
 - [x] Restrict the sidebar so each selected workspace only shows the navigation items allowed for that role.
 - [x] Update the workspace-selection and mission hub navigation logic so switching into Coach Studio, Learner Journey, Manager Ops, Executive Command, or Reporting only exposes that workspace's intended sections.
 - [x] Add or update regression coverage, validate the role-scoped sidebar behavior, and save a checkpoint for review.
+- [x] Fix the learner-to-Training-Zone sidebar regression so learner navigation stays statically scoped and does not regain client, executive, or other broader workspace items.
+- [x] Reconcile shared-route menu resolution so Training Zone and related routes preserve the intended role-scoped sidebar context instead of falling back to broader grant menus.
+- [x] Add or update regression coverage, rerun validation, confirm project health, and save a checkpoint for the static role-scoping repair.

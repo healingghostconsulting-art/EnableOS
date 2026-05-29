@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   adminWorkspaceMenu,
+  buildRoleScopedPath,
   canAccessWorkspacePath,
   coachWorkspaceMenu,
   executiveWorkspaceMenu,
@@ -9,6 +10,7 @@ import {
   managerWorkspaceMenu,
   resolveRoleHomePath,
   resolveWorkspaceMenu,
+  scopeMenuItemsToRole,
 } from "../client/src/App";
 
 describe("workspace navigation resolution", () => {
@@ -64,10 +66,23 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
   });
 
+  it("adds static role context to shared learner menu links so training and library stay learner-scoped", () => {
+    expect(buildRoleScopedPath("/training", "learner")).toBe("/training?role=learner");
+    expect(buildRoleScopedPath("/library", "manager")).toBe("/library?role=manager");
+    expect(buildRoleScopedPath("/learner", "learner")).toBe("/learner");
+    expect(scopeMenuItemsToRole(learnerWorkspaceMenu, "learner").map((item) => item.path)).toEqual([
+      "/learner",
+      "/training?role=learner",
+      "/library?role=learner",
+    ]);
+  });
+
   it("keeps learner and executive shells path-scoped even when the viewer has broader navigation grants", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/executive" })).toEqual(executiveWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/library", sharedRouteRole: "manager" })).toEqual(managerWorkspaceMenu);
   });
 
   it("redirects each role back to its allowed home view when a route is blocked", () => {

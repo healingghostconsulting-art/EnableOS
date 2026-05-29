@@ -250,6 +250,10 @@ type DashboardLayoutContentProps = {
   };
 };
 
+function normalizeMenuPath(path: string) {
+  return path.split("?")[0] ?? path;
+}
+
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
@@ -265,10 +269,11 @@ function DashboardLayoutContent({
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const autoCollapseTimeoutRef = useRef<number | null>(null);
-  const activeMenuItem = menuItems.find((item) => item.path === location);
+  const normalizedLocationPath = normalizeMenuPath(location);
+  const activeMenuItem = menuItems.find((item) => normalizeMenuPath(item.path) === normalizedLocationPath);
   const isMobile = useIsMobile();
   const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
-  const activeWorkspacePath = activeMenuItem?.path ?? location;
+  const activeWorkspacePath = activeMenuItem ? normalizeMenuPath(activeMenuItem.path) : normalizedLocationPath;
   const commandSignal = resolveWorkspaceMissionSignal(activeWorkspacePath, activeMenuItem?.label ?? title);
   const profileName = user?.name || demoProfile?.name || "CHCG Demo";
   const profileEmail = user?.email || demoProfile?.email || demoProfile?.roleLabel || "Demo workspace";
@@ -406,7 +411,7 @@ function DashboardLayoutContent({
 
             <SidebarMenu className="gap-2">
               {menuItems.map((item, index) => {
-                const isActive = location === item.path;
+                const isActive = normalizedLocationPath === normalizeMenuPath(item.path);
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
