@@ -46,7 +46,7 @@ const workspaceMissionSignals: Record<string, {
   next: string;
   reward: string;
 }> = {
-  "/": {
+  "/mission-hub": {
     eyebrow: "Mission hub",
     headline: "Start with the next priority.",
     focus: "Next action",

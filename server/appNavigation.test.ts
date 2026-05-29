@@ -38,12 +38,12 @@ describe("workspace navigation resolution", () => {
 
   it("keeps reporting as an executive-only top-level section while removing it from the manager workspace", () => {
     expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/",
+      "/mission-hub",
       "/executive",
       "/reporting",
     ]);
     expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/",
+      "/mission-hub",
       "/manager",
       "/coach",
       "/learner",
@@ -66,7 +66,8 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
   });
 
-  it("adds static role context to shared learner menu links so training and library stay learner-scoped", () => {
+  it("adds static role context to shared learner menu links so mission hub, training, and library stay learner-scoped", () => {
+    expect(buildRoleScopedPath("/mission-hub", "learner")).toBe("/mission-hub?role=learner");
     expect(buildRoleScopedPath("/training", "learner")).toBe("/training?role=learner");
     expect(buildRoleScopedPath("/library", "manager")).toBe("/library?role=manager");
     expect(buildRoleScopedPath("/learner", "learner")).toBe("/learner");
@@ -75,12 +76,14 @@ describe("workspace navigation resolution", () => {
       "/training?role=learner",
       "/library?role=learner",
     ]);
+    expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[0]?.path).toBe("/mission-hub?role=manager");
   });
 
   it("keeps learner and executive shells path-scoped even when the viewer has broader navigation grants", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/executive" })).toEqual(executiveWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/library", sharedRouteRole: "manager" })).toEqual(managerWorkspaceMenu);
   });

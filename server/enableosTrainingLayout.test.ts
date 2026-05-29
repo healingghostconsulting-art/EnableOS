@@ -306,8 +306,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Coach control surface");
     expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
     expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
-    expect(trainingViewSource).not.toContain("Open documentation");
-    expect(trainingViewSource).not.toContain("Open alerts");
+    expect(trainingViewSource).toContain("Open coaching log pop-up");
     expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
     expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
@@ -330,7 +329,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Curriculum");
     expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Resources");
-    expect(trainingViewSource).toContain("inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1");
+    expect(trainingViewSource).toContain("rounded-full border px-3 py-2 text-left text-xs transition");
+    expect(trainingViewSource).toContain("Stage overview");
+    expect(trainingViewSource).toContain("setStageIndex(index)");
     expect(trainingViewSource).toContain("trainingWorkspacePage");
     expect(trainingViewSource).toContain("This stage now keeps progress, context, and flash-card review inside one tighter lesson surface");
     expect(trainingViewSource).toContain("Tap, click, or press Enter to flip. Keep the brief, detail, and next-step cue in one compact panel.");

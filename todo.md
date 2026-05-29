@@ -552,3 +552,13 @@
 - [x] Fix the learner-to-Training-Zone sidebar regression so learner navigation stays statically scoped and does not regain client, executive, or other broader workspace items.
 - [x] Reconcile shared-route menu resolution so Training Zone and related routes preserve the intended role-scoped sidebar context instead of falling back to broader grant menus.
 - [x] Add or update regression coverage, rerun validation, confirm project health, and save a checkpoint for the static role-scoping repair.
+- [x] Prompt 1: Fix the Coach Studio coaching-log pop-up button by opening a modal dialog with the requested structured coaching log form, dark overlay, fade-in animation, outside-click close behavior, and save/cancel actions.
+- [x] Prompt 2: Repair low-contrast ghost text in the Current Headline, Current Focus, and related narrative panels across Executive Command, Reporting Hub, and Learner Journey without changing layout.
+- [x] Prompt 3: Make the Executive Command and Reporting Hub top KPI summary cards drillable with hover affordances and the requested tab/metric jump behavior.
+- [x] Prompt 4: Create a dedicated /mission-hub page for role-relevant goals, milestones, and progress, then repoint all sidebar Mission Hub links there.
+- [x] Prompt 5: Remove the black empty space at the top of the Manager Operations left split-view panel so the signal chart and case content start at the top.
+- [x] Prompt 6: Make the four Training Zone stage pills functional tabs that switch the lesson-stage summary content and show active/inactive styling.
+- [x] Prompt 7: Add premium hover feedback to the five front-door workspace selector cards, including lift, shadow, tint, and arrow motion.
+- [x] Prompt 8: Add a sitewide fade-in page transition for route changes across home, workspaces, and sidebar navigation.
+- [x] Prompt 9: Convert Executive reporting and DECISION QUEUE into functional tabs on Executive Command and Reporting Hub, including a pending-decisions panel with urgency and actions.
+- [x] Add or update regression coverage for prompts 1 through 9, rerun validation, confirm project health, and save a checkpoint.

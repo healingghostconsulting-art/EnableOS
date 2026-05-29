@@ -8,12 +8,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
-import { ChcgAdminView, ContentLibraryView, LandingView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { ChcgAdminView, ContentLibraryView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
-  { icon: LayoutDashboard, label: "Mission Hub", path: "/" },
+  { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
   { icon: Gauge, label: "Executive Command", path: "/executive" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
@@ -30,7 +30,7 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
 ];
 
 export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/"
+  item.path === "/mission-hub"
   || item.path === "/executive"
   || item.path === "/reporting"
 ));
@@ -53,7 +53,7 @@ export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filte
 export function buildRoleScopedPath(path: string, role?: string | null) {
   const normalizedRole = normalizeGrantRole(role);
 
-  if (!normalizedRole || (path !== "/training" && path !== "/library")) {
+  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub")) {
     return path;
   }
 
@@ -176,6 +176,7 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
       return coachWorkspaceMenu;
     case "/learner":
       return learnerWorkspaceMenu;
+    case "/mission-hub":
     case "/training":
     case "/library": {
       const normalizedSharedRole = normalizeGrantRole(options?.sharedRouteRole);
@@ -278,6 +279,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingView} />
+      <Route path="/mission-hub">
+        {() => (
+          <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
+            <MissionHubView />
+          </GuardedWorkspaceShell>
+        )}
+      </Route>
       <Route path="/executive">
         {() => (
           <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">

@@ -1706,7 +1706,7 @@ function formatDueWindow(dateValue?: string | null) {
 
 function ChartFrame({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <PremiumCard className="h-full">
+    <PremiumCard>
       <CardHeader>
         <CardTitle className="text-white">{title}</CardTitle>
         <CardDescription className="text-slate-300/76">{description}</CardDescription>
@@ -2007,8 +2007,10 @@ function LoadingState() {
 }
 
 function Surface({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+
   return (
-    <div className="min-h-screen text-[#1B303C]">
+    <div key={location} className="route-fade-in min-h-screen text-[#1B303C]">
       <div className="container py-6 sm:py-8 xl:py-10">
         <div className="mission-shell grid-noise p-2 sm:p-3">
           {children}
@@ -2892,7 +2894,7 @@ export function LandingView() {
 
                       window.location.href = getLoginUrl(item.route);
                     }}
-                    className="group flex h-full flex-col rounded-[1.35rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.92),rgba(245,247,250,0.94))] px-4 py-4 text-left shadow-[0_16px_38px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#FCBC34]/30 hover:bg-white"
+                    className="group flex h-full flex-col rounded-[1.35rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.92),rgba(245,247,250,0.94))] px-4 py-4 text-left shadow-[0_0_0_rgba(15,23,42,0)] transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[#FCBC34]/30 hover:bg-[linear-gradient(160deg,rgba(255,255,255,0.98),rgba(255,248,232,0.96))] hover:shadow-[0_8px_8px_rgba(15,23,42,0.12)]"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.16)]">
@@ -2910,7 +2912,7 @@ export function LandingView() {
                       <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">
                         {viewer.data ? (canOpenDirectly ? "Open workspace" : "Open assigned workspace") : "Select and sign in"}
                       </span>
-                      <ArrowRight className="h-4 w-4 text-[#1B303C] transition group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-4 w-4 text-[#1B303C] transition-transform duration-200 ease-out group-hover:translate-x-[5px]" />
                     </div>
                   </button>
                 );
@@ -2923,6 +2925,210 @@ export function LandingView() {
   );
 }
 
+
+export function MissionHubView() {
+  const viewerAccess = trpc.demo.viewerAccess.useQuery();
+  const role = viewerAccess.data?.grant.role ?? "learner";
+  const tenantName = viewerAccess.data?.tenant.name ?? "your program";
+  const missionHubContentByRole: Record<string, {
+    eyebrow: string;
+    title: string;
+    description: string;
+    activeGoals: string[];
+    keyMilestones: string[];
+    progress: Array<{ label: string; value: string }>;
+  }> = {
+    platform_admin: {
+      eyebrow: "Platform oversight",
+      title: "Protect the operating system across every workspace.",
+      description: "Track platform health, governance completion, and the next oversight decision required to keep client delivery stable.",
+      activeGoals: [
+        "Keep governance signals reviewed before client launches.",
+        "Confirm tenant-level access and role routing remain correctly scoped.",
+        "Surface any evidence gaps before they affect reporting or compliance.",
+      ],
+      keyMilestones: [
+        "Audit the latest admin routing changes.",
+        "Approve the next tenant enablement wave.",
+        "Close the highest-risk governance exception.",
+      ],
+      progress: [
+        { label: "Governance completion", value: "91%" },
+        { label: "Role routing health", value: "Stable" },
+        { label: "Urgent platform issues", value: "2" },
+      ],
+    },
+    client_admin: {
+      eyebrow: "Client control",
+      title: "Coordinate brand, access, and client-readiness work.",
+      description: "Keep client configuration aligned while supporting the reporting, manager, coach, and learner flows that depend on clean setup.",
+      activeGoals: [
+        "Confirm white-label configuration is current.",
+        "Validate workspace entitlements before the next coaching cycle.",
+        "Keep documentation packages ready for client stakeholders.",
+      ],
+      keyMilestones: [
+        "Review client branding updates.",
+        "Approve role access changes.",
+        "Publish the next documentation package.",
+      ],
+      progress: [
+        { label: "Configuration readiness", value: "88%" },
+        { label: "Access review status", value: "In progress" },
+        { label: "Pending approvals", value: "3" },
+      ],
+    },
+    executive: {
+      eyebrow: "Executive command",
+      title: "Focus the program on lift, proof, and risk.",
+      description: "Start with the highest-value enterprise signals, then move into trends, risk, and documentation only when a decision needs deeper proof.",
+      activeGoals: [
+        "Close the readiness gap to target.",
+        "Review QA movement before expanding intervention volume.",
+        "Keep the proof package ready for executive review.",
+      ],
+      keyMilestones: [
+        "Open the trend explorer for current movement.",
+        "Review the highest-risk assessment signals.",
+        "Approve the white-label documentation package.",
+      ],
+      progress: [
+        { label: "Enterprise readiness", value: "82" },
+        { label: "Decision queue", value: "4 pending" },
+        { label: "Proof package status", value: "Ready" },
+      ],
+    },
+    manager: {
+      eyebrow: "Manager operations",
+      title: "Guide interventions, coaching, and follow-through from one desk.",
+      description: "The mission hub should keep the current signal queue, coaching follow-ups, and direct-report status visible before you open deeper case detail.",
+      activeGoals: [
+        "Resolve the highest-severity open signal first.",
+        "Move the next coaching follow-up into action.",
+        "Confirm retraining completion for direct reports at risk.",
+      ],
+      keyMilestones: [
+        "Open the signal severity feed.",
+        "Launch the next coaching-log review.",
+        "Confirm the retraining history export is current.",
+      ],
+      progress: [
+        { label: "Open interventions", value: "6" },
+        { label: "Coaching follow-ups", value: "4 active" },
+        { label: "Direct-report readiness", value: "76" },
+      ],
+    },
+    coach: {
+      eyebrow: "Coach studio",
+      title: "Keep the learner, the log, and the next action together.",
+      description: "Open the coaching lane with one clear mission: capture the next coaching record, review the current learner focus, and connect it back to training evidence.",
+      activeGoals: [
+        "Document the next weekly coaching session.",
+        "Confirm the learner's current training focus.",
+        "Keep observation evidence aligned with follow-through steps.",
+      ],
+      keyMilestones: [
+        "Open the coaching-log modal.",
+        "Review learner transfer cues.",
+        "Publish the next documentation handoff.",
+      ],
+      progress: [
+        { label: "Weekly logs", value: "On track" },
+        { label: "Learner focus", value: "Nina Patel" },
+        { label: "Open coaching actions", value: "3" },
+      ],
+    },
+    learner: {
+      eyebrow: "Learner journey",
+      title: "Stay on the next mission and keep progress visible.",
+      description: "Mission Hub should show the next assigned action, the current milestone, and completion momentum before you open the detailed training or library screens.",
+      activeGoals: [
+        "Complete the current training assignment.",
+        "Keep progress moving inside the active journey.",
+        "Review only the next mapped support resource when needed.",
+      ],
+      keyMilestones: [
+        "Open the next training stage.",
+        "Finish the current checkpoint.",
+        "Return to the learner journey with a recorded completion.",
+      ],
+      progress: [
+        { label: "Journey progress", value: "61%" },
+        { label: "Current assignment", value: "Active" },
+        { label: "Next milestone", value: "Apply stage" },
+      ],
+    },
+  };
+  const missionHubContent = missionHubContentByRole[role] ?? missionHubContentByRole.learner;
+
+  return (
+    <Surface>
+      <SectionShell
+        eyebrow={missionHubContent.eyebrow}
+        title="Mission Hub"
+        description={missionHubContent.description}
+        actions={
+          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+            {tenantName}
+          </Badge>
+        }
+      >
+        <div className="space-y-6">
+          <div className="mission-hero-card overflow-hidden rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.18)]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)] xl:items-start">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Current program mission</Badge>
+                  <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-50/80">{missionHubContent.eyebrow}</span>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Role-relevant summary</p>
+                  <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">{missionHubContent.title}</h2>
+                  <p className="max-w-4xl text-sm leading-6 text-slate-200">{missionHubContent.description}</p>
+                </div>
+              </div>
+              <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Progress status</p>
+                <div className="mt-3 space-y-3">
+                  {missionHubContent.progress.map((entry) => (
+                    <div key={entry.label} className="rounded-[1rem] border border-[#1B303C]/10 bg-white px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-[#6B7E8A]">{entry.label}</p>
+                      <p className="mt-2 text-lg font-semibold text-[#10212B]">{entry.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-6 xl:grid-cols-2">
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Active goals</CardTitle>
+                <CardDescription className="text-slate-400">The current role should only see the goals that matter to the selected workspace context.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {missionHubContent.activeGoals.map((goal) => (
+                  <div key={goal} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{goal}</div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Key milestones</CardTitle>
+                <CardDescription className="text-slate-400">These milestones keep the next checkpoint and progress status visible before the user drills into a deeper workspace.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {missionHubContent.keyMilestones.map((milestone) => (
+                  <div key={milestone} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{milestone}</div>
+                ))}
+              </CardContent>
+            </PremiumCard>
+          </div>
+        </div>
+      </SectionShell>
+    </Surface>
+  );
+}
 
 export function RoleWorkspace({ role }: { role: DemoRole }) {
   const access = trpc.demo.viewerAccess.useQuery();
@@ -3609,6 +3815,28 @@ export function TrainingExperienceView() {
         },
       ]
     : [];
+  const stageActivities: Record<string, string[]> = {
+    brief: [
+      "Review the guided explanation for the current workflow behavior.",
+      "Study the lesson visuals and supporting cues attached to this module.",
+      "Use the overview pages to understand what good performance looks like.",
+    ],
+    practice: [
+      "Choose a rehearsal path before moving forward.",
+      "Complete the inline guided experience and checkpoint prompts.",
+      "Test the behavior in a realistic workflow scenario.",
+    ],
+    apply: [
+      "Connect the lesson to live interventions and supporting resources.",
+      "Translate the module into a real operational use case.",
+      "Capture how the content should transfer into active work.",
+    ],
+    reflect: [
+      "Write the behavior change commitment for the next coaching checkpoint.",
+      "Confirm the final knowledge check and transfer plan.",
+      "Document the milestone you will demonstrate next.",
+    ],
+  };
 
   const currentStage = stages[stageIndex] ?? null;
   const currentStagePages = currentStage?.id === "brief"
@@ -4579,17 +4807,40 @@ export function TrainingExperienceView() {
                     <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                       {stages.map((stage, index) => {
                         const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
+                        const isActiveStage = index === stageIndex;
                         return (
-                          <div key={stage.id} className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${index === stageIndex ? "border-cyan-400/40 bg-cyan-400/10 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
+                          <button
+                            key={stage.id}
+                            type="button"
+                            onClick={() => {
+                              setStageIndex(index);
+                              setLessonPageIndex(0);
+                            }}
+                            className={`shrink-0 rounded-full border px-3 py-2 text-left text-xs transition ${isActiveStage ? "border-white/70 bg-white text-slate-950 shadow-[0_14px_30px_rgba(255,255,255,0.16)]" : "border-white/12 bg-white/8 text-slate-200 hover:bg-white/12"}`}
+                          >
                             <div className="flex items-center gap-1.5 whitespace-nowrap">
                               <span className="font-medium">{stage.label}</span>
-                              <span className="text-[11px] text-slate-400">{index + 1}</span>
-                              {stagePlan ? <span className="text-[10px] uppercase tracking-[0.16em] text-cyan-100/80">{stagePlan.durationLabel}</span> : null}
+                              <span className={`text-[11px] ${isActiveStage ? "text-slate-600" : "text-slate-400"}`}>{index + 1}</span>
+                              {stagePlan ? <span className={`text-[10px] uppercase tracking-[0.16em] ${isActiveStage ? "text-slate-700" : "text-cyan-100/80"}`}>{stagePlan.durationLabel}</span> : null}
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
+                    {currentStage ? (
+                      <div className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Stage overview</p>
+                        <h4 className="mt-2 text-lg font-semibold text-white">{currentStage.title}</h4>
+                        <p className="mt-2 text-sm leading-6 text-slate-200">{currentStage.body}</p>
+                        <div className="mt-4 grid gap-3 md:grid-cols-3">
+                          {(stageActivities[currentStage.id] ?? []).map((activity) => (
+                            <div key={activity} className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-3 py-3 text-sm leading-6 text-slate-100">
+                              {activity}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
 
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
@@ -7365,24 +7616,116 @@ function WeeklyCoachingLogPopupBox({
   onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [learnerName, setLearnerName] = useState(() => composerProps.employeeName || "Nina Patel");
+  const [coachNotes, setCoachNotes] = useState("");
+  const [behaviorObserved, setBehaviorObserved] = useState("");
+  const [nextMilestone, setNextMilestone] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const trimmedCoachNotes = coachNotes.trim();
+  const trimmedBehaviorObserved = behaviorObserved.trim();
+  const trimmedNextMilestone = nextMilestone.trim();
+  const canSave = Boolean(sessionDate && learnerName.trim() && trimmedCoachNotes && trimmedBehaviorObserved && trimmedNextMilestone);
+  const visibilityPresentation = getWeeklyCoachingVisibilityPresentation(visibility);
+  const createWeeklyCoachingLog = trpc.demo.secureCreateWeeklyCoachingLog.useMutation({
+    onSuccess: () => {
+      setCoachNotes("");
+      setBehaviorObserved("");
+      setNextMilestone("");
+      setVisibility("public");
+      setOpen(false);
+      onCreated?.();
+    },
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setSessionDate(new Date().toISOString().slice(0, 10));
+      setLearnerName(composerProps.employeeName || "Nina Patel");
+    }
+  }, [composerProps.employeeName, open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
         {buttonLabel}
       </Button>
-      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription className="text-slate-400">{dialogDescription}</DialogDescription>
         </DialogHeader>
-        <WeeklyCoachingLogComposer
-          {...composerProps}
-          onCreated={() => {
-            setOpen(false);
-            onCreated?.();
-          }}
-        />
+        <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-slate-950/85 p-5 shadow-[0_24px_60px_rgba(2,8,23,0.36)]">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-sm text-slate-200">
+              <span>Session date</span>
+              <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
+            </label>
+            <label className="space-y-2 text-sm text-slate-200">
+              <span>Learner name</span>
+              <input value={learnerName} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
+            </label>
+          </div>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Coach notes</span>
+            <textarea value={coachNotes} onChange={(event) => setCoachNotes(event.target.value)} rows={4} placeholder="Summarize the coaching conversation, context, and decisions." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
+          </label>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Behavior observed</span>
+            <textarea value={behaviorObserved} onChange={(event) => setBehaviorObserved(event.target.value)} rows={4} placeholder="Document the exact behavior observed during the session." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
+          </label>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Next milestone</span>
+            <input value={nextMilestone} onChange={(event) => setNextMilestone(event.target.value)} placeholder="Enter the next milestone to track after this session." className={FORM_INPUT_SURFACE_CLASS} />
+          </label>
+          <div className="space-y-3 rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-slate-100">Visibility</p>
+                <p className="mt-1 text-sm leading-6 text-slate-400">Choose whether this entry is shared as a public coaching log or kept as a private coaching note.</p>
+              </div>
+              <Badge className={`rounded-full border ${visibilityPresentation.badgeClassName}`}>{visibilityPresentation.label}</Badge>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <button type="button" onClick={() => setVisibility("public")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "public" ? "border-emerald-300/40 bg-emerald-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
+                <span className="font-medium">Public coaching log</span>
+                <span className="mt-1 block text-xs leading-5 text-inherit/80">Share the coaching record with the learner and support chain.</span>
+              </button>
+              <button type="button" onClick={() => setVisibility("private")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "private" ? "border-violet-300/40 bg-violet-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
+                <span className="font-medium">Private coaching note</span>
+                <span className="mt-1 block text-xs leading-5 text-inherit/80">Keep the note visible only to leadership and coaching oversight.</span>
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+            <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-slate-300 underline-offset-4 transition hover:text-white hover:underline">
+              Cancel
+            </button>
+            <div className="flex flex-col items-end gap-2">
+              <Button
+                type="button"
+                className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100"
+                disabled={createWeeklyCoachingLog.isPending || !canSave}
+                onClick={() => createWeeklyCoachingLog.mutate({
+                  tenantId: composerProps.tenantId,
+                  subjectUserId: composerProps.subjectUserId,
+                  coachRole: composerProps.coachRole,
+                  sessionDate,
+                  attendance: "Coach Studio pop-up entry",
+                  followUpFromPrevious: trimmedBehaviorObserved,
+                  coachingComments: trimmedCoachNotes,
+                  smartGoalCommitment: trimmedNextMilestone,
+                  additionalSupport: "Coaching log captured from the Coach Studio modal dialog.",
+                  visibility,
+                  managerOfSupervisorEmail: composerProps.managerOfSupervisorEmail,
+                })}
+              >
+                {createWeeklyCoachingLog.isPending ? "Saving..." : "Save log"}
+              </Button>
+              {createWeeklyCoachingLog.isError ? <p className="text-sm text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -7830,6 +8173,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
   const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
   const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
   const [activeExecutiveMode, setActiveExecutiveMode] = useState<"overview" | "trends" | "risk" | "evidence" | "documentation">("overview");
+  const [executiveHeroView, setExecutiveHeroView] = useState<"reporting" | "decisionQueue">("reporting");
   const roiTrendConfig = {
     readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
     qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
@@ -7864,48 +8208,150 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
     journeyId: entry.journeyId,
     moduleId: entry.moduleId,
   });
+  const pendingDecisions = [
+    {
+      id: "decision-readiness",
+      title: "Approve readiness recovery plan",
+      description: `Enterprise readiness is ${data.readiness.score} against a target of ${data.readiness.target}. Confirm whether the next intervention wave should expand this week.`,
+      urgency: "High" as const,
+      action: () => {
+        setExecutiveHeroView("reporting");
+        setSelectedRoiTrendMetric("readiness");
+        setActiveExecutiveMode("trends");
+        window.requestAnimationFrame(() => {
+          document.getElementById("executive-trends-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      },
+    },
+    {
+      id: "decision-qa",
+      title: "Review QA score movement by team",
+      description: "Team readiness now needs a quality-specific read. Open the trend explorer with QA score selected before approving more coaching hours.",
+      urgency: "Medium" as const,
+      action: () => {
+        setExecutiveHeroView("reporting");
+        setSelectedRoiTrendMetric("qaScore");
+        setActiveExecutiveMode("trends");
+        window.requestAnimationFrame(() => {
+          document.getElementById("executive-trends-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      },
+    },
+    {
+      id: "decision-risk",
+      title: "Escalate assessment risk cluster",
+      description: "Intervention confidence stays positive overall, but the question-level risk queue still needs an executive decision on where to focus remediation first.",
+      urgency: "High" as const,
+      action: () => {
+        setExecutiveHeroView("reporting");
+        setActiveExecutiveMode("risk");
+        window.requestAnimationFrame(() => {
+          document.getElementById("executive-risk-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      },
+    },
+    {
+      id: "decision-docs",
+      title: "Finalize white-label documentation package",
+      description: `Documentation for ${data.tenant.name} is ready for review. Confirm the tenant-facing proof package before distribution.`,
+      urgency: "Medium" as const,
+      action: () => {
+        setExecutiveHeroView("reporting");
+        setActiveExecutiveMode("documentation");
+        window.requestAnimationFrame(() => {
+          document.getElementById("executive-documentation-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      },
+    },
+  ];
+  const openExecutiveMode = (mode: "trends" | "risk" | "documentation", options?: { metric?: "readiness" | "qaScore" | "csat"; targetId?: string }) => {
+    if (options?.metric) {
+      setSelectedRoiTrendMetric(options.metric);
+    }
+    setExecutiveHeroView("reporting");
+    setActiveExecutiveMode(mode);
+    window.requestAnimationFrame(() => {
+      document.getElementById(options?.targetId ?? `executive-${mode}-panel`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Enterprise readiness" value={`${data.readiness.score}`} supporting={`Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`} icon={<Target className="h-4 w-4" />} />
-        <MetricCard label="Team readiness" value={`${data.readiness.teamScore}`} supporting="Role- and intervention-weighted readiness score" icon={<Layers3 className="h-4 w-4" />} />
-        <MetricCard label="Intervention confidence" value="High" supporting="Correlation between action volume and readiness movement is positive" icon={<BrainCircuit className="h-4 w-4" />} />
-        <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
+        <MetricCard label="Enterprise readiness" value={`${data.readiness.score}`} supporting={`Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`} icon={<Target className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "readiness", targetId: "executive-trends-panel" })} actionLabel="Open readiness trends" />
+        <MetricCard label="Team readiness" value={`${data.readiness.teamScore}`} supporting="Role- and intervention-weighted readiness score" icon={<Layers3 className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "qaScore", targetId: "executive-trends-panel" })} actionLabel="Open QA score trends" />
+        <MetricCard label="Intervention confidence" value="High" supporting="Correlation between action volume and readiness movement is positive" icon={<BrainCircuit className="h-4 w-4" />} onClick={() => openExecutiveMode("risk", { targetId: "executive-risk-panel" })} actionLabel="Open risk queue" />
+        <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} onClick={() => openExecutiveMode("documentation", { targetId: "executive-documentation-panel" })} actionLabel="Open documentation" />
       </div>
 
       <div className="mission-hero-card overflow-hidden rounded-[1.8rem] border border-cyan-500/14 bg-[linear-gradient(180deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.18)]">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2.5">
-              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Executive reporting</Badge>
-              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-50/80">Decision queue</span>
+              <button type="button" onClick={() => setExecutiveHeroView("reporting")} className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${executiveHeroView === "reporting" ? "border border-cyan-300/20 bg-cyan-300/12 text-cyan-50" : "border border-white/10 bg-white/6 text-cyan-50/80 hover:bg-white/10"}`}>
+                Executive reporting
+              </button>
+              <button type="button" onClick={() => setExecutiveHeroView("decisionQueue")} className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${executiveHeroView === "decisionQueue" ? "border border-cyan-300/20 bg-cyan-300/12 text-cyan-50" : "border border-white/10 bg-white/6 text-cyan-50/80 hover:bg-white/10"}`}>
+                Decision queue
+              </button>
             </div>
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Reporting overview</p>
-              <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">Review the core lift, risk, and proof signals first.</h2>
-              <p className="max-w-4xl text-sm leading-6 text-slate-200">This workspace now opens like a reporting console: start with the summary cards, then switch into trends, risk, evidence, or documentation only when a deeper decision is required.</p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {data.reportingOverview.summaryCards.map((entry: any) => (
-                <div key={entry.label} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{entry.label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{entry.value}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
+            {executiveHeroView === "reporting" ? (
+              <>
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Reporting overview</p>
+                  <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">Review the core lift, risk, and proof signals first.</h2>
+                  <p className="max-w-4xl text-sm leading-6 text-slate-200">This workspace now opens like a reporting console: start with the summary cards, then switch into trends, risk, evidence, or documentation only when a deeper decision is required.</p>
                 </div>
-              ))}
-            </div>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {data.reportingOverview.summaryCards.map((entry: any) => (
+                    <div key={entry.label} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm transition hover:bg-white/10">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{entry.label}</p>
+                      <p className="mt-2 text-2xl font-semibold text-white">{entry.value}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                {pendingDecisions.map((decision) => (
+                  <div key={decision.id} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Pending decision</p>
+                        <h3 className="mt-2 text-base font-semibold text-white">{decision.title}</h3>
+                      </div>
+                      <Badge className={`rounded-full ${decision.urgency === "High" ? "border-rose-400/30 bg-rose-500/14 text-rose-100" : "border-amber-400/30 bg-amber-500/14 text-amber-100"}`}>{decision.urgency}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-200">{decision.description}</p>
+                    <Button type="button" variant="outline" onClick={decision.action} className="mt-4 rounded-full border-white/10 bg-white/8 text-white hover:bg-white/14 hover:text-white">
+                      Take action
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="grid gap-3">
-            <div className="guide-card border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current headline</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-200">{data.reportingOverview.summary}</p>
-            </div>
-            <div className="rounded-[1.2rem] border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Proof cue</p>
-              <p className="mt-2 text-sm leading-6">{data.proofOfImpact.headline}</p>
-            </div>
+            {executiveHeroView === "reporting" ? (
+              <>
+                <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current headline</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{data.reportingOverview.headline}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#334E5E]">{data.reportingOverview.summary}</p>
+                </div>
+                <div className="rounded-[1.2rem] border border-emerald-500/20 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(220,252,231,0.96))] px-4 py-4 text-emerald-950">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-800/80">Proof cue</p>
+                  <p className="mt-2 text-sm leading-6 text-emerald-950">{data.proofOfImpact.headline}</p>
+                </div>
+              </>
+            ) : (
+              <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Decision queue</p>
+                <h3 className="mt-2 text-lg font-semibold text-[#10212B]">Four executive approvals are waiting.</h3>
+                <p className="mt-2 text-sm leading-6 text-[#334E5E]">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -7995,7 +8441,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           </div>
         </TabsContent>
 
-        <TabsContent value="trends" className="mt-0 space-y-6">
+        <TabsContent value="trends" id="executive-trends-panel" className="mt-0 space-y-6 scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-2">
             <PremiumCard>
               <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -8114,7 +8560,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           </PremiumCard>
         </TabsContent>
 
-        <TabsContent value="risk" className="mt-0 space-y-6">
+        <TabsContent value="risk" id="executive-risk-panel" className="mt-0 space-y-6 scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
             <PremiumCard>
               <CardHeader>
@@ -8280,11 +8726,12 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               <CardDescription className="text-slate-400">Before/after movement, intervention correlation, sustained-readiness checks, and error-rate improvement provide directional evidence without overstating causation.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/75">Directional evidence summary</p>
-                <h3 className="mt-2 text-lg font-semibold text-white">{data.proofOfImpact.headline}</h3>
-                <p className="mt-3 text-sm leading-6 text-cyan-50/85">{data.proofOfImpact.summary}</p>
-              </div>
+                <div className="rounded-3xl border border-cyan-500/20 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.96))] p-5">
+                  <p className="text-xs uppercase tracking-[0.22em] text-sky-800/75">Directional evidence summary</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{data.proofOfImpact.headline}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#334E5E]">{data.proofOfImpact.summary}</p>
+                </div>
+
               <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
                 <div className="space-y-4">
                   {data.proofOfImpact.beforeAfter.map((entry: any) => (
@@ -8348,7 +8795,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           </PremiumCard>
         </TabsContent>
 
-        <TabsContent value="documentation" className="mt-0 space-y-6">
+        <TabsContent value="documentation" id="executive-documentation-panel" className="mt-0 space-y-6 scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="space-y-6">
               <PremiumCard>
@@ -9312,10 +9759,10 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
             </div>
           </div>
           <div className="space-y-3">
-            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current focus</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-200">{activeRetrainingAssignment ? `Assigned from ${activeRetrainingAssignment.journeyTitle} with ${formatDueWindow(activeRetrainingAssignment.dueAt).toLowerCase()}.` : `Next recommendation inside ${data.activeJourney.title} with ${data.activeJourney.progress}% journey completion so far.`}</p>
+            <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-5 backdrop-blur-sm">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current focus</p>
+              <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-[#334E5E]">{activeRetrainingAssignment ? `Assigned from ${activeRetrainingAssignment.journeyTitle} with ${formatDueWindow(activeRetrainingAssignment.dueAt).toLowerCase()}.` : `Next recommendation inside ${data.activeJourney.title} with ${data.activeJourney.progress}% journey completion so far.`}</p>
             </div>
             <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
               <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Progress celebration</p>
