@@ -574,3 +574,6 @@
 - [x] Revert the coaching log experience back to the previous version used before the recent modal-based change.
 - [x] Preserve or complete the legacy `/executive` redirect repair so old executive links resolve safely while Executive Command stays removed.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log restoration plus executive-route repair.
+- [x] Enforce strict role-specific sidebar behavior so a learner never sees non-learner navigation after opening Training Zone or Mission Hub.
+- [x] Trace and fix shared-route role resolution so Training Zone and Mission Hub preserve the originating learner role instead of expanding to broader menu grants.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the strict role-specific navigation repair.

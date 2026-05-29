@@ -12,6 +12,8 @@ import { ChcgAdminView, ContentLibraryView, LandingView, MissionHubView, Reporti
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
+const STATIC_WORKSPACE_ROLE_KEY = "chcg-enableos-static-workspace-role";
+
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
@@ -81,6 +83,54 @@ function normalizeGrantRole(grantRole?: string | null): WorkspaceGrantRole | nul
   }
 }
 
+function getStoredStaticWorkspaceRole() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return normalizeGrantRole(window.sessionStorage.getItem(STATIC_WORKSPACE_ROLE_KEY));
+}
+
+function setStoredStaticWorkspaceRole(role?: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const normalizedRole = normalizeGrantRole(role);
+
+  if (!normalizedRole) {
+    window.sessionStorage.removeItem(STATIC_WORKSPACE_ROLE_KEY);
+    return;
+  }
+
+  window.sessionStorage.setItem(STATIC_WORKSPACE_ROLE_KEY, normalizedRole);
+}
+
+function resolveEffectiveWorkspaceRole(options?: { workspacePath?: string | null; sharedRouteRole?: string | null; grantRole?: string | null }) {
+  const normalizedSharedRole = normalizeGrantRole(options?.sharedRouteRole);
+
+  if (normalizedSharedRole) {
+    return normalizedSharedRole;
+  }
+
+  switch (options?.workspacePath) {
+    case "/reporting":
+      return "executive";
+    case "/manager":
+      return "manager";
+    case "/coach":
+      return "coach";
+    case "/learner":
+      return "learner";
+    case "/admin":
+      return "client_admin";
+    case "/chcg-admin":
+      return "platform_admin";
+    default:
+      return getStoredStaticWorkspaceRole() ?? normalizeGrantRole(options?.grantRole);
+  }
+}
+
 export function buildLegacyExecutiveRedirectPath(location: string) {
   const searchIndex = location.indexOf("?");
   const search = searchIndex >= 0 ? location.slice(searchIndex) : "";
@@ -141,32 +191,15 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
 }
 
 function resolveStaticMenuRole(options?: { workspacePath?: string | null; sharedRouteRole?: string | null; grantRole?: string | null }) {
-  const normalizedSharedRole = normalizeGrantRole(options?.sharedRouteRole);
-
-  if (normalizedSharedRole) {
-    return normalizedSharedRole;
-  }
-
-  switch (options?.workspacePath) {
-    case "/reporting":
-      return "executive";
-    case "/manager":
-      return "manager";
-    case "/coach":
-      return "coach";
-    case "/learner":
-      return "learner";
-    case "/chcg-admin":
-      return "platform_admin";
-    default:
-      return normalizeGrantRole(options?.grantRole);
-  }
+  return resolveEffectiveWorkspaceRole(options);
 }
 
 export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null; workspacePath?: string | null; sharedRouteRole?: string | null }) {
   if (options?.menuItemsOverride) {
     return options.menuItemsOverride;
   }
+
+  const effectiveRole = resolveEffectiveWorkspaceRole(options);
 
   switch (options?.workspacePath) {
     case "/reporting":
@@ -180,9 +213,7 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
     case "/mission-hub":
     case "/training":
     case "/library": {
-      const normalizedSharedRole = normalizeGrantRole(options?.sharedRouteRole);
-
-      switch (normalizedSharedRole) {
+      switch (effectiveRole) {
         case "platform_admin":
           return adminWorkspaceMenu;
         case "client_admin":
@@ -204,9 +235,7 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
       break;
   }
 
-  const normalizedRole = normalizeGrantRole(options?.grantRole);
-
-  switch (normalizedRole) {
+  switch (effectiveRole) {
     case "platform_admin":
       return adminWorkspaceMenu;
     case "manager":
@@ -236,6 +265,10 @@ function WorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { chil
     workspacePath: path,
     sharedRouteRole,
   }), staticMenuRole);
+
+  useEffect(() => {
+    setStoredStaticWorkspaceRole(staticMenuRole);
+  }, [staticMenuRole]);
 
   return (
     <DashboardLayout

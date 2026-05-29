@@ -89,6 +89,30 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/library", sharedRouteRole: "manager" })).toEqual(managerWorkspaceMenu);
   });
 
+  it("reuses the stored learner workspace role when shared routes are opened without a role query", () => {
+    const previousWindow = globalThis.window;
+    const sessionValues = new Map<string, string>([["chcg-enableos-static-workspace-role", "learner"]]);
+
+    globalThis.window = {
+      sessionStorage: {
+        getItem: (key: string) => sessionValues.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          sessionValues.set(key, value);
+        },
+        removeItem: (key: string) => {
+          sessionValues.delete(key);
+        },
+      },
+    } as Window & typeof globalThis;
+
+    try {
+      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training" })).toEqual(learnerWorkspaceMenu);
+      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub" })).toEqual(learnerWorkspaceMenu);
+    } finally {
+      globalThis.window = previousWindow;
+    }
+  });
+
   it("redirects each role back to its allowed home view when a route is blocked", () => {
     expect(resolveRoleHomePath("platform_admin")).toBe("/chcg-admin");
     expect(resolveRoleHomePath("executive")).toBe("/reporting");
