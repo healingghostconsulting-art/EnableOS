@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   adminWorkspaceMenu,
+  buildLegacyExecutiveRedirectPath,
   buildRoleScopedPath,
   canAccessWorkspacePath,
   coachWorkspaceMenu,
@@ -94,6 +95,12 @@ describe("workspace navigation resolution", () => {
     expect(resolveRoleHomePath("manager")).toBe("/manager");
     expect(resolveRoleHomePath("coach")).toBe("/coach");
     expect(resolveRoleHomePath("learner")).toBe("/learner");
+  });
+
+  it("preserves query parameters when legacy executive links are redirected into reporting", () => {
+    expect(buildLegacyExecutiveRedirectPath("/executive")).toBe("/reporting");
+    expect(buildLegacyExecutiveRedirectPath("/executive?from_webdev=1")).toBe("/reporting?from_webdev=1");
+    expect(buildLegacyExecutiveRedirectPath("/executive?from_webdev=1&role=executive")).toBe("/reporting?from_webdev=1&role=executive");
   });
 
   it("enforces route access by workspace role", () => {

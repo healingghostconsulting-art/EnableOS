@@ -215,18 +215,13 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
-  it("gives coaching workspaces a visible ribbon-level pop-up logging path while preserving the shared composer", () => {
-    expect(trainingViewSource).toContain("Log a coaching");
-    expect(trainingViewSource).toContain("The primary coaching-log button now lives directly in the top coach ribbon");
-    expect(trainingViewSource).toContain("force the structured log to open in a focused pop-up window");
-    expect(trainingViewSource).toContain("Focused coaching log capture");
-    expect(trainingViewSource).toContain("Use the ribbon action or this button to open the structured coaching log in a pop-up");
+  it("keeps the coach workspace on the inline weekly coaching log flow while preserving the shared structured composer", () => {
+    expect(trainingViewSource).toContain("Open weekly coaching log");
+    expect(trainingViewSource).toContain("The weekly coaching log is back in the coaching lane");
+    expect(trainingViewSource).toContain("jump directly to the inline coaching form below");
     expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
-    expect(trainingViewSource).toContain("Weekly coaching log pop-up");
-    expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
-    expect(trainingViewSource).toContain("composerProps: WeeklyCoachingLogComposerProps");
-    expect(trainingViewSource).toContain("<WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+    expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
     expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");
     expect(trainingViewSource).toContain("Open exact coaching log");
@@ -306,7 +301,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Coach control surface");
     expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
     expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
-    expect(trainingViewSource).toContain("Open coaching log pop-up");
+    expect(trainingViewSource).toContain("Open weekly coaching log");
     expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
     expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");

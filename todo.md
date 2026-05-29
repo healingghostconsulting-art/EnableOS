@@ -568,3 +568,9 @@
 - [x] Remove Executive Command from the product navigation and entry surfaces.
 - [x] Update routes, role access behavior, and any dependent workspace flows so removing Executive Command does not break Reporting or other valid paths.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the Executive Command removal.
+- [x] Fix the legacy `/executive` route so existing links no longer return 404 after Executive Command removal.
+- [x] Route old executive URLs safely into the supported reporting experience without reintroducing the removed workspace surface.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the legacy executive-route repair.
+- [x] Revert the coaching log experience back to the previous version used before the recent modal-based change.
+- [x] Preserve or complete the legacy `/executive` redirect repair so old executive links resolve safely while Executive Command stays removed.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log restoration plus executive-route repair.

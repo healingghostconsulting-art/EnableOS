@@ -8980,14 +8980,13 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <Badge className="mission-chip rounded-full border-white/20 bg-white/12 text-white">Coach studio mission</Badge>
                 <span className="command-pill rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-100/90">Coach the behavior, not just the completion</span>
               </div>
-              <WeeklyCoachingLogPopupBox
-                buttonLabel="Log a coaching"
-                dialogTitle={`Weekly coaching log · ${selectedLearner.name}`}
-                dialogDescription="Capture the weekly coaching record in a focused pop-up, save it, and return to the coach lane with history refreshed."
-                buttonClassName="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
-                composerProps={coachWeeklyCoachingLogProps}
-                onCreated={onUpdated}
-              />
+              <Button
+                type="button"
+                onClick={() => openCoachView("coaching", "coach-weekly-logs")}
+                className="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+              >
+                Open weekly coaching log
+              </Button>
             </div>
             <div className="space-y-3">
               <h2 className="max-w-4xl text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.</h2>
@@ -9022,9 +9021,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             </div>
             <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The primary coaching-log button now lives directly in the top coach ribbon, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching scroll path.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log is back in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
               <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
-                Use the gold <span className="font-semibold text-[#FCBC34]">Log a coaching</span> action in the ribbon to force the structured log to open in a focused pop-up window.
+                Use the gold <span className="font-semibold text-[#FCBC34]">Open weekly coaching log</span> action to jump directly to the inline coaching form below.
               </div>
             </div>
           </div>
@@ -9108,23 +9107,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </CardContent>
               </PremiumCard>
             ) : null}
-            <PremiumCard>
-              <CardHeader>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="max-w-2xl">
-                    <CardTitle className="text-white">Focused coaching log capture</CardTitle>
-                    <CardDescription className="mt-2 text-slate-400">Use the ribbon action or this button to open the structured coaching log in a pop-up instead of expanding an inline form in the coaching lane.</CardDescription>
-                  </div>
-                  <WeeklyCoachingLogPopupBox
-                    buttonLabel="Open coaching log pop-up"
-                    dialogTitle={`Weekly coaching log · ${selectedLearner.name}`}
-                    dialogDescription="Capture the full weekly coaching record in a focused pop-up, then return to the coach lane with the history refreshed."
-                    composerProps={coachWeeklyCoachingLogProps}
-                    onCreated={onUpdated}
-                  />
-                </div>
-              </CardHeader>
-            </PremiumCard>
+            <WeeklyCoachingLogComposer {...coachWeeklyCoachingLogProps} onCreated={onUpdated} />
             <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
             <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>

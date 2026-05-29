@@ -81,6 +81,13 @@ function normalizeGrantRole(grantRole?: string | null): WorkspaceGrantRole | nul
   }
 }
 
+export function buildLegacyExecutiveRedirectPath(location: string) {
+  const searchIndex = location.indexOf("?");
+  const search = searchIndex >= 0 ? location.slice(searchIndex) : "";
+
+  return `/reporting${search}`;
+}
+
 export function resolveRoleHomePath(grantRole?: string | null) {
   const normalizedRole = normalizeGrantRole(grantRole);
 
@@ -269,6 +276,16 @@ function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }:
   );
 }
 
+function LegacyExecutiveRedirect() {
+  const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation(buildLegacyExecutiveRedirectPath(location));
+  }, [location, setLocation]);
+
+  return null;
+}
+
 function Router() {
   const [location] = useLocation();
 
@@ -283,6 +300,7 @@ function Router() {
             </GuardedWorkspaceShell>
           )}
         </Route>
+        <Route path="/executive" component={LegacyExecutiveRedirect} />
         <Route path="/reporting">
           {() => (
             <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace">
