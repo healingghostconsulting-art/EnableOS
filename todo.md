@@ -536,3 +536,6 @@
 - [x] Add clearer transfer context showing which agents received transfers and when AI drove or recommended them.
 - [x] Improve readability and contrast in the harder-to-read Coaching Studio cards while preserving the existing clean layout.
 - [x] Add or update tests, validate the revised Coaching Studio experience, and save a checkpoint for review.
+- [x] Remove the "Caching Control Surface" section from the live app because it adds busy non-essential data.
+- [x] Simplify the affected page layout after removing the Caching Control Surface block so the remaining content still feels intentional.
+- [x] Validate the UI cleanup, confirm project health, and save a checkpoint for review.
