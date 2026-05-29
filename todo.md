@@ -562,3 +562,6 @@
 - [x] Prompt 8: Add a sitewide fade-in page transition for route changes across home, workspaces, and sidebar navigation.
 - [x] Prompt 9: Convert Executive reporting and DECISION QUEUE into functional tabs on Executive Command and Reporting Hub, including a pending-decisions panel with urgency and actions.
 - [x] Add or update regression coverage for prompts 1 through 9, rerun validation, confirm project health, and save a checkpoint.
+- [x] Add a sitewide fade-only page transition so every route change fades the incoming page from opacity 0 to 1 over 280ms with an ease-out curve.
+- [x] Ensure the transition applies consistently to home-to-workspace, workspace-to-workspace, and sidebar-driven navigation without introducing slide motion.
+- [x] Update or add regression coverage, rerun validation, confirm project health, and save a checkpoint for the transition update.

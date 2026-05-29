@@ -276,82 +276,86 @@ function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }:
 }
 
 function Router() {
+  const [location] = useLocation();
+
   return (
-    <Switch>
-      <Route path="/" component={LandingView} />
-      <Route path="/mission-hub">
-        {() => (
-          <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
-            <MissionHubView />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/executive">
-        {() => (
-          <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">
-            <RoleWorkspace role="executive" />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/reporting">
-        {() => (
-          <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace">
-            <ReportingWorkspaceView />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/manager">
-        {() => (
-          <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace" menuItemsOverride={managerWorkspaceMenu}>
-            <RoleWorkspace role="manager" />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/coach">
-        {() => (
-          <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace" menuItemsOverride={coachWorkspaceMenu}>
-            <RoleWorkspace role="coach" />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/learner">
-        {() => (
-          <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
-            <RoleWorkspace role="learner" />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/admin">
-        {() => (
-          <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console">
-            <RoleWorkspace role="client_admin" />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/chcg-admin">
-        {() => (
-          <GuardedWorkspaceShell path="/chcg-admin" roleLabel="CHCG Admin Control Plane">
-            <ChcgAdminView />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/training">
-        {() => (
-          <GuardedWorkspaceShell path="/training" roleLabel="Interactive Training">
-            <TrainingExperienceView />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/library">
-        {() => (
-          <GuardedWorkspaceShell path="/library" roleLabel="Content Library">
-            <ContentLibraryView />
-          </GuardedWorkspaceShell>
-        )}
-      </Route>
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+    <div key={location} className="route-fade-in">
+      <Switch>
+        <Route path="/" component={LandingView} />
+        <Route path="/mission-hub">
+          {() => (
+            <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
+              <MissionHubView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/executive">
+          {() => (
+            <GuardedWorkspaceShell path="/executive" roleLabel="Executive View">
+              <RoleWorkspace role="executive" />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/reporting">
+          {() => (
+            <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace">
+              <ReportingWorkspaceView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/manager">
+          {() => (
+            <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace" menuItemsOverride={managerWorkspaceMenu}>
+              <RoleWorkspace role="manager" />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/coach">
+          {() => (
+            <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace" menuItemsOverride={coachWorkspaceMenu}>
+              <RoleWorkspace role="coach" />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/learner">
+          {() => (
+            <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
+              <RoleWorkspace role="learner" />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/admin">
+          {() => (
+            <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console">
+              <RoleWorkspace role="client_admin" />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/chcg-admin">
+          {() => (
+            <GuardedWorkspaceShell path="/chcg-admin" roleLabel="CHCG Admin Control Plane">
+              <ChcgAdminView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/training">
+          {() => (
+            <GuardedWorkspaceShell path="/training" roleLabel="Interactive Training">
+              <TrainingExperienceView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/library">
+          {() => (
+            <GuardedWorkspaceShell path="/library" roleLabel="Content Library">
+              <ContentLibraryView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </div>
   );
 }
 

@@ -2007,10 +2007,8 @@ function LoadingState() {
 }
 
 function Surface({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
-
   return (
-    <div key={location} className="route-fade-in min-h-screen text-[#1B303C]">
+    <div className="min-h-screen text-[#1B303C]">
       <div className="container py-6 sm:py-8 xl:py-10">
         <div className="mission-shell grid-noise p-2 sm:p-3">
           {children}
