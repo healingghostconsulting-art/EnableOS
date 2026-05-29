@@ -50,4 +50,14 @@ describe("getDesktopSidebarUiState", () => {
     expect(dashboardLayoutSource).not.toContain("commandSignal.headline");
     expect(dashboardLayoutSource).toContain(") : null}\n        <main className={`flex-1 p-3 pt-4 sm:p-4 sm:pt-5 md:p-6 md:pt-6 xl:p-8 xl:pt-6 ${desktopSidebarUi.mainPaddingClass}`}>{children}</main>");
   });
+
+  it("removes the small mode focus motion summary box from the expanded sidebar header", () => {
+    expect(dashboardLayoutSource).not.toContain(">Mode<");
+    expect(dashboardLayoutSource).not.toContain(">Focus<");
+    expect(dashboardLayoutSource).not.toContain(">Motion<");
+    expect(dashboardLayoutSource).not.toContain(">Live<");
+    expect(dashboardLayoutSource).not.toContain(">Readiness<");
+    expect(dashboardLayoutSource).not.toContain(">Active<");
+    expect(dashboardLayoutSource).not.toContain("grid grid-cols-1 gap-2 sm:grid-cols-3");
+  });
 });

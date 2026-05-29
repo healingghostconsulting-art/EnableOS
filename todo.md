@@ -543,3 +543,6 @@
 - [x] Confirm project health after the verified visual edit and save a checkpoint for review.
 - [x] Improve the readability of the faded Coaching Studio boxes so inactive cards and descriptive text remain easy to read.
 - [x] Validate the Coaching Studio readability update, confirm project health, and save a checkpoint for review.
+- [x] Remove the small MODE / FOCUS / MOTION summary box from the live interface.
+- [x] Tidy the surrounding layout after removing the MODE / FOCUS / MOTION box so the section spacing still feels intentional.
+- [x] Validate the UI cleanup, confirm project health, and save a checkpoint for review.

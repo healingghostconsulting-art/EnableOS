@@ -373,7 +373,7 @@ function DashboardLayoutContent({
                     )}
                   </button>
                 {!isCollapsed ? (
-                  <div className="min-w-0 flex-1 space-y-3">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3">
                       <div className="reward-ring flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(252,188,52,0.32),rgba(74,99,115,0.12))] text-[#1B303C]">
                         <Building2 className="h-5 w-5" />
@@ -381,20 +381,6 @@ function DashboardLayoutContent({
                       <div className="min-w-0 flex-1">
                         <p className="text-[15px] font-semibold leading-5 tracking-tight text-[#1B303C] xl:text-base">{title}</p>
                         <p className="mt-1 text-[13px] leading-5 text-[#4A6373] xl:text-[13.5px]">{subtitle}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Mode</p>
-                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Live</p>
-                      </div>
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Focus</p>
-                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Readiness</p>
-                      </div>
-                      <div className="rounded-2xl border border-[#1B303C]/10 bg-[#F7F8FA] px-3 py-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,48,60,0.08)]">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#4A6373]">Motion</p>
-                        <p className="mt-1.5 text-[13px] font-medium leading-5 text-[#1B303C]">Active</p>
                       </div>
                     </div>
                   </div>
