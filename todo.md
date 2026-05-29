@@ -541,3 +541,5 @@
 - [x] Validate the UI cleanup, confirm project health, and save a checkpoint for review.
 - [x] Verify that the user-applied Coaching Studio box move in EnableOSViews.tsx matches the intended visual placement in the available open space.
 - [x] Confirm project health after the verified visual edit and save a checkpoint for review.
+- [x] Improve the readability of the faded Coaching Studio boxes so inactive cards and descriptive text remain easy to read.
+- [x] Validate the Coaching Studio readability update, confirm project health, and save a checkpoint for review.

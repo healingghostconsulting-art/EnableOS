@@ -8620,14 +8620,14 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <div className="command-band px-4 py-4 md:px-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Coach modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Coach modes</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.</p>
             </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
-              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
-              <TabsTrigger value="transfer" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
-              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-              <TabsTrigger value="alerts" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-slate-200 bg-white/85 p-2 shadow-[0_12px_24px_rgba(15,23,42,0.06)] xl:w-auto">
+              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
+              <TabsTrigger value="transfer" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
+              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+              <TabsTrigger value="alerts" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -8635,19 +8635,19 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div className="space-y-4">
             {selectedCoachingSessions.map((session: any) => (
-              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
+              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_20px_45px_rgba(8,145,178,0.14)]" : "border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching thread</p>
-                    <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
-                    <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
+                    <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
+                    <h3 className={`mt-2 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
+                    <p className={`mt-2 text-sm ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{session.notes}</p>
                   </div>
                   <StatusBadge value={session.status} />
                 </div>
               </button>
             ))}
             {!selectedCoachingSessions.length ? (
-              <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-400">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
+              <div className="rounded-[1.45rem] border border-dashed border-slate-200 bg-white/80 px-4 py-5 text-sm leading-6 text-slate-600 shadow-[0_14px_28px_rgba(15,23,42,0.05)]">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
             ) : null}
           </div>
           <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
