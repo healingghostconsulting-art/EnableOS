@@ -406,19 +406,32 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("onClick={() => setRoleFilter(option.value)}");
     expect(trainingViewSource).toContain("onClick={() => setPreviewScenarioId(scenario.id)}");
 
-    // All three blocks live inside the drawer body: after the courseContextOpen gate
-    // and before the lesson grid (the "Lesson canvas ·" card).
+    // The three blocks live inside the drawer body (after the courseContextOpen gate).
+    // The drawer now sits BELOW the lesson grid, so the grid renders directly under
+    // the status strip with no band between them.
     const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
     const lessonCanvas = trainingViewSource.indexOf("Lesson canvas ·");
     const launchContext = trainingViewSource.indexOf("Library launch context");
     const launchSetup = trainingViewSource.indexOf("<span className=\"text-sm font-medium text-white\">Launch setup</span>");
     const stageOverview = trainingViewSource.indexOf("Stage overview");
     expect(drawerGate).toBeGreaterThan(-1);
-    expect(lessonCanvas).toBeGreaterThan(drawerGate);
+    expect(drawerGate).toBeGreaterThan(lessonCanvas);
     for (const idx of [launchContext, launchSetup, stageOverview]) {
       expect(idx).toBeGreaterThan(drawerGate);
-      expect(idx).toBeLessThan(lessonCanvas);
     }
+  });
+
+  it("places the canvas-dominant lesson grid directly under the status strip with the course-context drawer below it", () => {
+    // Two-column grid: dominant lesson canvas + compact right rail.
+    expect(trainingViewSource).toContain("grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]");
+
+    // Order in source: status strip ("Back to learner") -> lesson grid -> course-context drawer.
+    const backToLearner = trainingViewSource.indexOf("Back to learner");
+    const grid = trainingViewSource.indexOf("grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]");
+    const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
+    expect(backToLearner).toBeGreaterThan(-1);
+    expect(grid).toBeGreaterThan(backToLearner);
+    expect(drawerGate).toBeGreaterThan(grid);
   });
 
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {
