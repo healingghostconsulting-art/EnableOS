@@ -589,3 +589,5 @@
 - [x] Fix the App.tsx syntax error that is currently breaking the dev server so the coaching-log popup restoration can be validated cleanly.
 - [x] Remove the coaching-history section from the Coach Studio coaching lane now that coaching records are handled in Documentation.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coach-lane coaching-history removal.
+- [x] Add an intro and instruction tab to EnableOS that explains how to navigate the platform and the best practices for using each workspace.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the new EnableOS intro tab.

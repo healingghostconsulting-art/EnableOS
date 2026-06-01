@@ -15,21 +15,24 @@ import {
 } from "../client/src/App";
 
 describe("workspace navigation resolution", () => {
-  it("keeps the learner workspace limited to learner journey, training zone, and content missions", () => {
+  it("keeps the learner workspace limited to the guide, learner journey, training zone, and content missions", () => {
     expect(learnerWorkspaceMenu.map((item) => item.label)).toEqual([
+      "EnableOS Guide",
       "Learner Journey",
       "Training Zone",
       "Content Missions",
     ]);
     expect(learnerWorkspaceMenu.map((item) => item.path)).toEqual([
+      "/guide",
       "/learner",
       "/training",
       "/library",
     ]);
   });
 
-  it("scopes the coaching workspace to coach studio plus learner access", () => {
+  it("scopes the coaching workspace to the guide, coach studio, and learner-support flows", () => {
     expect(coachWorkspaceMenu.map((item) => item.path)).toEqual([
+      "/guide",
       "/coach",
       "/learner",
       "/training",
@@ -37,13 +40,15 @@ describe("workspace navigation resolution", () => {
     ]);
   });
 
-  it("keeps reporting as the executive-facing top-level section while removing it from the manager workspace", () => {
+  it("keeps reporting as the executive-facing top-level section while exposing the shared guide across authenticated roles", () => {
     expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
       "/mission-hub",
+      "/guide",
       "/reporting",
     ]);
     expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
       "/mission-hub",
+      "/guide",
       "/manager",
       "/coach",
       "/learner",
@@ -73,6 +78,7 @@ describe("workspace navigation resolution", () => {
     expect(buildRoleScopedPath("/library", "manager")).toBe("/library?role=manager");
     expect(buildRoleScopedPath("/learner", "learner")).toBe("/learner");
     expect(scopeMenuItemsToRole(learnerWorkspaceMenu, "learner").map((item) => item.path)).toEqual([
+      "/guide",
       "/learner",
       "/training?role=learner",
       "/library?role=learner",
@@ -135,6 +141,7 @@ describe("workspace navigation resolution", () => {
     expect(canAccessWorkspacePath("/manager", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/admin", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/learner", "learner")).toBe(true);
+    expect(canAccessWorkspacePath("/guide", "learner")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "learner")).toBe(false);
     expect(canAccessWorkspacePath("/chcg-admin", "platform_admin")).toBe(true);
   });

@@ -8,7 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
-import { ChcgAdminView, ContentLibraryView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { ChcgAdminView, ContentLibraryView, EnableOSGuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
@@ -16,6 +16,7 @@ const STATIC_WORKSPACE_ROLE_KEY = "chcg-enableos-static-workspace-role";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
+  { icon: BookText, label: "EnableOS Guide", path: "/guide" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
@@ -32,20 +33,23 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
 
 export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
   item.path === "/mission-hub"
+  || item.path === "/guide"
   || item.path === "/reporting"
 ));
 
 export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/reporting");
 
 export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/coach"
+  item.path === "/guide"
+  || item.path === "/coach"
   || item.path === "/learner"
   || item.path === "/training"
   || item.path === "/library"
 ));
 
 export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/learner"
+  item.path === "/guide"
+  || item.path === "/learner"
   || item.path === "/training"
   || item.path === "/library"
 ));
@@ -334,6 +338,13 @@ function Router() {
           {() => (
             <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
               <MissionHubView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/guide">
+          {() => (
+            <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide">
+              <EnableOSGuideView />
             </GuardedWorkspaceShell>
           )}
         </Route>

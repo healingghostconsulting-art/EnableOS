@@ -28,6 +28,7 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
+  BookText,
   Bot,
   BrainCircuit,
   Building2,
@@ -2915,6 +2916,229 @@ export function LandingView() {
   );
 }
 
+
+export function EnableOSGuideView() {
+  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
+  const homeHref = access.data?.grant.role === "platform_admin"
+    ? "/chcg-admin"
+    : access.data?.grant.role === "client_admin"
+      ? "/admin"
+      : access.data?.grant.role === "executive"
+        ? "/reporting"
+        : access.data?.grant.role === "manager"
+          ? "/manager"
+          : access.data?.grant.role === "coach"
+            ? "/coach"
+            : "/learner";
+
+  const quickStartHighlights = [
+    {
+      title: "Start in the right workspace",
+      description: "Mission Hub should be the first stop for most users, while role-specific side-menu tabs let you jump directly into Coach Studio, Manager Ops, Reporting, or the learner flow when you already know the task.",
+      icon: Layers3,
+    },
+    {
+      title: "Use tabs before scrolling",
+      description: "Each workspace is intentionally broken into focused modes so the user can finish one queue at a time instead of searching through one endless page.",
+      icon: Target,
+    },
+    {
+      title: "Keep records in the right surface",
+      description: "Documentation is the source of truth for saved coaching records, while Coach Studio is the place to log the live interaction and follow-up action.",
+      icon: CheckCircle2,
+    },
+  ];
+
+  const workspaceGuide = [
+    {
+      title: "Mission Hub",
+      cue: "Best starting point",
+      description: "Use it to orient the day, confirm the next priority, and launch into the correct workspace instead of guessing where to begin.",
+      icon: Layers3,
+    },
+    {
+      title: "Reporting Hub",
+      cue: "Pattern review",
+      description: "Use Reporting to compare movement, spot risk, and review trend evidence — not to edit live coaching or manager tasks.",
+      icon: Gauge,
+    },
+    {
+      title: "Manager Ops",
+      cue: "Intervention execution",
+      description: "Use Manager Ops when the work is assignment follow-through, intervention ownership, or team-level coaching accountability.",
+      icon: ShieldCheck,
+    },
+    {
+      title: "Coach Studio",
+      cue: "Live coaching flow",
+      description: "Use Coach Studio to capture the weekly session, review the current learner focus, and move directly into the next action from the coaching lane.",
+      icon: Users2,
+    },
+    {
+      title: "Learner Journey + Training Zone",
+      cue: "Completion momentum",
+      description: "Keep learner-facing work focused on the next assigned action, then open Training Zone only when the learner is ready to complete the lesson itself.",
+      icon: BookOpen,
+    },
+    {
+      title: "Content Missions + Client Control",
+      cue: "Supporting systems",
+      description: "Use the library to browse and assign content, and use Client Control for configuration, access, branding, and governance changes.",
+      icon: Building2,
+    },
+  ];
+
+  const bestPractices = [
+    {
+      title: "Follow the summary-to-detail pattern",
+      description: "Start with the queue or summary card, then open the detailed panel only for the item that needs action. This keeps the workspace calm and makes handoffs easier.",
+      icon: Search,
+    },
+    {
+      title: "Separate analysis from execution",
+      description: "Use Reporting for comparison and pattern recognition, then switch to Manager Ops or Coach Studio when a learner or team needs a concrete next step.",
+      icon: Gauge,
+    },
+    {
+      title: "Document once, review from Documentation",
+      description: "After a coaching log is saved, return to Documentation for the permanent record rather than duplicating history inside every active work lane.",
+      icon: BookText,
+    },
+    {
+      title: "Keep alerts actionable",
+      description: "Treat alerts as a queue for what needs attention now. Once you open the case, complete the work in the appropriate workspace instead of staying inside alert review.",
+      icon: Bell,
+    },
+  ];
+
+  return (
+    <SectionShell
+      eyebrow="EnableOS guide"
+      title="Navigate EnableOS with one clear workspace at a time."
+      description="Learn where to start, how to move between workspaces, and which best practices keep the experience focused and easy to operate."
+      actions={access.data ? (
+        <Link href={homeHref}>
+          <Button className="h-11 rounded-full bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
+            Open my assigned workspace
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
+      ) : null}
+      compact={false}
+    >
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(320px,0.96fr)]">
+        <div className="grid gap-4 md:grid-cols-3">
+          {quickStartHighlights.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Card key={item.title} className="border-[#1B303C]/10 bg-white/92 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                <CardHeader className="space-y-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.12)]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <CardTitle className="text-[#1B303C]">{item.title}</CardTitle>
+                  <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            );
+          })}
+        </div>
+        <div className="guide-card px-5 py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">How to use this page</p>
+          <h2 className="mt-3 text-[1.35rem] font-semibold tracking-tight text-[#1B303C]">Use the guide as a quick operating brief before moving into the live workspace.</h2>
+          <p className="mt-3 text-sm leading-6 text-[#4A6373]">
+            The goal is simple: pick the right workspace first, use the internal tabs to narrow the task, and keep the saved record in the surface designed for long-term review.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="trophy-card px-4 py-3.5">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Best starting point</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">Mission Hub for orientation, then the role-specific workspace for execution.</p>
+            </div>
+            <div className="trophy-card px-4 py-3.5">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Record discipline</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">Saved coaching records stay in Documentation after the Coach Studio popup closes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="quick-start" className="mt-6">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Instruction tabs</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#4A6373]">Move through the guide the same way EnableOS expects you to move through the product: start with the broad frame, then narrow into the exact task.</p>
+          </div>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-[#1B303C]/10 bg-white/85 p-2 shadow-[0_12px_24px_rgba(15,23,42,0.06)] xl:w-auto">
+            <TabsTrigger value="quick-start" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Quick start</TabsTrigger>
+            <TabsTrigger value="navigation-map" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Navigation map</TabsTrigger>
+            <TabsTrigger value="best-practices" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Best practices</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="quick-start" className="mt-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              "Open Mission Hub or your assigned home first so the product can frame the next priority before you jump into detailed work.",
+              "Use the workspace tabs and lane switches before searching through the full page, because most workflows are intentionally split by task type.",
+              "Finish the active action, save the record, and then review the long-term evidence in Documentation instead of keeping duplicate history panels open everywhere.",
+            ].map((step, index) => (
+              <Card key={step} className="border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.92))] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                <CardHeader>
+                  <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em]">Step {index + 1}</Badge>
+                  <CardDescription className="pt-2 text-sm leading-6 text-[#4A6373]">{step}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="navigation-map" className="mt-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {workspaceGuide.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <Card key={item.title} className="border-[#1B303C]/10 bg-white/92 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.12)]">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <Badge className="rounded-full border-[#1B303C]/10 bg-white text-[#4A6373]">{item.cue}</Badge>
+                    </div>
+                    <CardTitle className="pt-3 text-[#1B303C]">{item.title}</CardTitle>
+                    <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="best-practices" className="mt-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {bestPractices.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <Card key={item.title} className="border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.92))] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                  <CardHeader>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FCBC34] text-[#1B303C] shadow-[0_16px_30px_rgba(252,188,52,0.18)]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="pt-3 text-[#1B303C]">{item.title}</CardTitle>
+                    <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </SectionShell>
+  );
+}
 
 export function MissionHubView() {
   const viewerAccess = trpc.demo.viewerAccess.useQuery();

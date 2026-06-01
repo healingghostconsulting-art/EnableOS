@@ -215,6 +215,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
+  it("adds an EnableOS guide workspace with navigation and best-practice instruction", () => {
+    expect(trainingViewSource).toContain("EnableOS guide");
+    expect(trainingViewSource).toContain("Navigate EnableOS with one clear workspace at a time.");
+    expect(trainingViewSource).toContain("Quick start");
+    expect(trainingViewSource).toContain("Navigation map");
+    expect(trainingViewSource).toContain("Best practices");
+    expect(trainingViewSource).toContain("Mission Hub should be the first stop for most users");
+    expect(trainingViewSource).toContain("Documentation is the source of truth for saved coaching records");
+    expect(trainingViewSource).toContain("Saved coaching records stay in Documentation after the Coach Studio popup closes.");
+    expect(trainingViewSource).toContain("Use Reporting to compare movement, spot risk, and review trend evidence");
+    expect(trainingViewSource).toContain("Document once, review from Documentation");
+  });
+
   it("keeps the coach workspace on the full weekly coaching log popup flow while preserving the shared structured composer", () => {
     expect(trainingViewSource).toContain("Log Coaching");
     expect(trainingViewSource).toContain("The weekly coaching log now opens as the same full structured form in a focused pop-up");
