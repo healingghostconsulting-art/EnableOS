@@ -9034,7 +9034,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <CardTitle className="text-white">Open the weekly coaching log in a focused pop-up</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">Use the same structured weekly coaching form in a dialog so the coach can save, close, and return directly to the current lane.</CardDescription>
+                    <CardDescription className="mt-2 text-slate-300">Use the same structured weekly coaching form in a dialog so the coach can save, close, and return directly to the current lane. Saved coaching records remain available in Documentation.</CardDescription>
                   </div>
                   <WeeklyCoachingLogPopupBox
                     buttonLabel="Log Coaching"
@@ -9047,7 +9047,6 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </div>
               </CardHeader>
             </PremiumCard>
-            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
             <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
         </TabsContent>

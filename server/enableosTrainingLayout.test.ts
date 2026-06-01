@@ -220,6 +220,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("The weekly coaching log now opens as the same full structured form in a focused pop-up");
     expect(trainingViewSource).toContain("Use the gold <span className=\"font-semibold text-[#FCBC34]\">Log Coaching</span> action to open the full weekly coaching log without leaving Coach Studio.");
     expect(trainingViewSource).toContain("Open the weekly coaching log in a focused pop-up");
+    expect(trainingViewSource).toContain("Saved coaching records remain available in Documentation.");
     expect(trainingViewSource).toContain("Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio.");
     expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
@@ -243,6 +244,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Private stays on file for leadership only and does not notify the learner.");
     expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
     expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
+    expect(trainingViewSource).not.toContain("Coach-visible weekly coaching history");
     expect(trainingViewSource).not.toContain("jump directly to the inline coaching form below");
   });
 

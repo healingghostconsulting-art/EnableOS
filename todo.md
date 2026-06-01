@@ -587,3 +587,5 @@
 - [x] Reuse the existing coaching log form inside the popup so the saved data and workflow stay the same.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log popup restoration.
 - [x] Fix the App.tsx syntax error that is currently breaking the dev server so the coaching-log popup restoration can be validated cleanly.
+- [x] Remove the coaching-history section from the Coach Studio coaching lane now that coaching records are handled in Documentation.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coach-lane coaching-history removal.
