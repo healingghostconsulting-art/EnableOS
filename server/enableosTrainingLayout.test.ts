@@ -368,11 +368,14 @@ describe("learner training layout helpers", () => {
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = true");
-    expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
-    expect(trainingViewSource).toContain("Lesson first.");
+    expect(trainingViewSource).not.toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
+    expect(trainingViewSource).not.toContain("Opens directly on the active lesson.");
+    expect(trainingViewSource).not.toContain("Focused player");
+    expect(trainingViewSource).not.toContain("Lesson first, with compact progress and support controls.");
     expect(trainingViewSource).toContain("Launch setup");
-    expect(trainingViewSource).toContain("Focused player");
-    expect(trainingViewSource).toContain("Lesson first, with compact progress and support controls.");
+    expect(trainingViewSource).toContain("flex h-14 items-center justify-between gap-4 px-4 py-0");
+    expect(trainingViewSource).toContain("Stage {stageIndex + 1} of {stages.length}");
+    expect(trainingViewSource).toContain("{remainingRuntimeMinutes} min left");
     expect(trainingViewSource).toContain("Lesson canvas ·");
     expect(trainingViewSource).toContain("Progress rail");
     expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");

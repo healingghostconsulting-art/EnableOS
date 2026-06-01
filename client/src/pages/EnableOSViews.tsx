@@ -4658,29 +4658,29 @@ export function TrainingExperienceView() {
 
   return (
     <Surface>
-      <SectionShell
-        eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
-        title={selectedModule?.title ?? "Training player"}
-        description={isDirectModuleLaunch ? "Opens directly on the active lesson." : "Lesson first."}
-        compact
-        actions={
-          <>
-            {access.data ? (
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-                {access.data.tenant.name}
-              </Badge>
-            ) : null}
-            <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })}>
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                Back to learner
-              </Button>
-            </Link>
-          </>
-        }
-      >
+      <div className="focus-stack">
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-4">
+            <PremiumCard className="overflow-hidden">
+              <CardContent className="flex h-14 items-center justify-between gap-4 px-4 py-0">
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{selectedModuleTitle}</p>
+                <div className="hidden shrink-0 items-center gap-2 text-xs font-medium text-slate-300 md:flex">
+                  <span>Stage {stageIndex + 1} of {stages.length}</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{currentStagePages.length > 0 ? `Slide ${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{overallProgress}%</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{remainingRuntimeMinutes} min left</span>
+                </div>
+                <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })} className="shrink-0">
+                  <Button variant="outline" size="sm" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                    Back to learner
+                  </Button>
+                </Link>
+              </CardContent>
+            </PremiumCard>
             {launchedAsset ? (
               <PremiumCard>
                 <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
@@ -4753,34 +4753,6 @@ export function TrainingExperienceView() {
                 </CardContent>
               </PremiumCard>
             ) : null}
-            <PremiumCard className="overflow-hidden">
-              <CardContent className="px-4 py-4">
-                <div className="rounded-[1.55rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.14),rgba(15,23,42,0.92))] px-4 py-4 shadow-[0_18px_45px_rgba(8,15,35,0.2)]">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Focused player</Badge>
-                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModuleFormatLabel}</Badge>
-                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
-                        {featuredDeckVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge> : null}
-                      </div>
-                      <h2 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">{selectedModuleTitle}</h2>
-                      <p className="mt-2 text-sm leading-6 text-slate-200">Lesson first, with compact progress and support controls.</p>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{courseStatusLabel}</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{remainingRuntimeMinutes} min left</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{overallProgress}% complete</div>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <Progress value={overallProgress} className="h-2 bg-white/8" />
-                  </div>
-                </div>
-              </CardContent>
-            </PremiumCard>
-
             <div className="grid gap-4">
               <div className="space-y-6">
                 <PremiumCard>
@@ -5934,7 +5906,7 @@ export function TrainingExperienceView() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </SectionShell>
+      </div>
     </Surface>
   );
 }
