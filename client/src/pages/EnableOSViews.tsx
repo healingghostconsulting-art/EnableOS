@@ -4872,39 +4872,6 @@ export function TrainingExperienceView() {
                                 </div>
                                 <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-3 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
-                                <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-                                  {featuredDeckVisual ? (
-                                    <div className="overflow-hidden rounded-[1.7rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(2,6,23,0.94))] shadow-[0_24px_70px_rgba(8,15,35,0.28)]">
-                                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
-                                        <div>
-                                          <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/75">Primary lesson visual</p>
-                                          <p className="mt-1 text-sm text-slate-300">{featuredDeckVisual.pageLabel} · {featuredDeckVisual.sourceDeck}</p>
-                                        </div>
-                                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">Canvas media</Badge>
-                                      </div>
-                                      <div className="bg-slate-950/90 p-4 sm:p-5">
-                                        <div className="flex min-h-[18rem] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:min-h-[22rem] lg:min-h-[24rem]">
-                                          <TrainingVisualFrame visual={featuredDeckVisual} />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson canvas</p>
-                                      <h4 className="mt-2 text-lg font-medium text-white">The active page is guiding the learner without a secondary visual wall.</h4>
-                                      <p className="mt-3 text-sm leading-6 text-slate-300">When a mapped deck visual is available, it appears here as the dominant lesson media above the fold.</p>
-                                    </div>
-                                  )}
-                                  <div className="space-y-4">
-                                    <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label ?? "Lesson"}</Badge>
-                                        {featuredDeckVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{featuredDeckVisual.title}</Badge> : null}
-                                      </div>
-                                      <p className="mt-4 text-sm leading-6 text-slate-300">{featuredDeckVisual?.caption ?? "The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it."}</p>
-                                    </div>
-                                  </div>
-                                </div>
                                 {lessonVisualSequence.length ? (
                                   <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                     <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
@@ -5277,10 +5244,10 @@ export function TrainingExperienceView() {
                                 <div className="space-y-4">
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
-                                      <p className="mt-2 text-sm text-slate-300">Use the active lesson surface or the previous and next controls to keep the canvas aligned to the current learning moment. The duplicate slide-tile list has been removed so the learner stays in one guided flow.</p>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson slide</p>
+                                      <p className="mt-2 text-sm text-slate-300">The active slide and its detail, with previous and next controls for the guided sequence.</p>
                                     </div>
-                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length || 1} guided visuals</Badge>
+                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
                                   </div>
                                   <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] p-4 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-3">
@@ -5336,47 +5303,11 @@ export function TrainingExperienceView() {
                                         </div>
                                       </div>
                                     </button>
-                                    <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
-                                      <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide reference</p>
-                                        <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
-                                        <p className="mt-1 text-xs leading-5 text-slate-400">{activeInteractiveVisual.sourceDeck}</p>
-                                      </div>
-                                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
-                                        <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Use the active lesson surface and the previous or next controls above to move the active visual. Open the full-size slide when you want a separate reading view.</p>
-                                      </div>
+                                    <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                      <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
+                                      <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
                                     </div>
                                   </div>
-                                  {interactiveGalleryVisuals.length ? (
-                                    <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
-                                      <div className="flex flex-wrap items-start justify-between gap-3">
-                                        <div className="max-w-2xl">
-                                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Visual focus lock</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">This area no longer repeats the full learn and practice list as slide tiles. The active lesson surface is the main navigator, while this companion card simply confirms where the learner is in the visual sequence.</p>
-                                        </div>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
-                                      </div>
-                                      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Previous context</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.pageLabel : "Start of sequence"}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.title : "The learner is on the first guided visual in this section."}</p>
-                                        </div>
-                                        <div className="rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current visual focus</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-100">{activeInteractiveVisual.title}</p>
-                                        </div>
-                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next context</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.pageLabel : "End of sequence"}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.title : "Advance the brief flow to move into the next learning section."}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : null}
                                 </div>
                               ) : null}
 

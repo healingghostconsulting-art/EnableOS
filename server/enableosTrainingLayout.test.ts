@@ -188,7 +188,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
-    expect(trainingViewSource).toContain("The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it.");
+    expect(trainingViewSource).toContain("The active slide and its detail, with previous and next controls for the guided sequence.");
     expect(trainingViewSource).toContain("Transcript");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Keep the storyboard hidden until the learner wants supporting sequence detail.");
@@ -470,13 +470,31 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("insightCharts.length && trainingWorkspacePage === \"resources\"");
 
     // Gated, not deleted — every section still exists in the source.
-    expect(trainingViewSource).toContain("Primary lesson visual");
+    expect(trainingViewSource).toContain(">Lesson slide<");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Knowledge check");
     expect(trainingViewSource).toContain("Signal marker");
     expect(trainingViewSource).toContain("Transcript");
     expect(trainingViewSource).toContain("Coach notes");
     expect(trainingViewSource).toContain("Evidence graphics");
+  });
+
+  it("consolidates the lesson slide into a single viewer with no duplicate slide presentations", () => {
+    // One viewer: active slide image + its text, prev/next, and a compact index.
+    expect(trainingViewSource).toContain(">Lesson slide<");
+    expect(trainingViewSource).toContain("Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}");
+    expect(trainingViewSource).toContain("TrainingVisualFrame visual={activeInteractiveVisual}");
+    expect(trainingViewSource).toContain("Previous slide");
+    expect(trainingViewSource).toContain("Next slide");
+    // Prev/next stays bound to the existing slide-index state.
+    expect(trainingViewSource).toContain("setSelectedDeckVisualIndex");
+
+    // The duplicate slide presentations are gone.
+    expect(trainingViewSource).not.toContain("Primary lesson visual");
+    expect(trainingViewSource).not.toContain("Interactive slide canvas");
+    expect(trainingViewSource).not.toContain("Slide reference");
+    expect(trainingViewSource).not.toContain("Visual focus lock");
+    expect(trainingViewSource).not.toContain("This area no longer repeats");
   });
 
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {
