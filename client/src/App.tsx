@@ -200,44 +200,48 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
   }
 
   const effectiveRole = resolveEffectiveWorkspaceRole(options);
+  const workspacePath = options?.workspacePath;
 
-  switch (options?.workspacePath) {
-    case "/reporting":
-      return executiveWorkspaceMenu;
-    case "/manager":
-      return managerWorkspaceMenu;
-    case "/coach":
-      return coachWorkspaceMenu;
-    case "/learner":
-      return learnerWorkspaceMenu;
-    case "/mission-hub":
-    case "/training":
-    case "/library": {
-      switch (effectiveRole) {
-        case "platform_admin":
-          return adminWorkspaceMenu;
-        case "client_admin":
-          return baseWorkspaceMenu;
-        case "executive":
-          return executiveWorkspaceMenu;
-        case "manager":
-          return managerWorkspaceMenu;
-        case "coach":
-          return coachWorkspaceMenu;
-        case "learner":
-          return learnerWorkspaceMenu;
-        default:
-          break;
-      }
-      break;
+  if (workspacePath === "/reporting") {
+    return executiveWorkspaceMenu;
+  }
+
+  if (workspacePath === "/manager") {
+    return managerWorkspaceMenu;
+  }
+
+  if (workspacePath === "/coach") {
+    return coachWorkspaceMenu;
+  }
+
+  if (workspacePath === "/learner") {
+    return learnerWorkspaceMenu;
+  }
+
+  if (workspacePath === "/mission-hub" || workspacePath === "/training" || workspacePath === "/library") {
+    switch (effectiveRole) {
+      case "platform_admin":
+        return adminWorkspaceMenu;
+      case "client_admin":
+        return baseWorkspaceMenu;
+      case "executive":
+        return executiveWorkspaceMenu;
+      case "manager":
+        return managerWorkspaceMenu;
+      case "coach":
+        return coachWorkspaceMenu;
+      case "learner":
+        return learnerWorkspaceMenu;
+      default:
+        break;
     }
-    default:
-      break;
   }
 
   switch (effectiveRole) {
     case "platform_admin":
       return adminWorkspaceMenu;
+    case "client_admin":
+      return baseWorkspaceMenu;
     case "manager":
       return managerWorkspaceMenu;
     case "coach":

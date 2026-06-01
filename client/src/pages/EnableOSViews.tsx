@@ -7591,10 +7591,11 @@ function WeeklyCoachingLogComposer({
 }
 
 function WeeklyCoachingLogPopupBox({
-  buttonLabel = "Launch coaching log pop-up",
-  dialogTitle = "Weekly coaching log pop-up",
+  buttonLabel = "Log Coaching",
+  dialogTitle = "Weekly coaching log",
   dialogDescription = "Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.",
   buttonClassName = "rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white",
+  dialogContentClassName = "max-h-[90vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl",
   composerProps,
   onCreated,
 }: {
@@ -7602,119 +7603,39 @@ function WeeklyCoachingLogPopupBox({
   dialogTitle?: string;
   dialogDescription?: string;
   buttonClassName?: string;
+  dialogContentClassName?: string;
   composerProps: WeeklyCoachingLogComposerProps;
   onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [learnerName, setLearnerName] = useState(() => composerProps.employeeName || "Nina Patel");
-  const [coachNotes, setCoachNotes] = useState("");
-  const [behaviorObserved, setBehaviorObserved] = useState("");
-  const [nextMilestone, setNextMilestone] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
-  const trimmedCoachNotes = coachNotes.trim();
-  const trimmedBehaviorObserved = behaviorObserved.trim();
-  const trimmedNextMilestone = nextMilestone.trim();
-  const canSave = Boolean(sessionDate && learnerName.trim() && trimmedCoachNotes && trimmedBehaviorObserved && trimmedNextMilestone);
-  const visibilityPresentation = getWeeklyCoachingVisibilityPresentation(visibility);
-  const createWeeklyCoachingLog = trpc.demo.secureCreateWeeklyCoachingLog.useMutation({
-    onSuccess: () => {
-      setCoachNotes("");
-      setBehaviorObserved("");
-      setNextMilestone("");
-      setVisibility("public");
-      setOpen(false);
-      onCreated?.();
-    },
-  });
 
-  useEffect(() => {
-    if (!open) {
-      setSessionDate(new Date().toISOString().slice(0, 10));
-      setLearnerName(composerProps.employeeName || "Nina Patel");
-    }
-  }, [composerProps.employeeName, open]);
+  const handleCreated = () => {
+    setOpen(false);
+    onCreated?.();
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
         {buttonLabel}
       </Button>
-      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+      <DialogContent className={dialogContentClassName}>
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription className="text-slate-400">{dialogDescription}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-slate-950/85 p-5 shadow-[0_24px_60px_rgba(2,8,23,0.36)]">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-2 text-sm text-slate-200">
-              <span>Session date</span>
-              <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
-            </label>
-            <label className="space-y-2 text-sm text-slate-200">
-              <span>Learner name</span>
-              <input value={learnerName} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
-            </label>
-          </div>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Coach notes</span>
-            <textarea value={coachNotes} onChange={(event) => setCoachNotes(event.target.value)} rows={4} placeholder="Summarize the coaching conversation, context, and decisions." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
-          </label>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Behavior observed</span>
-            <textarea value={behaviorObserved} onChange={(event) => setBehaviorObserved(event.target.value)} rows={4} placeholder="Document the exact behavior observed during the session." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
-          </label>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Next milestone</span>
-            <input value={nextMilestone} onChange={(event) => setNextMilestone(event.target.value)} placeholder="Enter the next milestone to track after this session." className={FORM_INPUT_SURFACE_CLASS} />
-          </label>
-          <div className="space-y-3 rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-slate-100">Visibility</p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">Choose whether this entry is shared as a public coaching log or kept as a private coaching note.</p>
-              </div>
-              <Badge className={`rounded-full border ${visibilityPresentation.badgeClassName}`}>{visibilityPresentation.label}</Badge>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <button type="button" onClick={() => setVisibility("public")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "public" ? "border-emerald-300/40 bg-emerald-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
-                <span className="font-medium">Public coaching log</span>
-                <span className="mt-1 block text-xs leading-5 text-inherit/80">Share the coaching record with the learner and support chain.</span>
-              </button>
-              <button type="button" onClick={() => setVisibility("private")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "private" ? "border-violet-300/40 bg-violet-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
-                <span className="font-medium">Private coaching note</span>
-                <span className="mt-1 block text-xs leading-5 text-inherit/80">Keep the note visible only to leadership and coaching oversight.</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-            <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-slate-300 underline-offset-4 transition hover:text-white hover:underline">
+        <div className="space-y-4">
+          <WeeklyCoachingLogComposer {...composerProps} onCreated={handleCreated} />
+          <DialogFooter className="border-t border-white/10 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="rounded-full border-white/12 bg-transparent text-slate-200 hover:bg-white/8 hover:text-white"
+            >
               Cancel
-            </button>
-            <div className="flex flex-col items-end gap-2">
-              <Button
-                type="button"
-                className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100"
-                disabled={createWeeklyCoachingLog.isPending || !canSave}
-                onClick={() => createWeeklyCoachingLog.mutate({
-                  tenantId: composerProps.tenantId,
-                  subjectUserId: composerProps.subjectUserId,
-                  coachRole: composerProps.coachRole,
-                  sessionDate,
-                  attendance: "Coach Studio pop-up entry",
-                  followUpFromPrevious: trimmedBehaviorObserved,
-                  coachingComments: trimmedCoachNotes,
-                  smartGoalCommitment: trimmedNextMilestone,
-                  additionalSupport: "Coaching log captured from the Coach Studio modal dialog.",
-                  visibility,
-                  managerOfSupervisorEmail: composerProps.managerOfSupervisorEmail,
-                })}
-              >
-                {createWeeklyCoachingLog.isPending ? "Saving..." : "Save log"}
-              </Button>
-              {createWeeklyCoachingLog.isError ? <p className="text-sm text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
-            </div>
-          </div>
+            </Button>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
@@ -8980,13 +8901,14 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <Badge className="mission-chip rounded-full border-white/20 bg-white/12 text-white">Coach studio mission</Badge>
                 <span className="command-pill rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-100/90">Coach the behavior, not just the completion</span>
               </div>
-              <Button
-                type="button"
-                onClick={() => openCoachView("coaching", "coach-weekly-logs")}
-                className="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
-              >
-                Open weekly coaching log
-              </Button>
+              <WeeklyCoachingLogPopupBox
+                buttonLabel="Log Coaching"
+                dialogTitle="Weekly coaching log · Coach Studio"
+                dialogDescription="Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio."
+                buttonClassName="rounded-full border-[#FCBC34] bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+                composerProps={coachWeeklyCoachingLogProps}
+                onCreated={onUpdated}
+              />
             </div>
             <div className="space-y-3">
               <h2 className="max-w-4xl text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.</h2>
@@ -9021,9 +8943,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             </div>
             <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log is back in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log now opens as the same full structured form in a focused pop-up, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
               <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
-                Use the gold <span className="font-semibold text-[#FCBC34]">Open weekly coaching log</span> action to jump directly to the inline coaching form below.
+                Use the gold <span className="font-semibold text-[#FCBC34]">Log Coaching</span> action to open the full weekly coaching log without leaving Coach Studio.
               </div>
             </div>
           </div>
@@ -9107,7 +9029,24 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </CardContent>
               </PremiumCard>
             ) : null}
-            <WeeklyCoachingLogComposer {...coachWeeklyCoachingLogProps} onCreated={onUpdated} />
+            <PremiumCard>
+              <CardHeader>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <CardTitle className="text-white">Open the weekly coaching log in a focused pop-up</CardTitle>
+                    <CardDescription className="mt-2 text-slate-300">Use the same structured weekly coaching form in a dialog so the coach can save, close, and return directly to the current lane.</CardDescription>
+                  </div>
+                  <WeeklyCoachingLogPopupBox
+                    buttonLabel="Log Coaching"
+                    dialogTitle="Weekly coaching log · Coach Studio"
+                    dialogDescription="Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio."
+                    buttonClassName="rounded-full border-[#FCBC34] bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+                    composerProps={coachWeeklyCoachingLogProps}
+                    onCreated={onUpdated}
+                  />
+                </div>
+              </CardHeader>
+            </PremiumCard>
             <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
             <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
