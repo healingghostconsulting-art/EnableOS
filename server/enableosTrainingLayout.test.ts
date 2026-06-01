@@ -169,7 +169,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
-    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
@@ -317,14 +317,14 @@ describe("learner training layout helpers", () => {
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
-    expect(trainingViewSource).toContain("Training pages");
-    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain(">Pages<");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
     expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Resources");
-    expect(trainingViewSource).toContain("rounded-full border px-3 py-2 text-left text-xs transition");
+    expect(trainingViewSource).toContain(">Stages<");
     expect(trainingViewSource).toContain("Stage overview");
     expect(trainingViewSource).toContain("setStageIndex(index)");
     expect(trainingViewSource).toContain("trainingWorkspacePage");
@@ -422,16 +422,36 @@ describe("learner training layout helpers", () => {
   });
 
   it("places the canvas-dominant lesson grid directly under the status strip with the course-context drawer below it", () => {
-    // Two-column grid: dominant lesson canvas + compact right rail.
-    expect(trainingViewSource).toContain("grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]");
+    // Three-column grid: left rail | dominant lesson canvas | compact right rail.
+    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
 
     // Order in source: status strip ("Back to learner") -> lesson grid -> course-context drawer.
     const backToLearner = trainingViewSource.indexOf("Back to learner");
-    const grid = trainingViewSource.indexOf("grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]");
+    const grid = trainingViewSource.indexOf("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
     const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
     expect(backToLearner).toBeGreaterThan(-1);
     expect(grid).toBeGreaterThan(backToLearner);
     expect(drawerGate).toBeGreaterThan(grid);
+  });
+
+  it("moves stage and page navigation into a single collapsible left rail with no duplicate in-canvas tab strips", () => {
+    // 3-column grid (left rail | canvas | right rail), rail collapsible 280px <-> 56px.
+    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]");
+    expect(trainingViewSource).toContain("const [railCollapsed, setRailCollapsed] = useState(false)");
+    expect(trainingViewSource).toContain(">Stages<");
+    expect(trainingViewSource).toContain(">Pages<");
+
+    // Navigation is still bound to the same state/handlers (highlight uses the same indices).
+    expect(trainingViewSource).toContain("setStageIndex(index)");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
+    expect(trainingViewSource).toContain("const isActiveStage = index === stageIndex");
+    expect(trainingViewSource).toContain("const isActivePage = trainingWorkspacePage === page.key");
+
+    // The old in-canvas tab strips are gone — one navigation source.
+    expect(trainingViewSource).not.toContain("Training pages");
+    expect(trainingViewSource).not.toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).not.toContain("shrink-0 rounded-full border px-3 py-2 text-left text-xs transition");
   });
 
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {

@@ -33,6 +33,7 @@ import {
   Building2,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -3309,6 +3310,7 @@ export function TrainingExperienceView() {
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -4683,7 +4685,91 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PremiumCard>
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
+            <div className={`grid gap-4 xl:items-start ${railCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]" : "xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]"}`}>
+              <aside className="xl:sticky xl:top-6">
+                <PremiumCard className="h-fit">
+                  <CardContent className="space-y-4 p-3">
+                    <button
+                      type="button"
+                      onClick={() => setRailCollapsed((current) => !current)}
+                      aria-expanded={!railCollapsed}
+                      aria-label={railCollapsed ? "Expand navigation rail" : "Collapse navigation rail"}
+                      className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-slate-300 transition hover:bg-white/5"
+                    >
+                      {!railCollapsed ? <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Navigation</span> : null}
+                      <ChevronLeft className={`h-4 w-4 shrink-0 transition-transform ${railCollapsed ? "rotate-180" : ""}`} />
+                    </button>
+                    <div className="space-y-1.5">
+                      {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Stages</p> : null}
+                      {stages.map((stage, index) => {
+                        const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
+                        const isActiveStage = index === stageIndex;
+                        return (
+                          <button
+                            key={stage.id}
+                            type="button"
+                            title={stage.label}
+                            onClick={() => {
+                              setStageIndex(index);
+                              setLessonPageIndex(0);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActiveStage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                          >
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActiveStage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{index + 1}</span>
+                            {!railCollapsed ? (
+                              <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
+                                <span className="truncate">{stage.label}</span>
+                                {stagePlan ? <span className={`shrink-0 text-[10px] uppercase tracking-[0.14em] ${isActiveStage ? "text-slate-600" : "text-cyan-100/70"}`}>{stagePlan.durationLabel}</span> : null}
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {currentStagePages.length > 0 ? (
+                      <div className="space-y-1.5 border-t border-white/10 pt-3">
+                        {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Pages</p> : null}
+                        {([
+                          { key: "brief", label: "Overview" },
+                          { key: "lesson", label: "Lesson" },
+                          { key: "checkpoint", label: "Checkpoint" },
+                          { key: "resources", label: "Resources" },
+                        ] as const).map((page) => {
+                          const isActivePage = trainingWorkspacePage === page.key;
+                          return (
+                            <button
+                              key={page.key}
+                              type="button"
+                              title={page.label}
+                              onClick={() => setTrainingWorkspacePage(page.key)}
+                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActivePage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                            >
+                              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{page.label[0]}</span>
+                              {!railCollapsed ? <span className="truncate">{page.label}</span> : null}
+                            </button>
+                          );
+                        })}
+                        {curriculumDeck.length ? (
+                          <button
+                            type="button"
+                            title="Curriculum"
+                            onClick={openCurriculumViewer}
+                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs text-slate-200 transition hover:bg-white/10"
+                          >
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-slate-300"><BookOpen className="h-3.5 w-3.5" /></span>
+                            {!railCollapsed ? (
+                              <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
+                                <span className="truncate">Curriculum</span>
+                                <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-slate-500">{curriculumDeck.length}</span>
+                              </span>
+                            ) : null}
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </PremiumCard>
+              </aside>
               <div className="space-y-6">
                 <PremiumCard>
                   <CardHeader className="pb-3">
@@ -4696,55 +4782,9 @@ export function TrainingExperienceView() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 pt-0">
-                    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                      {stages.map((stage, index) => {
-                        const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
-                        const isActiveStage = index === stageIndex;
-                        return (
-                          <button
-                            key={stage.id}
-                            type="button"
-                            onClick={() => {
-                              setStageIndex(index);
-                              setLessonPageIndex(0);
-                            }}
-                            className={`shrink-0 rounded-full border px-3 py-2 text-left text-xs transition ${isActiveStage ? "border-white/70 bg-white text-slate-950 shadow-[0_14px_30px_rgba(255,255,255,0.16)]" : "border-white/12 bg-white/8 text-slate-200 hover:bg-white/12"}`}
-                          >
-                            <div className="flex items-center gap-1.5 whitespace-nowrap">
-                              <span className="font-medium">{stage.label}</span>
-                              <span className={`text-[11px] ${isActiveStage ? "text-slate-600" : "text-slate-400"}`}>{index + 1}</span>
-                              {stagePlan ? <span className={`text-[10px] uppercase tracking-[0.16em] ${isActiveStage ? "text-slate-700" : "text-cyan-100/80"}`}>{stagePlan.durationLabel}</span> : null}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
                         <div className="command-band px-4 py-3 md:px-5">
-                          <div className="flex flex-col gap-2 border-b border-[#1B303C]/10 pb-3 lg:flex-row lg:items-center lg:justify-between">
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Training pages</p>
-                              <p className="mt-1 text-xs leading-5 text-[#4A6373]">Switch modes from one compact control or open the mapped curriculum deck.</p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
-                                </div>
-                              </div>
-                              {curriculumDeck.length ? (
-                                <Button type="button" variant="outline" onClick={openCurriculumViewer} className="h-8 rounded-full border-[#1B303C]/12 bg-white px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
-                                  <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                                  Curriculum
-                                  <span className="ml-1.5 text-[10px] uppercase tracking-[0.16em] text-[#6B7E8A]">{curriculumDeck.length} slides</span>
-                                </Button>
-                              ) : null}
-                            </div>
-                          </div>
                           <div className={trainingWorkspacePage === "brief" ? "mt-3 grid gap-3 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
                             <div className="space-y-3">
                               <div className="context-rail-card px-4 py-4">
