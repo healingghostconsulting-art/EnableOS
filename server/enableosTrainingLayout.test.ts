@@ -395,6 +395,32 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("compact");
   });
 
+  it("collapses launch context, lane setup, and stage overview into a single closed-by-default Course context drawer", () => {
+    // The drawer starts collapsed, so none of the three blocks render on load.
+    expect(trainingViewSource).toContain("const [courseContextOpen, setCourseContextOpen] = useState(false)");
+    expect(trainingViewSource).toContain(">Course context<");
+    expect(trainingViewSource).toContain("Launch context, lane setup, and stage overview");
+    expect(trainingViewSource).toContain("setCourseContextOpen((current) => !current)");
+
+    // The lane / scenario picker still drives the same handlers after the move.
+    expect(trainingViewSource).toContain("onClick={() => setRoleFilter(option.value)}");
+    expect(trainingViewSource).toContain("onClick={() => setPreviewScenarioId(scenario.id)}");
+
+    // All three blocks live inside the drawer body: after the courseContextOpen gate
+    // and before the lesson grid (the "Lesson canvas ·" card).
+    const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
+    const lessonCanvas = trainingViewSource.indexOf("Lesson canvas ·");
+    const launchContext = trainingViewSource.indexOf("Library launch context");
+    const launchSetup = trainingViewSource.indexOf("<span className=\"text-sm font-medium text-white\">Launch setup</span>");
+    const stageOverview = trainingViewSource.indexOf("Stage overview");
+    expect(drawerGate).toBeGreaterThan(-1);
+    expect(lessonCanvas).toBeGreaterThan(drawerGate);
+    for (const idx of [launchContext, launchSetup, stageOverview]) {
+      expect(idx).toBeGreaterThan(drawerGate);
+      expect(idx).toBeLessThan(lessonCanvas);
+    }
+  });
+
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {
     expect(trainingViewSource).toContain("const CONTENT_LIBRARY_TRAINING_TARGET_ALIASES");
     expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");

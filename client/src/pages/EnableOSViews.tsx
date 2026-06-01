@@ -32,6 +32,7 @@ import {
   BrainCircuit,
   Building2,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -3307,6 +3308,7 @@ export function TrainingExperienceView() {
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
+  const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -4681,78 +4683,110 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PremiumCard>
-            {launchedAsset ? (
-              <PremiumCard>
-                <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
-                  </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
-                    <p className="font-medium text-white">Source label</p>
-                    <p className="mt-1">{launchedAsset.sourceLabel}</p>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
-            {!isDirectModuleLaunch ? (
-              <PremiumCard className="overflow-hidden">
-                <CardContent className="px-5 py-4">
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-3.5 py-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
-                        {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{requestedRoleLabel}</Badge> : null}
-                        {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Unlock · {recentUnlockMoment.title}</Badge> : null}
-                        <span className="text-sm font-medium text-white">Launch setup</span>
-                        <span className="text-xs text-slate-300">{canBrowseAllTrainingFamilies ? "Switch lane only if needed." : `Scoped to ${effectiveTrainingRoleLabel.toLowerCase()}.`}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full border-white/10 bg-slate-950/60 text-white hover:bg-white/10 hover:text-white"
-                        onClick={() => setLaunchSetupOpen((current) => !current)}
-                      >
-                        {launchSetupOpen ? "Hide options" : "Switch lane"}
-                      </Button>
-                    </div>
-                    {launchSetupOpen ? (
-                      <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
-                        <div className="flex flex-wrap gap-2">
-                          {availableTrainingRoleFilterOptions.map((option) => (
+            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/40">
+              <button
+                type="button"
+                onClick={() => setCourseContextOpen((current) => !current)}
+                aria-expanded={courseContextOpen}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              >
+                <span className="min-w-0">
+                  <span className="text-sm font-medium text-white">Course context</span>
+                  <span className="ml-2 text-xs text-slate-400">Launch context, lane setup, and stage overview</span>
+                </span>
+                <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${courseContextOpen ? "rotate-180" : ""}`} />
+              </button>
+              {courseContextOpen ? (
+                <div className="space-y-4 border-t border-white/10 px-4 py-4">
+                  {launchedAsset ? (
+                    <PremiumCard>
+                      <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
+                          <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
+                          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
+                        </div>
+                        <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
+                          <p className="font-medium text-white">Source label</p>
+                          <p className="mt-1">{launchedAsset.sourceLabel}</p>
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
+                  ) : null}
+                  {!isDirectModuleLaunch ? (
+                    <PremiumCard className="overflow-hidden">
+                      <CardContent className="px-5 py-4">
+                        <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-3.5 py-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                              {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{requestedRoleLabel}</Badge> : null}
+                              {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Unlock · {recentUnlockMoment.title}</Badge> : null}
+                              <span className="text-sm font-medium text-white">Launch setup</span>
+                              <span className="text-xs text-slate-300">{canBrowseAllTrainingFamilies ? "Switch lane only if needed." : `Scoped to ${effectiveTrainingRoleLabel.toLowerCase()}.`}</span>
+                            </div>
                             <Button
-                              key={`training-role-filter-${option.value}`}
                               type="button"
                               variant="outline"
-                              onClick={() => setRoleFilter(option.value)}
-                              className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                              size="sm"
+                              className="rounded-full border-white/10 bg-slate-950/60 text-white hover:bg-white/10 hover:text-white"
+                              onClick={() => setLaunchSetupOpen((current) => !current)}
                             >
-                              {option.label}
+                              {launchSetupOpen ? "Hide options" : "Switch lane"}
                             </Button>
-                          ))}
+                          </div>
+                          {launchSetupOpen ? (
+                            <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+                              <div className="flex flex-wrap gap-2">
+                                {availableTrainingRoleFilterOptions.map((option) => (
+                                  <Button
+                                    key={`training-role-filter-${option.value}`}
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setRoleFilter(option.value)}
+                                    className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                                  >
+                                    {option.label}
+                                  </Button>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {previewScenarios.map((scenario) => (
+                                  <button
+                                    key={scenario.id}
+                                    type="button"
+                                    onClick={() => setPreviewScenarioId(scenario.id)}
+                                    className={`rounded-full border px-3 py-2 text-left text-sm transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 text-white shadow-[0_10px_22px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10"}`}
+                                  >
+                                    <span className="font-medium">{scenario.label}</span>
+                                    <span className="ml-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{scenario.eyebrow}</span>
+                                  </button>
+                                ))}
+                              </div>
+                              <p className="text-xs leading-5 text-slate-400">The active preview only changes the lesson lane and supporting context. The learner still lands directly inside the player.</p>
+                            </div>
+                          ) : null}
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {previewScenarios.map((scenario) => (
-                            <button
-                              key={scenario.id}
-                              type="button"
-                              onClick={() => setPreviewScenarioId(scenario.id)}
-                              className={`rounded-full border px-3 py-2 text-left text-sm transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 text-white shadow-[0_10px_22px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10"}`}
-                            >
-                              <span className="font-medium">{scenario.label}</span>
-                              <span className="ml-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{scenario.eyebrow}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-xs leading-5 text-slate-400">The active preview only changes the lesson lane and supporting context. The learner still lands directly inside the player.</p>
+                      </CardContent>
+                    </PremiumCard>
+                  ) : null}
+                  {currentStage ? (
+                    <div className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Stage overview</p>
+                      <h4 className="mt-2 text-lg font-semibold text-white">{currentStage.title}</h4>
+                      <p className="mt-2 text-sm leading-6 text-slate-200">{currentStage.body}</p>
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        {(stageActivities[currentStage.id] ?? []).map((activity) => (
+                          <div key={activity} className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-3 py-3 text-sm leading-6 text-slate-100">
+                            {activity}
+                          </div>
+                        ))}
                       </div>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
             <div className="grid gap-4">
               <div className="space-y-6">
                 <PremiumCard>
@@ -4789,21 +4823,6 @@ export function TrainingExperienceView() {
                         );
                       })}
                     </div>
-                    {currentStage ? (
-                      <div className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Stage overview</p>
-                        <h4 className="mt-2 text-lg font-semibold text-white">{currentStage.title}</h4>
-                        <p className="mt-2 text-sm leading-6 text-slate-200">{currentStage.body}</p>
-                        <div className="mt-4 grid gap-3 md:grid-cols-3">
-                          {(stageActivities[currentStage.id] ?? []).map((activity) => (
-                            <div key={activity} className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-3 py-3 text-sm leading-6 text-slate-100">
-                              {activity}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
                         <div className="command-band px-4 py-3 md:px-5">
