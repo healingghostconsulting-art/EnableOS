@@ -454,6 +454,31 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("shrink-0 rounded-full border px-3 py-2 text-left text-xs transition");
   });
 
+  it("gates Training Pages content so each tab renders only its own sections", () => {
+    // Lesson is the default page on load.
+    expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");
+
+    // The lesson content frame renders for lesson/checkpoint/resources, then each section is page-gated.
+    expect(trainingViewSource).toContain("(trainingWorkspacePage === \"lesson\" || trainingWorkspacePage === \"checkpoint\" || trainingWorkspacePage === \"resources\") && currentLessonPage");
+
+    // Checkpoint owns the knowledge check + signal markers.
+    expect(trainingViewSource).toContain("currentSlideInteraction && trainingWorkspacePage === \"checkpoint\"");
+    expect(trainingViewSource).toContain("lessonSignalCards.length && trainingWorkspacePage === \"checkpoint\"");
+    // Lesson owns the interactive slide canvas.
+    expect(trainingViewSource).toContain("activeInteractiveVisual && trainingWorkspacePage === \"lesson\"");
+    // Resources owns the evidence charts (previously ungated — rendered on every tab).
+    expect(trainingViewSource).toContain("insightCharts.length && trainingWorkspacePage === \"resources\"");
+
+    // Gated, not deleted — every section still exists in the source.
+    expect(trainingViewSource).toContain("Primary lesson visual");
+    expect(trainingViewSource).toContain("Visual storyboard");
+    expect(trainingViewSource).toContain("Knowledge check");
+    expect(trainingViewSource).toContain("Signal marker");
+    expect(trainingViewSource).toContain("Transcript");
+    expect(trainingViewSource).toContain("Coach notes");
+    expect(trainingViewSource).toContain("Evidence graphics");
+  });
+
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {
     expect(trainingViewSource).toContain("const CONTENT_LIBRARY_TRAINING_TARGET_ALIASES");
     expect(trainingViewSource).toContain("const [location, setLocation] = useLocation()");

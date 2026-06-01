@@ -4860,10 +4860,12 @@ export function TrainingExperienceView() {
                             </Button>
                           </div>
                         </div>
-                        {trainingWorkspacePage === "lesson" && currentLessonPage ? (
+                        {(trainingWorkspacePage === "lesson" || trainingWorkspacePage === "checkpoint" || trainingWorkspacePage === "resources") && currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
                             <div className="space-y-6">
                               <div>
+                                {trainingWorkspacePage === "lesson" ? (
+                                <>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
@@ -4901,6 +4903,46 @@ export function TrainingExperienceView() {
                                       </div>
                                       <p className="mt-4 text-sm leading-6 text-slate-300">{featuredDeckVisual?.caption ?? "The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it."}</p>
                                     </div>
+                                  </div>
+                                </div>
+                                {lessonVisualSequence.length ? (
+                                  <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
+                                      <div>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Visual storyboard</p>
+                                        <p className="mt-2 text-sm text-slate-200">Keep the storyboard hidden until the learner wants supporting sequence detail.</p>
+                                      </div>
+                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
+                                    </summary>
+                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 lg:grid-cols-3">
+                                      {lessonVisualSequence.map((item, index) => (
+                                        <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                                          <div className="flex items-center justify-between gap-3">
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
+                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
+                                          </div>
+                                          <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
+                                          <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </details>
+                                ) : null}
+                                  <div className="mt-6 grid gap-4 xl:grid-cols-2">
+
+                                  {currentLessonPage.bullets.map((bullet) => (
+                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)] xl:min-h-[9rem]">
+                                      <div className="flex items-start gap-3">
+                                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
+                                        <span>{bullet}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                </>
+                                ) : null}
+                                {trainingWorkspacePage === "resources" ? (
+                                  <div className="mt-6 space-y-4">
                                     <details className="group rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
                                       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                                         <div>
@@ -4954,43 +4996,18 @@ export function TrainingExperienceView() {
                                         </div>
                                       </details>
                                     ) : null}
+                                    {curriculumDeck.length ? (
+                                      <button type="button" onClick={openCurriculumViewer} className="flex w-full items-center justify-between gap-3 rounded-[1.5rem] border border-[#FCBC34]/25 bg-[#FCBC34]/10 px-5 py-4 text-left text-white transition hover:bg-[#FCBC34]/15">
+                                        <span>
+                                          <span className="text-xs uppercase tracking-[0.22em] text-[#FCBC34]">Curriculum</span>
+                                          <span className="mt-1 block text-sm text-slate-200">Open the mapped slide deck for this module · {curriculumDeck.length} slides</span>
+                                        </span>
+                                        <BookOpen className="h-5 w-5 shrink-0 text-[#FCBC34]" />
+                                      </button>
+                                    ) : null}
                                   </div>
-                                </div>
-                                {lessonVisualSequence.length ? (
-                                  <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Visual storyboard</p>
-                                        <p className="mt-2 text-sm text-slate-200">Keep the storyboard hidden until the learner wants supporting sequence detail.</p>
-                                      </div>
-                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
-                                    </summary>
-                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 lg:grid-cols-3">
-                                      {lessonVisualSequence.map((item, index) => (
-                                        <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                          <div className="flex items-center justify-between gap-3">
-                                            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
-                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
-                                          </div>
-                                          <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
-                                          <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </details>
                                 ) : null}
-                                  <div className="mt-6 grid gap-4 xl:grid-cols-2">
-
-                                  {currentLessonPage.bullets.map((bullet) => (
-                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)] xl:min-h-[9rem]">
-                                      <div className="flex items-start gap-3">
-                                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
-                                        <span>{bullet}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                {currentSlideInteraction ? (
+                                {currentSlideInteraction && trainingWorkspacePage === "checkpoint" ? (
                                   <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)] sm:p-6">
                                     <div className="gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
                                       <div className="min-w-0">
@@ -5243,7 +5260,7 @@ export function TrainingExperienceView() {
                                     )}
                                   </div>
                                 ) : null}
-                                {lessonSignalCards.length ? (
+                                {lessonSignalCards.length && trainingWorkspacePage === "checkpoint" ? (
                                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                                     {lessonSignalCards.map((signal) => (
                                       <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-[1.35rem] border border-white/10 bg-white/6 px-4 py-4">
@@ -5256,7 +5273,7 @@ export function TrainingExperienceView() {
                                   </div>
                                 ) : null}
                               </div>
-                              {activeInteractiveVisual ? (
+                              {activeInteractiveVisual && trainingWorkspacePage === "lesson" ? (
                                 <div className="space-y-4">
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
@@ -5366,7 +5383,7 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                         ) : null}
-                        {insightCharts.length ? (
+                        {insightCharts.length && trainingWorkspacePage === "resources" ? (
                           <div className="space-y-4">
                             <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-white/10 bg-white/5 px-5 py-4">
                               <div className="max-w-2xl">
