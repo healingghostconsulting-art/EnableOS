@@ -577,13 +577,13 @@
 - [x] Enforce strict role-specific sidebar behavior so a learner never sees non-learner navigation after opening Training Zone or Mission Hub.
 - [x] Trace and fix shared-route role resolution so Training Zone and Mission Hub preserve the originating learner role instead of expanding to broader menu grants.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the strict role-specific navigation repair.
-- [ ] Grant platform-admin access to `celiat@thechcg.com` if the account exists, or determine the correct next step if the account has not signed in yet.
-- [ ] Verify the user-role data model and update the stored role safely without breaking existing access controls.
-- [ ] Validate the final access state and report any required sign-in or follow-up steps for the platform-admin grant.
+- [x] Check whether `celiat@thechcg.com` already exists for the requested manager + reporting access; no user record exists yet, so grants cannot be inserted until the first sign-in creates the account and `openId`.
+- [x] Verify the access model for the requested manager + reporting access; workspace access is stored in `tenantAccessGrants` by `userOpenId`, so the safe path is to add `manager` and `executive` grants after first sign-in rather than fabricating a user record.
+- [x] Validate the current access state and required follow-up for `celiat@thechcg.com`; she must sign in once first, then the requested manager + reporting access can be granted against the created account record.
 - [x] Inspect the GitHub repository `healingghostconsulting-art/EnableOS` and compare it with the current CHCG EnableOS project state.
 - [x] Determine the safe connection or sync strategy for the existing GitHub repository and request confirmation before changing the remote if needed.
 - [x] Connect or sync the project with GitHub, then validate the result and report any follow-up steps.
 - [x] Restore the Coach Studio **Log Coaching** action to open a popup window while keeping the current coaching log fields and content instead of fully reverting the experience.
 - [x] Reuse the existing coaching log form inside the popup so the saved data and workflow stay the same.
-- [ ] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log popup restoration.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log popup restoration.
 - [x] Fix the App.tsx syntax error that is currently breaking the dev server so the coaching-log popup restoration can be validated cleanly.
