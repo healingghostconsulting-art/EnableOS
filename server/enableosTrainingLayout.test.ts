@@ -473,7 +473,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain(">Lesson slide<");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Knowledge check");
-    expect(trainingViewSource).toContain("Signal marker");
+    expect(trainingViewSource).toContain("Benchmark {signal.benchmark");
     expect(trainingViewSource).toContain("Transcript");
     expect(trainingViewSource).toContain("Coach notes");
     expect(trainingViewSource).toContain("Evidence graphics");
@@ -495,6 +495,20 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Slide reference");
     expect(trainingViewSource).not.toContain("Visual focus lock");
     expect(trainingViewSource).not.toContain("This area no longer repeats");
+  });
+
+  it("compacts the signal markers into a small stat row and hides evidence behind a View evidence reveal", () => {
+    // Signal markers: a compact horizontal row of three small stats (no large cards / per-card eyebrow).
+    expect(trainingViewSource).toContain("mt-6 grid grid-cols-3 gap-2");
+    expect(trainingViewSource).toContain("Benchmark {signal.benchmark");
+    expect(trainingViewSource).not.toContain("Signal marker");
+
+    // Evidence charts: collapsed behind one "View evidence" reveal (not two full-height charts by default).
+    expect(trainingViewSource).toContain(">View evidence<");
+    expect(trainingViewSource).toContain("{insightCharts.length} charts");
+    // Charts are revealed on demand, not deleted.
+    expect(trainingViewSource).toContain("Lesson graph");
+    expect(trainingViewSource).not.toContain("Charts are embedded as part of the lesson storyline");
   });
 
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {

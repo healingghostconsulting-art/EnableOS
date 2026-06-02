@@ -3311,6 +3311,7 @@ export function TrainingExperienceView() {
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -5228,13 +5229,12 @@ export function TrainingExperienceView() {
                                   </div>
                                 ) : null}
                                 {lessonSignalCards.length && trainingWorkspacePage === "checkpoint" ? (
-                                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                                  <div className="mt-6 grid grid-cols-3 gap-2">
                                     {lessonSignalCards.map((signal) => (
-                                      <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-[1.35rem] border border-white/10 bg-white/6 px-4 py-4">
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Signal marker</p>
-                                        <p className="mt-2 text-lg font-semibold text-white">{signal.value}</p>
-                                        <p className="mt-1 text-sm text-slate-300">{signal.label}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cyan-100/75">Benchmark {signal.benchmark ?? "—"}</p>
+                                      <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-xl border border-white/10 bg-white/6 px-3 py-2.5">
+                                        <p className="text-base font-semibold leading-none text-white">{signal.value}</p>
+                                        <p className="mt-1 line-clamp-1 text-[11px] leading-tight text-slate-300">{signal.label}</p>
+                                        <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-cyan-100/70">Benchmark {signal.benchmark ?? "—"}</p>
                                       </div>
                                     ))}
                                   </div>
@@ -5315,16 +5315,17 @@ export function TrainingExperienceView() {
                           </div>
                         ) : null}
                         {insightCharts.length && trainingWorkspacePage === "resources" ? (
-                          <div className="space-y-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-white/10 bg-white/5 px-5 py-4">
+                          <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                            <button type="button" onClick={() => setEvidenceOpen((current) => !current)} aria-expanded={evidenceOpen} className="flex w-full cursor-pointer items-center justify-between gap-3 text-left">
                               <div className="max-w-2xl">
                                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Evidence graphics</p>
-                                <h4 className="mt-2 text-lg font-medium text-white">Charts are embedded as part of the lesson storyline</h4>
-                                <p className="mt-2 text-sm leading-6 text-slate-300">Each graph now sits directly underneath the instructional page so the learner can connect the deck message to measurable behavior, benchmark contrast, and coaching relevance without leaving the course sequence.</p>
+                                <p className="mt-2 text-base font-medium text-white">View evidence</p>
+                                <p className="mt-1 text-sm leading-6 text-slate-300">Open the measurable-behavior and benchmark charts when you want the supporting detail.</p>
                               </div>
-                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} in-platform evidence views</Badge>
-                            </div>
-                            <div className="grid gap-5 2xl:grid-cols-2">
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} charts</Badge>
+                            </button>
+                            {evidenceOpen ? (
+                              <div className="mt-5 grid gap-5 2xl:grid-cols-2">
                               {insightCharts.map((chart) => {
                                 const latestPoint = chart.data[chart.data.length - 1];
                                 const chartType = chart.chartType ?? (chart.data.every((point: any) => !point.benchmark) ? "trend" : "comparison");
@@ -5403,7 +5404,8 @@ export function TrainingExperienceView() {
                                   </div>
                                 );
                               })}
-                            </div>
+                              </div>
+                            ) : null}
                           </div>
                         ) : null}
                       </div>
