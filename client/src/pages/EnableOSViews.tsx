@@ -3242,6 +3242,13 @@ export function ReportingWorkspaceView() {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// OWNERSHIP: The /training player below (TrainingExperienceView) is owned by
+// Claude Code. This repo is the source of truth for the deployed /training view.
+// Manus: do not edit this training view — own backend, coaching, manager, and
+// other non-training areas instead, and pull origin/main before publishing.
+// See CLAUDE.md → "Ownership & boundaries".
+// ──────────────────────────────────────────────────────────────────────────────
 export function TrainingExperienceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
