@@ -10,6 +10,14 @@ Orientation for every future session. Read this first.
   - Investigate before editing; confirm intent on anything ambiguous.
   - Do not do sweeping reformats or "cleanups" of the Manus output unless explicitly asked — they create huge, unreviewable diffs and break the string-matching tests (see Risks).
 
+## Ownership & boundaries (Claude Code vs Manus)
+To stop the two builders from clobbering each other (the cause of an earlier divergence between this repo and the Manus deployment), **one owner per area**:
+- **Training view → Claude Code only.** `TrainingExperienceView` in [client/src/pages/EnableOSViews.tsx](client/src/pages/EnableOSViews.tsx) (the `/training` player) is owned here. **Manus must not modify the training player.**
+- **Manus owns** backend, coaching, manager, and other non-training areas.
+- **When both must touch the repo:** Claude Code works on a **branch** and merges to `main` **deliberately** — never have both tools editing `main` at once.
+- Manus deploys `*.manus.space`; it must **pull `origin/main` before publishing** so it never overwrites the training view. Pushing to GitHub alone does not redeploy the Manus site.
+- Recovery branches (on `origin`): `backup/manus-original` (`b1e9b25`, the Manus training baseline) and `backup/ui-refactor` (`00b25aa`, the UI refactor head).
+
 ## Stack
 - **Framework:** React 19 (SPA), routed client-side with **wouter** 3.x (note: `wouter@3.7.1` is patched via pnpm `patchedDependencies`).
 - **Language/build:** TypeScript 5.9, **Vite 7** (root = `client/`), bundles server with esbuild for prod.
