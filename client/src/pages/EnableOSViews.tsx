@@ -39,6 +39,7 @@ import {
   Clock3,
   Gauge,
   Layers3,
+  Maximize2,
   Mic,
   PauseCircle,
   PlayCircle,
@@ -3319,6 +3320,7 @@ export function TrainingExperienceView() {
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [progressRailCollapsed, setProgressRailCollapsed] = useState(false);
+  const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
@@ -5255,73 +5257,42 @@ export function TrainingExperienceView() {
                                 ) : null}
                               </div>
                               {activeInteractiveVisual && trainingWorkspacePage === "lesson" ? (
-                                <div className="space-y-4">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson slide</p>
-                                      <p className="mt-2 text-sm text-slate-300">The active slide and its detail, with previous and next controls for the guided sequence.</p>
+                                <div className="space-y-3">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">{activeInteractiveVisual.pageLabel} · {activeInteractiveVisual.sourceDeck}</p>
+                                      <p className="mt-1 truncate text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
                                     </div>
-                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
-                                  </div>
-                                  <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] p-4 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:p-6">
-                                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-3">
-                                      <div>
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected slide</p>
-                                        <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel} · {activeInteractiveVisual.title}</p>
-                                        <p className="mt-1 text-xs leading-5 text-slate-400">{activeInteractiveVisual.sourceDeck}</p>
-                                      </div>
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))}
-                                          disabled={activeInteractiveVisualIndex === 0}
-                                          className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                                        >
-                                          Previous slide
-                                        </Button>
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))}
-                                          disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1}
-                                          className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-                                        >
-                                          Next slide
-                                        </Button>
-                                        {activeInteractiveVisual.imageUrl ? (
-                                          <a href={activeInteractiveVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-4 py-2 text-sm font-medium text-[#FCBC34] transition hover:border-[#FCBC34]/50 hover:bg-[#FCBC34]/15 hover:text-white">
-                                            Open full-size slide
-                                          </a>
-                                        ) : (
-                                          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-slate-300">
-                                            Generated lesson visual
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (activeInteractiveVisual.imageUrl) {
-                                          window.open(activeInteractiveVisual.imageUrl, "_blank", "noopener,noreferrer");
-                                        }
-                                      }}
-                                      className="mt-4 block w-full overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/80 text-left transition hover:border-[#FCBC34]/30"
-                                    >
-                                      <div className="overflow-x-auto overflow-y-hidden rounded-[1.35rem] border border-white/6 bg-black/30">
-                                        <div className="flex min-h-[18rem] min-w-full items-center justify-center px-4 py-4 sm:min-h-[24rem] sm:px-6 sm:py-6 lg:min-h-[30rem]">
-                                          <div className="flex h-full min-h-[16rem] w-full min-w-[980px] items-center justify-center rounded-[1rem] shadow-[0_16px_50px_rgba(2,8,23,0.35)] lg:min-w-[1120px]">
-                                            <TrainingVisualFrame visual={activeInteractiveVisual} />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </button>
-                                    <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
-                                      <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
-                                      <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
+                                    <div className="flex shrink-0 items-center gap-2">
+                                      <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} aria-label="Previous slide" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white transition hover:bg-white/12 disabled:opacity-40">
+                                        <ChevronLeft className="h-4 w-4" />
+                                      </button>
+                                      <span className="text-xs font-medium tabular-nums text-slate-300">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</span>
+                                      <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} aria-label="Next slide" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white transition hover:bg-white/12 disabled:opacity-40">
+                                        <ChevronRight className="h-4 w-4" />
+                                      </button>
+                                      <button type="button" onClick={() => setSlideLightboxOpen(true)} className="inline-flex items-center gap-1.5 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-3 py-1.5 text-sm font-medium text-[#FCBC34] transition hover:bg-[#FCBC34]/15 hover:text-white">
+                                        <Maximize2 className="h-3.5 w-3.5" /> Enlarge
+                                      </button>
                                     </div>
                                   </div>
+                                  <button type="button" onClick={() => setSlideLightboxOpen(true)} aria-label="Enlarge slide" className="block w-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/85 shadow-[0_28px_80px_rgba(2,8,23,0.55)] transition hover:border-[#FCBC34]/40">
+                                    <div className="flex aspect-video w-full items-center justify-center bg-black/40 p-2 sm:p-3">
+                                      <TrainingVisualFrame visual={activeInteractiveVisual} />
+                                    </div>
+                                  </button>
+                                  <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                    <p className="text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
+                                  </div>
+                                  {interactiveGalleryVisuals.length > 1 ? (
+                                    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                                      {interactiveGalleryVisuals.map((thumb, index) => (
+                                        <button key={thumb.id} type="button" onClick={() => setSelectedDeckVisualIndex(index)} aria-label={`Go to slide ${index + 1}`} className={`flex aspect-video w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-slate-900 transition ${index === activeInteractiveVisualIndex ? "border-[#FCBC34] ring-1 ring-[#FCBC34]/50" : "border-white/10 opacity-70 hover:opacity-100"}`}>
+                                          {thumb.imageUrl ? <img src={thumb.imageUrl} alt={thumb.title} className="h-full w-full object-cover" /> : <span className="text-[10px] text-slate-400">{index + 1}</span>}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  ) : null}
                                 </div>
                               ) : null}
 
@@ -5881,6 +5852,26 @@ export function TrainingExperienceView() {
             </div>
           </div>
         ) : null}
+
+        <Dialog open={slideLightboxOpen} onOpenChange={setSlideLightboxOpen}>
+          <DialogContent className="max-h-[96vh] border-white/10 bg-slate-950 p-3 text-slate-100 sm:max-w-[min(95vw,1400px)]">
+            <DialogHeader>
+              <DialogTitle className="text-white">{activeInteractiveVisual?.title ?? "Lesson slide"}</DialogTitle>
+              <DialogDescription className="text-slate-400">{activeInteractiveVisual?.pageLabel ?? ""}{activeInteractiveVisual ? ` · ${activeInteractiveVisual.sourceDeck}` : ""} · Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</DialogDescription>
+            </DialogHeader>
+            <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
+              {activeInteractiveVisual ? <TrainingVisualFrame visual={activeInteractiveVisual} /> : null}
+            </div>
+            <DialogFooter className="sm:justify-between">
+              <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm text-white transition hover:bg-white/12 disabled:opacity-40">
+                <ChevronLeft className="h-4 w-4" /> Previous
+              </button>
+              <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm text-white transition hover:bg-white/12 disabled:opacity-40">
+                Next <ChevronRight className="h-4 w-4" />
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={curriculumViewerOpen} onOpenChange={setCurriculumViewerOpen}>
           <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl">

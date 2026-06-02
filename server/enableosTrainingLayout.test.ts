@@ -188,7 +188,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
-    expect(trainingViewSource).toContain("The active slide and its detail, with previous and next controls for the guided sequence.");
+    expect(trainingViewSource).toContain("Speaker and facilitator notes stay out of the learner flow until opened.");
     expect(trainingViewSource).toContain("Transcript");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Keep the storyboard hidden until the learner wants supporting sequence detail.");
@@ -492,6 +492,18 @@ describe("learner training layout helpers", () => {
     expect(trainingContent).toContain("/slides/softskills-08_fd8d5235.png");
   });
 
+  it("makes the slide a dominant hero with a full-screen lightbox and thumbnail strip (S4)", () => {
+    // Large fitted slide (aspect-video, object-contain) — the forced horizontal-scroll frame is gone.
+    expect(trainingViewSource).toContain("flex aspect-video w-full items-center justify-center bg-black/40");
+    expect(trainingViewSource).not.toContain("min-w-[980px]");
+    // Click-to-enlarge full-screen lightbox.
+    expect(trainingViewSource).toContain("const [slideLightboxOpen, setSlideLightboxOpen] = useState(false)");
+    expect(trainingViewSource).toContain("<Dialog open={slideLightboxOpen} onOpenChange={setSlideLightboxOpen}>");
+    expect(trainingViewSource).toContain("setSlideLightboxOpen(true)");
+    // Compact thumbnail strip for quick jumping.
+    expect(trainingViewSource).toContain("Go to slide ${index + 1}");
+  });
+
   it("gates Training Pages content so each tab renders only its own sections", () => {
     // Lesson is the default page on load.
     expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");
@@ -508,7 +520,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("insightCharts.length && trainingWorkspacePage === \"resources\"");
 
     // Gated, not deleted — every section still exists in the source.
-    expect(trainingViewSource).toContain(">Lesson slide<");
+    expect(trainingViewSource).toContain("Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Knowledge check");
     expect(trainingViewSource).toContain("Benchmark {signal.benchmark");
@@ -519,7 +531,7 @@ describe("learner training layout helpers", () => {
 
   it("consolidates the lesson slide into a single viewer with no duplicate slide presentations", () => {
     // One viewer: active slide image + its text, prev/next, and a compact index.
-    expect(trainingViewSource).toContain(">Lesson slide<");
+    expect(trainingViewSource).toContain("setSlideLightboxOpen(true)");
     expect(trainingViewSource).toContain("Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}");
     expect(trainingViewSource).toContain("TrainingVisualFrame visual={activeInteractiveVisual}");
     expect(trainingViewSource).toContain("Previous slide");
