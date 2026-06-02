@@ -479,6 +479,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("border-t border-cyan-300/15 pt-4 lg:grid-cols-3");
   });
 
+  it("wires the real uploaded deck slides into the lesson viewer with graceful fallback (S3)", () => {
+    // Lesson viewer prefers the real deck visuals (served from /slides/) over generated placeholders.
+    expect(trainingViewSource).toContain("const deckGalleryVisuals = trainingVisuals.filter((visual) => visual.visualType === \"deck\" && Boolean(visual.imageUrl))");
+    expect(trainingViewSource).toContain("const interactiveGalleryVisuals = deckGalleryVisuals.length");
+    // Falls back to generated lesson visuals when a module has no converted slides.
+    expect(trainingViewSource).toContain("lessonVisualGallery.length");
+
+    // The per-module slide manifest (deckVisuals) points at locally-served /slides/ images.
+    const trainingContent = readFileSync(join(process.cwd(), "shared/trainingContent.ts"), "utf8");
+    expect(trainingContent).toContain("imageUrl: \"/slides/");
+    expect(trainingContent).toContain("/slides/softskills-08_fd8d5235.png");
+  });
+
   it("gates Training Pages content so each tab renders only its own sections", () => {
     // Lesson is the default page on load.
     expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");

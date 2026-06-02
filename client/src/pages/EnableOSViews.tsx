@@ -4090,11 +4090,17 @@ export function TrainingExperienceView() {
   const lessonVisualGallery = stageVisuals
     .filter((visual, index, collection) => collection.findIndex((candidate) => candidate.id === visual.id) === index)
     .slice(0, 6);
-  const interactiveGalleryVisuals = lessonVisualGallery.length
-    ? lessonVisualGallery
-    : contextualDeckVisual
-      ? [contextualDeckVisual]
-      : [];
+  // Prefer the real uploaded deck slides (per-module manifest in trainingContent.ts,
+  // served from /slides/). Fall back to the generated lesson visuals, then the
+  // contextual deck visual, when a module has no converted slides yet.
+  const deckGalleryVisuals = trainingVisuals.filter((visual) => visual.visualType === "deck" && Boolean(visual.imageUrl));
+  const interactiveGalleryVisuals = deckGalleryVisuals.length
+    ? deckGalleryVisuals
+    : lessonVisualGallery.length
+      ? lessonVisualGallery
+      : contextualDeckVisual
+        ? [contextualDeckVisual]
+        : [];
   const activeInteractiveVisualIndex = interactiveGalleryVisuals.length
     ? Math.min(selectedDeckVisualIndex, interactiveGalleryVisuals.length - 1)
     : 0;
