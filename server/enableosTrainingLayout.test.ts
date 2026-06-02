@@ -423,11 +423,11 @@ describe("learner training layout helpers", () => {
 
   it("places the canvas-dominant lesson grid directly under the status strip with the course-context drawer below it", () => {
     // Three-column grid: left rail | dominant lesson canvas | compact right rail.
-    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
 
     // Order in source: status strip ("Back to learner") -> lesson grid -> course-context drawer.
     const backToLearner = trainingViewSource.indexOf("Back to learner");
-    const grid = trainingViewSource.indexOf("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+    const grid = trainingViewSource.indexOf("xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
     const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
     expect(backToLearner).toBeGreaterThan(-1);
     expect(grid).toBeGreaterThan(backToLearner);
@@ -435,9 +435,9 @@ describe("learner training layout helpers", () => {
   });
 
   it("moves stage and page navigation into a single collapsible left rail with no duplicate in-canvas tab strips", () => {
-    // 3-column grid (left rail | canvas | right rail), rail collapsible 280px <-> 56px.
-    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
-    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]");
+    // 3-column grid (left rail 240px | dominant canvas | right rail 300px), both rails collapsible to ~56px.
+    expect(trainingViewSource).toContain("xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
     expect(trainingViewSource).toContain("const [railCollapsed, setRailCollapsed] = useState(false)");
     expect(trainingViewSource).toContain(">Stages<");
     expect(trainingViewSource).toContain(">Pages<");
@@ -452,6 +452,22 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Training pages");
     expect(trainingViewSource).not.toContain("Switch modes from one compact control or open the mapped curriculum deck.");
     expect(trainingViewSource).not.toContain("shrink-0 rounded-full border px-3 py-2 text-left text-xs transition");
+  });
+
+  it("re-proportions the player so the center canvas dominates and the narrow side band is removed (W2)", () => {
+    // Left rail 240px (15rem), right rail 300px (18.75rem), center canvas takes the remaining width.
+    expect(trainingViewSource).toContain("xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
+    // All four collapse permutations exist (both rails collapsible to ~56px / 3.5rem).
+    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[15rem_minmax(0,1fr)_3.5rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]");
+    // Right Progress rail is now collapsible.
+    expect(trainingViewSource).toContain("const [progressRailCollapsed, setProgressRailCollapsed] = useState(false)");
+    expect(trainingViewSource).toContain("setProgressRailCollapsed");
+    // The player uses the wide Surface variant (no narrow centered container / side band).
+    expect(trainingViewSource).toContain("<Surface wide>");
+    // Prose reading width is capped on the now-wide canvas.
+    expect(trainingViewSource).toContain("max-w-[54rem] break-words text-sm leading-7");
   });
 
   it("gates Training Pages content so each tab renders only its own sections", () => {

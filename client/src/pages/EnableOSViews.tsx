@@ -2008,10 +2008,10 @@ function LoadingState() {
   );
 }
 
-function Surface({ children }: { children: React.ReactNode }) {
+function Surface({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="min-h-screen text-[#1B303C]">
-      <div className="container py-6 sm:py-8 xl:py-10">
+      <div className={`${wide ? "w-full" : "container"} py-6 sm:py-8 xl:py-10`}>
         <div className="mission-shell grid-noise p-2 sm:p-3">
           {children}
         </div>
@@ -3318,6 +3318,7 @@ export function TrainingExperienceView() {
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [progressRailCollapsed, setProgressRailCollapsed] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
@@ -4669,7 +4670,7 @@ export function TrainingExperienceView() {
   };
 
   return (
-    <Surface>
+    <Surface wide>
       <div className="focus-stack">
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
@@ -4693,7 +4694,7 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PremiumCard>
-            <div className={`grid gap-4 xl:items-start ${railCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]" : "xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]"}`}>
+            <div className={`grid gap-4 xl:items-start ${railCollapsed ? (progressRailCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "xl:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
               <aside className="xl:sticky xl:top-6">
                 <PremiumCard className="h-fit">
                   <CardContent className="space-y-4 p-3">
@@ -4879,7 +4880,7 @@ export function TrainingExperienceView() {
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
                                 <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
-                                <p className="mt-3 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
+                                <p className="mt-3 max-w-[54rem] break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
                                 {lessonVisualSequence.length ? (
                                   <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                     <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
@@ -5722,34 +5723,50 @@ export function TrainingExperienceView() {
               </div>
 
               <PremiumCard className="2xl:sticky 2xl:top-6 h-fit">
-                <CardHeader>
-                  <div className="space-y-2">
-                    <CardTitle className="text-white">Progress rail</CardTitle>
-                    <CardDescription className="text-slate-400">Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next</p>
-                    <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
-                  </div>
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Time left</p>
-                    <p className="mt-2 text-sm font-medium text-white">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
-                  </div>
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Score</p>
-                    <p className="mt-2 text-sm font-medium text-white">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
-                  </div>
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Reward</p>
-                    <p className="mt-2 text-sm font-medium text-white">{currentStageItemCountLabel}</p>
-                  </div>
-                  <div className="space-y-2 pt-2">
-                    <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className="w-full rounded-[1rem] bg-white text-slate-950 hover:bg-slate-100">Continue</Button>
-                    <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className="w-full rounded-[1rem] border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
-                  </div>
-                </CardContent>
+                {progressRailCollapsed ? (
+                  <CardContent className="flex flex-col items-center gap-2 p-2">
+                    <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10">
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
+                  </CardContent>
+                ) : (
+                  <>
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-2">
+                          <CardTitle className="text-white">Progress rail</CardTitle>
+                          <CardDescription className="text-slate-400">Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
+                        </div>
+                        <button type="button" onClick={() => setProgressRailCollapsed(true)} aria-label="Collapse progress rail" className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-white/10">
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next</p>
+                        <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
+                      </div>
+                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Time left</p>
+                        <p className="mt-2 text-sm font-medium text-white">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
+                      </div>
+                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Score</p>
+                        <p className="mt-2 text-sm font-medium text-white">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
+                      </div>
+                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Reward</p>
+                        <p className="mt-2 text-sm font-medium text-white">{currentStageItemCountLabel}</p>
+                      </div>
+                      <div className="space-y-2 pt-2">
+                        <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className="w-full rounded-[1rem] bg-white text-slate-950 hover:bg-slate-100">Continue</Button>
+                        <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className="w-full rounded-[1rem] border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
+                      </div>
+                    </CardContent>
+                  </>
+                )}
               </PremiumCard>
             </div>
             <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/40">

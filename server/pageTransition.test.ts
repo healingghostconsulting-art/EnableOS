@@ -31,7 +31,7 @@ describe("sitewide page transition", () => {
   });
 
   it("avoids double-applying the transition inside the page-level Surface wrapper", () => {
-    expect(enableOsViewsSource).toContain("function Surface({ children }: { children: React.ReactNode }) {");
+    expect(enableOsViewsSource).toContain("function Surface({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {");
     expect(enableOsViewsSource).toContain("<div className=\"min-h-screen text-[#1B303C]\">");
     expect(enableOsViewsSource).not.toContain("<div key={location} className=\"route-fade-in min-h-screen text-[#1B303C]\">");
   });
