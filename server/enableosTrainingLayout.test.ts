@@ -169,7 +169,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
-    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
@@ -188,7 +188,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
-    expect(trainingViewSource).toContain("The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it.");
+    expect(trainingViewSource).toContain("The active slide and its detail, with previous and next controls for the guided sequence.");
     expect(trainingViewSource).toContain("Transcript");
     expect(trainingViewSource).toContain("Visual storyboard");
     expect(trainingViewSource).toContain("Keep the storyboard hidden until the learner wants supporting sequence detail.");
@@ -215,26 +215,10 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
-  it("adds an EnableOS guide workspace with navigation and best-practice instruction", () => {
-    expect(trainingViewSource).toContain("EnableOS guide");
-    expect(trainingViewSource).toContain("Navigate EnableOS with one clear workspace at a time.");
-    expect(trainingViewSource).toContain("Quick start");
-    expect(trainingViewSource).toContain("Navigation map");
-    expect(trainingViewSource).toContain("Best practices");
-    expect(trainingViewSource).toContain("Mission Hub should be the first stop for most users");
-    expect(trainingViewSource).toContain("Documentation is the source of truth for saved coaching records");
-    expect(trainingViewSource).toContain("Saved coaching records stay in Documentation after the Coach Studio popup closes.");
-    expect(trainingViewSource).toContain("Use Reporting to compare movement, spot risk, and review trend evidence");
-    expect(trainingViewSource).toContain("Document once, review from Documentation");
-  });
-
-  it("keeps the coach workspace on the full weekly coaching log popup flow while preserving the shared structured composer", () => {
-    expect(trainingViewSource).toContain("Log Coaching");
-    expect(trainingViewSource).toContain("The weekly coaching log now opens as the same full structured form in a focused pop-up");
-    expect(trainingViewSource).toContain("Use the gold <span className=\"font-semibold text-[#FCBC34]\">Log Coaching</span> action to open the full weekly coaching log without leaving Coach Studio.");
-    expect(trainingViewSource).toContain("Open the weekly coaching log in a focused pop-up");
-    expect(trainingViewSource).toContain("Saved coaching records remain available in Documentation.");
-    expect(trainingViewSource).toContain("Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio.");
+  it("keeps the coach workspace on the inline weekly coaching log flow while preserving the shared structured composer", () => {
+    expect(trainingViewSource).toContain("Open weekly coaching log");
+    expect(trainingViewSource).toContain("The weekly coaching log is back in the coaching lane");
+    expect(trainingViewSource).toContain("jump directly to the inline coaching form below");
     expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
     expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
@@ -257,8 +241,6 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Private stays on file for leadership only and does not notify the learner.");
     expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
     expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
-    expect(trainingViewSource).not.toContain("Coach-visible weekly coaching history");
-    expect(trainingViewSource).not.toContain("jump directly to the inline coaching form below");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
@@ -319,7 +301,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Coach control surface");
     expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
     expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
-    expect(trainingViewSource).toContain("Log Coaching");
+    expect(trainingViewSource).toContain("Open weekly coaching log");
     expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
     expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
@@ -335,14 +317,14 @@ describe("learner training layout helpers", () => {
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
-    expect(trainingViewSource).toContain("Training pages");
-    expect(trainingViewSource).toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).toContain(">Pages<");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
     expect(trainingViewSource).toContain("Return to lesson");
     expect(trainingViewSource).toContain("Resources");
-    expect(trainingViewSource).toContain("rounded-full border px-3 py-2 text-left text-xs transition");
+    expect(trainingViewSource).toContain(">Stages<");
     expect(trainingViewSource).toContain("Stage overview");
     expect(trainingViewSource).toContain("setStageIndex(index)");
     expect(trainingViewSource).toContain("trainingWorkspacePage");
@@ -386,11 +368,14 @@ describe("learner training layout helpers", () => {
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = true");
-    expect(trainingViewSource).toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
-    expect(trainingViewSource).toContain("Lesson first.");
+    expect(trainingViewSource).not.toContain("eyebrow={isDirectModuleLaunch ? \"Course Player\" : \"Interactive Training\"}");
+    expect(trainingViewSource).not.toContain("Opens directly on the active lesson.");
+    expect(trainingViewSource).not.toContain("Focused player");
+    expect(trainingViewSource).not.toContain("Lesson first, with compact progress and support controls.");
     expect(trainingViewSource).toContain("Launch setup");
-    expect(trainingViewSource).toContain("Focused player");
-    expect(trainingViewSource).toContain("Lesson first, with compact progress and support controls.");
+    expect(trainingViewSource).toContain("flex h-14 items-center justify-between gap-4 px-4 py-0");
+    expect(trainingViewSource).toContain("Stage {stageIndex + 1} of {stages.length}");
+    expect(trainingViewSource).toContain("{remainingRuntimeMinutes} min left");
     expect(trainingViewSource).toContain("Lesson canvas ·");
     expect(trainingViewSource).toContain("Progress rail");
     expect(trainingViewSource).toContain("Select a response before submitting. Validation now stays inside the EnableOS assessment surface instead of relying on a generic browser prompt.");
@@ -408,6 +393,122 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("enableos-confetti-fall");
     expect(trainingViewSource).toContain("enableos-balloon-float");
     expect(trainingViewSource).toContain("compact");
+  });
+
+  it("collapses launch context, lane setup, and stage overview into a single closed-by-default Course context drawer", () => {
+    // The drawer starts collapsed, so none of the three blocks render on load.
+    expect(trainingViewSource).toContain("const [courseContextOpen, setCourseContextOpen] = useState(false)");
+    expect(trainingViewSource).toContain(">Course context<");
+    expect(trainingViewSource).toContain("Launch context, lane setup, and stage overview");
+    expect(trainingViewSource).toContain("setCourseContextOpen((current) => !current)");
+
+    // The lane / scenario picker still drives the same handlers after the move.
+    expect(trainingViewSource).toContain("onClick={() => setRoleFilter(option.value)}");
+    expect(trainingViewSource).toContain("onClick={() => setPreviewScenarioId(scenario.id)}");
+
+    // The three blocks live inside the drawer body (after the courseContextOpen gate).
+    // The drawer now sits BELOW the lesson grid, so the grid renders directly under
+    // the status strip with no band between them.
+    const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
+    const lessonCanvas = trainingViewSource.indexOf("Lesson canvas ·");
+    const launchContext = trainingViewSource.indexOf("Library launch context");
+    const launchSetup = trainingViewSource.indexOf("<span className=\"text-sm font-medium text-white\">Launch setup</span>");
+    const stageOverview = trainingViewSource.indexOf("Stage overview");
+    expect(drawerGate).toBeGreaterThan(-1);
+    expect(drawerGate).toBeGreaterThan(lessonCanvas);
+    for (const idx of [launchContext, launchSetup, stageOverview]) {
+      expect(idx).toBeGreaterThan(drawerGate);
+    }
+  });
+
+  it("places the canvas-dominant lesson grid directly under the status strip with the course-context drawer below it", () => {
+    // Three-column grid: left rail | dominant lesson canvas | compact right rail.
+    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+
+    // Order in source: status strip ("Back to learner") -> lesson grid -> course-context drawer.
+    const backToLearner = trainingViewSource.indexOf("Back to learner");
+    const grid = trainingViewSource.indexOf("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+    const drawerGate = trainingViewSource.indexOf("{courseContextOpen ? (");
+    expect(backToLearner).toBeGreaterThan(-1);
+    expect(grid).toBeGreaterThan(backToLearner);
+    expect(drawerGate).toBeGreaterThan(grid);
+  });
+
+  it("moves stage and page navigation into a single collapsible left rail with no duplicate in-canvas tab strips", () => {
+    // 3-column grid (left rail | canvas | right rail), rail collapsible 280px <-> 56px.
+    expect(trainingViewSource).toContain("xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]");
+    expect(trainingViewSource).toContain("xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]");
+    expect(trainingViewSource).toContain("const [railCollapsed, setRailCollapsed] = useState(false)");
+    expect(trainingViewSource).toContain(">Stages<");
+    expect(trainingViewSource).toContain(">Pages<");
+
+    // Navigation is still bound to the same state/handlers (highlight uses the same indices).
+    expect(trainingViewSource).toContain("setStageIndex(index)");
+    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
+    expect(trainingViewSource).toContain("const isActiveStage = index === stageIndex");
+    expect(trainingViewSource).toContain("const isActivePage = trainingWorkspacePage === page.key");
+
+    // The old in-canvas tab strips are gone — one navigation source.
+    expect(trainingViewSource).not.toContain("Training pages");
+    expect(trainingViewSource).not.toContain("Switch modes from one compact control or open the mapped curriculum deck.");
+    expect(trainingViewSource).not.toContain("shrink-0 rounded-full border px-3 py-2 text-left text-xs transition");
+  });
+
+  it("gates Training Pages content so each tab renders only its own sections", () => {
+    // Lesson is the default page on load.
+    expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");
+
+    // The lesson content frame renders for lesson/checkpoint/resources, then each section is page-gated.
+    expect(trainingViewSource).toContain("(trainingWorkspacePage === \"lesson\" || trainingWorkspacePage === \"checkpoint\" || trainingWorkspacePage === \"resources\") && currentLessonPage");
+
+    // Checkpoint owns the knowledge check + signal markers.
+    expect(trainingViewSource).toContain("currentSlideInteraction && trainingWorkspacePage === \"checkpoint\"");
+    expect(trainingViewSource).toContain("lessonSignalCards.length && trainingWorkspacePage === \"checkpoint\"");
+    // Lesson owns the interactive slide canvas.
+    expect(trainingViewSource).toContain("activeInteractiveVisual && trainingWorkspacePage === \"lesson\"");
+    // Resources owns the evidence charts (previously ungated — rendered on every tab).
+    expect(trainingViewSource).toContain("insightCharts.length && trainingWorkspacePage === \"resources\"");
+
+    // Gated, not deleted — every section still exists in the source.
+    expect(trainingViewSource).toContain(">Lesson slide<");
+    expect(trainingViewSource).toContain("Visual storyboard");
+    expect(trainingViewSource).toContain("Knowledge check");
+    expect(trainingViewSource).toContain("Benchmark {signal.benchmark");
+    expect(trainingViewSource).toContain("Transcript");
+    expect(trainingViewSource).toContain("Coach notes");
+    expect(trainingViewSource).toContain("Evidence graphics");
+  });
+
+  it("consolidates the lesson slide into a single viewer with no duplicate slide presentations", () => {
+    // One viewer: active slide image + its text, prev/next, and a compact index.
+    expect(trainingViewSource).toContain(">Lesson slide<");
+    expect(trainingViewSource).toContain("Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}");
+    expect(trainingViewSource).toContain("TrainingVisualFrame visual={activeInteractiveVisual}");
+    expect(trainingViewSource).toContain("Previous slide");
+    expect(trainingViewSource).toContain("Next slide");
+    // Prev/next stays bound to the existing slide-index state.
+    expect(trainingViewSource).toContain("setSelectedDeckVisualIndex");
+
+    // The duplicate slide presentations are gone.
+    expect(trainingViewSource).not.toContain("Primary lesson visual");
+    expect(trainingViewSource).not.toContain("Interactive slide canvas");
+    expect(trainingViewSource).not.toContain("Slide reference");
+    expect(trainingViewSource).not.toContain("Visual focus lock");
+    expect(trainingViewSource).not.toContain("This area no longer repeats");
+  });
+
+  it("compacts the signal markers into a small stat row and hides evidence behind a View evidence reveal", () => {
+    // Signal markers: a compact horizontal row of three small stats (no large cards / per-card eyebrow).
+    expect(trainingViewSource).toContain("mt-6 grid grid-cols-3 gap-2");
+    expect(trainingViewSource).toContain("Benchmark {signal.benchmark");
+    expect(trainingViewSource).not.toContain("Signal marker");
+
+    // Evidence charts: collapsed behind one "View evidence" reveal (not two full-height charts by default).
+    expect(trainingViewSource).toContain(">View evidence<");
+    expect(trainingViewSource).toContain("{insightCharts.length} charts");
+    // Charts are revealed on demand, not deleted.
+    expect(trainingViewSource).toContain("Lesson graph");
+    expect(trainingViewSource).not.toContain("Charts are embedded as part of the lesson storyline");
   });
 
   it("keeps exact training-target resolution while the front page shifts to a workspace-selector entry flow", () => {

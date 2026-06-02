@@ -577,17 +577,5 @@
 - [x] Enforce strict role-specific sidebar behavior so a learner never sees non-learner navigation after opening Training Zone or Mission Hub.
 - [x] Trace and fix shared-route role resolution so Training Zone and Mission Hub preserve the originating learner role instead of expanding to broader menu grants.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the strict role-specific navigation repair.
-- [x] Check whether `celiat@thechcg.com` already exists for the requested manager + reporting access; no user record exists yet, so grants cannot be inserted until the first sign-in creates the account and `openId`.
-- [x] Verify the access model for the requested manager + reporting access; workspace access is stored in `tenantAccessGrants` by `userOpenId`, so the safe path is to add `manager` and `executive` grants after first sign-in rather than fabricating a user record.
-- [x] Validate the current access state and required follow-up for `celiat@thechcg.com`; she must sign in once first, then the requested manager + reporting access can be granted against the created account record.
-- [x] Inspect the GitHub repository `healingghostconsulting-art/EnableOS` and compare it with the current CHCG EnableOS project state.
-- [x] Determine the safe connection or sync strategy for the existing GitHub repository and request confirmation before changing the remote if needed.
-- [x] Connect or sync the project with GitHub, then validate the result and report any follow-up steps.
-- [x] Restore the Coach Studio **Log Coaching** action to open a popup window while keeping the current coaching log fields and content instead of fully reverting the experience.
-- [x] Reuse the existing coaching log form inside the popup so the saved data and workflow stay the same.
-- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-log popup restoration.
-- [x] Fix the App.tsx syntax error that is currently breaking the dev server so the coaching-log popup restoration can be validated cleanly.
-- [x] Remove the coaching-history section from the Coach Studio coaching lane now that coaching records are handled in Documentation.
-- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coach-lane coaching-history removal.
-- [x] Add an intro and instruction tab to EnableOS that explains how to navigate the platform and the best practices for using each workspace.
-- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the new EnableOS intro tab.
+- [x] Make the EnableOS Guide available to every role through the role-based navigation and route access rules.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the cross-role Guide access change.

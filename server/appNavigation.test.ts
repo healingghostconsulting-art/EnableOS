@@ -15,7 +15,7 @@ import {
 } from "../client/src/App";
 
 describe("workspace navigation resolution", () => {
-  it("keeps the learner workspace limited to the guide, learner journey, training zone, and content missions", () => {
+  it("keeps the learner workspace focused on the Guide plus learner, training, and content flows", () => {
     expect(learnerWorkspaceMenu.map((item) => item.label)).toEqual([
       "EnableOS Guide",
       "Learner Journey",
@@ -30,7 +30,7 @@ describe("workspace navigation resolution", () => {
     ]);
   });
 
-  it("scopes the coaching workspace to the guide, coach studio, and learner-support flows", () => {
+  it("keeps the coaching workspace aligned to the shared Guide plus coach, learner, training, and library access", () => {
     expect(coachWorkspaceMenu.map((item) => item.path)).toEqual([
       "/guide",
       "/coach",
@@ -40,7 +40,7 @@ describe("workspace navigation resolution", () => {
     ]);
   });
 
-  it("keeps reporting as the executive-facing top-level section while exposing the shared guide across authenticated roles", () => {
+  it("keeps reporting as the executive-facing top-level section while exposing the shared Guide to executive and manager menus", () => {
     expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
       "/mission-hub",
       "/guide",
@@ -72,18 +72,20 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
   });
 
-  it("adds static role context to shared learner menu links so mission hub, training, and library stay learner-scoped", () => {
+  it("adds static role context to shared guide, mission hub, training, and library links so shared routes stay role-scoped", () => {
     expect(buildRoleScopedPath("/mission-hub", "learner")).toBe("/mission-hub?role=learner");
+    expect(buildRoleScopedPath("/guide", "learner")).toBe("/guide?role=learner");
     expect(buildRoleScopedPath("/training", "learner")).toBe("/training?role=learner");
     expect(buildRoleScopedPath("/library", "manager")).toBe("/library?role=manager");
     expect(buildRoleScopedPath("/learner", "learner")).toBe("/learner");
     expect(scopeMenuItemsToRole(learnerWorkspaceMenu, "learner").map((item) => item.path)).toEqual([
-      "/guide",
+      "/guide?role=learner",
       "/learner",
       "/training?role=learner",
       "/library?role=learner",
     ]);
     expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[0]?.path).toBe("/mission-hub?role=manager");
+    expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[1]?.path).toBe("/guide?role=manager");
   });
 
   it("keeps learner and reporting shells path-scoped even when the viewer has broader navigation grants", () => {
@@ -91,6 +93,7 @@ describe("workspace navigation resolution", () => {
     expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/reporting" })).toEqual(executiveWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/guide", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/library", sharedRouteRole: "manager" })).toEqual(managerWorkspaceMenu);
   });
@@ -114,6 +117,7 @@ describe("workspace navigation resolution", () => {
     try {
       expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training" })).toEqual(learnerWorkspaceMenu);
       expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub" })).toEqual(learnerWorkspaceMenu);
+      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/guide" })).toEqual(learnerWorkspaceMenu);
     } finally {
       globalThis.window = previousWindow;
     }
@@ -137,11 +141,11 @@ describe("workspace navigation resolution", () => {
     expect(canAccessWorkspacePath("/reporting", "manager")).toBe(false);
     expect(canAccessWorkspacePath("/reporting", "executive")).toBe(true);
     expect(canAccessWorkspacePath("/admin", "manager")).toBe(true);
+    expect(canAccessWorkspacePath("/guide", "learner")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "coach")).toBe(true);
     expect(canAccessWorkspacePath("/manager", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/admin", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/learner", "learner")).toBe(true);
-    expect(canAccessWorkspacePath("/guide", "learner")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "learner")).toBe(false);
     expect(canAccessWorkspacePath("/chcg-admin", "platform_admin")).toBe(true);
   });

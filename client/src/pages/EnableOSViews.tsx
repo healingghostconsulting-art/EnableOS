@@ -28,11 +28,12 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
-  BookText,
   Bot,
   BrainCircuit,
   Building2,
   CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -809,6 +810,12 @@ const sectionMissionNarratives: Record<string, {
     next: "Keep the current lesson stage dominant and move supporting materials into secondary reveal patterns.",
     reward: "Milestones unlocked",
     guide: "Training should feel cinematic and progressive, with clean stage changes and meaningful completion moments.",
+  },
+  Guide: {
+    focus: "Platform orientation",
+    next: "Start with the role you own, keep supporting workspaces secondary, and use Documentation as the final evidence record.",
+    reward: "Confidence ready",
+    guide: "This shared guide should explain where to click first, what each workspace is for, and how teams hand work off cleanly across EnableOS.",
   },
   Client: {
     focus: "Setup progress",
@@ -2738,6 +2745,250 @@ function InlineAssessmentShell({
   );
 }
 
+export function GuideView() {
+  const access = trpc.demo.viewerAccess.useQuery();
+  const currentRole = access.data?.grant.role ?? "learner";
+  const currentRoleLabel = currentRole === "platform_admin"
+    ? "Platform admin"
+    : currentRole === "client_admin"
+      ? "Client admin"
+      : currentRole === "executive"
+        ? "Executive"
+        : currentRole === "manager"
+          ? "Manager"
+          : currentRole === "coach"
+            ? "Coach"
+            : "Learner";
+  const currentHomeHref = currentRole === "platform_admin"
+    ? "/chcg-admin"
+    : currentRole === "client_admin"
+      ? "/admin"
+      : currentRole === "executive"
+        ? "/reporting"
+        : currentRole === "manager"
+          ? "/manager"
+          : currentRole === "coach"
+            ? "/coach"
+            : "/learner";
+
+  const quickStartSteps = [
+    {
+      title: "Start with your assigned workspace",
+      description: "Open the home workspace tied to your role first, review the current queue or lesson, and only then branch into supporting tools.",
+    },
+    {
+      title: "Use shared spaces with purpose",
+      description: "Mission Hub, the Guide, Training Zone, and Content Missions work best as shared support surfaces, not as substitutes for the role home base.",
+    },
+    {
+      title: "Keep action before documentation",
+      description: "Work the intervention, coaching, or learning step first, then capture the final record in Documentation once the action is complete.",
+    },
+    {
+      title: "Hand off with context",
+      description: "When a workflow moves to another role, pass along the current signal, next action, and expected follow-up so the next person is not starting cold.",
+    },
+  ];
+
+  const workspaceMap = [
+    {
+      title: "Mission Hub",
+      audience: "All roles",
+      href: "/mission-hub",
+      description: "Use the shared launch surface to orient new users, resume cross-role work, and jump into the next workspace without hunting.",
+    },
+    {
+      title: "Reporting Hub",
+      audience: "Executive visibility",
+      href: "/reporting",
+      description: "Review KPI movement, readiness signals, and coaching impact when you need the narrative behind performance change.",
+    },
+    {
+      title: "Manager Ops",
+      audience: "Managers and above",
+      href: "/manager",
+      description: "Work intervention queues, direct-report movement, and accountability follow-through from one action-focused desk.",
+    },
+    {
+      title: "Coach Studio",
+      audience: "Coaches and supervisors",
+      href: "/coach",
+      description: "Run the active coaching session, open the log workflow, and keep coaching evidence connected to the learner journey.",
+    },
+    {
+      title: "Learner Journey",
+      audience: "Every learner path",
+      href: "/learner",
+      description: "Resume assigned re-engagements, complete next-step enablement work, and keep the next required action obvious.",
+    },
+    {
+      title: "Training Zone",
+      audience: "Assigned learning",
+      href: "/training",
+      description: "Open guided lessons, checkpoints, and narrated practice when the user needs a focused learning experience.",
+    },
+    {
+      title: "Content Missions",
+      audience: "Shared resource library",
+      href: "/library",
+      description: "Search, preview, and assign supporting content when a team needs the right asset fast.",
+    },
+    {
+      title: "EnableOS Guide",
+      audience: "All roles",
+      href: "/guide",
+      description: "Return here when onboarding new users, refreshing navigation expectations, or aligning cross-role best practices.",
+    },
+  ];
+
+  const roleGuidance = currentRole === "platform_admin"
+    ? "Use the Guide as the common playbook before you send teams into Client Control, CHCG Command, or role-specific workspaces."
+    : currentRole === "client_admin"
+      ? "Use the Guide to frame tenant setup and then move into Client Control for branding, governance, and access work."
+      : currentRole === "executive"
+        ? "Use the Guide to orient leaders quickly, then move into Reporting Hub when you need proof of movement and intervention impact."
+        : currentRole === "manager"
+          ? "Use the Guide to confirm the handoff model, then work Manager Ops for queues, assignments, and follow-through."
+          : currentRole === "coach"
+            ? "Use the Guide to reinforce how coaching, training, and documentation connect before you open Coach Studio."
+            : "Use the Guide to understand where to begin, then return to Learner Journey and Training Zone for assigned work.";
+
+  const bestPractices = [
+    {
+      title: "Keep the first click simple",
+      description: "Every role should know its home workspace. Use the Guide and Mission Hub for orientation, but do the daily work from the role-owned space.",
+    },
+    {
+      title: "Treat shared pages as bridges",
+      description: "Guide, Training Zone, and Content Missions should support the workflow by adding context, learning, or resources without replacing the operational queue.",
+    },
+    {
+      title: "Capture evidence at the end of the move",
+      description: "Documentation should reflect completed coaching, learning, or intervention outcomes rather than becoming the place where work starts.",
+    },
+    {
+      title: "Use role handoffs intentionally",
+      description: "Managers, coaches, and learners should pass along the current status, expected next step, and open risk so the next view starts with context.",
+    },
+  ];
+
+  return (
+    <SectionShell
+      eyebrow="EnableOS Guide"
+      title="Learn where to start, what each workspace does, and how EnableOS should flow."
+      description="Use this shared guide to orient new users, explain workspace navigation, and reinforce the best-practice rhythm for managers, coaches, learners, and admins."
+      compact={false}
+      actions={(
+        <>
+          <Button asChild className="rounded-full bg-[#1B303C] px-5 text-white hover:bg-[#13242D]">
+            <Link href={currentHomeHref}>Open my workspace</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-full border-[#1B303C]/15 bg-white/80 text-[#1B303C] hover:bg-white">
+            <Link href="/mission-hub">Open Mission Hub</Link>
+          </Button>
+        </>
+      )}
+    >
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
+        <div className="space-y-5">
+          <Tabs defaultValue="quick-start" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/90 p-1.5">
+              <TabsTrigger value="quick-start" className="rounded-[0.95rem]">Quick start</TabsTrigger>
+              <TabsTrigger value="navigation" className="rounded-[0.95rem]">Navigation map</TabsTrigger>
+              <TabsTrigger value="best-practices" className="rounded-[0.95rem]">Best practices</TabsTrigger>
+            </TabsList>
+            <TabsContent value="quick-start" className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {quickStartSteps.map((step, index) => (
+                  <Card key={step.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                    <CardHeader className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1B303C] text-sm font-semibold text-white">0{index + 1}</span>
+                        <CardTitle className="text-lg text-[#1B303C]">{step.title}</CardTitle>
+                      </div>
+                      <CardDescription className="text-sm leading-6 text-[#4A6373]">{step.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="navigation" className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {workspaceMap.map((workspace) => (
+                  <Card key={workspace.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                    <CardHeader className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1.5">
+                          <CardTitle className="text-lg text-[#1B303C]">{workspace.title}</CardTitle>
+                          <CardDescription className="text-sm leading-6 text-[#4A6373]">{workspace.description}</CardDescription>
+                        </div>
+                        <Badge variant="outline" className="rounded-full border-[#1B303C]/12 bg-[#F7F8FA] px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">
+                          {workspace.audience}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between pt-0 text-sm text-[#4A6373]">
+                      <span>{workspace.href}</span>
+                      <ArrowRight className="h-4 w-4 text-[#1B303C]" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="best-practices" className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {bestPractices.map((practice) => (
+                  <Card key={practice.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                    <CardHeader className="space-y-2.5">
+                      <CardTitle className="text-lg text-[#1B303C]">{practice.title}</CardTitle>
+                      <CardDescription className="text-sm leading-6 text-[#4A6373]">{practice.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+        <div className="space-y-5">
+          <Card className="rounded-[1.5rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] text-white shadow-[0_28px_70px_rgba(27,48,60,0.22)]">
+            <CardHeader className="space-y-3">
+              <Badge variant="outline" className="w-fit rounded-full border-white/15 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-white/80">
+                Current role focus
+              </Badge>
+              <CardTitle className="text-2xl">{currentRoleLabel}</CardTitle>
+              <CardDescription className="text-sm leading-6 text-slate-300">{roleGuidance}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[1.2rem] border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Recommended starting point</p>
+                <p className="mt-2 text-base font-semibold text-white">Open your home workspace first, then use shared pages when you need orientation, training, or content support.</p>
+              </div>
+              <div className="space-y-3 rounded-[1.2rem] border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">
+                <div className="flex items-start gap-3">
+                  <Target className="mt-0.5 h-4 w-4 text-white" />
+                  <p>Use the Guide to explain the system once, not as a replacement for role-specific daily work.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Users2 className="mt-0.5 h-4 w-4 text-white" />
+                  <p>Keep manager, coach, learner, and admin handoffs explicit so each workspace opens with context.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-white" />
+                  <p>Route users into the workspaces they are granted while leaving the Guide available as a safe shared orientation page.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Search className="mt-0.5 h-4 w-4 text-white" />
+                  <p>Use Content Missions and Training Zone when the next step requires assets or guided learning, not when the user needs to find their operational queue.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </SectionShell>
+  );
+}
+
 export function LandingView() {
   const landing = trpc.demo.landing.useQuery();
   const viewer = trpc.auth.me.useQuery();
@@ -2916,229 +3167,6 @@ export function LandingView() {
   );
 }
 
-
-export function EnableOSGuideView() {
-  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
-  const homeHref = access.data?.grant.role === "platform_admin"
-    ? "/chcg-admin"
-    : access.data?.grant.role === "client_admin"
-      ? "/admin"
-      : access.data?.grant.role === "executive"
-        ? "/reporting"
-        : access.data?.grant.role === "manager"
-          ? "/manager"
-          : access.data?.grant.role === "coach"
-            ? "/coach"
-            : "/learner";
-
-  const quickStartHighlights = [
-    {
-      title: "Start in the right workspace",
-      description: "Mission Hub should be the first stop for most users, while role-specific side-menu tabs let you jump directly into Coach Studio, Manager Ops, Reporting, or the learner flow when you already know the task.",
-      icon: Layers3,
-    },
-    {
-      title: "Use tabs before scrolling",
-      description: "Each workspace is intentionally broken into focused modes so the user can finish one queue at a time instead of searching through one endless page.",
-      icon: Target,
-    },
-    {
-      title: "Keep records in the right surface",
-      description: "Documentation is the source of truth for saved coaching records, while Coach Studio is the place to log the live interaction and follow-up action.",
-      icon: CheckCircle2,
-    },
-  ];
-
-  const workspaceGuide = [
-    {
-      title: "Mission Hub",
-      cue: "Best starting point",
-      description: "Use it to orient the day, confirm the next priority, and launch into the correct workspace instead of guessing where to begin.",
-      icon: Layers3,
-    },
-    {
-      title: "Reporting Hub",
-      cue: "Pattern review",
-      description: "Use Reporting to compare movement, spot risk, and review trend evidence — not to edit live coaching or manager tasks.",
-      icon: Gauge,
-    },
-    {
-      title: "Manager Ops",
-      cue: "Intervention execution",
-      description: "Use Manager Ops when the work is assignment follow-through, intervention ownership, or team-level coaching accountability.",
-      icon: ShieldCheck,
-    },
-    {
-      title: "Coach Studio",
-      cue: "Live coaching flow",
-      description: "Use Coach Studio to capture the weekly session, review the current learner focus, and move directly into the next action from the coaching lane.",
-      icon: Users2,
-    },
-    {
-      title: "Learner Journey + Training Zone",
-      cue: "Completion momentum",
-      description: "Keep learner-facing work focused on the next assigned action, then open Training Zone only when the learner is ready to complete the lesson itself.",
-      icon: BookOpen,
-    },
-    {
-      title: "Content Missions + Client Control",
-      cue: "Supporting systems",
-      description: "Use the library to browse and assign content, and use Client Control for configuration, access, branding, and governance changes.",
-      icon: Building2,
-    },
-  ];
-
-  const bestPractices = [
-    {
-      title: "Follow the summary-to-detail pattern",
-      description: "Start with the queue or summary card, then open the detailed panel only for the item that needs action. This keeps the workspace calm and makes handoffs easier.",
-      icon: Search,
-    },
-    {
-      title: "Separate analysis from execution",
-      description: "Use Reporting for comparison and pattern recognition, then switch to Manager Ops or Coach Studio when a learner or team needs a concrete next step.",
-      icon: Gauge,
-    },
-    {
-      title: "Document once, review from Documentation",
-      description: "After a coaching log is saved, return to Documentation for the permanent record rather than duplicating history inside every active work lane.",
-      icon: BookText,
-    },
-    {
-      title: "Keep alerts actionable",
-      description: "Treat alerts as a queue for what needs attention now. Once you open the case, complete the work in the appropriate workspace instead of staying inside alert review.",
-      icon: Bell,
-    },
-  ];
-
-  return (
-    <SectionShell
-      eyebrow="EnableOS guide"
-      title="Navigate EnableOS with one clear workspace at a time."
-      description="Learn where to start, how to move between workspaces, and which best practices keep the experience focused and easy to operate."
-      actions={access.data ? (
-        <Link href={homeHref}>
-          <Button className="h-11 rounded-full bg-[#1B303C] px-5 text-white hover:bg-[#243f4d]">
-            Open my assigned workspace
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      ) : null}
-      compact={false}
-    >
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(320px,0.96fr)]">
-        <div className="grid gap-4 md:grid-cols-3">
-          {quickStartHighlights.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Card key={item.title} className="border-[#1B303C]/10 bg-white/92 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-                <CardHeader className="space-y-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.12)]">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <CardTitle className="text-[#1B303C]">{item.title}</CardTitle>
-                  <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          })}
-        </div>
-        <div className="guide-card px-5 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">How to use this page</p>
-          <h2 className="mt-3 text-[1.35rem] font-semibold tracking-tight text-[#1B303C]">Use the guide as a quick operating brief before moving into the live workspace.</h2>
-          <p className="mt-3 text-sm leading-6 text-[#4A6373]">
-            The goal is simple: pick the right workspace first, use the internal tabs to narrow the task, and keep the saved record in the surface designed for long-term review.
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="trophy-card px-4 py-3.5">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Best starting point</p>
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">Mission Hub for orientation, then the role-specific workspace for execution.</p>
-            </div>
-            <div className="trophy-card px-4 py-3.5">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Record discipline</p>
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">Saved coaching records stay in Documentation after the Coach Studio popup closes.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <Tabs defaultValue="quick-start" className="mt-6">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Instruction tabs</p>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#4A6373]">Move through the guide the same way EnableOS expects you to move through the product: start with the broad frame, then narrow into the exact task.</p>
-          </div>
-          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-[#1B303C]/10 bg-white/85 p-2 shadow-[0_12px_24px_rgba(15,23,42,0.06)] xl:w-auto">
-            <TabsTrigger value="quick-start" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Quick start</TabsTrigger>
-            <TabsTrigger value="navigation-map" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Navigation map</TabsTrigger>
-            <TabsTrigger value="best-practices" className="rounded-full px-4 py-2 text-[#4A6373] data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Best practices</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="quick-start" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              "Open Mission Hub or your assigned home first so the product can frame the next priority before you jump into detailed work.",
-              "Use the workspace tabs and lane switches before searching through the full page, because most workflows are intentionally split by task type.",
-              "Finish the active action, save the record, and then review the long-term evidence in Documentation instead of keeping duplicate history panels open everywhere.",
-            ].map((step, index) => (
-              <Card key={step} className="border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.92))] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-                <CardHeader>
-                  <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em]">Step {index + 1}</Badge>
-                  <CardDescription className="pt-2 text-sm leading-6 text-[#4A6373]">{step}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="navigation-map" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {workspaceGuide.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <Card key={item.title} className="border-[#1B303C]/10 bg-white/92 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.12)]">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <Badge className="rounded-full border-[#1B303C]/10 bg-white text-[#4A6373]">{item.cue}</Badge>
-                    </div>
-                    <CardTitle className="pt-3 text-[#1B303C]">{item.title}</CardTitle>
-                    <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="best-practices" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {bestPractices.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <Card key={item.title} className="border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.92))] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-                  <CardHeader>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FCBC34] text-[#1B303C] shadow-[0_16px_30px_rgba(252,188,52,0.18)]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <CardTitle className="pt-3 text-[#1B303C]">{item.title}</CardTitle>
-                    <CardDescription className="text-sm leading-6 text-[#4A6373]">{item.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </SectionShell>
-  );
-}
 
 export function MissionHubView() {
   const viewerAccess = trpc.demo.viewerAccess.useQuery();
@@ -3531,6 +3559,9 @@ export function TrainingExperienceView() {
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
+  const [courseContextOpen, setCourseContextOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -4882,130 +4913,114 @@ export function TrainingExperienceView() {
 
   return (
     <Surface>
-      <SectionShell
-        eyebrow={isDirectModuleLaunch ? "Course Player" : "Interactive Training"}
-        title={selectedModule?.title ?? "Training player"}
-        description={isDirectModuleLaunch ? "Opens directly on the active lesson." : "Lesson first."}
-        compact
-        actions={
-          <>
-            {access.data ? (
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-                {access.data.tenant.name}
-              </Badge>
-            ) : null}
-            <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })}>
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                Back to learner
-              </Button>
-            </Link>
-          </>
-        }
-      >
+      <div className="focus-stack">
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-4">
-            {launchedAsset ? (
-              <PremiumCard>
-                <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
-                  </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
-                    <p className="font-medium text-white">Source label</p>
-                    <p className="mt-1">{launchedAsset.sourceLabel}</p>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
-            {!isDirectModuleLaunch ? (
-              <PremiumCard className="overflow-hidden">
-                <CardContent className="px-5 py-4">
-                  <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-3.5 py-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
-                        {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{requestedRoleLabel}</Badge> : null}
-                        {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Unlock · {recentUnlockMoment.title}</Badge> : null}
-                        <span className="text-sm font-medium text-white">Launch setup</span>
-                        <span className="text-xs text-slate-300">{canBrowseAllTrainingFamilies ? "Switch lane only if needed." : `Scoped to ${effectiveTrainingRoleLabel.toLowerCase()}.`}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full border-white/10 bg-slate-950/60 text-white hover:bg-white/10 hover:text-white"
-                        onClick={() => setLaunchSetupOpen((current) => !current)}
-                      >
-                        {launchSetupOpen ? "Hide options" : "Switch lane"}
-                      </Button>
-                    </div>
-                    {launchSetupOpen ? (
-                      <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
-                        <div className="flex flex-wrap gap-2">
-                          {availableTrainingRoleFilterOptions.map((option) => (
-                            <Button
-                              key={`training-role-filter-${option.value}`}
-                              type="button"
-                              variant="outline"
-                              onClick={() => setRoleFilter(option.value)}
-                              className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
-                            >
-                              {option.label}
-                            </Button>
-                          ))}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {previewScenarios.map((scenario) => (
-                            <button
-                              key={scenario.id}
-                              type="button"
-                              onClick={() => setPreviewScenarioId(scenario.id)}
-                              className={`rounded-full border px-3 py-2 text-left text-sm transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 text-white shadow-[0_10px_22px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10"}`}
-                            >
-                              <span className="font-medium">{scenario.label}</span>
-                              <span className="ml-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{scenario.eyebrow}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-xs leading-5 text-slate-400">The active preview only changes the lesson lane and supporting context. The learner still lands directly inside the player.</p>
-                      </div>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
             <PremiumCard className="overflow-hidden">
-              <CardContent className="px-4 py-4">
-                <div className="rounded-[1.55rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.14),rgba(15,23,42,0.92))] px-4 py-4 shadow-[0_18px_45px_rgba(8,15,35,0.2)]">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Focused player</Badge>
-                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedModuleFormatLabel}</Badge>
-                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Stage {stageIndex + 1} of {stages.length}</Badge>
-                        {featuredDeckVisual ? <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{featuredDeckVisual.pageLabel}</Badge> : null}
-                      </div>
-                      <h2 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">{selectedModuleTitle}</h2>
-                      <p className="mt-2 text-sm leading-6 text-slate-200">Lesson first, with compact progress and support controls.</p>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{courseStatusLabel}</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{currentStagePages.length > 0 ? `${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{remainingRuntimeMinutes} min left</div>
-                      <div className="rounded-full border border-white/10 bg-slate-950/55 px-3 py-2 text-sm text-white">{overallProgress}% complete</div>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <Progress value={overallProgress} className="h-2 bg-white/8" />
-                  </div>
+              <CardContent className="flex h-14 items-center justify-between gap-4 px-4 py-0">
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{selectedModuleTitle}</p>
+                <div className="hidden shrink-0 items-center gap-2 text-xs font-medium text-slate-300 md:flex">
+                  <span>Stage {stageIndex + 1} of {stages.length}</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{currentStagePages.length > 0 ? `Slide ${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{overallProgress}%</span>
+                  <span className="text-slate-600">·</span>
+                  <span>{remainingRuntimeMinutes} min left</span>
                 </div>
+                <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })} className="shrink-0">
+                  <Button variant="outline" size="sm" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                    Back to learner
+                  </Button>
+                </Link>
               </CardContent>
             </PremiumCard>
-
-            <div className="grid gap-4">
+            <div className={`grid gap-4 xl:items-start ${railCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_20rem]" : "xl:grid-cols-[17.5rem_minmax(0,1fr)_20rem]"}`}>
+              <aside className="xl:sticky xl:top-6">
+                <PremiumCard className="h-fit">
+                  <CardContent className="space-y-4 p-3">
+                    <button
+                      type="button"
+                      onClick={() => setRailCollapsed((current) => !current)}
+                      aria-expanded={!railCollapsed}
+                      aria-label={railCollapsed ? "Expand navigation rail" : "Collapse navigation rail"}
+                      className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-slate-300 transition hover:bg-white/5"
+                    >
+                      {!railCollapsed ? <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Navigation</span> : null}
+                      <ChevronLeft className={`h-4 w-4 shrink-0 transition-transform ${railCollapsed ? "rotate-180" : ""}`} />
+                    </button>
+                    <div className="space-y-1.5">
+                      {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Stages</p> : null}
+                      {stages.map((stage, index) => {
+                        const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
+                        const isActiveStage = index === stageIndex;
+                        return (
+                          <button
+                            key={stage.id}
+                            type="button"
+                            title={stage.label}
+                            onClick={() => {
+                              setStageIndex(index);
+                              setLessonPageIndex(0);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActiveStage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                          >
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActiveStage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{index + 1}</span>
+                            {!railCollapsed ? (
+                              <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
+                                <span className="truncate">{stage.label}</span>
+                                {stagePlan ? <span className={`shrink-0 text-[10px] uppercase tracking-[0.14em] ${isActiveStage ? "text-slate-600" : "text-cyan-100/70"}`}>{stagePlan.durationLabel}</span> : null}
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {currentStagePages.length > 0 ? (
+                      <div className="space-y-1.5 border-t border-white/10 pt-3">
+                        {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Pages</p> : null}
+                        {([
+                          { key: "brief", label: "Overview" },
+                          { key: "lesson", label: "Lesson" },
+                          { key: "checkpoint", label: "Checkpoint" },
+                          { key: "resources", label: "Resources" },
+                        ] as const).map((page) => {
+                          const isActivePage = trainingWorkspacePage === page.key;
+                          return (
+                            <button
+                              key={page.key}
+                              type="button"
+                              title={page.label}
+                              onClick={() => setTrainingWorkspacePage(page.key)}
+                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActivePage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                            >
+                              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{page.label[0]}</span>
+                              {!railCollapsed ? <span className="truncate">{page.label}</span> : null}
+                            </button>
+                          );
+                        })}
+                        {curriculumDeck.length ? (
+                          <button
+                            type="button"
+                            title="Curriculum"
+                            onClick={openCurriculumViewer}
+                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs text-slate-200 transition hover:bg-white/10"
+                          >
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-slate-300"><BookOpen className="h-3.5 w-3.5" /></span>
+                            {!railCollapsed ? (
+                              <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
+                                <span className="truncate">Curriculum</span>
+                                <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-slate-500">{curriculumDeck.length}</span>
+                              </span>
+                            ) : null}
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </PremiumCard>
+              </aside>
               <div className="space-y-6">
                 <PremiumCard>
                   <CardHeader className="pb-3">
@@ -5018,70 +5033,9 @@ export function TrainingExperienceView() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 pt-0">
-                    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                      {stages.map((stage, index) => {
-                        const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
-                        const isActiveStage = index === stageIndex;
-                        return (
-                          <button
-                            key={stage.id}
-                            type="button"
-                            onClick={() => {
-                              setStageIndex(index);
-                              setLessonPageIndex(0);
-                            }}
-                            className={`shrink-0 rounded-full border px-3 py-2 text-left text-xs transition ${isActiveStage ? "border-white/70 bg-white text-slate-950 shadow-[0_14px_30px_rgba(255,255,255,0.16)]" : "border-white/12 bg-white/8 text-slate-200 hover:bg-white/12"}`}
-                          >
-                            <div className="flex items-center gap-1.5 whitespace-nowrap">
-                              <span className="font-medium">{stage.label}</span>
-                              <span className={`text-[11px] ${isActiveStage ? "text-slate-600" : "text-slate-400"}`}>{index + 1}</span>
-                              {stagePlan ? <span className={`text-[10px] uppercase tracking-[0.16em] ${isActiveStage ? "text-slate-700" : "text-cyan-100/80"}`}>{stagePlan.durationLabel}</span> : null}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {currentStage ? (
-                      <div className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Stage overview</p>
-                        <h4 className="mt-2 text-lg font-semibold text-white">{currentStage.title}</h4>
-                        <p className="mt-2 text-sm leading-6 text-slate-200">{currentStage.body}</p>
-                        <div className="mt-4 grid gap-3 md:grid-cols-3">
-                          {(stageActivities[currentStage.id] ?? []).map((activity) => (
-                            <div key={activity} className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-3 py-3 text-sm leading-6 text-slate-100">
-                              {activity}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-4">
                         <div className="command-band px-4 py-3 md:px-5">
-                          <div className="flex flex-col gap-2 border-b border-[#1B303C]/10 pb-3 lg:flex-row lg:items-center lg:justify-between">
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Training pages</p>
-                              <p className="mt-1 text-xs leading-5 text-[#4A6373]">Switch modes from one compact control or open the mapped curriculum deck.</p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-[#1B303C]/10 bg-white/85 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("brief")} className={trainingWorkspacePage === "brief" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Overview</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("lesson")} className={trainingWorkspacePage === "lesson" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Lesson</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("checkpoint")} className={trainingWorkspacePage === "checkpoint" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Checkpoint</Button>
-                                  <Button type="button" variant="ghost" onClick={() => setTrainingWorkspacePage("resources")} className={trainingWorkspacePage === "resources" ? "h-8 rounded-full bg-[#1B303C] px-3 text-xs font-medium text-white hover:bg-[#243f4d] hover:text-white" : "h-8 rounded-full px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Resources</Button>
-                                </div>
-                              </div>
-                              {curriculumDeck.length ? (
-                                <Button type="button" variant="outline" onClick={openCurriculumViewer} className="h-8 rounded-full border-[#1B303C]/12 bg-white px-3 text-xs font-medium text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]">
-                                  <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                                  Curriculum
-                                  <span className="ml-1.5 text-[10px] uppercase tracking-[0.16em] text-[#6B7E8A]">{curriculumDeck.length} slides</span>
-                                </Button>
-                              ) : null}
-                            </div>
-                          </div>
                           <div className={trainingWorkspacePage === "brief" ? "mt-3 grid gap-3 xl:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] xl:items-start" : "mt-4 hidden"}>
                             <div className="space-y-3">
                               <div className="context-rail-card px-4 py-4">
@@ -5157,47 +5111,56 @@ export function TrainingExperienceView() {
                             </Button>
                           </div>
                         </div>
-                        {trainingWorkspacePage === "lesson" && currentLessonPage ? (
+                        {(trainingWorkspacePage === "lesson" || trainingWorkspacePage === "checkpoint" || trainingWorkspacePage === "resources") && currentLessonPage ? (
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
                             <div className="space-y-6">
                               <div>
+                                {trainingWorkspacePage === "lesson" ? (
+                                <>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
                                 <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-3 max-w-none break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
-                                <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-                                  {featuredDeckVisual ? (
-                                    <div className="overflow-hidden rounded-[1.7rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(2,6,23,0.94))] shadow-[0_24px_70px_rgba(8,15,35,0.28)]">
-                                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
-                                        <div>
-                                          <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/75">Primary lesson visual</p>
-                                          <p className="mt-1 text-sm text-slate-300">{featuredDeckVisual.pageLabel} · {featuredDeckVisual.sourceDeck}</p>
+                                {lessonVisualSequence.length ? (
+                                  <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
+                                      <div>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Visual storyboard</p>
+                                        <p className="mt-2 text-sm text-slate-200">Keep the storyboard hidden until the learner wants supporting sequence detail.</p>
+                                      </div>
+                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
+                                    </summary>
+                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 lg:grid-cols-3">
+                                      {lessonVisualSequence.map((item, index) => (
+                                        <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                                          <div className="flex items-center justify-between gap-3">
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
+                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
+                                          </div>
+                                          <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
+                                          <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
                                         </div>
-                                        <Badge variant="outline" className="rounded-full border-white/10 bg-white/8 text-slate-100">Canvas media</Badge>
-                                      </div>
-                                      <div className="bg-slate-950/90 p-4 sm:p-5">
-                                        <div className="flex min-h-[18rem] items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/8 bg-slate-950/80 px-4 py-4 sm:min-h-[22rem] lg:min-h-[24rem]">
-                                          <TrainingVisualFrame visual={featuredDeckVisual} />
-                                        </div>
+                                      ))}
+                                    </div>
+                                  </details>
+                                ) : null}
+                                  <div className="mt-6 grid gap-4 xl:grid-cols-2">
+
+                                  {currentLessonPage.bullets.map((bullet) => (
+                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)] xl:min-h-[9rem]">
+                                      <div className="flex items-start gap-3">
+                                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
+                                        <span>{bullet}</span>
                                       </div>
                                     </div>
-                                  ) : (
-                                    <div className="rounded-[1.7rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson canvas</p>
-                                      <h4 className="mt-2 text-lg font-medium text-white">The active page is guiding the learner without a secondary visual wall.</h4>
-                                      <p className="mt-3 text-sm leading-6 text-slate-300">When a mapped deck visual is available, it appears here as the dominant lesson media above the fold.</p>
-                                    </div>
-                                  )}
-                                  <div className="space-y-4">
-                                    <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/70 p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{currentStage?.label ?? "Lesson"}</Badge>
-                                        {featuredDeckVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{featuredDeckVisual.title}</Badge> : null}
-                                      </div>
-                                      <p className="mt-4 text-sm leading-6 text-slate-300">{featuredDeckVisual?.caption ?? "The player keeps the lesson frame dominant and leaves supporting material closed until the learner asks for it."}</p>
-                                    </div>
+                                  ))}
+                                </div>
+                                </>
+                                ) : null}
+                                {trainingWorkspacePage === "resources" ? (
+                                  <div className="mt-6 space-y-4">
                                     <details className="group rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
                                       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                                         <div>
@@ -5251,43 +5214,18 @@ export function TrainingExperienceView() {
                                         </div>
                                       </details>
                                     ) : null}
+                                    {curriculumDeck.length ? (
+                                      <button type="button" onClick={openCurriculumViewer} className="flex w-full items-center justify-between gap-3 rounded-[1.5rem] border border-[#FCBC34]/25 bg-[#FCBC34]/10 px-5 py-4 text-left text-white transition hover:bg-[#FCBC34]/15">
+                                        <span>
+                                          <span className="text-xs uppercase tracking-[0.22em] text-[#FCBC34]">Curriculum</span>
+                                          <span className="mt-1 block text-sm text-slate-200">Open the mapped slide deck for this module · {curriculumDeck.length} slides</span>
+                                        </span>
+                                        <BookOpen className="h-5 w-5 shrink-0 text-[#FCBC34]" />
+                                      </button>
+                                    ) : null}
                                   </div>
-                                </div>
-                                {lessonVisualSequence.length ? (
-                                  <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
-                                      <div>
-                                        <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Visual storyboard</p>
-                                        <p className="mt-2 text-sm text-slate-200">Keep the storyboard hidden until the learner wants supporting sequence detail.</p>
-                                      </div>
-                                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
-                                    </summary>
-                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 lg:grid-cols-3">
-                                      {lessonVisualSequence.map((item, index) => (
-                                        <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
-                                          <div className="flex items-center justify-between gap-3">
-                                            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
-                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
-                                          </div>
-                                          <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
-                                          <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </details>
                                 ) : null}
-                                  <div className="mt-6 grid gap-4 xl:grid-cols-2">
-
-                                  {currentLessonPage.bullets.map((bullet) => (
-                                    <div key={bullet} className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 text-sm leading-7 text-slate-200 shadow-[0_18px_45px_rgba(2,8,23,0.18)] xl:min-h-[9rem]">
-                                      <div className="flex items-start gap-3">
-                                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-cyan-300" />
-                                        <span>{bullet}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                {currentSlideInteraction ? (
+                                {currentSlideInteraction && trainingWorkspacePage === "checkpoint" ? (
                                   <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)] sm:p-6">
                                     <div className="gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
                                       <div className="min-w-0">
@@ -5540,27 +5478,26 @@ export function TrainingExperienceView() {
                                     )}
                                   </div>
                                 ) : null}
-                                {lessonSignalCards.length ? (
-                                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                                {lessonSignalCards.length && trainingWorkspacePage === "checkpoint" ? (
+                                  <div className="mt-6 grid grid-cols-3 gap-2">
                                     {lessonSignalCards.map((signal) => (
-                                      <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-[1.35rem] border border-white/10 bg-white/6 px-4 py-4">
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Signal marker</p>
-                                        <p className="mt-2 text-lg font-semibold text-white">{signal.value}</p>
-                                        <p className="mt-1 text-sm text-slate-300">{signal.label}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cyan-100/75">Benchmark {signal.benchmark ?? "—"}</p>
+                                      <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-xl border border-white/10 bg-white/6 px-3 py-2.5">
+                                        <p className="text-base font-semibold leading-none text-white">{signal.value}</p>
+                                        <p className="mt-1 line-clamp-1 text-[11px] leading-tight text-slate-300">{signal.label}</p>
+                                        <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-cyan-100/70">Benchmark {signal.benchmark ?? "—"}</p>
                                       </div>
                                     ))}
                                   </div>
                                 ) : null}
                               </div>
-                              {activeInteractiveVisual ? (
+                              {activeInteractiveVisual && trainingWorkspacePage === "lesson" ? (
                                 <div className="space-y-4">
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Interactive slide canvas</p>
-                                      <p className="mt-2 text-sm text-slate-300">Use the active lesson surface or the previous and next controls to keep the canvas aligned to the current learning moment. The duplicate slide-tile list has been removed so the learner stays in one guided flow.</p>
+                                      <p className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">Lesson slide</p>
+                                      <p className="mt-2 text-sm text-slate-300">The active slide and its detail, with previous and next controls for the guided sequence.</p>
                                     </div>
-                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{interactiveGalleryVisuals.length || 1} guided visuals</Badge>
+                                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
                                   </div>
                                   <div className="rounded-[1.85rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),rgba(2,6,23,0.88))] p-4 shadow-[0_28px_80px_rgba(15,23,42,0.42)] sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-3">
@@ -5616,64 +5553,29 @@ export function TrainingExperienceView() {
                                         </div>
                                       </div>
                                     </button>
-                                    <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
-                                      <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide reference</p>
-                                        <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
-                                        <p className="mt-1 text-xs leading-5 text-slate-400">{activeInteractiveVisual.sourceDeck}</p>
-                                      </div>
-                                      <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
-                                        <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
-                                        <p className="mt-3 text-xs uppercase tracking-[0.22em] text-cyan-100/75">Use the active lesson surface and the previous or next controls above to move the active visual. Open the full-size slide when you want a separate reading view.</p>
-                                      </div>
+                                    <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+                                      <p className="text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
+                                      <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisual.caption}</p>
                                     </div>
                                   </div>
-                                  {interactiveGalleryVisuals.length ? (
-                                    <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
-                                      <div className="flex flex-wrap items-start justify-between gap-3">
-                                        <div className="max-w-2xl">
-                                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Visual focus lock</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">This area no longer repeats the full learn and practice list as slide tiles. The active lesson surface is the main navigator, while this companion card simply confirms where the learner is in the visual sequence.</p>
-                                        </div>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</Badge>
-                                      </div>
-                                      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Previous context</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.pageLabel : "Start of sequence"}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex > 0 ? interactiveGalleryVisuals[activeInteractiveVisualIndex - 1]?.title : "The learner is on the first guided visual in this section."}</p>
-                                        </div>
-                                        <div className="rounded-[1.15rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/75">Current visual focus</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisual.pageLabel}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-100">{activeInteractiveVisual.title}</p>
-                                        </div>
-                                        <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-4">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next context</p>
-                                          <p className="mt-2 text-sm font-medium text-white">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.pageLabel : "End of sequence"}</p>
-                                          <p className="mt-2 text-sm leading-6 text-slate-300">{activeInteractiveVisualIndex < interactiveGalleryVisuals.length - 1 ? interactiveGalleryVisuals[activeInteractiveVisualIndex + 1]?.title : "Advance the brief flow to move into the next learning section."}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : null}
                                 </div>
                               ) : null}
 
                             </div>
                           </div>
                         ) : null}
-                        {insightCharts.length ? (
-                          <div className="space-y-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-white/10 bg-white/5 px-5 py-4">
+                        {insightCharts.length && trainingWorkspacePage === "resources" ? (
+                          <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
+                            <button type="button" onClick={() => setEvidenceOpen((current) => !current)} aria-expanded={evidenceOpen} className="flex w-full cursor-pointer items-center justify-between gap-3 text-left">
                               <div className="max-w-2xl">
                                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Evidence graphics</p>
-                                <h4 className="mt-2 text-lg font-medium text-white">Charts are embedded as part of the lesson storyline</h4>
-                                <p className="mt-2 text-sm leading-6 text-slate-300">Each graph now sits directly underneath the instructional page so the learner can connect the deck message to measurable behavior, benchmark contrast, and coaching relevance without leaving the course sequence.</p>
+                                <p className="mt-2 text-base font-medium text-white">View evidence</p>
+                                <p className="mt-1 text-sm leading-6 text-slate-300">Open the measurable-behavior and benchmark charts when you want the supporting detail.</p>
                               </div>
-                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} in-platform evidence views</Badge>
-                            </div>
-                            <div className="grid gap-5 2xl:grid-cols-2">
+                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{insightCharts.length} charts</Badge>
+                            </button>
+                            {evidenceOpen ? (
+                              <div className="mt-5 grid gap-5 2xl:grid-cols-2">
                               {insightCharts.map((chart) => {
                                 const latestPoint = chart.data[chart.data.length - 1];
                                 const chartType = chart.chartType ?? (chart.data.every((point: any) => !point.benchmark) ? "trend" : "comparison");
@@ -5752,7 +5654,8 @@ export function TrainingExperienceView() {
                                   </div>
                                 );
                               })}
-                            </div>
+                              </div>
+                            ) : null}
                           </div>
                         ) : null}
                       </div>
@@ -6092,6 +5995,110 @@ export function TrainingExperienceView() {
                 </CardContent>
               </PremiumCard>
             </div>
+            <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/40">
+              <button
+                type="button"
+                onClick={() => setCourseContextOpen((current) => !current)}
+                aria-expanded={courseContextOpen}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              >
+                <span className="min-w-0">
+                  <span className="text-sm font-medium text-white">Course context</span>
+                  <span className="ml-2 text-xs text-slate-400">Launch context, lane setup, and stage overview</span>
+                </span>
+                <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${courseContextOpen ? "rotate-180" : ""}`} />
+              </button>
+              {courseContextOpen ? (
+                <div className="space-y-4 border-t border-white/10 px-4 py-4">
+                  {launchedAsset ? (
+                    <PremiumCard>
+                      <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
+                          <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
+                          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
+                        </div>
+                        <div className="rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 text-sm text-slate-300">
+                          <p className="font-medium text-white">Source label</p>
+                          <p className="mt-1">{launchedAsset.sourceLabel}</p>
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
+                  ) : null}
+                  {!isDirectModuleLaunch ? (
+                    <PremiumCard className="overflow-hidden">
+                      <CardContent className="px-5 py-4">
+                        <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-3.5 py-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{activePreview?.eyebrow ?? "Training preview"}</Badge>
+                              {requestedRoleLabel ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{requestedRoleLabel}</Badge> : null}
+                              {recentUnlockMoment ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Unlock · {recentUnlockMoment.title}</Badge> : null}
+                              <span className="text-sm font-medium text-white">Launch setup</span>
+                              <span className="text-xs text-slate-300">{canBrowseAllTrainingFamilies ? "Switch lane only if needed." : `Scoped to ${effectiveTrainingRoleLabel.toLowerCase()}.`}</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full border-white/10 bg-slate-950/60 text-white hover:bg-white/10 hover:text-white"
+                              onClick={() => setLaunchSetupOpen((current) => !current)}
+                            >
+                              {launchSetupOpen ? "Hide options" : "Switch lane"}
+                            </Button>
+                          </div>
+                          {launchSetupOpen ? (
+                            <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+                              <div className="flex flex-wrap gap-2">
+                                {availableTrainingRoleFilterOptions.map((option) => (
+                                  <Button
+                                    key={`training-role-filter-${option.value}`}
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setRoleFilter(option.value)}
+                                    className={`rounded-full border-white/10 ${effectiveTrainingRoleFilter === option.value ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-white/6 text-white hover:bg-white/10 hover:text-white"}`}
+                                  >
+                                    {option.label}
+                                  </Button>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {previewScenarios.map((scenario) => (
+                                  <button
+                                    key={scenario.id}
+                                    type="button"
+                                    onClick={() => setPreviewScenarioId(scenario.id)}
+                                    className={`rounded-full border px-3 py-2 text-left text-sm transition ${previewScenarioId === scenario.id ? "border-cyan-400/35 bg-cyan-400/12 text-white shadow-[0_10px_22px_rgba(34,211,238,0.12)]" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10"}`}
+                                  >
+                                    <span className="font-medium">{scenario.label}</span>
+                                    <span className="ml-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{scenario.eyebrow}</span>
+                                  </button>
+                                ))}
+                              </div>
+                              <p className="text-xs leading-5 text-slate-400">The active preview only changes the lesson lane and supporting context. The learner still lands directly inside the player.</p>
+                            </div>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
+                  ) : null}
+                  {currentStage ? (
+                    <div className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-4">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Stage overview</p>
+                      <h4 className="mt-2 text-lg font-semibold text-white">{currentStage.title}</h4>
+                      <p className="mt-2 text-sm leading-6 text-slate-200">{currentStage.body}</p>
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        {(stageActivities[currentStage.id] ?? []).map((activity) => (
+                          <div key={activity} className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-3 py-3 text-sm leading-6 text-slate-100">
+                            {activity}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
@@ -6158,7 +6165,7 @@ export function TrainingExperienceView() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </SectionShell>
+      </div>
     </Surface>
   );
 }
@@ -7815,11 +7822,10 @@ function WeeklyCoachingLogComposer({
 }
 
 function WeeklyCoachingLogPopupBox({
-  buttonLabel = "Log Coaching",
-  dialogTitle = "Weekly coaching log",
+  buttonLabel = "Launch coaching log pop-up",
+  dialogTitle = "Weekly coaching log pop-up",
   dialogDescription = "Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.",
   buttonClassName = "rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white",
-  dialogContentClassName = "max-h-[90vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl",
   composerProps,
   onCreated,
 }: {
@@ -7827,39 +7833,119 @@ function WeeklyCoachingLogPopupBox({
   dialogTitle?: string;
   dialogDescription?: string;
   buttonClassName?: string;
-  dialogContentClassName?: string;
   composerProps: WeeklyCoachingLogComposerProps;
   onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [learnerName, setLearnerName] = useState(() => composerProps.employeeName || "Nina Patel");
+  const [coachNotes, setCoachNotes] = useState("");
+  const [behaviorObserved, setBehaviorObserved] = useState("");
+  const [nextMilestone, setNextMilestone] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const trimmedCoachNotes = coachNotes.trim();
+  const trimmedBehaviorObserved = behaviorObserved.trim();
+  const trimmedNextMilestone = nextMilestone.trim();
+  const canSave = Boolean(sessionDate && learnerName.trim() && trimmedCoachNotes && trimmedBehaviorObserved && trimmedNextMilestone);
+  const visibilityPresentation = getWeeklyCoachingVisibilityPresentation(visibility);
+  const createWeeklyCoachingLog = trpc.demo.secureCreateWeeklyCoachingLog.useMutation({
+    onSuccess: () => {
+      setCoachNotes("");
+      setBehaviorObserved("");
+      setNextMilestone("");
+      setVisibility("public");
+      setOpen(false);
+      onCreated?.();
+    },
+  });
 
-  const handleCreated = () => {
-    setOpen(false);
-    onCreated?.();
-  };
+  useEffect(() => {
+    if (!open) {
+      setSessionDate(new Date().toISOString().slice(0, 10));
+      setLearnerName(composerProps.employeeName || "Nina Patel");
+    }
+  }, [composerProps.employeeName, open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
         {buttonLabel}
       </Button>
-      <DialogContent className={dialogContentClassName}>
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription className="text-slate-400">{dialogDescription}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <WeeklyCoachingLogComposer {...composerProps} onCreated={handleCreated} />
-          <DialogFooter className="border-t border-white/10 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="rounded-full border-white/12 bg-transparent text-slate-200 hover:bg-white/8 hover:text-white"
-            >
+        <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-slate-950/85 p-5 shadow-[0_24px_60px_rgba(2,8,23,0.36)]">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-sm text-slate-200">
+              <span>Session date</span>
+              <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
+            </label>
+            <label className="space-y-2 text-sm text-slate-200">
+              <span>Learner name</span>
+              <input value={learnerName} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
+            </label>
+          </div>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Coach notes</span>
+            <textarea value={coachNotes} onChange={(event) => setCoachNotes(event.target.value)} rows={4} placeholder="Summarize the coaching conversation, context, and decisions." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
+          </label>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Behavior observed</span>
+            <textarea value={behaviorObserved} onChange={(event) => setBehaviorObserved(event.target.value)} rows={4} placeholder="Document the exact behavior observed during the session." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
+          </label>
+          <label className="space-y-2 text-sm text-slate-200">
+            <span>Next milestone</span>
+            <input value={nextMilestone} onChange={(event) => setNextMilestone(event.target.value)} placeholder="Enter the next milestone to track after this session." className={FORM_INPUT_SURFACE_CLASS} />
+          </label>
+          <div className="space-y-3 rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-slate-100">Visibility</p>
+                <p className="mt-1 text-sm leading-6 text-slate-400">Choose whether this entry is shared as a public coaching log or kept as a private coaching note.</p>
+              </div>
+              <Badge className={`rounded-full border ${visibilityPresentation.badgeClassName}`}>{visibilityPresentation.label}</Badge>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <button type="button" onClick={() => setVisibility("public")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "public" ? "border-emerald-300/40 bg-emerald-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
+                <span className="font-medium">Public coaching log</span>
+                <span className="mt-1 block text-xs leading-5 text-inherit/80">Share the coaching record with the learner and support chain.</span>
+              </button>
+              <button type="button" onClick={() => setVisibility("private")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "private" ? "border-violet-300/40 bg-violet-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
+                <span className="font-medium">Private coaching note</span>
+                <span className="mt-1 block text-xs leading-5 text-inherit/80">Keep the note visible only to leadership and coaching oversight.</span>
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+            <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-slate-300 underline-offset-4 transition hover:text-white hover:underline">
               Cancel
-            </Button>
-          </DialogFooter>
+            </button>
+            <div className="flex flex-col items-end gap-2">
+              <Button
+                type="button"
+                className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100"
+                disabled={createWeeklyCoachingLog.isPending || !canSave}
+                onClick={() => createWeeklyCoachingLog.mutate({
+                  tenantId: composerProps.tenantId,
+                  subjectUserId: composerProps.subjectUserId,
+                  coachRole: composerProps.coachRole,
+                  sessionDate,
+                  attendance: "Coach Studio pop-up entry",
+                  followUpFromPrevious: trimmedBehaviorObserved,
+                  coachingComments: trimmedCoachNotes,
+                  smartGoalCommitment: trimmedNextMilestone,
+                  additionalSupport: "Coaching log captured from the Coach Studio modal dialog.",
+                  visibility,
+                  managerOfSupervisorEmail: composerProps.managerOfSupervisorEmail,
+                })}
+              >
+                {createWeeklyCoachingLog.isPending ? "Saving..." : "Save log"}
+              </Button>
+              {createWeeklyCoachingLog.isError ? <p className="text-sm text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -9125,14 +9211,13 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <Badge className="mission-chip rounded-full border-white/20 bg-white/12 text-white">Coach studio mission</Badge>
                 <span className="command-pill rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-100/90">Coach the behavior, not just the completion</span>
               </div>
-              <WeeklyCoachingLogPopupBox
-                buttonLabel="Log Coaching"
-                dialogTitle="Weekly coaching log · Coach Studio"
-                dialogDescription="Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio."
-                buttonClassName="rounded-full border-[#FCBC34] bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
-                composerProps={coachWeeklyCoachingLogProps}
-                onCreated={onUpdated}
-              />
+              <Button
+                type="button"
+                onClick={() => openCoachView("coaching", "coach-weekly-logs")}
+                className="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+              >
+                Open weekly coaching log
+              </Button>
             </div>
             <div className="space-y-3">
               <h2 className="max-w-4xl text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.</h2>
@@ -9167,9 +9252,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             </div>
             <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log now opens as the same full structured form in a focused pop-up, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log is back in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
               <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
-                Use the gold <span className="font-semibold text-[#FCBC34]">Log Coaching</span> action to open the full weekly coaching log without leaving Coach Studio.
+                Use the gold <span className="font-semibold text-[#FCBC34]">Open weekly coaching log</span> action to jump directly to the inline coaching form below.
               </div>
             </div>
           </div>
@@ -9253,24 +9338,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </CardContent>
               </PremiumCard>
             ) : null}
-            <PremiumCard>
-              <CardHeader>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <CardTitle className="text-white">Open the weekly coaching log in a focused pop-up</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">Use the same structured weekly coaching form in a dialog so the coach can save, close, and return directly to the current lane. Saved coaching records remain available in Documentation.</CardDescription>
-                  </div>
-                  <WeeklyCoachingLogPopupBox
-                    buttonLabel="Log Coaching"
-                    dialogTitle="Weekly coaching log · Coach Studio"
-                    dialogDescription="Open the full structured weekly coaching log in a focused dialog without leaving Coach Studio."
-                    buttonClassName="rounded-full border-[#FCBC34] bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
-                    composerProps={coachWeeklyCoachingLogProps}
-                    onCreated={onUpdated}
-                  />
-                </div>
-              </CardHeader>
-            </PremiumCard>
+            <WeeklyCoachingLogComposer {...coachWeeklyCoachingLogProps} onCreated={onUpdated} />
+            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
             <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
         </TabsContent>

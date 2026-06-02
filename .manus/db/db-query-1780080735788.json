@@ -1,9 +1,0 @@
-{
-  "query": "SELECT u.id, u.openId, u.name, u.email, u.role, u.createdAt, u.lastSignedIn, tag.tenantId, tag.workspaceRole\nFROM users u\nLEFT JOIN tenantAccessGrants tag ON tag.userOpenId = u.openId\nWHERE LOWER(u.email) = LOWER('celiat@thechcg.com');",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user STUUp4aiVju8fHb.root --database YB9kCVoHydstWcvQB3oRnN --execute SELECT u.id, u.openId, u.name, u.email, u.role, u.createdAt, u.lastSignedIn, tag.tenantId, tag.workspaceRole\nFROM users u\nLEFT JOIN tenantAccessGrants tag ON tag.userOpenId = u.openId\nWHERE LOWER(u.email) = LOWER('celiat@thechcg.com');",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 990
-}

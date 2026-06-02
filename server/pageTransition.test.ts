@@ -14,6 +14,7 @@ describe("sitewide page transition", () => {
     expect(appSource).toContain("<div key={location} className=\"route-fade-in\">");
     expect(appSource).toContain("<Route path=\"/\" component={LandingView} />");
     expect(appSource).toContain("<Route path=\"/mission-hub\">");
+    expect(appSource).toContain("<Route path=\"/guide\">");
     expect(appSource).toContain("<Route path=\"/training\">");
     expect(appSource).toContain("<Route path=\"/library\">");
   });

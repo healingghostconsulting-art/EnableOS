@@ -60,13 +60,6 @@ const workspaceMissionSignals: Record<string, {
     next: "Use the core charts first, then drill into the outliers that need follow-up.",
     reward: "Reporting ready",
   },
-  "/guide": {
-    eyebrow: "EnableOS guide",
-    headline: "Learn the flow before you jump into execution.",
-    focus: "Navigation brief",
-    next: "Start with the right workspace, use the internal tabs, and keep records in the surface built for long-term review.",
-    reward: "Guide ready",
-  },
   "/manager": {
     eyebrow: "Manager ops",
     headline: "Work the queue and clear the next case.",
@@ -94,6 +87,13 @@ const workspaceMissionSignals: Record<string, {
     focus: "Lesson player",
     next: "Keep support hidden until it is needed and let the lesson stay in control.",
     reward: "Player ready",
+  },
+  "/guide": {
+    eyebrow: "EnableOS guide",
+    headline: "Orient every role from one shared playbook.",
+    focus: "Platform guidance",
+    next: "Start with the role home, then use shared workspaces only when the next action needs them.",
+    reward: "Guidance ready",
   },
   "/admin": {
     eyebrow: "Client control",

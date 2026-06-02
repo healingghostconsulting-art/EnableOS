@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BarChart3, BookOpen, BookText, Building2, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { BarChart3, BookOpen, BookText, Building2, Compass, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
@@ -8,7 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
-import { ChcgAdminView, ContentLibraryView, EnableOSGuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
@@ -16,7 +16,7 @@ const STATIC_WORKSPACE_ROLE_KEY = "chcg-enableos-static-workspace-role";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
-  { icon: BookText, label: "EnableOS Guide", path: "/guide" },
+  { icon: Compass, label: "EnableOS Guide", path: "/guide" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
@@ -57,7 +57,7 @@ export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filte
 export function buildRoleScopedPath(path: string, role?: string | null) {
   const normalizedRole = normalizeGrantRole(role);
 
-  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub")) {
+  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub" && path !== "/guide")) {
     return path;
   }
 
@@ -181,6 +181,7 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
       return normalizedRole !== "coach" && normalizedRole !== "learner";
     case "/coach":
       return normalizedRole !== "learner";
+    case "/guide":
     case "/learner":
     case "/training":
     case "/library":
@@ -204,48 +205,45 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
   }
 
   const effectiveRole = resolveEffectiveWorkspaceRole(options);
-  const workspacePath = options?.workspacePath;
 
-  if (workspacePath === "/reporting") {
-    return executiveWorkspaceMenu;
-  }
-
-  if (workspacePath === "/manager") {
-    return managerWorkspaceMenu;
-  }
-
-  if (workspacePath === "/coach") {
-    return coachWorkspaceMenu;
-  }
-
-  if (workspacePath === "/learner") {
-    return learnerWorkspaceMenu;
-  }
-
-  if (workspacePath === "/mission-hub" || workspacePath === "/training" || workspacePath === "/library") {
-    switch (effectiveRole) {
-      case "platform_admin":
-        return adminWorkspaceMenu;
-      case "client_admin":
-        return baseWorkspaceMenu;
-      case "executive":
-        return executiveWorkspaceMenu;
-      case "manager":
-        return managerWorkspaceMenu;
-      case "coach":
-        return coachWorkspaceMenu;
-      case "learner":
-        return learnerWorkspaceMenu;
-      default:
-        break;
+  switch (options?.workspacePath) {
+    case "/reporting":
+      return executiveWorkspaceMenu;
+    case "/manager":
+      return managerWorkspaceMenu;
+    case "/coach":
+      return coachWorkspaceMenu;
+    case "/learner":
+      return learnerWorkspaceMenu;
+    case "/mission-hub":
+    case "/guide":
+    case "/training":
+    case "/library": {
+      switch (effectiveRole) {
+        case "platform_admin":
+          return adminWorkspaceMenu;
+        case "client_admin":
+          return baseWorkspaceMenu;
+        case "executive":
+          return executiveWorkspaceMenu;
+        case "manager":
+          return managerWorkspaceMenu;
+        case "coach":
+          return coachWorkspaceMenu;
+        case "learner":
+          return learnerWorkspaceMenu;
+        default:
+          break;
+      }
+      break;
     }
+    default:
+      break;
   }
 
   switch (effectiveRole) {
     case "platform_admin":
       return adminWorkspaceMenu;
-    case "client_admin":
-      return baseWorkspaceMenu;
     case "manager":
       return managerWorkspaceMenu;
     case "coach":
@@ -344,7 +342,7 @@ function Router() {
         <Route path="/guide">
           {() => (
             <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide">
-              <EnableOSGuideView />
+              <GuideView />
             </GuardedWorkspaceShell>
           )}
         </Route>
