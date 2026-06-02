@@ -470,6 +470,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("max-w-[54rem] break-words text-sm leading-7");
   });
 
+  it("tightens the lesson headline and lays out storyboard steps as a readable grid (W3)", () => {
+    // Opening-control headline reduced from text-2xl to text-xl so it stays within ~2 lines.
+    expect(trainingViewSource).toContain("text-xl font-semibold text-white\">{currentLessonPage.title}");
+    expect(trainingViewSource).not.toContain("text-2xl font-semibold text-white\">{currentLessonPage.title}");
+    // Storyboard steps use an auto-fit grid instead of fixed 3-col skinny towers.
+    expect(trainingViewSource).toContain("[grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]");
+    expect(trainingViewSource).not.toContain("border-t border-cyan-300/15 pt-4 lg:grid-cols-3");
+  });
+
   it("gates Training Pages content so each tab renders only its own sections", () => {
     // Lesson is the default page on load.
     expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");

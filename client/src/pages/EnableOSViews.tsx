@@ -4879,7 +4879,7 @@ export function TrainingExperienceView() {
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
                                   <span className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">{currentLessonPage.visualTone}</span>
                                 </div>
-                                <h3 className="mt-4 break-words text-2xl font-semibold text-white">{currentLessonPage.title}</h3>
+                                <h3 className="mt-4 break-words text-xl font-semibold text-white">{currentLessonPage.title}</h3>
                                 <p className="mt-3 max-w-[54rem] break-words text-sm leading-7 text-slate-200 2xl:text-[15px]">{currentLessonPage.narrative}</p>
                                 {lessonVisualSequence.length ? (
                                   <details className="group mt-6 rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
@@ -4890,7 +4890,7 @@ export function TrainingExperienceView() {
                                       </div>
                                       <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{lessonVisualSequence.length} step sequence</Badge>
                                     </summary>
-                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 lg:grid-cols-3">
+                                    <div className="mt-4 grid gap-3 border-t border-cyan-300/15 pt-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
                                       {lessonVisualSequence.map((item, index) => (
                                         <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                                           <div className="flex items-center justify-between gap-3">
