@@ -504,6 +504,25 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Go to slide ${index + 1}");
   });
 
+  it("adds a focused full-screen mode that overlays the chrome and widens the canvas (F1)", () => {
+    // Focused-mode state + enter/exit controls.
+    expect(trainingViewSource).toContain("const [focusedMode, setFocusedMode] = useState(false)");
+    expect(trainingViewSource).toContain("setFocusedMode(true)");
+    expect(trainingViewSource).toContain("setFocusedMode(false)");
+    expect(trainingViewSource).toContain("Exit focused full-screen mode");
+    expect(trainingViewSource).toContain("Enter focused full-screen mode");
+    // Rendered through a portal to document.body so it escapes the layout stacking context
+    // and covers the z-40 sidebar/header chrome, while staying below the z-50 dialogs.
+    expect(trainingViewSource).toContain("createPortal(");
+    expect(trainingViewSource).toContain("fixed inset-0 z-[45]");
+    expect(trainingViewSource).toContain("document.body,");
+    // The same player body is reused in both modes (state is preserved on the parent).
+    expect(trainingViewSource).toContain("const playerBody = (");
+    expect(trainingViewSource).toContain("return <Surface wide>{playerBody}</Surface>");
+    // An open dialog (lightbox/curriculum) consumes Escape before focus exit.
+    expect(trainingViewSource).toContain("if (document.querySelector('[role=\"dialog\"]')) return;");
+  });
+
   it("gates Training Pages content so each tab renders only its own sections", () => {
     // Lesson is the default page on load.
     expect(trainingViewSource).toContain("useState<\"brief\" | \"lesson\" | \"checkpoint\" | \"resources\">(\"lesson\")");

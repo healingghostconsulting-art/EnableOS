@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { trpc } from "@/lib/trpc";
 import { buildRetrainingHistoryCsv, filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ import {
   Gauge,
   Layers3,
   Maximize2,
+  Minimize2,
   Mic,
   PauseCircle,
   PlayCircle,
@@ -3321,7 +3323,28 @@ export function TrainingExperienceView() {
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [progressRailCollapsed, setProgressRailCollapsed] = useState(false);
   const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);
+  const [focusedMode, setFocusedMode] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
+
+  // Focused (full-screen) mode: lock body scroll and allow Escape to exit.
+  // Any open dialog (lightbox, curriculum, assessment) owns Escape first — we
+  // check the live DOM rather than a captured state value so the guard can
+  // never go stale.
+  useEffect(() => {
+    if (!focusedMode) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (document.querySelector('[role="dialog"]')) return;
+      setFocusedMode(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [focusedMode]);
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">(() => requestedRoleFilter ?? "all");
   const slideAutoAdvanceTimeoutRef = useRef<number | null>(null);
   const briefCardRef = useRef<HTMLDivElement | null>(null);
@@ -4677,9 +4700,8 @@ export function TrainingExperienceView() {
     setActiveQuizTriggerId(null);
   };
 
-  return (
-    <Surface wide>
-      <div className="focus-stack">
+  const playerBody = (
+    <div className="focus-stack">
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-4">
@@ -4695,6 +4717,16 @@ export function TrainingExperienceView() {
                   <span className="text-slate-600">·</span>
                   <span>{remainingRuntimeMinutes} min left</span>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFocusedMode(true)}
+                  aria-label="Enter focused full-screen mode"
+                  className="hidden shrink-0 rounded-full border-cyan-300/25 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20 hover:text-white sm:inline-flex"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" /> Focus
+                </Button>
                 <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })} className="shrink-0">
                   <Button variant="outline" size="sm" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
                     Back to learner
@@ -5937,8 +5969,35 @@ export function TrainingExperienceView() {
           </DialogContent>
         </Dialog>
       </div>
-    </Surface>
   );
+
+  if (focusedMode) {
+    return createPortal(
+      <div className="fixed inset-0 z-[45] overflow-y-auto bg-slate-950/95 p-2 text-[#1B303C] backdrop-blur-sm sm:p-3">
+        <div className="mission-shell grid-noise relative min-h-full rounded-2xl p-2 sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">
+              <Maximize2 className="h-3.5 w-3.5 text-[#0E7490]" /> Focused training
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFocusedMode(false)}
+              aria-label="Exit focused full-screen mode"
+              className="rounded-full border-[#1B303C]/15 bg-white text-[#1B303C] hover:border-[#FCBC34]/60 hover:bg-[#FFFBF0]"
+            >
+              <Minimize2 className="h-3.5 w-3.5" /> Exit focus
+            </Button>
+          </div>
+          {playerBody}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
+  return <Surface wide>{playerBody}</Surface>;
 }
 
 export function ContentLibraryView() {
