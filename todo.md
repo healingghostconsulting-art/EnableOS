@@ -602,3 +602,8 @@
 - [x] Make Coach Modes tabs render only the active mode content instead of stacking content below the tab switcher.
 - [x] Remove duplicate coaching-thread rendering so the selected thread appears only once in the primary coaching workspace.
 - [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio tool-priority and tab-gating refinement.
+- [ ] Reduce vertical whitespace and padding across the Coach Studio header, stat row, mode strip, and action-card layout so the page reads as one compact desk.
+- [ ] Ensure the active learner, weekly-log action, and next coaching action are visible in the first 1440×900 viewport without reintroducing duplicate learner or thread details.
+- [ ] Preview the updated /coach page at 1440×900, rerun validation, verify health, and save a checkpoint for the compact Coach Studio spacing refinement.
+- [x] Restore the ability to change the selected agent or learner in Coach Studio after the compact-layout spacing refactor.
+- [x] Preview the repaired /coach interaction, rerun validation, verify health, and save a checkpoint for the Coach Studio agent-switching fix.

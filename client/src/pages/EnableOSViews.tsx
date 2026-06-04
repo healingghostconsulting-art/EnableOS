@@ -8167,11 +8167,11 @@ function CoachLaneActionCard({
       : "border-slate-700/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92))] text-slate-50";
 
   return (
-    <div className={`rounded-[1.55rem] border p-5 shadow-[0_20px_45px_rgba(15,23,42,0.16)] ${paletteClassName}`}>
-      <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
-      <h3 className={`mt-3 text-lg font-semibold ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
-      <p className={`mt-2 text-sm leading-6 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
-      <div className="mt-5">{action}</div>
+    <div className={`rounded-[1.4rem] border p-4 shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${paletteClassName}`}>
+      <p className={`text-[10px] font-semibold uppercase tracking-[0.22em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
+      <h3 className={`mt-2 text-base font-semibold leading-6 ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
+      <p className={`mt-1.5 text-sm leading-5 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
+      <div className="mt-3">{action}</div>
     </div>
   );
 }
@@ -9452,37 +9452,52 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   }, [selectedCoachingSessionId, selectedCoachingSessions]);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-[1.55rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.16)]">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="rounded-[1.2rem] border border-white/12 bg-white/6 px-4 py-3 xl:min-w-[18rem]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-white">{selectedLearner.name}</p>
+    <div className="space-y-4">
+      <div className="rounded-[1.45rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-3 shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
+        <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="rounded-[1.05rem] border border-white/12 bg-white/6 px-3.5 py-2.5 xl:min-w-[16.5rem]">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
               <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedLearner.readinessScore} readiness</Badge>
             </div>
-            <p className="mt-1 text-xs leading-5 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
+            {teamLearners.length > 1 ? (
+              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
+                <SelectTrigger className="mt-2 h-9 border-white/12 bg-slate-950/55 text-sm text-slate-50 shadow-none [color-scheme:dark]">
+                  <SelectValue placeholder="Select learner" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamLearners.map((learner: any) => (
+                    <SelectItem key={learner.id} value={learner.id}>
+                      {learner.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="mt-2 text-sm font-semibold text-white">{selectedLearner.name}</p>
+            )}
+            <p className="mt-1 text-xs leading-4 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
           </div>
           <div className="grid flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Coach readiness</span></div>
-              <p className="mt-2 text-lg font-semibold text-white">{data.coach.readinessScore}</p>
-              <p className="text-xs text-slate-400">{data.coach.name}</p>
+              <p className="mt-1.5 text-base font-semibold text-white">{data.coach.readinessScore}</p>
+              <p className="text-[11px] leading-4 text-slate-400">{data.coach.name}</p>
             </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><Users2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Active threads</span></div>
-              <p className="mt-2 text-lg font-semibold text-white">{selectedCoachingSessions.length}</p>
-              <p className="text-xs text-slate-400">Open coaching work for this learner</p>
+              <p className="mt-1.5 text-base font-semibold text-white">{selectedCoachingSessions.length}</p>
+              <p className="text-[11px] leading-4 text-slate-400">Open coaching work for this learner</p>
             </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Weekly logs</span></div>
-              <p className="mt-2 text-lg font-semibold text-white">{selectedWeeklyCoachingLogs.length}</p>
-              <p className="text-xs text-slate-400">Structured coaching cycles recorded</p>
+              <p className="mt-1.5 text-base font-semibold text-white">{selectedWeeklyCoachingLogs.length}</p>
+              <p className="text-[11px] leading-4 text-slate-400">Structured coaching cycles recorded</p>
             </button>
-            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
-              <p className="mt-2 text-lg font-semibold text-white">{data.activeJourney.progress}%</p>
-              <p className="text-xs text-slate-400">{data.activeJourney.title}</p>
+              <p className="mt-1.5 text-base font-semibold text-white">{data.activeJourney.progress}%</p>
+              <p className="text-[11px] leading-4 text-slate-400">{data.activeJourney.title}</p>
             </button>
           </div>
         </div>
@@ -9510,25 +9525,25 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         }}
       />
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-4">
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-3">
+        <div className="command-band px-4 py-3 md:px-4.5">
+          <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Coach modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-700">Choose a tab to coach, review transfer, document evidence, or respond to alerts.</p>
+              <p className="mt-1 text-sm leading-5 text-slate-700">Choose a tab to coach, review transfer, document evidence, or respond to alerts.</p>
             </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-slate-200 bg-white/85 p-2 shadow-[0_12px_24px_rgba(15,23,42,0.06)] xl:w-auto">
-              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
-              <TabsTrigger value="transfer" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
-              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-              <TabsTrigger value="alerts" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
+              <TabsTrigger value="coaching" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
+              <TabsTrigger value="transfer" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
+              <TabsTrigger value="documentation" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
+              <TabsTrigger value="alerts" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
             </TabsList>
           </div>
         </div>
 
         {activeTab === "coaching" ? (
-          <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-6 scroll-mt-24">
-          <div id="coach-weekly-logs" className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 scroll-mt-24">
+          <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-4 scroll-mt-24">
+          <div id="coach-weekly-logs" className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 scroll-mt-24">
             <CoachLaneActionCard
               eyebrow="Current session"
               title="Open the live coaching thread"
@@ -9626,19 +9641,19 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               }
             />
           </div>
-          <div className="grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
-            <div className="space-y-4">
-              <div className="rounded-[1.45rem] border border-slate-200 bg-white/88 p-4 shadow-[0_16px_35px_rgba(15,23,42,0.06)]">
+          <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+            <div className="space-y-3">
+              <div className="rounded-[1.2rem] border border-slate-200 bg-white/88 p-3 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching threads</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Select the thread that needs the next coaching action.</p>
+                <p className="mt-1 text-sm leading-5 text-slate-600">Select the thread that needs the next coaching action.</p>
               </div>
               {selectedCoachingSessions.map((session: any) => (
-                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_20px_45px_rgba(8,145,178,0.14)]" : "border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white"}`}>
+                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.25rem] border p-3.5 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_16px_34px_rgba(8,145,178,0.12)]" : "border-slate-200 bg-white/88 shadow-[0_12px_28px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
-                      <h3 className={`mt-2 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
-                      <p className={`mt-2 text-sm ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{selectedCoachingSession?.id === session.id ? "Selected thread" : "Select this thread to review the note and next action."}</p>
+                      <h3 className={`mt-1.5 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
+                      <p className={`mt-1 text-sm leading-5 ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{selectedCoachingSession?.id === session.id ? "Selected thread" : "Select this thread to review the note and next action."}</p>
                     </div>
                     <StatusBadge value={session.status} />
                   </div>
@@ -9648,30 +9663,31 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <div className="rounded-[1.45rem] border border-dashed border-slate-200 bg-white/80 px-4 py-5 text-sm leading-6 text-slate-600 shadow-[0_14px_28px_rgba(15,23,42,0.05)]">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
               ) : null}
             </div>
-            <PremiumCard>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-white">Selected coaching thread</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">{selectedCoachingSession ? "Review the note, confirm status, and complete the next coaching action." : "Select a coaching thread to review the note and next action."}</CardDescription>
+              <PremiumCard>
+                <CardHeader className="space-y-0 p-5 pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-white">Selected coaching thread</CardTitle>
+                      <CardDescription className="mt-1 text-sm leading-5 text-slate-300">{selectedCoachingSession ? "Review the note, confirm status, and complete the next coaching action." : "Select a coaching thread to review the note and next action."}</CardDescription>
+                    </div>
+                    {selectedCoachingSession ? <StatusBadge value={selectedCoachingSession.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
                   </div>
-                  {selectedCoachingSession ? <StatusBadge value={selectedCoachingSession.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </CardHeader>
+                <CardContent className="space-y-3 p-5 pt-0">
+
                 {selectedCoachingSession ? (
                   <>
-                    <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
+                    <div className="rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200">
                       <span className="font-medium text-white">Selected note:</span> {selectedCoachingSession.notes}
                     </div>
                     {selectedCoachingSession.actionPlan?.length ? (
-                      <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
+                      <div className="rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200">
                         <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
                       </div>
                     ) : null}
                   </>
                 ) : (
-                  <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread to load its note and next action.</div>
+                  <div className="rounded-[1.2rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-4 text-sm leading-5 text-slate-200">Choose a coaching thread to load its note and next action.</div>
                 )}
               </CardContent>
             </PremiumCard>

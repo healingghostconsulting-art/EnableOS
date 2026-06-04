@@ -38,3 +38,8 @@ Functional-copy preview notes:
 The slim Coach Studio header and coaching-lane summary now use direct task language. The transfer tab still shows self-referential descriptions such as "Open the assignment roster only when you need..." and "Keep the lane short until you need...", so the action-card copy needs one more pass in Training transfer and likely the remaining tabs.
 The refreshed preview shows the coaching and transfer tabs now lead with coach-task instructions instead of interface-mechanics copy. The transfer summary now reads as action guidance, and the coaching lane no longer explains compactness or popups in the visible card descriptions.
 The refreshed Coach Studio preview confirms the visible header, coaching lane, and transfer guidance now read as direct work instructions. The first screen no longer explains compactness, popups, or page behavior in the visible coach workflow copy.
+
+Agent-switching repair preview:
+- The compact **Current learner** panel now includes a working selector again.
+- Switching from **Nina Patel** to **Avery Chen** updates the top summary and coaching-thread detail without reintroducing duplicate learner or thread copy.
+- The top of the workspace remains dense, with the slim header, stat row, mode strip, action cards, and selected coaching thread still visible in the upper page region.

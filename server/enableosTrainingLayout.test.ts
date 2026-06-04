@@ -217,7 +217,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
     expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
-    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-4 md:grid-cols-2 xl:grid-cols-5');
+    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-3 md:grid-cols-2 xl:grid-cols-5');
     expect(trainingViewSource).toContain('activeTab === "coaching" ? (');
     expect(trainingViewSource).toContain('activeTab === "transfer" ? (');
     expect(trainingViewSource).toContain("Review the note, confirm status, and complete the next coaching action.");
@@ -249,6 +249,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Coaching observation resources");
     expect(trainingViewSource).toContain("Coach follow-up saved to Documentation.");
     expect(trainingViewSource).toContain("Current learner");
+    expect(trainingViewSource).toContain("Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}");
+    expect(trainingViewSource).toContain("Select learner");
     expect(trainingViewSource).toContain("Active threads");
     expect(trainingViewSource).toContain("Open coaching work for this learner");
     expect(trainingViewSource).toContain("Training transfer tasks");
@@ -334,7 +336,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open alert queue");
     expect(trainingViewSource).toContain("Choose a tab to coach, review transfer, document evidence, or respond to alerts.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
-    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
+    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_12px_28px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white");
     expect(trainingViewSource).not.toContain("Coach-visible signal trend");
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");
