@@ -587,3 +587,7 @@
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the Coach Studio layout refinement.
 - [x] Review color visibility and contrast in the updated Coach Studio popup-based coaching lane and related shared surfaces.
 - [x] Adjust weak color combinations, revalidate the affected UI, and include the contrast improvements in the next checkpoint.
+- [x] Audit each remaining Coach Studio section and identify where long inline panels should become compact action cards with focused popups.
+- [x] Apply the popup-based compact workflow pattern consistently across all remaining Coach Studio sections while preserving existing functionality.
+- [x] Review and improve color visibility and contrast across the full Coach Studio experience so the expanded redesign stays readable and consistent.
+- [x] Update regression coverage, rerun TypeScript and Vitest, verify project health, and save a checkpoint for the Coach Studio section-wide refinement.

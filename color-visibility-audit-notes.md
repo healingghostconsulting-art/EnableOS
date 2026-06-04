@@ -20,3 +20,13 @@ Second visual check after the gold-card refinement:
 - The weekly coaching action card now reads much more clearly because the card itself is light and the title/body copy are dark.
 - The dark default cards continue to separate well from the summary panel and the coaching-thread panel.
 - The revised cyan and slate text treatments look more presentation-ready and are easier to scan in the compact card grid.
+
+Section-wide Coach Studio redesign check:
+- The Training transfer tab now follows the same compact pattern as the coaching lane, with a concise summary panel and four popup-triggered action cards.
+- The transfer summary metrics and action labels are readable against the dark surface in the live preview.
+- The next visual checks still needed are the Documentation and Alerts tabs so the same compact pattern can be confirmed across the full Coach Studio module.
+
+Additional live-preview confirmation:
+- The Documentation tab now presents a compact summary strip followed by popup-triggered actions for the queue, evidence feed, and coaching handoff.
+- The Alerts tab now mirrors the same approach with a compact summary strip and popup-triggered actions for the queue, selected detail, and coaching return path.
+- Across the three tabs reviewed after the redesign, the compact card pattern is now visually consistent and the supporting copy remains readable against the dark surfaces used in Coach Studio.

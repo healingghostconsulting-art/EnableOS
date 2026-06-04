@@ -9685,160 +9685,381 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </div>
         </TabsContent>
 
-        <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.82fr_1.18fr] scroll-mt-24">
-          <div className="space-y-6">
-            <WorkflowLibraryPanel title="Coach-ready content mix" description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning." resources={data.workflowLibraryMix.documentationResources} />
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Transfer attribution across the team</CardTitle>
-                <CardDescription className="text-slate-400">This lane now shows exactly which learners received transfers, whether AI drove the recommendation, and what status each assignment is in.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {transferRoster.length ? transferRoster.map((assignment: any) => (
-                  <div key={assignment.id} className={`rounded-[1.45rem] border p-4 ${assignment.learnerUserId === selectedLearner.id ? "border-cyan-400/25 bg-cyan-400/10" : "border-white/10 bg-white/5"}`}>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{assignment.deliveryMode === "ai_approved" ? "AI-driven transfer" : "Coach-directed transfer"}</p>
-                        <h3 className="mt-2 text-base font-semibold text-white">{assignment.learner.name} · {assignment.moduleTitle}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-300">{assignment.guidanceNote}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <StatusBadge value={assignment.status} />
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{assignment.requestedByRole.replace("_", " ")}</Badge>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
-                      <span>Assigned {new Date(assignment.createdAt).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>Due {new Date(assignment.dueAt).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>{assignment.skillFocus}</span>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-400">Transfer assignments will appear here once the coach or AI creates the next training handoff.</div>
-                )}
-              </CardContent>
-            </PremiumCard>
-          </div>
-          <div className="space-y-6">
-            {selectedAiSuggestion ? (
-              <GuidanceActionPanel tenantId={data.tenant.id} suggestion={selectedAiSuggestion} catalog={data.retrainingCatalog} assignments={selectedCurrentRetrainingAssignment ? [selectedCurrentRetrainingAssignment] : []} actorRole="coach" learnerName={selectedLearner.name} onUpdated={onUpdated} />
-            ) : null}
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Training-transfer focus</CardTitle>
-                <CardDescription className="text-slate-400">The coach lane bridges course completion to observed behavior, so lessons, QA signals, and next coaching moves stay in one working view.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {data.activeJourney.modules.map((module: any) => (
-                  <div key={module.id} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-lg font-medium text-white">{module.title}</p>
-                        <p className="mt-1 text-sm text-slate-300">{module.skillFocus} · {module.durationMinutes} min · {module.format}</p>
-                      </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{module.completionRate}% complete</Badge>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </PremiumCard>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
-          <div className="space-y-6">
-            <PremiumCard id="coach-needs-rail">
-              <CardHeader>
-                <CardTitle className="text-white">Coach needs now live inside Documentation mode</CardTitle>
-                <CardDescription className="text-slate-400">Review the next documentation handoff, open the exact coaching record when it exists, and keep follow-up notes in the same focused mode.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {coachNeedEntries.length ? coachNeedEntries.map((entry: any, index: number) => {
-                  const linkedWeeklyCoachingLog = entry.weeklyCoachingLogId
-                    ? selectedWeeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
-                    : null;
-                  const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
-
-                  return (
-                    <button
-                      key={entry.id ?? `${entry.title ?? "coach-need"}-${index}`}
-                      type="button"
-                      onClick={() => openCoachNeed(entry.id)}
-                      className={`w-full rounded-[1.45rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${selectedCoachNeedEntry?.id === entry.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
-                          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
-                        </div>
-                        <Badge className={`rounded-full ${supportsCoachingPopup ? "border-cyan-400/30 bg-cyan-400/12 text-cyan-100" : "border-white/12 bg-white/8 text-slate-100"}`}>
-                          {supportsCoachingPopup ? "Open exact coaching log" : "Open document details"}
-                        </Badge>
-                      </div>
-                      {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-300">{entry.summary}</p> : null}
-                    </button>
-                  );
-                }) : (
-                  <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-400">
-                    Documentation items will surface here as soon as new coaching notes, follow-ups, or linked reviews are available.
-                  </div>
-                )}
-              </CardContent>
-            </PremiumCard>
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Coach follow-up moved to Coaching lane</CardTitle>
-                <CardDescription className="text-slate-400">Write observations, add file attachments, and choose observation resources from the Coaching lane so the live session and the saved follow-up stay in one place.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm leading-6 text-slate-300">Documentation mode now stays focused on reviewing the resulting evidence. Use the coaching lane when you need to create or edit the next follow-up note.</p>
-                <Button type="button" onClick={() => setActiveTab("coaching")} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open coaching lane</Button>
-              </CardContent>
-            </PremiumCard>
-          </div>
+        <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 space-y-6 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
-              <CardTitle className="text-white">Coach documentation feed</CardTitle>
-              <CardDescription className="text-slate-400">Observed behavior, weekly coaching records, and review notes remain connected so the coach does not lose context between sessions.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DocumentationFeed entries={selectedDocumentationEntries} weeklyCoachingLogs={selectedWeeklyCoachingLogs} />
-            </CardContent>
-          </PremiumCard>
-        </TabsContent>
-
-        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 grid gap-6 xl:grid-cols-[0.78fr_1.22fr] scroll-mt-24">
-          <div className="space-y-4">
-            {data.notifications.map((item: any) => (
-              <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.55rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${selectedAlert?.id === item.id ? "border-rose-300 bg-[linear-gradient(180deg,rgba(255,241,242,0.98),rgba(254,226,226,0.94))] shadow-[0_20px_45px_rgba(225,29,72,0.12)]" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Alert</p>
-                    <h3 className="mt-2 text-base font-semibold text-slate-950">{item.title}</h3>
-                    <p className="mt-2 text-sm text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
-                  </div>
-                  <StatusBadge value={item.priority} />
-                </div>
-              </button>
-            ))}
-          </div>
-          <Card className="rounded-[2rem] border border-slate-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(248,250,252,0.96))] shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Alerts mode keeps the coach queue compact until detail is needed.</p>
-                  <CardTitle className="mt-2 text-slate-950">{selectedAlert?.title ?? "Alert detail"}</CardTitle>
-                  {selectedAlert ? <CardDescription className="mt-2 text-slate-500">{new Date(selectedAlert.createdAt).toLocaleString()}</CardDescription> : null}
+                  <CardTitle className="text-white">Training transfer now stays compact until you open the exact workflow.</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Review roster attribution, AI guidance, active modules, and support assets in focused popups so the transfer lane remains concise during live coaching.</CardDescription>
                 </div>
-                {selectedAlert ? <StatusBadge value={selectedAlert.priority} /> : null}
+                <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{transferRoster.length} active transfers</Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-7 text-slate-600">{selectedAlert?.detail ?? "Select an alert to inspect the coach-facing recommendation and timing context."}</p>
+            <CardContent className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Selected learner</p>
+                <p className="mt-2 text-lg font-semibold text-white">{selectedLearner.name}</p>
+                <p className="mt-1 text-sm text-slate-300">{selectedLearner.roleTitle}</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Journey modules</p>
+                <p className="mt-2 text-lg font-semibold text-white">{data.activeJourney.modules.length}</p>
+                <p className="mt-1 text-sm text-slate-300">Modules available for transfer follow-through</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">AI guidance</p>
+                <p className="mt-2 text-lg font-semibold text-white">{selectedAiSuggestion ? "Ready" : "Waiting"}</p>
+                <p className="mt-1 text-sm text-slate-300">Open the recommendation only when you need the next transfer move.</p>
+              </div>
             </CardContent>
-          </Card>
+          </PremiumCard>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <CoachLaneActionCard
+              eyebrow="Transfer roster"
+              title="Review learner handoffs in a popup"
+              description="Open the assignment roster only when you need to confirm who received the transfer, how it was assigned, and when follow-through is due."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open transfer roster"
+                  dialogTitle="Transfer attribution across the team"
+                  dialogDescription="Review which learners received transfers, whether AI drove the recommendation, and what status each assignment is in."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-5xl"
+                  renderContent={() => (
+                    <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      {transferRoster.length ? transferRoster.map((assignment: any) => (
+                        <div key={assignment.id} className={`rounded-[1.45rem] border p-4 ${assignment.learnerUserId === selectedLearner.id ? "border-cyan-400/25 bg-cyan-400/10" : "border-white/10 bg-white/5"}`}>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">{assignment.deliveryMode === "ai_approved" ? "AI-driven transfer" : "Coach-directed transfer"}</p>
+                              <h3 className="mt-2 text-base font-semibold text-white">{assignment.learner.name} · {assignment.moduleTitle}</h3>
+                              <p className="mt-2 text-sm leading-6 text-slate-200">{assignment.guidanceNote}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <StatusBadge value={assignment.status} />
+                              <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{assignment.requestedByRole.replace("_", " ")}</Badge>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                            <span>Assigned {new Date(assignment.createdAt).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>Due {new Date(assignment.dueAt).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>{assignment.skillFocus}</span>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="rounded-[1.45rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Transfer assignments will appear here once the coach or AI creates the next training handoff.</div>
+                      )}
+                    </div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="AI guidance"
+              title="Open the transfer recommendation when needed"
+              description="Keep the lane short until you need to inspect or act on the current AI-guided transfer suggestion for this learner."
+              accent="emerald"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open AI guidance"
+                  dialogTitle="Training-transfer guidance"
+                  dialogDescription="Review the AI-guided transfer recommendation, related assignments, and next coaching move in one focused popup."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
+                  renderContent={() => selectedAiSuggestion ? (
+                    <GuidanceActionPanel tenantId={data.tenant.id} suggestion={selectedAiSuggestion} catalog={data.retrainingCatalog} assignments={selectedCurrentRetrainingAssignment ? [selectedCurrentRetrainingAssignment] : []} actorRole="coach" learnerName={selectedLearner.name} onUpdated={onUpdated} />
+                  ) : (
+                    <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">AI guidance will appear here when the next transfer recommendation is ready for review.</div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Journey modules"
+              title="Review active training modules in a popup"
+              description="Open the current module list only when you need to confirm the exact lesson, skill focus, and completion posture behind the transfer."
+              accent="gold"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open module transfer view"
+                  dialogTitle="Training-transfer focus"
+                  dialogDescription="Bridge course completion to observed behavior without keeping the full module list expanded in the lane."
+                  renderContent={() => (
+                    <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      {data.activeJourney.modules.map((module: any) => (
+                        <div key={module.id} className="rounded-[1.5rem] border border-white/12 bg-white/7 p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-lg font-medium text-white">{module.title}</p>
+                              <p className="mt-1 text-sm text-slate-200">{module.skillFocus} · {module.durationMinutes} min · {module.format}</p>
+                            </div>
+                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{module.completionRate}% complete</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Coach-ready assets"
+              title="Open the support content mix"
+              description="Keep methodology and tenant-authored resources available on demand instead of showing the full library inline at all times."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coach-ready assets"
+                  dialogTitle="Coach-ready content mix"
+                  dialogDescription="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
+                  renderContent={() => (
+                    <WorkflowLibraryPanel title="Coach-ready content mix" description="Supervisors can pull both CHCG methodology and tenant resources into coaching prep, floor walks, and next-session planning." resources={data.workflowLibraryMix.documentationResources} />
+                  )}
+                />
+              }
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 space-y-6 scroll-mt-24">
+          <PremiumCard>
+            <CardHeader>
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <CardTitle className="text-white">Documentation mode now stays compact until you open the exact evidence view.</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Keep the queue, saved feed, and coaching handoff one click away so documentation remains review-focused instead of becoming another long working lane.</CardDescription>
+                </div>
+                <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedDocumentationEntries.length} documentation items</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Coach needs queue</p>
+                <p className="mt-2 text-lg font-semibold text-white">{coachNeedEntries.length}</p>
+                <p className="mt-1 text-sm text-slate-300">Priority documentation handoffs for the selected learner</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Linked coaching logs</p>
+                <p className="mt-2 text-lg font-semibold text-white">{selectedDocumentationEntries.filter((entry: any) => entry.weeklyCoachingLogId).length}</p>
+                <p className="mt-1 text-sm text-slate-300">Entries tied directly to saved coaching evidence</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Action handoff</p>
+                <p className="mt-2 text-lg font-semibold text-white">Coaching lane</p>
+                <p className="mt-1 text-sm text-slate-300">Return there when a new follow-up or observation needs to be written.</p>
+              </div>
+            </CardContent>
+          </PremiumCard>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <CoachLaneActionCard
+              eyebrow="Coach needs"
+              title="Review the documentation queue in a popup"
+              description="Open the highest-priority documentation handoffs only when you need to review the next record, summary, or linked coaching evidence."
+              accent="emerald"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open documentation queue"
+                  dialogTitle="Coach needs inside Documentation mode"
+                  dialogDescription="Review the next documentation handoff, inspect the selected record, and keep the main lane focused on summary status until detail is needed."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
+                  renderContent={() => {
+                    const activeEntry = selectedCoachNeedEntry ?? coachNeedEntries[0] ?? null;
+                    const activeLinkedWeeklyCoachingLog = activeEntry?.weeklyCoachingLogId
+                      ? selectedWeeklyCoachingLogs.find((log: any) => log.id === activeEntry.weeklyCoachingLogId) ?? null
+                      : null;
+                    const activeUsesLinkedLog = activeEntry?.sourceType === "coaching_summary" && activeLinkedWeeklyCoachingLog;
+
+                    return (
+                      <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
+                        <div className="space-y-3 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                          {coachNeedEntries.length ? coachNeedEntries.map((entry: any, index: number) => {
+                            const linkedWeeklyCoachingLog = entry.weeklyCoachingLogId
+                              ? selectedWeeklyCoachingLogs.find((log: any) => log.id === entry.weeklyCoachingLogId) ?? null
+                              : null;
+                            const supportsCoachingPopup = entry.sourceType === "coaching_summary" && linkedWeeklyCoachingLog;
+
+                            return (
+                              <button
+                                key={entry.id ?? `${entry.title ?? "coach-need"}-${index}`}
+                                type="button"
+                                onClick={() => openCoachNeed(entry.id)}
+                                className={`w-full rounded-[1.45rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${activeEntry?.id === entry.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
+                                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+                                  </div>
+                                  <Badge className={`rounded-full ${supportsCoachingPopup ? "border-cyan-400/30 bg-cyan-400/12 text-cyan-100" : "border-white/12 bg-white/8 text-slate-100"}`}>
+                                    {supportsCoachingPopup ? "Linked coaching log" : "Documentation detail"}
+                                  </Badge>
+                                </div>
+                                {entry.summary ? <p className="mt-3 text-sm leading-6 text-slate-200">{entry.summary}</p> : null}
+                              </button>
+                            );
+                          }) : (
+                            <div className="rounded-[1.45rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Documentation items will surface here as soon as new coaching notes, follow-ups, or linked reviews are available.</div>
+                          )}
+                        </div>
+                        <div className="rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                          {activeEntry ? (
+                            <div className="space-y-4">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <Badge className="rounded-full border-white/12 bg-white/10 text-slate-100">{activeEntry.owner ?? activeEntry.status ?? "Documentation stream"}</Badge>
+                                {activeUsesLinkedLog ? <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">Linked coaching evidence</Badge> : null}
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-white">{activeEntry.title ?? activeEntry.label ?? "Documentation detail"}</h3>
+                                <p className="mt-3 text-sm leading-6 text-slate-200">{activeEntry.summary ?? "No summary was captured for this documentation record yet."}</p>
+                              </div>
+                              <div className="rounded-[1.45rem] border border-white/12 bg-slate-950/80 p-4 text-sm leading-6 text-slate-200">
+                                {activeUsesLinkedLog && activeLinkedWeeklyCoachingLog ? (
+                                  <>
+                                    <span className="font-medium text-white">Linked coaching log:</span> {activeLinkedWeeklyCoachingLog.employeeName} · {activeLinkedWeeklyCoachingLog.topic} · {activeLinkedWeeklyCoachingLog.overallOutcome}
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="font-medium text-white">Review posture:</span> This record stands alone as documentation detail and does not require opening the full coaching lane to understand the evidence summary.
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-[1.45rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a documentation queue item to review its summary and linked evidence.</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Documentation feed"
+              title="Open the full evidence stream in a popup"
+              description="Keep the full documentation feed off the main lane until you need to review the saved record stream or inspect an exact entry."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open documentation feed"
+                  dialogTitle="Coach documentation feed"
+                  dialogDescription="Observed behavior, weekly coaching records, and review notes remain connected so the coach does not lose context between sessions."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
+                  renderContent={() => (
+                    <div className="rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      <DocumentationFeed entries={selectedDocumentationEntries} weeklyCoachingLogs={selectedWeeklyCoachingLogs} />
+                    </div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Coaching handoff"
+              title="Return to the coaching lane when action is needed"
+              description="Documentation mode stays review-focused. Open the coaching lane only when you need to write the next follow-up, attach files, or capture a new observation."
+              accent="gold"
+              action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 space-y-6 scroll-mt-24">
+          <PremiumCard>
+            <CardHeader>
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <CardTitle className="text-white">Alerts now stay condensed until you open the exact queue or detail.</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Keep the coach queue light, inspect the selected alert in a focused popup, and jump back into coaching only when the signal calls for action.</CardDescription>
+                </div>
+                <Badge className="rounded-full border-rose-300/35 bg-rose-300/12 text-rose-100">{data.notifications.length} open alerts</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Selected alert</p>
+                <p className="mt-2 text-lg font-semibold text-white">{selectedAlert?.title ?? "Waiting for selection"}</p>
+                <p className="mt-1 text-sm text-slate-300">Priority {selectedAlert?.priority ?? "not set"}</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Queue posture</p>
+                <p className="mt-2 text-lg font-semibold text-white">Compact</p>
+                <p className="mt-1 text-sm text-slate-300">Open the queue only when you need the full chronology.</p>
+              </div>
+              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Next action</p>
+                <p className="mt-2 text-lg font-semibold text-white">Coaching lane</p>
+                <p className="mt-1 text-sm text-slate-300">Use alerts as signals, then step back into live coaching to respond.</p>
+              </div>
+            </CardContent>
+          </PremiumCard>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <CoachLaneActionCard
+              eyebrow="Alert queue"
+              title="Review coach notifications in a popup"
+              description="Open the queue only when you need the full list of coach-facing alerts, timing context, and priority cues for the selected learner."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open alert queue"
+                  dialogTitle="Coach alert queue"
+                  dialogDescription="Review the alert queue in a focused popup and keep the main alerts lane short until you need a specific notification."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-5xl"
+                  buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
+                  renderContent={() => (
+                    <div className="space-y-3 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      {data.notifications.map((item: any) => (
+                        <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.55rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${selectedAlert?.id === item.id ? "border-rose-300 bg-[linear-gradient(180deg,rgba(255,241,242,0.98),rgba(254,226,226,0.94))] shadow-[0_20px_45px_rgba(225,29,72,0.12)]" : "border-white/12 bg-slate-950/70 hover:border-white/22 hover:bg-slate-900"}`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${selectedAlert?.id === item.id ? "text-rose-700" : "text-slate-300"}`}>Alert</p>
+                              <h3 className={`mt-2 text-base font-semibold ${selectedAlert?.id === item.id ? "text-slate-950" : "text-white"}`}>{item.title}</h3>
+                              <p className={`mt-2 text-sm ${selectedAlert?.id === item.id ? "text-slate-600" : "text-slate-300"}`}>{new Date(item.createdAt).toLocaleString()}</p>
+                            </div>
+                            <StatusBadge value={item.priority} />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Selected alert"
+              title="Open the full alert detail"
+              description="Keep the chosen alert detail hidden until you need the full recommendation, timing context, and coach-facing explanation."
+              accent="emerald"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open alert detail"
+                  dialogTitle={selectedAlert?.title ?? "Alert detail"}
+                  dialogDescription="Inspect the selected alert in one focused popup so the main alerts lane stays compact by default."
+                  buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
+                  renderContent={() => (
+                    <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      {selectedAlert ? (
+                        <>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusBadge value={selectedAlert.priority} />
+                            <Badge className="rounded-full border-white/12 bg-white/10 text-slate-100">{new Date(selectedAlert.createdAt).toLocaleString()}</Badge>
+                          </div>
+                          <div className="rounded-[1.45rem] border border-white/12 bg-slate-950/80 p-4 text-sm leading-7 text-slate-200">{selectedAlert.detail}</div>
+                        </>
+                      ) : (
+                        <div className="rounded-[1.45rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Select an alert from the queue to inspect the coach-facing recommendation and timing context.</div>
+                      )}
+                    </div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Coach next step"
+              title="Return to live coaching when an alert needs action"
+              description="Use alerts as signals, then move back into the coaching lane to document the response, review the thread, or open the weekly coaching log."
+              accent="gold"
+              action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

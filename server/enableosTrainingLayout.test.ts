@@ -244,14 +244,22 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Follow-up attachments");
     expect(trainingViewSource).toContain("Coaching observation resources");
     expect(trainingViewSource).toContain("Coach follow-up saved to Documentation.");
-    expect(trainingViewSource).toContain("Coach follow-up moved to Coaching lane");
     expect(trainingViewSource).toContain("Open coaching lane");
+    expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
+    expect(trainingViewSource).toContain("Open transfer roster");
+    expect(trainingViewSource).toContain("Open AI guidance");
+    expect(trainingViewSource).toContain("Open module transfer view");
+    expect(trainingViewSource).toContain("Open coach-ready assets");
+    expect(trainingViewSource).toContain("Documentation mode now stays compact until you open the exact evidence view.");
+    expect(trainingViewSource).toContain("Open documentation queue");
+    expect(trainingViewSource).toContain("Open documentation feed");
+    expect(trainingViewSource).toContain("Alerts now stay condensed until you open the exact queue or detail.");
+    expect(trainingViewSource).toContain("Open alert queue");
+    expect(trainingViewSource).toContain("Open alert detail");
     expect(trainingViewSource).toContain("Public / Private visibility");
     expect(trainingViewSource).toContain("Public coaching log");
     expect(trainingViewSource).toContain("Private coaching note");
     expect(trainingViewSource).toContain("Private stays on file for leadership only and does not notify the learner.");
-    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
-    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
@@ -310,9 +318,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Coach studio mission");
     expect(trainingViewSource).toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
     expect(trainingViewSource).not.toContain("Coach control surface");
-    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
-    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
+    expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
+    expect(trainingViewSource).toContain("Documentation mode now stays compact until you open the exact evidence view.");
+    expect(trainingViewSource).toContain("Alerts now stay condensed until you open the exact queue or detail.");
     expect(trainingViewSource).toContain("Open weekly coaching log");
+    expect(trainingViewSource).toContain("Open documentation queue");
+    expect(trainingViewSource).toContain("Open alert queue");
     expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
     expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
