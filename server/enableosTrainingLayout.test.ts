@@ -217,14 +217,15 @@ describe("learner training layout helpers", () => {
 
   it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
     expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
-    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-3 md:grid-cols-2 xl:grid-cols-5');
+    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4');
     expect(trainingViewSource).toContain('activeTab === "coaching" ? (');
     expect(trainingViewSource).toContain('activeTab === "transfer" ? (');
-    expect(trainingViewSource).toContain("Review the note, confirm status, and complete the next coaching action.");
-    expect(trainingViewSource).toContain("Select the thread that needs the next coaching action.");
+    expect(trainingViewSource).toContain("Review the note, confirm the next action, and open the full thread from here.");
+    expect(trainingViewSource).toContain("Select a thread, review the next action, and open the full thread here when you need detail.");
     expect(trainingViewSource).toContain("function CoachLaneActionCard");
     expect(trainingViewSource).toContain("function CoachLaneDialogAction");
-    expect(trainingViewSource).toContain("Open the live coaching thread");
+    expect(trainingViewSource).toContain("Open coaching thread");
+    expect(trainingViewSource).not.toContain("Open the live coaching thread");
     expect(trainingViewSource).toContain("Capture the next structured coaching log");
     expect(trainingViewSource).toContain("Open weekly coaching log");
     expect(trainingViewSource).toContain("Open coach follow-up");
@@ -253,11 +254,13 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Select learner");
     expect(trainingViewSource).toContain("Active threads");
     expect(trainingViewSource).toContain("Open coaching work for this learner");
+    expect(trainingViewSource).toContain("Learning journey complete");
     expect(trainingViewSource).toContain("Training transfer tasks");
     expect(trainingViewSource).toContain("Open transfer roster");
     expect(trainingViewSource).toContain("Open AI guidance");
     expect(trainingViewSource).toContain("Open module transfer view");
     expect(trainingViewSource).toContain("Open coach-ready assets");
+    expect(trainingViewSource).not.toContain("Selected learner");
     expect(trainingViewSource).toContain("Documentation tasks");
     expect(trainingViewSource).toContain("Open documentation queue");
     expect(trainingViewSource).toContain("Open documentation feed");
@@ -336,7 +339,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open alert queue");
     expect(trainingViewSource).toContain("Choose a tab to coach, review transfer, document evidence, or respond to alerts.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
-    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_12px_28px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white");
+    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_10px_22px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white");
     expect(trainingViewSource).not.toContain("Coach-visible signal trend");
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");

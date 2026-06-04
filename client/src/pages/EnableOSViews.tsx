@@ -8167,11 +8167,11 @@ function CoachLaneActionCard({
       : "border-slate-700/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92))] text-slate-50";
 
   return (
-    <div className={`rounded-[1.4rem] border p-4 shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${paletteClassName}`}>
-      <p className={`text-[10px] font-semibold uppercase tracking-[0.22em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
-      <h3 className={`mt-2 text-base font-semibold leading-6 ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
-      <p className={`mt-1.5 text-sm leading-5 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
-      <div className="mt-3">{action}</div>
+    <div className={`rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ${paletteClassName}`}>
+      <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
+      <h3 className={`mt-1.5 text-[15px] font-semibold leading-5 ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
+      <p className={`mt-1 text-[13px] leading-5 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
+      <div className="mt-2.5">{action}</div>
     </div>
   );
 }
@@ -9452,10 +9452,10 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   }, [selectedCoachingSessionId, selectedCoachingSessions]);
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-[1.45rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-3 shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
-        <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="rounded-[1.05rem] border border-white/12 bg-white/6 px-3.5 py-2.5 xl:min-w-[16.5rem]">
+    <div className="space-y-3">
+      <div className="rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
+        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <div className="rounded-[1rem] border border-white/12 bg-white/6 px-3 py-2 xl:min-w-[16rem]">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
               <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedLearner.readinessScore} readiness</Badge>
@@ -9478,26 +9478,26 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             )}
             <p className="mt-1 text-xs leading-4 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
           </div>
-          <div className="grid flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+          <div className="grid flex-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Coach readiness</span></div>
               <p className="mt-1.5 text-base font-semibold text-white">{data.coach.readinessScore}</p>
               <p className="text-[11px] leading-4 text-slate-400">{data.coach.name}</p>
             </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><Users2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Active threads</span></div>
               <p className="mt-1.5 text-base font-semibold text-white">{selectedCoachingSessions.length}</p>
               <p className="text-[11px] leading-4 text-slate-400">Open coaching work for this learner</p>
             </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Weekly logs</span></div>
               <p className="mt-1.5 text-base font-semibold text-white">{selectedWeeklyCoachingLogs.length}</p>
               <p className="text-[11px] leading-4 text-slate-400">Structured coaching cycles recorded</p>
             </button>
-            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1.05rem] border border-white/12 bg-slate-950/45 px-3 py-2.5 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
               <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
               <p className="mt-1.5 text-base font-semibold text-white">{data.activeJourney.progress}%</p>
-              <p className="text-[11px] leading-4 text-slate-400">{data.activeJourney.title}</p>
+              <p className="text-[11px] leading-4 text-slate-400">Learning journey complete</p>
             </button>
           </div>
         </div>
@@ -9525,9 +9525,9 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         }}
       />
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-3">
-        <div className="command-band px-4 py-3 md:px-4.5">
-          <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-2.5">
+        <div className="command-band px-4 py-2.5 md:px-4.5">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Coach modes</p>
               <p className="mt-1 text-sm leading-5 text-slate-700">Choose a tab to coach, review transfer, document evidence, or respond to alerts.</p>
@@ -9542,37 +9542,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         </div>
 
         {activeTab === "coaching" ? (
-          <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-4 scroll-mt-24">
-          <div id="coach-weekly-logs" className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 scroll-mt-24">
-            <CoachLaneActionCard
-              eyebrow="Current session"
-              title="Open the live coaching thread"
-              description="Review the selected thread, confirm status, and check the action plan."
-              accent="emerald"
-              action={
-                <CoachLaneDialogAction
-                  buttonLabel="Open coaching thread"
-                  dialogTitle={selectedCoachingSession ? `${selectedCoachingSession.title} · coaching thread` : "Coaching thread"}
-                  dialogDescription="Review the thread details, confirm status, and check the action plan."
-                  renderContent={() => selectedCoachingSession ? (
-                    <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <StatusBadge value={selectedCoachingSession.status} />
-                        <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{selectedLearner.name}</Badge>
-                      </div>
-                      <p className="text-sm leading-6 text-slate-200">{selectedCoachingSession.notes}</p>
-                      <div className="grid gap-3 md:grid-cols-2">
-                        {selectedCoachingSession.actionPlan.map((step: any) => (
-                          <div key={step} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread to open the live session detail.</div>
-                  )}
-                />
-              }
-            />
+          <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-3 scroll-mt-24">
+          <div id="coach-weekly-logs" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4 scroll-mt-24">
             <CoachLaneActionCard
               eyebrow="Weekly coaching"
               title="Capture the next structured coaching log"
@@ -9641,14 +9612,14 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               }
             />
           </div>
-          <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
-            <div className="space-y-3">
-              <div className="rounded-[1.2rem] border border-slate-200 bg-white/88 p-3 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 xl:grid-cols-[0.72fr_1.28fr]">
+            <div className="space-y-2.5">
+              <div className="rounded-[1.1rem] border border-slate-200 bg-white/88 p-2.5 shadow-[0_10px_22px_rgba(15,23,42,0.05)]">
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching threads</p>
-                <p className="mt-1 text-sm leading-5 text-slate-600">Select the thread that needs the next coaching action.</p>
+                <p className="mt-1 text-sm leading-5 text-slate-600">Select a thread, review the next action, and open the full thread here when you need detail.</p>
               </div>
               {selectedCoachingSessions.map((session: any) => (
-                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.25rem] border p-3.5 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_16px_34px_rgba(8,145,178,0.12)]" : "border-slate-200 bg-white/88 shadow-[0_12px_28px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white"}`}>
+                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_14px_28px_rgba(8,145,178,0.11)]" : "border-slate-200 bg-white/88 shadow-[0_10px_22px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
@@ -9664,16 +9635,16 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               ) : null}
             </div>
               <PremiumCard>
-                <CardHeader className="space-y-0 p-5 pb-3">
+                <CardHeader className="space-y-0 p-4 pb-2.5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <CardTitle className="text-white">Selected coaching thread</CardTitle>
-                      <CardDescription className="mt-1 text-sm leading-5 text-slate-300">{selectedCoachingSession ? "Review the note, confirm status, and complete the next coaching action." : "Select a coaching thread to review the note and next action."}</CardDescription>
+                      <CardDescription className="mt-1 text-sm leading-5 text-slate-300">{selectedCoachingSession ? "Review the note, confirm the next action, and open the full thread from here." : "Select a coaching thread to review the note and next action."}</CardDescription>
                     </div>
                     {selectedCoachingSession ? <StatusBadge value={selectedCoachingSession.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3 p-5 pt-0">
+                <CardContent className="space-y-2.5 p-4 pt-0">
 
                 {selectedCoachingSession ? (
                   <>
@@ -9685,6 +9656,26 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                         <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
                       </div>
                     ) : null}
+                    <CoachLaneDialogAction
+                      buttonLabel="Open coaching thread"
+                      dialogTitle={`${selectedCoachingSession.title} · coaching thread`}
+                      dialogDescription="Review the full thread details, confirm status, and check the action plan."
+                      buttonClassName="w-full justify-between rounded-full border-cyan-200/55 bg-cyan-300/18 text-white shadow-[0_12px_30px_rgba(34,211,238,0.14)] hover:bg-cyan-300/26 hover:text-white"
+                      renderContent={() => (
+                        <div className="space-y-4 rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusBadge value={selectedCoachingSession.status} />
+                            <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{selectedLearner.name}</Badge>
+                          </div>
+                          <p className="text-sm leading-6 text-slate-200">{selectedCoachingSession.notes}</p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {selectedCoachingSession.actionPlan.map((step: any) => (
+                              <div key={step} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    />
                   </>
                 ) : (
                   <div className="rounded-[1.2rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-4 text-sm leading-5 text-slate-200">Choose a coaching thread to load its note and next action.</div>
@@ -9696,7 +9687,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         ) : null}
 
         {activeTab === "transfer" ? (
-          <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 space-y-6 scroll-mt-24">
+          <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 space-y-4 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -9707,12 +9698,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{transferRoster.length} active transfers</Badge>
               </div>
             </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Selected learner</p>
-                <p className="mt-2 text-lg font-semibold text-white">{selectedLearner.name}</p>
-                <p className="mt-1 text-sm text-slate-300">{selectedLearner.roleTitle}</p>
-              </div>
+            <CardContent className="grid gap-3 md:grid-cols-2">
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Journey modules</p>
                 <p className="mt-2 text-lg font-semibold text-white">{data.activeJourney.modules.length}</p>
@@ -9725,7 +9711,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </div>
             </CardContent>
           </PremiumCard>
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Transfer roster"
               title="Review learner handoffs"
@@ -9836,7 +9822,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         ) : null}
 
         {activeTab === "documentation" ? (
-          <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 space-y-6 scroll-mt-24">
+          <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 space-y-4 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -9865,7 +9851,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </div>
             </CardContent>
           </PremiumCard>
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Coach needs"
               title="Review the documentation queue"
@@ -9979,7 +9965,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         ) : null}
 
         {activeTab === "alerts" ? (
-          <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 space-y-6 scroll-mt-24">
+          <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 space-y-4 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -10008,7 +9994,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </div>
             </CardContent>
           </PremiumCard>
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Alert queue"
               title="Review coach notifications"

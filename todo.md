@@ -607,3 +607,8 @@
 - [x] Preview the updated /coach page at 1440×900, rerun validation, verify health, and save a checkpoint for the compact Coach Studio spacing refinement.
 - [x] Restore the ability to change the selected agent or learner in Coach Studio after the compact-layout spacing refactor.
 - [x] Preview the repaired /coach interaction, rerun validation, verify health, and save a checkpoint for the Coach Studio agent-switching fix.
+- [x] Remove duplicate active-learner blocks from Coach Studio mode panels so the current learner appears only once in the top row.
+- [x] Fix mismatched Coach Studio stat-row sublabels so each metric description matches the value being shown.
+- [x] Consolidate duplicate live-thread entry paths in the Coaching lane into one clear coaching-thread workflow while keeping the other four action cards.
+- [x] Tighten Coach Studio action-card height and surrounding spacing so the active learner, weekly-log action, and current next action are visible at 1440×900.
+- [x] Review all four Coach Modes tabs, remove any remaining large vertical whitespace gaps, preview each tab, rerun validation, verify health, and save a checkpoint for the compact-desk refinement.

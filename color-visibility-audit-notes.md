@@ -48,3 +48,11 @@ Compact-spacing verification:
 - In the authenticated live preview, the compact Coach Studio layout showed the **Current learner** selector, the **Open weekly coaching log** action, and the **Next action** area from the selected coaching thread within an approximately 886×768 viewport.
 - Because that live check used a narrower and shorter viewport than 1440×900, the requested first-viewport fit target is satisfied with margin after the spacing reductions.
 - The same preview confirmed the slim header, compact stat row, surfaced action cards, gated modes, de-duplicated learner details, de-duplicated coaching thread title, and functional copy remain in place.
+
+Coach Studio compact-desk preview after prompts 1 through 4:
+The Coaching lane now shows four action cards instead of five, with the live-thread path consolidated into the Coaching Threads area. The selected thread summary and its current next action are visible within the first authenticated browser viewport, which is smaller than the requested 1440×900 target. The top strip still shows a single Current learner summary, the Journey progress stat now reads with the sublabel "Learning journey complete," and the duplicated learner card is removed from Training transfer.
+
+Coach Studio cross-mode compactness check:
+Training transfer now removes the duplicated Selected learner block and uses the reclaimed space for transfer content, with the top summary band and the four action cards fitting tightly without a large blank gap. Documentation also reads as a compact desk: the summary band, the two documentation actions, and the coaching handoff stay close together with no major vertical void between sections in the first viewport.
+Alerts compactness check:
+The Alerts mode remains dense after the spacing pass. Its summary band, queue actions, selected alert action, and coaching handoff appear without a large empty vertical gap, matching the compact desk rhythm used in Coaching, Transfer, and Documentation.
