@@ -2974,14 +2974,11 @@ function realDeckVisualsForModule(module: ModuleLike): TrainingDeckVisual[] {
   }));
 }
 
-// Swap a presentation's generated deck for the real converted deck, but never
-// overwrite a presentation that already carries real (hand-authored) slide images.
+// Show the full converted deck for the module whenever one exists, so every lesson
+// pages through its complete PowerPoint (not a hand-picked subset). Modules with no
+// converted deck keep whatever visuals the presentation already carries.
 function applyRealDeckVisuals<T extends { deckVisuals: TrainingDeckVisual[] }>(presentation: T, realDecks: TrainingDeckVisual[]): T {
   if (!realDecks.length) return presentation;
-  const alreadyReal = presentation.deckVisuals?.some(
-    (visual) => visual.imageUrl.startsWith("/slides/") || visual.imageUrl.startsWith("/manus-storage/"),
-  );
-  if (alreadyReal) return presentation;
   return { ...presentation, deckVisuals: realDecks };
 }
 

@@ -16,9 +16,8 @@ describe("getTrainingPresentation", () => {
     );
 
     expect(presentation.heroTitle).toBe("Active listening in high-friction interactions");
-    expect(presentation.deckVisuals).toHaveLength(3);
-    expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-08");
-    expect(presentation.deckVisuals[1]?.pageLabel).toBe("Slide 14");
+    expect(presentation.deckVisuals.length).toBeGreaterThan(10);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("/slides/softskills-");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("Listening behavior adoption");
     expect(presentation.insightCharts[0]?.chartType).toBe("comparison");
@@ -64,9 +63,8 @@ describe("getTrainingPresentation", () => {
       "Confidence language and escalation clarity",
     );
 
-    expect(presentation.deckVisuals).toHaveLength(3);
-    expect(presentation.deckVisuals[0]?.imageUrl).toContain("softskills-09");
-    expect(presentation.deckVisuals[1]?.title).toBe("Empathy script rewrite activity");
+    expect(presentation.deckVisuals.length).toBeGreaterThan(10);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("/slides/softskills-");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.title).toBe("Trust-safe reassurance mix");
     expect(presentation.insightCharts[0]?.data[2]).toEqual(
@@ -89,9 +87,8 @@ describe("getTrainingPresentation", () => {
       "Escalation recovery and professionalism",
     );
 
-    expect(presentation.deckVisuals).toHaveLength(3);
-    expect(presentation.deckVisuals[0]?.title).toBe("Why patients become upset");
-    expect(presentation.deckVisuals[1]?.imageUrl).toContain("softskills-32");
+    expect(presentation.deckVisuals.length).toBeGreaterThan(10);
+    expect(presentation.deckVisuals[0]?.imageUrl).toContain("/slides/softskills-");
     expect(presentation.insightCharts).toHaveLength(2);
     expect(presentation.insightCharts[0]?.metricLabel).toBe("Recovery score");
     expect(presentation.insightCharts[1]?.data[0]).toEqual(
@@ -139,7 +136,7 @@ describe("getTrainingPresentation", () => {
 
     expect(workflowPresentation.heroTitle).toBe("Verification confidence and workflow control");
     expect(workflowPresentation.evidenceLabel).toContain("module-aware QA and launch-readiness lesson");
-    expect(workflowPresentation.deckVisuals[0]?.imageUrl).toContain("qa-10");
+    expect(workflowPresentation.deckVisuals[0]?.imageUrl).toContain("qa-01");
     expect(workflowPresentation.practiceScenario.title).toBe("Launch-readiness verification drill");
 
     expect(regulatedServicePresentation.heroTitle).toBe("Professional clarity inside regulated conversations");
@@ -461,7 +458,6 @@ describe("getTrainingPresentation", () => {
         gap,
       ).deckVisuals[0]?.imageUrl ?? "";
     const isReal = (url: string) => url.startsWith("/slides/") || url.startsWith("/manus-storage/");
-    const isGenerated = (url: string) => url.startsWith("data:");
 
     // Journeys with a converted deck now show the real uploaded slides.
     expect(isReal(firstDeckImage("mod-wp-2", "Quality Assurance Essentials", "x"))).toBe(true);
@@ -483,9 +479,9 @@ describe("getTrainingPresentation", () => {
     expect(isReal(firstDeckImage("preview-performance-module", "Maximizing performance", "x"))).toBe(true);
     expect(isReal(firstDeckImage("preview-engagement-module", "Gamification & Work From Home", "x"))).toBe(true);
 
-    // Journeys with no converted deck still fall back to generated visuals (until a deck is provided).
-    expect(isGenerated(firstDeckImage("mod-rtc-2", "Real-time Coaching", "x"))).toBe(true);
-    expect(isGenerated(firstDeckImage("mod-hcd-2", "Culture Momentum and Readiness Visibility", "Linking recognition to measurable performance"))).toBe(true);
+    // Coaching now has its own converted deck; Culture reuses the engagement deck — both real.
+    expect(isReal(firstDeckImage("mod-rtc-2", "Real-time Coaching", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("mod-hcd-2", "Culture Momentum and Readiness Visibility", "Linking recognition to measurable performance"))).toBe(true);
   });
 
   it("builds a fallback real-time coaching lesson with coaching-readiness charts and action tools when the module points to the uploaded coaching curriculum", () => {
