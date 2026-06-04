@@ -579,3 +579,6 @@
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the strict role-specific navigation repair.
 - [x] Make the EnableOS Guide available to every role through the role-based navigation and route access rules.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the cross-role Guide access change.
+- [x] Move attachments into the Coach Studio follow-up and observation flow within the coaching lane so users can add them while writing coaching follow-up notes.
+- [x] Replace the current coaching observation resources control with a button that opens a popup for selecting which resource to attach from the coaching lane.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-lane attachment and resource-popup update.

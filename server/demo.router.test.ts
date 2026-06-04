@@ -363,12 +363,57 @@ describe("demo router", () => {
       title: "Annual performance review",
       notes: "Captured yearly progress, coaching consistency, and the next capability focus area.",
       nextStep: "Review readiness movement in the next annual planning cycle.",
+      attachments: [
+        {
+          fileName: "annual-review-observation.pdf",
+          mimeType: "application/pdf",
+          dataBase64: "dGVzdC1wZGY=",
+          sizeBytes: 2048,
+        },
+      ],
+      attachedResources: [
+        {
+          id: "library-workflow-precision-kit",
+          title: "Workflow Precision Kit",
+          format: "Checklist",
+          sourceKind: "chcg_library",
+          sourceLabel: "Sanitized CHCG source modules",
+        },
+      ],
     });
 
     expect(created.reviewType).toBe("annual_review");
+    expect(created.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fileName: "annual-review-observation.pdf",
+          mimeType: "application/pdf",
+          fileUrl: expect.stringContaining("/manus-storage/"),
+        }),
+      ]),
+    );
+    expect(created.attachedResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "library-workflow-precision-kit",
+          title: "Workflow Precision Kit",
+          sourceKind: "chcg_library",
+        }),
+      ]),
+    );
 
     const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
     expect(learner.reviewLogs[0]?.title).toBe("Annual performance review");
+    expect(learner.reviewLogs[0]?.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ fileName: "annual-review-observation.pdf" }),
+      ]),
+    );
+    expect(learner.reviewLogs[0]?.attachedResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "library-workflow-precision-kit" }),
+      ]),
+    );
     expect(learner.documentationEntries[0]?.title).toContain("documentation summary");
   });
 

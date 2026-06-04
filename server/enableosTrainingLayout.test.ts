@@ -215,7 +215,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
-  it("keeps the coach workspace on the inline weekly coaching log flow while preserving the shared structured composer", () => {
+  it("keeps the coach workspace on the inline weekly coaching log flow while placing follow-up attachments and resource selection inside the coaching lane", () => {
     expect(trainingViewSource).toContain("Open weekly coaching log");
     expect(trainingViewSource).toContain("The weekly coaching log is back in the coaching lane");
     expect(trainingViewSource).toContain("jump directly to the inline coaching form below");
@@ -235,6 +235,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Attach any file type to the coaching log");
     expect(trainingViewSource).toContain("Attach files to this log");
     expect(trainingViewSource).toContain("function CoachingAttachmentList");
+    expect(trainingViewSource).toContain("Write a coach follow-up or observation");
+    expect(trainingViewSource).toContain("Follow-up attachments");
+    expect(trainingViewSource).toContain("Coaching observation resources");
+    expect(trainingViewSource).toContain("Coach follow-up saved to Documentation.");
+    expect(trainingViewSource).toContain("Coach follow-up moved to Coaching lane");
+    expect(trainingViewSource).toContain("Open coaching lane");
     expect(trainingViewSource).toContain("Public / Private visibility");
     expect(trainingViewSource).toContain("Public coaching log");
     expect(trainingViewSource).toContain("Private coaching note");

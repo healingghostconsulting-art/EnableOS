@@ -7365,21 +7365,52 @@ function ReviewLogComposer({
   authorRole,
   onCreated,
   title,
+  description = "Capture one-on-ones, quarterly reviews, and annual summaries while the platform keeps learning evidence attached.",
+  allowAttachments = false,
+  resourceOptions = [],
+  resourceButtonLabel = "Observation resources",
+  saveLabel = "Save review log",
+  successLabel = "Documentation entry saved.",
 }: {
   tenantId: string;
   subjectUserId: string;
   authorRole: "manager" | "coach" | "executive" | "client_admin";
   onCreated?: () => void;
   title: string;
+  description?: string;
+  allowAttachments?: boolean;
+  resourceOptions?: Array<{
+    id: string;
+    title: string;
+    summary?: string;
+    format: string;
+    sourceKind: "client_upload" | "chcg_library";
+    sourceLabel: string;
+    tags?: string[];
+  }>;
+  resourceButtonLabel?: string;
+  saveLabel?: string;
+  successLabel?: string;
 }) {
   const [reviewType, setReviewType] = useState<"one_on_one" | "quarterly_check_in" | "annual_review">("one_on_one");
   const [reviewTitle, setReviewTitle] = useState(title);
   const [notes, setNotes] = useState("");
   const [nextStep, setNextStep] = useState("");
+  const [selectedAttachments, setSelectedAttachments] = useState<File[]>([]);
+  const [attachmentNotice, setAttachmentNotice] = useState<string | null>(null);
+  const [attachmentInputKey, setAttachmentInputKey] = useState(0);
+  const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
+  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([]);
+  const selectedResources = resourceOptions.filter((resource) => selectedResourceIds.includes(resource.id));
   const createReviewLog = trpc.demo.previewCreateReviewLog.useMutation({
     onSuccess: () => {
       setNotes("");
       setNextStep("");
+      setSelectedAttachments([]);
+      setAttachmentNotice(null);
+      setAttachmentInputKey((current) => current + 1);
+      setSelectedResourceIds([]);
+      setResourceDialogOpen(false);
       onCreated?.();
     },
   });
@@ -7388,7 +7419,7 @@ function ReviewLogComposer({
     <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.24)]">
       <div className="mb-4 space-y-1">
         <p className="text-sm font-medium text-white">{title}</p>
-        <p className="text-sm leading-6 text-slate-400">Capture one-on-ones, quarterly reviews, and annual summaries while the platform keeps learning evidence attached.</p>
+        <p className="text-sm leading-6 text-slate-400">{description}</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm text-slate-300">
@@ -7417,15 +7448,169 @@ function ReviewLogComposer({
           <input value={nextStep} onChange={(event) => setNextStep(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
         </label>
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      {allowAttachments ? (
+        <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Follow-up attachments</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Attach screenshots, scorecards, recordings, or notes directly while you document the coaching follow-up.</p>
+            </div>
+            <label className="cursor-pointer rounded-full border border-white/12 bg-slate-950/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900">
+              Add files
+              <input
+                key={attachmentInputKey}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  const incomingFiles = Array.from(event.target.files ?? []);
+                  if (!incomingFiles.length) {
+                    return;
+                  }
+
+                  const oversizedFiles = incomingFiles.filter((file) => file.size > WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+                  const validFiles = incomingFiles.filter((file) => file.size <= WEEKLY_COACHING_ATTACHMENT_MAX_BYTES);
+
+                  setSelectedAttachments((current) => {
+                    const deduped = validFiles.filter((file) => !current.some((existing) => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified));
+                    return [...current, ...deduped].slice(0, WEEKLY_COACHING_ATTACHMENT_LIMIT);
+                  });
+
+                  if (oversizedFiles.length) {
+                    setAttachmentNotice(`${oversizedFiles[0]?.name ?? "A file"} exceeds the 15 MB attachment limit.`);
+                  } else if ((selectedAttachments.length + validFiles.length) > WEEKLY_COACHING_ATTACHMENT_LIMIT) {
+                    setAttachmentNotice(`Only the first ${WEEKLY_COACHING_ATTACHMENT_LIMIT} files will be attached.`);
+                  } else {
+                    setAttachmentNotice(null);
+                  }
+
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+          </div>
+          {selectedAttachments.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedAttachments.map((file) => {
+                const fileKey = `${file.name}-${file.lastModified}-${file.size}`;
+                return (
+                  <button
+                    key={fileKey}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAttachments((current) => current.filter((entry) => `${entry.name}-${entry.lastModified}-${entry.size}` !== fileKey));
+                      setAttachmentNotice(null);
+                    }}
+                    className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-left text-xs text-cyan-100 transition hover:bg-cyan-400/16"
+                  >
+                    {file.name} · {formatWeeklyCoachingAttachmentSize(file.size)} · Remove
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm leading-6 text-slate-400">No follow-up attachment selected yet.</p>
+          )}
+          {attachmentNotice ? <p className="mt-3 text-sm text-amber-200">{attachmentNotice}</p> : null}
+        </div>
+      ) : null}
+      {resourceOptions.length ? (
+        <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Observation resources</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Open the popup to attach methodology or tenant resources directly to this observation note.</p>
+            </div>
+            <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
+              <Button type="button" variant="outline" onClick={() => setResourceDialogOpen(true)} className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white">
+                {resourceButtonLabel}
+              </Button>
+              <DialogContent className="max-h-[84vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Attach coaching observation resources</DialogTitle>
+                  <DialogDescription className="text-slate-400">Choose the CHCG or tenant resources that should travel with this follow-up note.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3">
+                  {resourceOptions.map((resource) => {
+                    const selected = selectedResourceIds.includes(resource.id);
+                    return (
+                      <button
+                        key={resource.id}
+                        type="button"
+                        onClick={() => setSelectedResourceIds((current) => current.includes(resource.id) ? current.filter((entry) => entry !== resource.id) : [...current, resource.id].slice(0, 6))}
+                        className={`rounded-[1.45rem] border px-4 py-4 text-left transition ${selected ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_18px_40px_rgba(6,182,212,0.16)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={`rounded-full ${resource.sourceKind === "client_upload" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-200"}`}>
+                            {resource.sourceKind === "client_upload" ? "Client upload" : "CHCG asset"}
+                          </Badge>
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{resource.format}</Badge>
+                          {selected ? <Badge className="rounded-full border-cyan-300/30 bg-cyan-300/12 text-cyan-50">Attached</Badge> : null}
+                        </div>
+                        <h4 className="mt-3 text-base font-semibold text-white">{resource.title}</h4>
+                        {resource.summary ? <p className="mt-2 text-sm leading-6 text-slate-300">{resource.summary}</p> : null}
+                        <p className="mt-3 text-sm text-slate-400">Source: {resource.sourceLabel}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          {selectedResources.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedResources.map((resource) => (
+                <button
+                  key={resource.id}
+                  type="button"
+                  onClick={() => setSelectedResourceIds((current) => current.filter((entry) => entry !== resource.id))}
+                  className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-left text-xs text-violet-100 transition hover:bg-violet-400/16"
+                >
+                  {resource.title} · {resource.format} · Remove
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm leading-6 text-slate-400">No observation resources attached yet.</p>
+          )}
+        </div>
+      ) : null}
+      <div className="mt-4 flex flex-wrap items-start gap-3">
         <Button
           className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
           disabled={createReviewLog.isPending || notes.trim().length < 10 || nextStep.trim().length < 5 || reviewTitle.trim().length < 3}
-          onClick={() => createReviewLog.mutate({ tenantId, subjectUserId, authorRole, reviewType, title: reviewTitle, notes, nextStep })}
+          onClick={async () => {
+            try {
+              setAttachmentNotice(null);
+              const attachments = allowAttachments ? await buildWeeklyCoachingAttachmentPayload(selectedAttachments) : [];
+              await createReviewLog.mutateAsync({
+                tenantId,
+                subjectUserId,
+                authorRole,
+                reviewType,
+                title: reviewTitle,
+                notes,
+                nextStep,
+                attachments: attachments.length ? attachments : undefined,
+                attachedResources: selectedResources.length ? selectedResources.map((resource) => ({
+                  id: resource.id,
+                  title: resource.title,
+                  format: resource.format,
+                  sourceKind: resource.sourceKind,
+                  sourceLabel: resource.sourceLabel,
+                })) : undefined,
+              });
+            } catch (error) {
+              setAttachmentNotice(error instanceof Error ? error.message : "Unable to prepare the selected attachments.");
+            }
+          }}
         >
-          {createReviewLog.isPending ? "Saving..." : "Save review log"}
+          {createReviewLog.isPending ? "Saving..." : saveLabel}
         </Button>
-        {createReviewLog.isSuccess ? <span className="text-sm text-emerald-300">Documentation entry saved.</span> : null}
+        <div className="space-y-1 text-sm">
+          {createReviewLog.isError ? <p className="text-rose-300">{createReviewLog.error.message}</p> : null}
+          {createReviewLog.isSuccess ? <span className="text-sm text-emerald-300">{successLabel}</span> : null}
+        </div>
       </div>
     </div>
   );
@@ -9339,6 +9524,19 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </PremiumCard>
             ) : null}
             <WeeklyCoachingLogComposer {...coachWeeklyCoachingLogProps} onCreated={onUpdated} />
+            <ReviewLogComposer
+              tenantId={data.tenant.id}
+              subjectUserId={selectedLearner.id}
+              authorRole="coach"
+              title="Write a coach follow-up or observation"
+              description="Keep the coaching note in the same lane as the live session, attach files while you write, and open a popup to add the exact observation resources that should travel with the follow-up."
+              allowAttachments
+              resourceOptions={data.workflowLibraryMix.interventionResources}
+              resourceButtonLabel="Coaching observation resources"
+              saveLabel="Save coach follow-up"
+              successLabel="Coach follow-up saved to Documentation."
+              onCreated={onUpdated}
+            />
             <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
             <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
           </div>
@@ -9446,8 +9644,16 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 )}
               </CardContent>
             </PremiumCard>
-            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={selectedLearner.id} authorRole="coach" title="Write a coach follow-up or observational review" onCreated={onUpdated} />
-            <WorkflowLibraryPanel title="Coach observation resources" description="Use methodology references and tenant materials to keep observation notes aligned with the lesson evidence and coaching standard." resources={data.workflowLibraryMix.interventionResources} />
+            <PremiumCard>
+              <CardHeader>
+                <CardTitle className="text-white">Coach follow-up moved to Coaching lane</CardTitle>
+                <CardDescription className="text-slate-400">Write observations, add file attachments, and choose observation resources from the Coaching lane so the live session and the saved follow-up stay in one place.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-6 text-slate-300">Documentation mode now stays focused on reviewing the resulting evidence. Use the coaching lane when you need to create or edit the next follow-up note.</p>
+                <Button type="button" onClick={() => setActiveTab("coaching")} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Open coaching lane</Button>
+              </CardContent>
+            </PremiumCard>
           </div>
           <PremiumCard>
             <CardHeader>

@@ -76,6 +76,19 @@ const reviewLogInput = z.object({
   title: z.string().min(3).max(120),
   notes: z.string().min(10).max(1200),
   nextStep: z.string().min(5).max(240),
+  attachments: z.array(z.object({
+    fileName: z.string().min(1).max(180),
+    mimeType: z.string().min(1).max(160).optional(),
+    dataBase64: z.string().min(1).max(20_000_000),
+    sizeBytes: z.number().int().min(1).max(15 * 1024 * 1024),
+  })).max(5).optional(),
+  attachedResources: z.array(z.object({
+    id: z.string().min(1).max(160),
+    title: z.string().min(2).max(160),
+    format: z.string().min(2).max(80),
+    sourceKind: z.enum(["client_upload", "chcg_library"]),
+    sourceLabel: z.string().min(2).max(120),
+  })).max(6).optional(),
 });
 
 const coachingAttachmentUploadInput = z.object({
@@ -377,10 +390,14 @@ export const demoRouter = router({
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),
   secureUpdateChcgPlatformSettings: adminProcedure.input(chcgPlatformSettingsInput).mutation(({ input }) => updateChcgPlatformSettings(input)),
-  previewCreateReviewLog: publicProcedure.input(reviewLogInput).mutation(({ input }) => createReviewLog(input)),
-  secureCreateReviewLog: protectedProcedure.input(reviewLogInput).mutation(({ ctx, input }) => {
+  previewCreateReviewLog: publicProcedure.input(reviewLogInput).mutation(async ({ input }) => {
+    const attachments = await uploadWeeklyCoachingAttachments(input.tenantId, input.authorRole, input.attachments);
+    return createReviewLog({ ...input, attachments });
+  }),
+  secureCreateReviewLog: protectedProcedure.input(reviewLogInput).mutation(async ({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, input.authorRole === "client_admin" ? "client_admin" : (input.authorRole as DemoRole));
-    return createReviewLog({ ...input, tenantId });
+    const attachments = await uploadWeeklyCoachingAttachments(tenantId, input.authorRole, input.attachments);
+    return createReviewLog({ ...input, tenantId, attachments });
   }),
   previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(async ({ input }) => {
     const attachments = await uploadWeeklyCoachingAttachments(input.tenantId, input.coachRole, input.attachments);

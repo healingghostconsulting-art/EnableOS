@@ -171,6 +171,14 @@ export type DocumentationEntry = {
   weeklyCoachingLogId?: string;
 };
 
+export type ReviewLogAttachedResource = {
+  id: string;
+  title: string;
+  format: string;
+  sourceKind: "client_upload" | "chcg_library";
+  sourceLabel: string;
+};
+
 export type ReviewLog = {
   id: string;
   tenantId: string;
@@ -183,6 +191,8 @@ export type ReviewLog = {
   createdAt: string;
   nextStep: string;
   weeklyCoachingLogId?: string;
+  attachments: WeeklyCoachingAttachment[];
+  attachedResources: ReviewLogAttachedResource[];
 };
 
 export type CreateReviewLogInput = {
@@ -194,6 +204,8 @@ export type CreateReviewLogInput = {
   notes: string;
   nextStep: string;
   weeklyCoachingLogId?: string;
+  attachments?: WeeklyCoachingAttachment[];
+  attachedResources?: ReviewLogAttachedResource[];
 };
 
 export type WeeklyCoachingAttachment = {
@@ -1426,6 +1438,8 @@ const reviewLogs: ReviewLog[] = [
     createdAt: "2026-04-20T13:15:00Z",
     nextStep: "Validate phrasing improvement in the next five monitored interactions and record one example in the documentation hub.",
     weeklyCoachingLogId: "weekly-log-1",
+    attachments: [],
+    attachedResources: [],
   },
   {
     id: "review-2",
@@ -1438,6 +1452,8 @@ const reviewLogs: ReviewLog[] = [
     notes: "Connected intervention volume to readiness movement and confirmed that coaching consistency remains the primary leverage point for the quarter.",
     createdAt: "2026-04-20T15:00:00Z",
     nextStep: "Review readiness movement after the next intervention cycle closes and confirm whether manager cadence is sustaining improvement.",
+    attachments: [],
+    attachedResources: [],
   },
   {
     id: "review-3",
@@ -1450,6 +1466,8 @@ const reviewLogs: ReviewLog[] = [
     notes: "Compiled the learner's evidence history, coaching logs, and improvement actions into a governance-ready annual review draft aligned with CHCG methodology.",
     createdAt: "2026-04-20T17:10:00Z",
     nextStep: "Finalize annual review after the next quarterly checkpoint is completed.",
+    attachments: [],
+    attachedResources: [],
   },
 ];
 
@@ -2186,6 +2204,8 @@ export function createReviewLog(input: CreateReviewLogInput) {
     createdAt: new Date().toISOString(),
     nextStep: input.nextStep,
     weeklyCoachingLogId: input.weeklyCoachingLogId,
+    attachments: input.attachments ?? [],
+    attachedResources: input.attachedResources ?? [],
   };
 
   reviewLogs.unshift(created);
@@ -2202,6 +2222,8 @@ export function createReviewLog(input: CreateReviewLogInput) {
       `Review type: ${input.reviewType.replaceAll("_", " ")}`,
       `Next step: ${input.nextStep}`,
       `Authored by: ${input.authorRole.replaceAll("_", " ")}`,
+      ...(created.attachedResources.length ? [`Resources attached: ${created.attachedResources.map((resource) => resource.title).join(", ")}`] : []),
+      ...(created.attachments.length ? [`Files attached: ${created.attachments.map((attachment) => attachment.fileName).join(", ")}`] : []),
     ],
     weeklyCoachingLogId: input.weeklyCoachingLogId,
   });
