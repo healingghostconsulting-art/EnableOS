@@ -867,24 +867,34 @@ function SectionShell({
   compact?: boolean;
 }) {
   const narrative = resolveSectionMissionNarrative(eyebrow, title);
+  const usesSlimCoachHeader = compact && (eyebrow === "Coach / Supervisor" || title === "Coach or supervisor workspace");
 
   if (compact) {
       return (
       <div className="workspace-stack">
         <div className="rounded-[1.75rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,248,250,0.92))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-4xl space-y-2.5">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.24em]">
-                  {eyebrow}
-                </Badge>
-                <span className="command-pill px-3 py-1 text-[11px] font-medium text-[#4A6373]">{narrative.focus}</span>
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">{title}</p>
-                <h1 className="text-[1.35rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.55rem]">{description}</h1>
-                <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{narrative.next}</p>
-              </div>
+          <div className={`flex flex-col gap-4 ${usesSlimCoachHeader ? "xl:flex-row xl:items-center xl:justify-between" : "xl:flex-row xl:items-end xl:justify-between"}`}>
+            <div className={`max-w-4xl ${usesSlimCoachHeader ? "space-y-1.5" : "space-y-2.5"}`}>
+              {usesSlimCoachHeader ? (
+                <>
+                  <h1 className="text-[1.2rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.3rem]">Coach Studio</h1>
+                  <p className="max-w-4xl text-sm leading-6 text-[#4A6373]">Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.</p>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Badge variant="outline" className="mission-chip rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.24em]">
+                      {eyebrow}
+                    </Badge>
+                    <span className="command-pill px-3 py-1 text-[11px] font-medium text-[#4A6373]">{narrative.focus}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">{title}</p>
+                    <h1 className="text-[1.35rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.55rem]">{description}</h1>
+                    <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{narrative.next}</p>
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
               {actions}
@@ -9448,64 +9458,6 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <MetricCard label="Learner focus" value={selectedLearner.name} supporting={selectedLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Open coaching lane" />
         <MetricCard label="Weekly logs" value={`${selectedWeeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
         <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
-      </div>
-
-      <div className="mission-hero-card overflow-hidden rounded-[2.2rem] border border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(148,163,184,0.16),transparent_26%),linear-gradient(135deg,rgba(9,18,28,0.98),rgba(20,32,44,0.96))] px-6 py-6 shadow-[0_30px_90px_rgba(15,23,42,0.18)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge className="mission-chip rounded-full border-white/20 bg-white/12 text-white">Coach studio mission</Badge>
-                <span className="command-pill rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-100/90">Coach the behavior, not just the completion</span>
-              </div>
-              <Button
-                type="button"
-                onClick={() => openCoachView("coaching", "coach-weekly-logs")}
-                className="rounded-full bg-[#FCBC34] px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_40px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
-              >
-                Open weekly coaching log
-              </Button>
-            </div>
-            <div className="space-y-3">
-              <h2 className="max-w-4xl text-[1.9rem] font-semibold tracking-tight text-white xl:text-[2.2rem]">A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.</h2>
-              <p className="max-w-4xl text-sm leading-7 text-slate-200/92">The coach experience now stays focused on the high-value path: orient to the learner, capture the weekly coaching log, review the next action, and open the exact documentation detail without hunting through a long stacked page.</p>
-            </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-            <div className="rounded-[1.7rem] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,249,0.95))] px-5 py-5 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_20px_45px_rgba(15,23,42,0.18)]">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Current learner focus</p>
-                  <h3 className="mt-2 text-xl font-semibold text-slate-950">{selectedLearner.name}</h3>
-                </div>
-                <Badge className="rounded-full border-slate-200 bg-slate-100 text-slate-700">{selectedLearner.readinessScore} readiness</Badge>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{selectedLearner.title} · {selectedLearner.team}</p>
-              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
-                <SelectTrigger className="mt-4 h-auto rounded-[1.1rem] border-slate-200 bg-white py-3 text-left text-slate-950 shadow-none">
-                  <SelectValue placeholder="Choose learner" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamLearners.map((learner: any) => (
-                    <SelectItem key={learner.id} value={learner.id}>{learner.name} · {learner.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="rounded-[1.7rem] border border-emerald-200/80 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(209,250,229,0.9))] px-5 py-5 text-slate-950 shadow-[0_20px_45px_rgba(16,185,129,0.14)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">Coach momentum</p>
-              <p className="mt-2 text-base font-semibold text-slate-950">{selectedWeeklyCoachingLogs.length} structured logs and {selectedCoachingSessions.length} active coaching threads are ready for {selectedLearner.name.split(" ")[0]}.</p>
-              <p className="mt-3 text-sm leading-6 text-emerald-900/80">Switch learners instantly, keep the log and follow-up visible, and route AI-guided transfer actions into the dedicated transfer lane.</p>
-            </div>
-            <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log stays in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
-              <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
-                Use the action cards below to open the weekly log, coach follow-up, history, and retraining sections in focused popups.
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div id="coach-overview" className="scroll-mt-24" />

@@ -30,3 +30,6 @@ Additional live-preview confirmation:
 - The Documentation tab now presents a compact summary strip followed by popup-triggered actions for the queue, evidence feed, and coaching handoff.
 - The Alerts tab now mirrors the same approach with a compact summary strip and popup-triggered actions for the queue, selected detail, and coaching return path.
 - Across the three tabs reviewed after the redesign, the compact card pattern is now visually consistent and the supporting copy remains readable against the dark surfaces used in Coach Studio.
+
+Header refinement preview:
+The /coach workspace now opens with a slim Coach Studio title strip and one short line of context. The removed oversized eyebrow-plus-headline band no longer occupies the first screen, and the metric cards now begin immediately below the compact strip in the live preview.

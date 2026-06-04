@@ -591,3 +591,5 @@
 - [x] Apply the popup-based compact workflow pattern consistently across all remaining Coach Studio sections while preserving existing functionality.
 - [x] Review and improve color visibility and contrast across the full Coach Studio experience so the expanded redesign stays readable and consistent.
 - [x] Update regression coverage, rerun TypeScript and Vitest, verify project health, and save a checkpoint for the Coach Studio section-wide refinement.
+- [x] Replace the large Coach Studio workspace hero with a slim title strip that keeps only a short title and one line of context.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the slimmer Coach Studio header refinement.

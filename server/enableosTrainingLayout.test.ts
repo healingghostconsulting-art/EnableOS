@@ -216,7 +216,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
-    expect(trainingViewSource).toContain("Use the action cards below to open the weekly log, coach follow-up, history, and retraining sections in focused popups.");
+    expect(trainingViewSource).toContain("Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.");
     expect(trainingViewSource).toContain("The coaching lane is now intentionally compact");
     expect(trainingViewSource).toContain("function CoachLaneActionCard");
     expect(trainingViewSource).toContain("function CoachLaneDialogAction");
@@ -315,8 +315,10 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
-    expect(trainingViewSource).toContain("Coach studio mission");
-    expect(trainingViewSource).toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
+    expect(trainingViewSource).toContain(">Coach Studio<");
+    expect(trainingViewSource).toContain("Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.");
+    expect(trainingViewSource).not.toContain("Coach studio mission");
+    expect(trainingViewSource).not.toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
     expect(trainingViewSource).not.toContain("Coach control surface");
     expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
     expect(trainingViewSource).toContain("Documentation mode now stays compact until you open the exact evidence view.");
