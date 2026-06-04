@@ -596,3 +596,5 @@
 - [x] Convert the four large Coach Studio KPI cards into one compact stat row with small labels and values.
 - [x] Remove duplicated active-learner details so the selected learner appears in only one Current learner location within /coach.
 - [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the compact Coach Studio stat-row refinement.
+- [x] Remove self-referential Coach Studio copy and keep only functional, coach-directed instructions in the /coach workspace.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio functional-copy refinement.

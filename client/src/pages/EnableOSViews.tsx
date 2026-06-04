@@ -878,7 +878,7 @@ function SectionShell({
               {usesSlimCoachHeader ? (
                 <>
                   <h1 className="text-[1.2rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.3rem]">Coach Studio</h1>
-                  <p className="max-w-4xl text-sm leading-6 text-[#4A6373]">Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.</p>
+                  <p className="max-w-4xl text-sm leading-6 text-[#4A6373]">Select a learner, review status, and open the next coaching task.</p>
                 </>
               ) : (
                 <>
@@ -9515,7 +9515,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Coach modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-700">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Choose a tab to coach, review transfer, document evidence, or respond to alerts.</p>
             </div>
             <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-slate-200 bg-white/85 p-2 shadow-[0_12px_24px_rgba(15,23,42,0.06)] xl:w-auto">
               <TabsTrigger value="coaching" className="rounded-full px-4 py-2 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
@@ -9556,7 +9556,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm leading-6 text-slate-200">The coaching lane is now intentionally compact: keep the learner context visible here, then open each major workflow in a focused popup when you need to write, review, or confirm follow-through.</p>
+                <p className="text-sm leading-6 text-slate-200">Review the selected thread, then complete the next coaching action.</p>
                 {selectedCoachingSession?.actionPlan?.length ? (
                   <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
                     <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
@@ -9568,13 +9568,13 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CoachLaneActionCard
                 eyebrow="Current session"
                 title="Open the live coaching thread"
-                description="Review the selected coaching thread, status, and full action plan in a focused popup without stretching the lane vertically."
+                description="Review the selected thread, confirm status, and check the action plan."
                 accent="emerald"
                 action={
                   <CoachLaneDialogAction
                     buttonLabel="Open coaching thread"
                     dialogTitle={selectedCoachingSession ? `${selectedCoachingSession.title} · coaching thread` : "Coaching thread"}
-                    dialogDescription="Keep the live thread details, action plan, and current status together in one focused view."
+                    dialogDescription="Review the thread details, confirm status, and check the action plan."
                     renderContent={() => selectedCoachingSession ? (
                       <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
                         <div className="flex flex-wrap items-center gap-3">
@@ -9597,19 +9597,19 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CoachLaneActionCard
                 eyebrow="Weekly coaching"
                 title="Capture the next structured coaching log"
-                description="Use the same coaching-log workflow in a focused popup, then return to the lane with the history refreshed."
+                description="Record this week's coaching notes and save the log."
                 accent="gold"
-                action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Capture the structured weekly coaching record in a focused popup, then return to the coaching lane with the learner context preserved." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
+                action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Complete the weekly coaching record and save it." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
               />
               <CoachLaneActionCard
                 eyebrow="Coach follow-up"
-                title="Write the next observation in a popup"
-                description="Keep attachments and observation resources connected to the note, but open the actual composer only when you need it."
+                title="Write the next observation"
+                description="Document the follow-up note, attach files, and choose observation resources."
                 action={
                   <CoachLaneDialogAction
                     buttonLabel="Open coach follow-up"
                     dialogTitle="Coach follow-up and observation"
-                    dialogDescription="Write the follow-up in a focused popup, attach files, and choose observation resources without leaving the coaching lane."
+                    dialogDescription="Write the follow-up note, attach files, and choose observation resources."
                     renderContent={(close) => (
                       <ReviewLogComposer
                         tenantId={data.tenant.id}
@@ -9634,7 +9634,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CoachLaneActionCard
                 eyebrow="Weekly history"
                 title="Review saved coaching records"
-                description="Open the full coaching history only when needed so the lane stays concise during live work."
+                description="Review saved coaching records and confirm prior follow-through."
                 action={
                   <CoachLaneDialogAction
                     buttonLabel="Open coaching history"
@@ -9649,7 +9649,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CoachLaneActionCard
                 eyebrow="Retraining history"
                 title="Check follow-through completion"
-                description="Open the retraining completion record in a popup when you need to confirm whether the learner finished the assigned next steps."
+                description="Confirm whether the learner finished the assigned next steps."
                 action={
                   <CoachLaneDialogAction
                     buttonLabel="Open retraining history"
@@ -9670,8 +9670,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <CardTitle className="text-white">Training transfer now stays compact until you open the exact workflow.</CardTitle>
-                  <CardDescription className="mt-2 text-slate-300">Review roster attribution, AI guidance, active modules, and support assets in focused popups so the transfer lane remains concise during live coaching.</CardDescription>
+                  <CardTitle className="text-white">Training transfer tasks</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Review assignments, confirm guidance, and support transfer follow-through.</CardDescription>
                 </div>
                 <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{transferRoster.length} active transfers</Badge>
               </div>
@@ -9690,15 +9690,15 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">AI guidance</p>
                 <p className="mt-2 text-lg font-semibold text-white">{selectedAiSuggestion ? "Ready" : "Waiting"}</p>
-                <p className="mt-1 text-sm text-slate-300">Open the recommendation only when you need the next transfer move.</p>
+                <p className="mt-1 text-sm text-slate-300">Review the next transfer recommendation.</p>
               </div>
             </CardContent>
           </PremiumCard>
           <div className="grid gap-4 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Transfer roster"
-              title="Review learner handoffs in a popup"
-              description="Open the assignment roster only when you need to confirm who received the transfer, how it was assigned, and when follow-through is due."
+              title="Review learner handoffs"
+              description="Confirm who received the transfer, how it was assigned, and when follow-through is due."
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open transfer roster"
@@ -9738,14 +9738,15 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="AI guidance"
-              title="Open the transfer recommendation when needed"
-              description="Keep the lane short until you need to inspect or act on the current AI-guided transfer suggestion for this learner."
+              title="Review the transfer recommendation"
+              description="Inspect the current AI-guided transfer suggestion and choose the next coaching move."
               accent="emerald"
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open AI guidance"
                   dialogTitle="Training-transfer guidance"
-                  dialogDescription="Review the AI-guided transfer recommendation, related assignments, and next coaching move in one focused popup."
+                    dialogDescription="Review the transfer recommendation, related assignments, and next coaching move."
+
                   dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
                   renderContent={() => selectedAiSuggestion ? (
                     <GuidanceActionPanel tenantId={data.tenant.id} suggestion={selectedAiSuggestion} catalog={data.retrainingCatalog} assignments={selectedCurrentRetrainingAssignment ? [selectedCurrentRetrainingAssignment] : []} actorRole="coach" learnerName={selectedLearner.name} onUpdated={onUpdated} />
@@ -9757,8 +9758,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Journey modules"
-              title="Review active training modules in a popup"
-              description="Open the current module list only when you need to confirm the exact lesson, skill focus, and completion posture behind the transfer."
+              title="Review active training modules"
+              description="Confirm the lesson, skill focus, and completion posture behind the transfer."
               accent="gold"
               action={
                 <CoachLaneDialogAction
@@ -9785,8 +9786,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Coach-ready assets"
-              title="Open the support content mix"
-              description="Keep methodology and tenant-authored resources available on demand instead of showing the full library inline at all times."
+              title="Review the support content mix"
+              description="Review methodology and tenant-authored resources for the next coaching step."
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open coach-ready assets"
@@ -9807,8 +9808,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <CardTitle className="text-white">Documentation mode now stays compact until you open the exact evidence view.</CardTitle>
-                  <CardDescription className="mt-2 text-slate-300">Keep the queue, saved feed, and coaching handoff one click away so documentation remains review-focused instead of becoming another long working lane.</CardDescription>
+                  <CardTitle className="text-white">Documentation tasks</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Review the queue, confirm saved entries, and open the coaching handoff.</CardDescription>
                 </div>
                 <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedDocumentationEntries.length} documentation items</Badge>
               </div>
@@ -9827,15 +9828,15 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Action handoff</p>
                 <p className="mt-2 text-lg font-semibold text-white">Coaching lane</p>
-                <p className="mt-1 text-sm text-slate-300">Return there when a new follow-up or observation needs to be written.</p>
+                <p className="mt-1 text-sm text-slate-300">Write the next follow-up or observation there.</p>
               </div>
             </CardContent>
           </PremiumCard>
           <div className="grid gap-4 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Coach needs"
-              title="Review the documentation queue in a popup"
-              description="Open the highest-priority documentation handoffs only when you need to review the next record, summary, or linked coaching evidence."
+              title="Review the documentation queue"
+              description="Review the next record, summary, or linked coaching evidence."
               accent="emerald"
               action={
                 <CoachLaneDialogAction
@@ -9917,8 +9918,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Documentation feed"
-              title="Open the full evidence stream in a popup"
-              description="Keep the full documentation feed off the main lane until you need to review the saved record stream or inspect an exact entry."
+              title="Review the evidence stream"
+              description="Review saved records and open the entry you need."
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open documentation feed"
@@ -9935,8 +9936,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Coaching handoff"
-              title="Return to the coaching lane when action is needed"
-              description="Documentation mode stays review-focused. Open the coaching lane only when you need to write the next follow-up, attach files, or capture a new observation."
+              title="Return to the coaching lane"
+              description="Write the next follow-up, attach files, or capture a new observation."
               accent="gold"
               action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
             />
@@ -9948,8 +9949,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <CardTitle className="text-white">Alerts now stay condensed until you open the exact queue or detail.</CardTitle>
-                  <CardDescription className="mt-2 text-slate-300">Keep the coach queue light, inspect the selected alert in a focused popup, and jump back into coaching only when the signal calls for action.</CardDescription>
+                  <CardTitle className="text-white">Alerts</CardTitle>
+                  <CardDescription className="mt-2 text-slate-300">Review the queue, inspect the selected alert, and take the next action.</CardDescription>
                 </div>
                 <Badge className="rounded-full border-rose-300/35 bg-rose-300/12 text-rose-100">{data.notifications.length} open alerts</Badge>
               </div>
@@ -9962,8 +9963,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </div>
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Queue posture</p>
-                <p className="mt-2 text-lg font-semibold text-white">Compact</p>
-                <p className="mt-1 text-sm text-slate-300">Open the queue only when you need the full chronology.</p>
+                <p className="mt-2 text-lg font-semibold text-white">Queue ready</p>
+                <p className="mt-1 text-sm text-slate-300">Review the full alert chronology.</p>
               </div>
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Next action</p>
@@ -9975,13 +9976,14 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <div className="grid gap-4 xl:grid-cols-2">
             <CoachLaneActionCard
               eyebrow="Alert queue"
-              title="Review coach notifications in a popup"
-              description="Open the queue only when you need the full list of coach-facing alerts, timing context, and priority cues for the selected learner."
+              title="Review coach notifications"
+              description="Review the full list of coach-facing alerts, timing context, and priority cues for the selected learner."
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open alert queue"
                   dialogTitle="Coach alert queue"
-                  dialogDescription="Review the alert queue in a focused popup and keep the main alerts lane short until you need a specific notification."
+                    dialogDescription="Review the alert queue and choose the next notification to handle."
+
                   dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-5xl"
                   buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
                   renderContent={() => (
@@ -10005,14 +10007,15 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Selected alert"
-              title="Open the full alert detail"
-              description="Keep the chosen alert detail hidden until you need the full recommendation, timing context, and coach-facing explanation."
+              title="Review the alert detail"
+              description="Review the recommendation, timing context, and coach-facing explanation."
               accent="emerald"
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open alert detail"
                   dialogTitle={selectedAlert?.title ?? "Alert detail"}
-                  dialogDescription="Inspect the selected alert in one focused popup so the main alerts lane stays compact by default."
+                    dialogDescription="Review the selected alert and decide the next step."
+
                   buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
                   renderContent={() => (
                     <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
@@ -10034,8 +10037,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             />
             <CoachLaneActionCard
               eyebrow="Coach next step"
-              title="Return to live coaching when an alert needs action"
-              description="Use alerts as signals, then move back into the coaching lane to document the response, review the thread, or open the weekly coaching log."
+              title="Return to live coaching"
+              description="Document the response, review the thread, or open the weekly coaching log."
               accent="gold"
               action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
             />

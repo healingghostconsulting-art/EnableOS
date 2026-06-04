@@ -33,3 +33,8 @@ Additional live-preview confirmation:
 
 Header refinement preview:
 The /coach workspace now opens with a slim Coach Studio title strip and one short line of context. The removed oversized eyebrow-plus-headline band no longer occupies the first screen, and the metric cards now begin immediately below the compact strip in the live preview.
+
+Functional-copy preview notes:
+The slim Coach Studio header and coaching-lane summary now use direct task language. The transfer tab still shows self-referential descriptions such as "Open the assignment roster only when you need..." and "Keep the lane short until you need...", so the action-card copy needs one more pass in Training transfer and likely the remaining tabs.
+The refreshed preview shows the coaching and transfer tabs now lead with coach-task instructions instead of interface-mechanics copy. The transfer summary now reads as action guidance, and the coaching lane no longer explains compactness or popups in the visible card descriptions.
+The refreshed Coach Studio preview confirms the visible header, coaching lane, and transfer guidance now read as direct work instructions. The first screen no longer explains compactness, popups, or page behavior in the visible coach workflow copy.

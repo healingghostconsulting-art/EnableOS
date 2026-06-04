@@ -216,8 +216,8 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
-    expect(trainingViewSource).toContain("Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.");
-    expect(trainingViewSource).toContain("The coaching lane is now intentionally compact");
+    expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
+    expect(trainingViewSource).toContain("Review the selected thread, then complete the next coaching action.");
     expect(trainingViewSource).toContain("function CoachLaneActionCard");
     expect(trainingViewSource).toContain("function CoachLaneDialogAction");
     expect(trainingViewSource).toContain("Open the live coaching thread");
@@ -247,15 +247,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Current learner");
     expect(trainingViewSource).toContain("Active threads");
     expect(trainingViewSource).toContain("Open coaching work for this learner");
-    expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
+    expect(trainingViewSource).toContain("Training transfer tasks");
     expect(trainingViewSource).toContain("Open transfer roster");
     expect(trainingViewSource).toContain("Open AI guidance");
     expect(trainingViewSource).toContain("Open module transfer view");
     expect(trainingViewSource).toContain("Open coach-ready assets");
-    expect(trainingViewSource).toContain("Documentation mode now stays compact until you open the exact evidence view.");
+    expect(trainingViewSource).toContain("Documentation tasks");
     expect(trainingViewSource).toContain("Open documentation queue");
     expect(trainingViewSource).toContain("Open documentation feed");
-    expect(trainingViewSource).toContain("Alerts now stay condensed until you open the exact queue or detail.");
+    expect(trainingViewSource).toContain("Alerts");
     expect(trainingViewSource).toContain("Open alert queue");
     expect(trainingViewSource).toContain("Open alert detail");
     expect(trainingViewSource).toContain("Public / Private visibility");
@@ -318,17 +318,17 @@ describe("learner training layout helpers", () => {
 
   it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
     expect(trainingViewSource).toContain(">Coach Studio<");
-    expect(trainingViewSource).toContain("Keep the active learner, coaching log, transfer actions, documentation, and alerts within quick reach.");
+    expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
     expect(trainingViewSource).not.toContain("Coach studio mission");
     expect(trainingViewSource).not.toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
     expect(trainingViewSource).not.toContain("Coach control surface");
-    expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
-    expect(trainingViewSource).toContain("Documentation mode now stays compact until you open the exact evidence view.");
-    expect(trainingViewSource).toContain("Alerts now stay condensed until you open the exact queue or detail.");
+    expect(trainingViewSource).toContain("Training transfer tasks");
+    expect(trainingViewSource).toContain("Documentation tasks");
+    expect(trainingViewSource).toContain("Alerts");
     expect(trainingViewSource).toContain("Open weekly coaching log");
     expect(trainingViewSource).toContain("Open documentation queue");
     expect(trainingViewSource).toContain("Open alert queue");
-    expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
+    expect(trainingViewSource).toContain("Choose a tab to coach, review transfer, document evidence, or respond to alerts.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
     expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
     expect(trainingViewSource).not.toContain("Coach-visible signal trend");
