@@ -139,7 +139,7 @@ describe("getTrainingPresentation", () => {
 
     expect(workflowPresentation.heroTitle).toBe("Verification confidence and workflow control");
     expect(workflowPresentation.evidenceLabel).toContain("module-aware QA and launch-readiness lesson");
-    expect(workflowPresentation.deckVisuals[0]?.imageUrl).toContain("data:image/svg+xml");
+    expect(workflowPresentation.deckVisuals[0]?.imageUrl).toContain("qa-10");
     expect(workflowPresentation.practiceScenario.title).toBe("Launch-readiness verification drill");
 
     expect(regulatedServicePresentation.heroTitle).toBe("Professional clarity inside regulated conversations");
@@ -451,6 +451,41 @@ describe("getTrainingPresentation", () => {
     );
     expect(presentation.applySlides[0]?.title).toBe("Pass the transfer gate");
     expect(presentation.applicationActivity.questions[0]?.correctOptionId).toBe("custom-engagement-module-q1-a");
+  });
+
+  it("renders real uploaded slides for every journey that has a converted deck, and keeps generated decks only where none exists", () => {
+    const firstDeckImage = (id: string, journeyTitle: string, gap: string, skillFocus = "Module focus") =>
+      getTrainingPresentation(
+        { id, title: id, format: "Playbook", durationMinutes: 8, skillFocus } as any,
+        journeyTitle,
+        gap,
+      ).deckVisuals[0]?.imageUrl ?? "";
+    const isReal = (url: string) => url.startsWith("/slides/") || url.startsWith("/manus-storage/");
+    const isGenerated = (url: string) => url.startsWith("data:");
+
+    // Journeys with a converted deck now show the real uploaded slides.
+    expect(isReal(firstDeckImage("mod-wp-2", "Quality Assurance Essentials", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("mod-dl-2", "Unlocking the Power of Data", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("mod-lfp-2", "Utilizing Performance Management to Maximize Results", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("mod-hce-2", "Gamification for Remote Teams: Engaging and Empowering Leaders", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("mod-lfs-2", "Soft Skills & Customer/Patient Service Foundation", "x"))).toBe(true);
+
+    // mod-hcs-2 mismatch fix: the Digital Care service journey uses the service (soft-skills)
+    // deck even though its skillFocus ("Transfer discipline") would otherwise keyword-match performance.
+    const hcs2 = firstDeckImage("mod-hcs-2", "Customer Service Foundations for Digital Care", "Consistency in tone and issue ownership", "Transfer discipline");
+    expect(isReal(hcs2)).toBe(true);
+    expect(hcs2).toContain("softskills");
+
+    // The manager/coach/executive "Switch lane" preview scenarios use synthetic module ids
+    // (preview-*-module); they must resolve to real slides too, not the broken keyword fallback.
+    expect(isReal(firstDeckImage("preview-workflow-module", "Quality Assurance Essentials", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("preview-leadership-module", "Unlocking the power of date", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("preview-performance-module", "Maximizing performance", "x"))).toBe(true);
+    expect(isReal(firstDeckImage("preview-engagement-module", "Gamification & Work From Home", "x"))).toBe(true);
+
+    // Journeys with no converted deck still fall back to generated visuals (until a deck is provided).
+    expect(isGenerated(firstDeckImage("mod-rtc-2", "Real-time Coaching", "x"))).toBe(true);
+    expect(isGenerated(firstDeckImage("mod-hcd-2", "Culture Momentum and Readiness Visibility", "Linking recognition to measurable performance"))).toBe(true);
   });
 
   it("builds a fallback real-time coaching lesson with coaching-readiness charts and action tools when the module points to the uploaded coaching curriculum", () => {
