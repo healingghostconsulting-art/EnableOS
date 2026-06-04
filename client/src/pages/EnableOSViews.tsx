@@ -4917,8 +4917,8 @@ export function TrainingExperienceView() {
                                 <div className="space-y-3">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div className="min-w-0">
-                                      <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">{activeInteractiveVisual.pageLabel} · {activeInteractiveVisual.sourceDeck}</p>
-                                      <p className="mt-1 truncate text-sm font-medium text-white">{activeInteractiveVisual.title}</p>
+                                      <p className="break-words text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">{activeInteractiveVisual.pageLabel} · {activeInteractiveVisual.sourceDeck}</p>
+                                      <p className="mt-1 line-clamp-2 break-words text-sm font-medium leading-snug text-white">{activeInteractiveVisual.title}</p>
                                     </div>
                                     <div className="flex shrink-0 items-center gap-2">
                                       <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} aria-label="Previous slide" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white transition hover:bg-white/12 disabled:opacity-40">

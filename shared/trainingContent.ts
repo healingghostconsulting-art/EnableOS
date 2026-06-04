@@ -1,3 +1,5 @@
+import { slideDeckForModuleId, slidePageLabel } from "./slideManifest";
+
 export type TrainingPresentationSlide = {
   id: string;
   eyebrow: string;
@@ -2951,60 +2953,25 @@ function buildExpandedCurriculumMigrationPresentation(module: ModuleLike): Omit<
   }
 }
 
-// Real converted slide decks, keyed by journey, so every training whose deck has
-// been converted shows the actual uploaded PowerPoint slides instead of a generated
-// title card. Journeys without a converted deck (Real-time Coaching, Culture Momentum)
-// return [] and keep their generated visuals until a real deck is provided.
+// Real converted slide decks for every training whose deck has been converted, so the
+// lesson shows the actual uploaded PowerPoint slides instead of a generated title card.
+// The slide list lives in ./slideManifest (the single place to add the rest of a deck);
+// this just maps the matched deck's slides onto the player's visual shape. Modules with
+// no converted deck (Real-time Coaching, Culture Momentum) return [] and keep generated
+// visuals until a deck is added to the manifest.
 function realDeckVisualsForModule(module: ModuleLike): TrainingDeckVisual[] {
-  // Gate on module-id prefix (deterministic) rather than the journey title, which
-  // can vary by the lane that surfaces a module (e.g. a QA module shown to a coach).
-  const id = module.id;
-  const matches = (...prefixes: string[]) => prefixes.some((prefix) => id.startsWith(prefix));
-  const deck = (sourceDeck: string, entries: { slide: string; image: string; title: string; caption: string }[]): TrainingDeckVisual[] =>
-    entries.map((entry, index) => ({
-      id: `${module.id}-realdeck-${index + 1}`,
-      title: entry.title,
-      caption: entry.caption,
-      imageUrl: entry.image,
-      sourceDeck,
-      pageLabel: entry.slide,
-    }));
-
-  if (matches("mod-sf", "mod-lfs", "mod-hcs")) {
-    return deck("Soft Skills & Customer/Patient Service Foundation", [
-      { slide: "Slide 8", image: "/slides/softskills-08_fd8d5235.png", title: "Communication foundations overview", caption: "The original communication slide is shown in-platform so the learner can study the deck’s structure and emphasis without leaving the course." },
-      { slide: "Slide 14", image: "/slides/softskills-14_e11945d2.png", title: "Service communication skills", caption: "This capability board becomes a first-class lesson visual for listening, articulation, empathy, and service readiness." },
-      { slide: "Slide 16", image: "/slides/softskills-16_351b1cea.png", title: "Ask-probe-confirm service model", caption: "A service-behavior slide is embedded so the learner can connect clarification, probing, and confirmation language to the conversation." },
-    ]);
-  }
-  if (matches("mod-wp", "preview-workflow")) {
-    return deck("Quality Assurance Essentials", [
-      { slide: "Slide 10", image: "/slides/qa-10_c1b475bc.png", title: "Greeting and verification workflow", caption: "A QA deck frame keeps concrete greeting, verification, and compliance behaviors from the PowerPoint inside the lesson." },
-      { slide: "Slide 11", image: "/slides/qa-11_a61e56b8.png", title: "High-scoring behavior model", caption: "This QA visual shows observable, high-scoring workflow behavior so review conversations stay specific instead of abstract." },
-    ]);
-  }
-  if (matches("mod-dl", "mod-lfd", "preview-leadership")) {
-    return deck("Unlocking the Power of Data", [
-      { slide: "Slide 8", image: "/slides/leadership-data-08_d8fd351a.png", title: "How to read KPI reports", caption: "This deck frame brings KPI trend reading, target comparison, and outlier detection directly into the lesson." },
-      { slide: "Slide 9", image: "/slides/leadership-data-09_f158ab35.png", title: "Interpreting KPI activity", caption: "A workshop-style KPI activity shows how trend reading, concern detection, and next-step planning can be practiced in-platform." },
-      { slide: "Slide 17", image: "/slides/leadership-data-17_e47d3a3d.png", title: "Examples of flawed analysis", caption: "A slide on common analysis errors — correlation mistakes, confirmation and recency bias, and overreliance on averages." },
-    ]);
-  }
-  if (matches("mod-lfp", "preview-performance")) {
-    return deck("Utilizing Performance Management to Maximize Results", [
-      { slide: "Slide 8", image: "/slides/performance-leadership-08_61606933.png", title: "Bucketing activity", caption: "This frame brings calibration and performance segmentation into the lesson as a structured activity instead of a text-only explanation." },
-      { slide: "Slide 9", image: "/slides/performance-leadership-09_edfbb1ea.png", title: "Avoiding mislabeling and bias", caption: "A fairness frame so leaders compare evidence and documentation quality before deciding on next actions." },
-      { slide: "Slide 10", image: "/slides/performance-leadership-10_f976e1db.png", title: "Performance conversation framing", caption: "A deck frame that connects calibration, development, and documentation into one system." },
-    ]);
-  }
-  if (matches("mod-hce", "preview-engagement")) {
-    return deck("Gamification for Remote Teams: Engaging and Empowering Leaders", [
-      { slide: "Slide 8", image: "/slides/gamification-08_78b0164d.png", title: "Gamification mistakes to avoid", caption: "The risks of overcomplication, unfairness, burnout, and stale reward structures, surfaced directly in the lesson." },
-      { slide: "Slide 9", image: "/slides/gamification-09_013f4839.png", title: "Gamification program design", caption: "A step-by-step design slide showing how purpose, rules, metrics, rewards, pilot feedback, and iteration fit together." },
-      { slide: "Slide 10", image: "/slides/gamification-10_48ec527b.png", title: "What makes a good reward", caption: "Concrete reward-design options — recognition, badges, time-off tokens, spotlight moments, and non-monetary rewards." },
-    ]);
-  }
-  return [];
+  const deck = slideDeckForModuleId(module.id);
+  if (!deck) return [];
+  return deck.slides.map((slide, index) => ({
+    id: `${module.id}-realdeck-${index + 1}`,
+    title: slide.title ?? `${deck.sourceDeck} · ${slidePageLabel(slide.file)}`,
+    caption:
+      slide.caption ??
+      `This slide from the ${deck.sourceDeck} deck is shown in-platform so the learner can study the original material without leaving the course.`,
+    imageUrl: `/slides/${slide.file}`,
+    sourceDeck: deck.sourceDeck,
+    pageLabel: slidePageLabel(slide.file),
+  }));
 }
 
 // Swap a presentation's generated deck for the real converted deck, but never
