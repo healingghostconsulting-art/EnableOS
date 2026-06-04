@@ -504,6 +504,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Go to slide ${index + 1}");
   });
 
+  it("renders the slide ahead of the lesson copy so the canvas is slide-forward (S4b)", () => {
+    // The deck slide viewer leads the lesson canvas; the headline/narrative/storyboard follow beneath it.
+    expect(trainingViewSource).toContain("Slide-forward: the deck slide leads the lesson canvas");
+    const slideIndex = trainingViewSource.indexOf("{activeInteractiveVisual && trainingWorkspacePage === \"lesson\" ? (");
+    const headlineIndex = trainingViewSource.indexOf("text-xl font-semibold text-white\">{currentLessonPage.title}");
+    const storyboardIndex = trainingViewSource.indexOf("Visual storyboard");
+    expect(slideIndex).toBeGreaterThan(-1);
+    expect(headlineIndex).toBeGreaterThan(-1);
+    // Slide markup appears earlier in the lesson canvas source than the headline + storyboard.
+    expect(slideIndex).toBeLessThan(headlineIndex);
+    expect(slideIndex).toBeLessThan(storyboardIndex);
+  });
+
   it("adds a focused full-screen mode that overlays the chrome and widens the canvas (F1)", () => {
     // Focused-mode state + enter/exit controls.
     expect(trainingViewSource).toContain("const [focusedMode, setFocusedMode] = useState(false)");
