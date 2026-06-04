@@ -582,3 +582,8 @@
 - [x] Move attachments into the Coach Studio follow-up and observation flow within the coaching lane so users can add them while writing coaching follow-up notes.
 - [x] Replace the current coaching observation resources control with a button that opens a popup for selecting which resource to attach from the coaching lane.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-lane attachment and resource-popup update.
+- [x] Confirm that the Coach Studio coaching lane should use popup-based buttons for a more compact layout instead of keeping the inline weekly coaching section.
+- [x] Convert the main Coach Studio coaching-lane sections into button-triggered popups while preserving the existing log and follow-up workflows.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the Coach Studio layout refinement.
+- [x] Review color visibility and contrast in the updated Coach Studio popup-based coaching lane and related shared surfaces.
+- [x] Adjust weak color combinations, revalidate the affected UI, and include the contrast improvements in the next checkpoint.

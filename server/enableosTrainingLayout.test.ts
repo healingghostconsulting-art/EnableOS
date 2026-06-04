@@ -215,12 +215,17 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
-  it("keeps the coach workspace on the inline weekly coaching log flow while placing follow-up attachments and resource selection inside the coaching lane", () => {
+  it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
+    expect(trainingViewSource).toContain("Use the action cards below to open the weekly log, coach follow-up, history, and retraining sections in focused popups.");
+    expect(trainingViewSource).toContain("The coaching lane is now intentionally compact");
+    expect(trainingViewSource).toContain("function CoachLaneActionCard");
+    expect(trainingViewSource).toContain("function CoachLaneDialogAction");
+    expect(trainingViewSource).toContain("Open the live coaching thread");
+    expect(trainingViewSource).toContain("Capture the next structured coaching log");
     expect(trainingViewSource).toContain("Open weekly coaching log");
-    expect(trainingViewSource).toContain("The weekly coaching log is back in the coaching lane");
-    expect(trainingViewSource).toContain("jump directly to the inline coaching form below");
-    expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
-    expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+    expect(trainingViewSource).toContain("Open coach follow-up");
+    expect(trainingViewSource).toContain("Open coaching history");
+    expect(trainingViewSource).toContain("Open retraining history");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
     expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");

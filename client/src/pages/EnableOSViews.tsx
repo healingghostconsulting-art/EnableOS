@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { trpc } from "@/lib/trpc";
 import { buildRetrainingHistoryCsv, filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
 import { Badge } from "@/components/ui/badge";
@@ -8059,7 +8059,7 @@ function WeeklyCoachingLogPopupBox({
       <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
-          <DialogDescription className="text-slate-400">{dialogDescription}</DialogDescription>
+          <DialogDescription className="text-slate-300">{dialogDescription}</DialogDescription>
         </DialogHeader>
         <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-slate-950/85 p-5 shadow-[0_24px_60px_rgba(2,8,23,0.36)]">
           <div className="grid gap-4 md:grid-cols-2">
@@ -8132,6 +8132,68 @@ function WeeklyCoachingLogPopupBox({
             </div>
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CoachLaneActionCard({
+  eyebrow,
+  title,
+  description,
+  action,
+  accent = "default",
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action: ReactNode;
+  accent?: "default" | "emerald" | "gold";
+}) {
+  const paletteClassName = accent === "emerald"
+    ? "border-emerald-200/80 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))]"
+    : accent === "gold"
+      ? "border-[#E6BE5A]/70 bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))] text-slate-950"
+      : "border-slate-700/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92))] text-slate-50";
+
+  return (
+    <div className={`rounded-[1.55rem] border p-5 shadow-[0_20px_45px_rgba(15,23,42,0.16)] ${paletteClassName}`}>
+      <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
+      <h3 className={`mt-3 text-lg font-semibold ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
+      <p className={`mt-2 text-sm leading-6 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
+      <div className="mt-5">{action}</div>
+    </div>
+  );
+}
+
+function CoachLaneDialogAction({
+  buttonLabel,
+  dialogTitle,
+  dialogDescription,
+  renderContent,
+  buttonClassName = "w-full justify-between rounded-full border-cyan-200/55 bg-cyan-300/18 text-white shadow-[0_12px_30px_rgba(34,211,238,0.14)] hover:bg-cyan-300/26 hover:text-white",
+  dialogClassName = "max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl",
+}: {
+  buttonLabel: string;
+  dialogTitle: string;
+  dialogDescription: string;
+  renderContent: (close: () => void) => ReactNode;
+  buttonClassName?: string;
+  dialogClassName?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
+        {buttonLabel}
+      </Button>
+      <DialogContent className={dialogClassName}>
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription className="text-slate-300">{dialogDescription}</DialogDescription>
+        </DialogHeader>
+        {renderContent(() => setOpen(false))}
       </DialogContent>
     </Dialog>
   );
@@ -9436,10 +9498,10 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <p className="mt-3 text-sm leading-6 text-emerald-900/80">Switch learners instantly, keep the log and follow-up visible, and route AI-guided transfer actions into the dedicated transfer lane.</p>
             </div>
             <div className="rounded-[1.7rem] border border-white/14 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(15,23,42,0.68))] px-5 py-5 text-slate-100 shadow-[0_20px_45px_rgba(15,23,42,0.24)] md:col-span-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/82">Ribbon action</p>
-              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log is back in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50">Ribbon action</p>
+              <p className="mt-2 text-sm leading-6 text-slate-100">The weekly coaching log stays in the coaching lane, while AI transfer guidance stays inside the Training transfer lane instead of interrupting the main coaching workflow.</p>
               <div className="mt-4 rounded-[1.1rem] border border-white/12 bg-white/8 px-4 py-3 text-sm leading-6 text-slate-200">
-                Use the gold <span className="font-semibold text-[#FCBC34]">Open weekly coaching log</span> action to jump directly to the inline coaching form below.
+                Use the action cards below to open the weekly log, coach follow-up, history, and retraining sections in focused popups.
               </div>
             </div>
           </div>
@@ -9503,42 +9565,123 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             ) : null}
           </div>
           <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
-            {selectedCoachingSession ? (
-              <PremiumCard>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-white">{selectedCoachingSession.title}</CardTitle>
-                      <CardDescription className="mt-2 text-slate-400">{selectedCoachingSession.notes}</CardDescription>
-                    </div>
-                    <StatusBadge value={selectedCoachingSession.status} />
+            <PremiumCard>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-white">{selectedCoachingSession ? selectedCoachingSession.title : "No active coaching thread selected"}</CardTitle>
+                    <CardDescription className="mt-2 text-slate-300">{selectedCoachingSession ? selectedCoachingSession.notes : "Select a coaching thread from the left to open the detail, logging, follow-up, and history popups for that learner."}</CardDescription>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {selectedCoachingSession.actionPlan.map((step: any) => (
-                      <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
-                    ))}
+                  {selectedCoachingSession ? <StatusBadge value={selectedCoachingSession.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm leading-6 text-slate-200">The coaching lane is now intentionally compact: keep the learner context visible here, then open each major workflow in a focused popup when you need to write, review, or confirm follow-through.</p>
+                {selectedCoachingSession?.actionPlan?.length ? (
+                  <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
+                    <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
                   </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
-            <WeeklyCoachingLogComposer {...coachWeeklyCoachingLogProps} onCreated={onUpdated} />
-            <ReviewLogComposer
-              tenantId={data.tenant.id}
-              subjectUserId={selectedLearner.id}
-              authorRole="coach"
-              title="Write a coach follow-up or observation"
-              description="Keep the coaching note in the same lane as the live session, attach files while you write, and open a popup to add the exact observation resources that should travel with the follow-up."
-              allowAttachments
-              resourceOptions={data.workflowLibraryMix.interventionResources}
-              resourceButtonLabel="Coaching observation resources"
-              saveLabel="Save coach follow-up"
-              successLabel="Coach follow-up saved to Documentation."
-              onCreated={onUpdated}
-            />
-            <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
-            <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
+                ) : null}
+              </CardContent>
+            </PremiumCard>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <CoachLaneActionCard
+                eyebrow="Current session"
+                title="Open the live coaching thread"
+                description="Review the selected coaching thread, status, and full action plan in a focused popup without stretching the lane vertically."
+                accent="emerald"
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open coaching thread"
+                    dialogTitle={selectedCoachingSession ? `${selectedCoachingSession.title} · coaching thread` : "Coaching thread"}
+                    dialogDescription="Keep the live thread details, action plan, and current status together in one focused view."
+                    renderContent={() => selectedCoachingSession ? (
+                      <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <StatusBadge value={selectedCoachingSession.status} />
+                          <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{selectedLearner.name}</Badge>
+                        </div>
+                        <p className="text-sm leading-6 text-slate-200">{selectedCoachingSession.notes}</p>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {selectedCoachingSession.actionPlan.map((step: any) => (
+                            <div key={step} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread from the left to open the live session detail.</div>
+                    )}
+                  />
+                }
+              />
+              <CoachLaneActionCard
+                eyebrow="Weekly coaching"
+                title="Capture the next structured coaching log"
+                description="Use the same coaching-log workflow in a focused popup, then return to the lane with the history refreshed."
+                accent="gold"
+                action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Capture the structured weekly coaching record in a focused popup, then return to the coaching lane with the learner context preserved." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
+              />
+              <CoachLaneActionCard
+                eyebrow="Coach follow-up"
+                title="Write the next observation in a popup"
+                description="Keep attachments and observation resources connected to the note, but open the actual composer only when you need it."
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open coach follow-up"
+                    dialogTitle="Coach follow-up and observation"
+                    dialogDescription="Write the follow-up in a focused popup, attach files, and choose observation resources without leaving the coaching lane."
+                    renderContent={(close) => (
+                      <ReviewLogComposer
+                        tenantId={data.tenant.id}
+                        subjectUserId={selectedLearner.id}
+                        authorRole="coach"
+                        title="Write a coach follow-up or observation"
+                        description="Keep the coaching note in the same lane as the live session, attach files while you write, and open a popup to add the exact observation resources that should travel with the follow-up."
+                        allowAttachments
+                        resourceOptions={data.workflowLibraryMix.interventionResources}
+                        resourceButtonLabel="Coaching observation resources"
+                        saveLabel="Save coach follow-up"
+                        successLabel="Coach follow-up saved to Documentation."
+                        onCreated={() => {
+                          close();
+                          onUpdated?.();
+                        }}
+                      />
+                    )}
+                  />
+                }
+              />
+              <CoachLaneActionCard
+                eyebrow="Weekly history"
+                title="Review saved coaching records"
+                description="Open the full coaching history only when needed so the lane stays concise during live work."
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open coaching history"
+                    dialogTitle="Coach-visible weekly coaching history"
+                    dialogDescription="Review the exact structured fields, confirm sharing targets, and keep learner take-aways tied to each recorded coaching cycle."
+                    renderContent={() => (
+                      <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
+                    )}
+                  />
+                }
+              />
+              <CoachLaneActionCard
+                eyebrow="Retraining history"
+                title="Check follow-through completion"
+                description="Open the retraining completion record in a popup when you need to confirm whether the learner finished the assigned next steps."
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open retraining history"
+                    dialogTitle="Retraining completion history"
+                    dialogDescription="Keep past retraining outcomes attached to the coaching lane without leaving the live session surface crowded."
+                    renderContent={() => (
+                      <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
+                    )}
+                  />
+                }
+              />
+            </div>
           </div>
         </TabsContent>
 
