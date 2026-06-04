@@ -593,3 +593,6 @@
 - [x] Update regression coverage, rerun TypeScript and Vitest, verify project health, and save a checkpoint for the Coach Studio section-wide refinement.
 - [x] Replace the large Coach Studio workspace hero with a slim title strip that keeps only a short title and one line of context.
 - [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the slimmer Coach Studio header refinement.
+- [x] Convert the four large Coach Studio KPI cards into one compact stat row with small labels and values.
+- [x] Remove duplicated active-learner details so the selected learner appears in only one Current learner location within /coach.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the compact Coach Studio stat-row refinement.

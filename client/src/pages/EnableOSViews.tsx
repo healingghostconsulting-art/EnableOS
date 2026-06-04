@@ -9453,11 +9453,39 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Coach readiness" value={`${data.coach.readinessScore}`} supporting={data.coach.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-overview")} actionLabel="Open coach overview" />
-        <MetricCard label="Learner focus" value={selectedLearner.name} supporting={selectedLearner.title} icon={<Users2 className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Open coaching lane" />
-        <MetricCard label="Weekly logs" value={`${selectedWeeklyCoachingLogs.length}`} supporting="Structured coaching cycles recorded" icon={<BookOpen className="h-4 w-4" />} onClick={() => openCoachView("coaching", "coach-weekly-logs")} actionLabel="Review coaching logs" />
-        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<Gauge className="h-4 w-4" />} onClick={() => openCoachView("transfer", "coach-transfer-lane")} actionLabel="Open training transfer" />
+      <div className="rounded-[1.55rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.16)]">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="rounded-[1.2rem] border border-white/12 bg-white/6 px-4 py-3 xl:min-w-[18rem]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-white">{selectedLearner.name}</p>
+              <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedLearner.readinessScore} readiness</Badge>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
+          </div>
+          <div className="grid flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+              <div className="flex items-center gap-2 text-slate-300"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Coach readiness</span></div>
+              <p className="mt-2 text-lg font-semibold text-white">{data.coach.readinessScore}</p>
+              <p className="text-xs text-slate-400">{data.coach.name}</p>
+            </button>
+            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+              <div className="flex items-center gap-2 text-slate-300"><Users2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Active threads</span></div>
+              <p className="mt-2 text-lg font-semibold text-white">{selectedCoachingSessions.length}</p>
+              <p className="text-xs text-slate-400">Open coaching work for this learner</p>
+            </button>
+            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+              <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Weekly logs</span></div>
+              <p className="mt-2 text-lg font-semibold text-white">{selectedWeeklyCoachingLogs.length}</p>
+              <p className="text-xs text-slate-400">Structured coaching cycles recorded</p>
+            </button>
+            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1.2rem] border border-white/12 bg-slate-950/45 px-4 py-3 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+              <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
+              <p className="mt-2 text-lg font-semibold text-white">{data.activeJourney.progress}%</p>
+              <p className="text-xs text-slate-400">{data.activeJourney.title}</p>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div id="coach-overview" className="scroll-mt-24" />

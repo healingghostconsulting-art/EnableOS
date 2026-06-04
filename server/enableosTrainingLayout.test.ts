@@ -244,7 +244,9 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Follow-up attachments");
     expect(trainingViewSource).toContain("Coaching observation resources");
     expect(trainingViewSource).toContain("Coach follow-up saved to Documentation.");
-    expect(trainingViewSource).toContain("Open coaching lane");
+    expect(trainingViewSource).toContain("Current learner");
+    expect(trainingViewSource).toContain("Active threads");
+    expect(trainingViewSource).toContain("Open coaching work for this learner");
     expect(trainingViewSource).toContain("Training transfer now stays compact until you open the exact workflow.");
     expect(trainingViewSource).toContain("Open transfer roster");
     expect(trainingViewSource).toContain("Open AI guidance");
