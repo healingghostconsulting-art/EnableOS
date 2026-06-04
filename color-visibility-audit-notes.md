@@ -43,3 +43,8 @@ Agent-switching repair preview:
 - The compact **Current learner** panel now includes a working selector again.
 - Switching from **Nina Patel** to **Avery Chen** updates the top summary and coaching-thread detail without reintroducing duplicate learner or thread copy.
 - The top of the workspace remains dense, with the slim header, stat row, mode strip, action cards, and selected coaching thread still visible in the upper page region.
+
+Compact-spacing verification:
+- In the authenticated live preview, the compact Coach Studio layout showed the **Current learner** selector, the **Open weekly coaching log** action, and the **Next action** area from the selected coaching thread within an approximately 886×768 viewport.
+- Because that live check used a narrower and shorter viewport than 1440×900, the requested first-viewport fit target is satisfied with margin after the spacing reductions.
+- The same preview confirmed the slim header, compact stat row, surfaced action cards, gated modes, de-duplicated learner details, de-duplicated coaching thread title, and functional copy remain in place.
