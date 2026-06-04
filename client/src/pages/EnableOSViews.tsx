@@ -9526,146 +9526,161 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </div>
         </div>
 
-        <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
-          <div className="space-y-4">
-            {selectedCoachingSessions.map((session: any) => (
-              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_20px_45px_rgba(8,145,178,0.14)]" : "border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white"}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
-                    <h3 className={`mt-2 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
-                    <p className={`mt-2 text-sm ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{session.notes}</p>
-                  </div>
-                  <StatusBadge value={session.status} />
-                </div>
-              </button>
-            ))}
-            {!selectedCoachingSessions.length ? (
-              <div className="rounded-[1.45rem] border border-dashed border-slate-200 bg-white/80 px-4 py-5 text-sm leading-6 text-slate-600 shadow-[0_14px_28px_rgba(15,23,42,0.05)]">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
-            ) : null}
+        {activeTab === "coaching" ? (
+          <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-6 scroll-mt-24">
+          <div id="coach-weekly-logs" className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 scroll-mt-24">
+            <CoachLaneActionCard
+              eyebrow="Current session"
+              title="Open the live coaching thread"
+              description="Review the selected thread, confirm status, and check the action plan."
+              accent="emerald"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coaching thread"
+                  dialogTitle={selectedCoachingSession ? `${selectedCoachingSession.title} · coaching thread` : "Coaching thread"}
+                  dialogDescription="Review the thread details, confirm status, and check the action plan."
+                  renderContent={() => selectedCoachingSession ? (
+                    <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <StatusBadge value={selectedCoachingSession.status} />
+                        <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{selectedLearner.name}</Badge>
+                      </div>
+                      <p className="text-sm leading-6 text-slate-200">{selectedCoachingSession.notes}</p>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {selectedCoachingSession.actionPlan.map((step: any) => (
+                          <div key={step} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread to open the live session detail.</div>
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Weekly coaching"
+              title="Capture the next structured coaching log"
+              description="Record this week's coaching notes and save the log."
+              accent="gold"
+              action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Complete the weekly coaching record and save it." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
+            />
+            <CoachLaneActionCard
+              eyebrow="Coach follow-up"
+              title="Write the next observation"
+              description="Document the follow-up note, attach files, and choose observation resources."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coach follow-up"
+                  dialogTitle="Coach follow-up and observation"
+                  dialogDescription="Write the follow-up note, attach files, and choose observation resources."
+                  renderContent={(close) => (
+                    <ReviewLogComposer
+                      tenantId={data.tenant.id}
+                      subjectUserId={selectedLearner.id}
+                      authorRole="coach"
+                      title="Write a coach follow-up or observation"
+                      description="Keep the coaching note in the same lane as the live session, attach files while you write, and open a popup to add the exact observation resources that should travel with the follow-up."
+                      allowAttachments
+                      resourceOptions={data.workflowLibraryMix.interventionResources}
+                      resourceButtonLabel="Coaching observation resources"
+                      saveLabel="Save coach follow-up"
+                      successLabel="Coach follow-up saved to Documentation."
+                      onCreated={() => {
+                        close();
+                        onUpdated?.();
+                      }}
+                    />
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Weekly history"
+              title="Review saved coaching records"
+              description="Review saved coaching records and confirm prior follow-through."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coaching history"
+                  dialogTitle="Coach-visible weekly coaching history"
+                  dialogDescription="Review the exact structured fields, confirm sharing targets, and keep learner take-aways tied to each recorded coaching cycle."
+                  renderContent={() => (
+                    <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Retraining history"
+              title="Check follow-through completion"
+              description="Confirm whether the learner finished the assigned next steps."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open retraining history"
+                  dialogTitle="Retraining completion history"
+                  dialogDescription="Keep past retraining outcomes attached to the coaching lane without leaving the live session surface crowded."
+                  renderContent={() => (
+                    <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
+                  )}
+                />
+              }
+            />
           </div>
-          <div id="coach-weekly-logs" className="space-y-6 scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
+            <div className="space-y-4">
+              <div className="rounded-[1.45rem] border border-slate-200 bg-white/88 p-4 shadow-[0_16px_35px_rgba(15,23,42,0.06)]">
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching threads</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Select the thread that needs the next coaching action.</p>
+              </div>
+              {selectedCoachingSessions.map((session: any) => (
+                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_20px_45px_rgba(8,145,178,0.14)]" : "border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
+                      <h3 className={`mt-2 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
+                      <p className={`mt-2 text-sm ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{selectedCoachingSession?.id === session.id ? "Selected thread" : "Select this thread to review the note and next action."}</p>
+                    </div>
+                    <StatusBadge value={session.status} />
+                  </div>
+                </button>
+              ))}
+              {!selectedCoachingSessions.length ? (
+                <div className="rounded-[1.45rem] border border-dashed border-slate-200 bg-white/80 px-4 py-5 text-sm leading-6 text-slate-600 shadow-[0_14px_28px_rgba(15,23,42,0.05)]">This learner does not have an active coaching thread yet. Use the coaching log action to start the next documented touchpoint.</div>
+              ) : null}
+            </div>
             <PremiumCard>
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <CardTitle className="text-white">{selectedCoachingSession ? selectedCoachingSession.title : "No active coaching thread selected"}</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">{selectedCoachingSession ? selectedCoachingSession.notes : "Select a coaching thread from the left to open the detail, logging, follow-up, and history popups for that learner."}</CardDescription>
+                    <CardTitle className="text-white">Selected coaching thread</CardTitle>
+                    <CardDescription className="mt-2 text-slate-300">{selectedCoachingSession ? "Review the note, confirm status, and complete the next coaching action." : "Select a coaching thread to review the note and next action."}</CardDescription>
                   </div>
                   {selectedCoachingSession ? <StatusBadge value={selectedCoachingSession.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm leading-6 text-slate-200">Review the selected thread, then complete the next coaching action.</p>
-                {selectedCoachingSession?.actionPlan?.length ? (
-                  <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
-                    <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
-                  </div>
-                ) : null}
+              <CardContent className="space-y-4">
+                {selectedCoachingSession ? (
+                  <>
+                    <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
+                      <span className="font-medium text-white">Selected note:</span> {selectedCoachingSession.notes}
+                    </div>
+                    {selectedCoachingSession.actionPlan?.length ? (
+                      <div className="rounded-[1.2rem] border border-white/14 bg-white/7 px-4 py-4 text-sm leading-6 text-slate-200">
+                        <span className="font-medium text-white">Next action:</span> {selectedCoachingSession.actionPlan[0]}
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread to load its note and next action.</div>
+                )}
               </CardContent>
             </PremiumCard>
-            <div className="grid gap-4 xl:grid-cols-2">
-              <CoachLaneActionCard
-                eyebrow="Current session"
-                title="Open the live coaching thread"
-                description="Review the selected thread, confirm status, and check the action plan."
-                accent="emerald"
-                action={
-                  <CoachLaneDialogAction
-                    buttonLabel="Open coaching thread"
-                    dialogTitle={selectedCoachingSession ? `${selectedCoachingSession.title} · coaching thread` : "Coaching thread"}
-                    dialogDescription="Review the thread details, confirm status, and check the action plan."
-                    renderContent={() => selectedCoachingSession ? (
-                      <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <StatusBadge value={selectedCoachingSession.status} />
-                          <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{selectedLearner.name}</Badge>
-                        </div>
-                        <p className="text-sm leading-6 text-slate-200">{selectedCoachingSession.notes}</p>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          {selectedCoachingSession.actionPlan.map((step: any) => (
-                            <div key={step} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Choose a coaching thread from the left to open the live session detail.</div>
-                    )}
-                  />
-                }
-              />
-              <CoachLaneActionCard
-                eyebrow="Weekly coaching"
-                title="Capture the next structured coaching log"
-                description="Record this week's coaching notes and save the log."
-                accent="gold"
-                action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Complete the weekly coaching record and save it." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
-              />
-              <CoachLaneActionCard
-                eyebrow="Coach follow-up"
-                title="Write the next observation"
-                description="Document the follow-up note, attach files, and choose observation resources."
-                action={
-                  <CoachLaneDialogAction
-                    buttonLabel="Open coach follow-up"
-                    dialogTitle="Coach follow-up and observation"
-                    dialogDescription="Write the follow-up note, attach files, and choose observation resources."
-                    renderContent={(close) => (
-                      <ReviewLogComposer
-                        tenantId={data.tenant.id}
-                        subjectUserId={selectedLearner.id}
-                        authorRole="coach"
-                        title="Write a coach follow-up or observation"
-                        description="Keep the coaching note in the same lane as the live session, attach files while you write, and open a popup to add the exact observation resources that should travel with the follow-up."
-                        allowAttachments
-                        resourceOptions={data.workflowLibraryMix.interventionResources}
-                        resourceButtonLabel="Coaching observation resources"
-                        saveLabel="Save coach follow-up"
-                        successLabel="Coach follow-up saved to Documentation."
-                        onCreated={() => {
-                          close();
-                          onUpdated?.();
-                        }}
-                      />
-                    )}
-                  />
-                }
-              />
-              <CoachLaneActionCard
-                eyebrow="Weekly history"
-                title="Review saved coaching records"
-                description="Review saved coaching records and confirm prior follow-through."
-                action={
-                  <CoachLaneDialogAction
-                    buttonLabel="Open coaching history"
-                    dialogTitle="Coach-visible weekly coaching history"
-                    dialogDescription="Review the exact structured fields, confirm sharing targets, and keep learner take-aways tied to each recorded coaching cycle."
-                    renderContent={() => (
-                      <WeeklyCoachingLogTimeline title="Coach-visible weekly coaching history" description="Coaches can review the exact structured fields, confirm sharing targets, and keep learner take-aways connected to the same record." tenantId={data.tenant.id} logs={selectedWeeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
-                    )}
-                  />
-                }
-              />
-              <CoachLaneActionCard
-                eyebrow="Retraining history"
-                title="Check follow-through completion"
-                description="Confirm whether the learner finished the assigned next steps."
-                action={
-                  <CoachLaneDialogAction
-                    buttonLabel="Open retraining history"
-                    dialogTitle="Retraining completion history"
-                    dialogDescription="Keep past retraining outcomes attached to the coaching lane without leaving the live session surface crowded."
-                    renderContent={() => (
-                      <RetrainingHistorySection title="Retraining completion history" description="Coach-visible history keeps past retraining outcomes attached to the coaching lane so follow-through remains easy to confirm over time." assignments={selectedRetrainingHistory ?? []} emptyLabel="Past retraining completions will appear here after the learner finishes assigned modules." launchRole="coach" />
-                    )}
-                  />
-                }
-              />
-            </div>
           </div>
-        </TabsContent>
+          </TabsContent>
+        ) : null}
 
-        <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 space-y-6 scroll-mt-24">
+        {activeTab === "transfer" ? (
+          <TabsContent value="transfer" id="coach-transfer-lane" className="mt-0 space-y-6 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -9801,9 +9816,11 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               }
             />
           </div>
-        </TabsContent>
+          </TabsContent>
+        ) : null}
 
-        <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 space-y-6 scroll-mt-24">
+        {activeTab === "documentation" ? (
+          <TabsContent value="documentation" id="coach-documentation-feed" className="mt-0 space-y-6 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -9942,9 +9959,11 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
             />
           </div>
-        </TabsContent>
+          </TabsContent>
+        ) : null}
 
-        <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 space-y-6 scroll-mt-24">
+        {activeTab === "alerts" ? (
+          <TabsContent value="alerts" id="coach-alerts-feed" className="mt-0 space-y-6 scroll-mt-24">
           <PremiumCard>
             <CardHeader>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -10043,7 +10062,8 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               action={<Button type="button" onClick={() => setActiveTab("coaching")} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">Open coaching lane <ArrowRight className="h-4 w-4" /></Button>}
             />
           </div>
-        </TabsContent>
+          </TabsContent>
+        ) : null}
       </Tabs>
     </div>
   );

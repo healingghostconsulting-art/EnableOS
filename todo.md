@@ -598,3 +598,7 @@
 - [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the compact Coach Studio stat-row refinement.
 - [x] Remove self-referential Coach Studio copy and keep only functional, coach-directed instructions in the /coach workspace.
 - [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio functional-copy refinement.
+- [x] Move the five focused-popup coach tools to the top of the Coaching lane as the primary compact action grid.
+- [x] Make Coach Modes tabs render only the active mode content instead of stacking content below the tab switcher.
+- [x] Remove duplicate coaching-thread rendering so the selected thread appears only once in the primary coaching workspace.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio tool-priority and tab-gating refinement.

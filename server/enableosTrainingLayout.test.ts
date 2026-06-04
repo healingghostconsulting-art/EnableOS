@@ -217,7 +217,11 @@ describe("learner training layout helpers", () => {
 
   it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
     expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
-    expect(trainingViewSource).toContain("Review the selected thread, then complete the next coaching action.");
+    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-4 md:grid-cols-2 xl:grid-cols-5');
+    expect(trainingViewSource).toContain('activeTab === "coaching" ? (');
+    expect(trainingViewSource).toContain('activeTab === "transfer" ? (');
+    expect(trainingViewSource).toContain("Review the note, confirm status, and complete the next coaching action.");
+    expect(trainingViewSource).toContain("Select the thread that needs the next coaching action.");
     expect(trainingViewSource).toContain("function CoachLaneActionCard");
     expect(trainingViewSource).toContain("function CoachLaneDialogAction");
     expect(trainingViewSource).toContain("Open the live coaching thread");
