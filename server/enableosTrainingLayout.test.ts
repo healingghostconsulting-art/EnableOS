@@ -226,15 +226,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("function CoachLaneDialogAction");
     expect(trainingViewSource).toContain("Open coaching thread");
     expect(trainingViewSource).not.toContain("Open the live coaching thread");
-    expect(trainingViewSource).toContain("Capture the next structured coaching log");
-    expect(trainingViewSource).toContain("Open weekly coaching log");
+    expect(trainingViewSource).toContain("Complete the weekly one-on-one");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
     expect(trainingViewSource).toContain("Open coach follow-up");
     expect(trainingViewSource).toContain("Open coaching history");
     expect(trainingViewSource).toContain("Open retraining history");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
     expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");
-    expect(trainingViewSource).toContain("Open exact coaching log");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
     expect(trainingViewSource).toContain("Open document details");
     expect(trainingViewSource).toContain("This documentation summary is linked to the exact weekly coaching log recorded for");
     expect(trainingViewSource).toContain("This document captures the exact summary, evidence points, and metadata saved in the documentation stream for this record.");
@@ -334,7 +334,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Training transfer tasks");
     expect(trainingViewSource).toContain("Documentation tasks");
     expect(trainingViewSource).toContain("Alerts");
-    expect(trainingViewSource).toContain("Open weekly coaching log");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
     expect(trainingViewSource).toContain("Open documentation queue");
     expect(trainingViewSource).toContain("Open alert queue");
     expect(trainingViewSource).toContain("Choose a tab to coach, review transfer, document evidence, or respond to alerts.");

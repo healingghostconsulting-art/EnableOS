@@ -612,3 +612,5 @@
 - [x] Consolidate duplicate live-thread entry paths in the Coaching lane into one clear coaching-thread workflow while keeping the other four action cards.
 - [x] Tighten Coach Studio action-card height and surrounding spacing so the active learner, weekly-log action, and current next action are visible at 1440×900.
 - [x] Review all four Coach Modes tabs, remove any remaining large vertical whitespace gaps, preview each tab, rerun validation, verify health, and save a checkpoint for the compact-desk refinement.
+- [x] Restore the full weekly Coach Studio one-on-one flow so the weekly coaching experience includes the complete one-on-one content, agent takeaways, and SMART goal details again.
+- [x] Preview the repaired weekly coaching experience, rerun validation, verify health, and save a checkpoint for the weekly one-on-one restoration.

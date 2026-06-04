@@ -8017,9 +8017,9 @@ function WeeklyCoachingLogComposer({
 }
 
 function WeeklyCoachingLogPopupBox({
-  buttonLabel = "Launch coaching log pop-up",
-  dialogTitle = "Weekly coaching log pop-up",
-  dialogDescription = "Use the same structured weekly coaching workflow in a focused dialog, then return to the coaching lane with the history refreshed.",
+  buttonLabel = "Launch weekly one-on-one",
+  dialogTitle = "Weekly one-on-one",
+  dialogDescription = "Complete the full weekly one-on-one, capture agent take-aways, and set the SMART goal before returning to the coaching lane.",
   buttonClassName = "rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-50 hover:bg-cyan-400/18 hover:text-white",
   composerProps,
   onCreated,
@@ -9546,10 +9546,10 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <div id="coach-weekly-logs" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4 scroll-mt-24">
             <CoachLaneActionCard
               eyebrow="Weekly coaching"
-              title="Capture the next structured coaching log"
-              description="Record this week's coaching notes and save the log."
+              title="Complete the weekly one-on-one"
+              description="Capture the full one-on-one, record agent take-aways, and lock the SMART goal into the coaching record."
               accent="gold"
-              action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly coaching log" dialogTitle="Weekly coaching log" dialogDescription="Complete the weekly coaching record and save it." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
+              action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly one-on-one" dialogTitle="Weekly one-on-one" dialogDescription="Complete the full weekly one-on-one, including follow-up, coaching comments, SMART goal, support, and agent take-aways." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={coachWeeklyCoachingLogProps} onCreated={onUpdated} />}
             />
             <CoachLaneActionCard
               eyebrow="Coach follow-up"
