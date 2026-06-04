@@ -1,0 +1,5 @@
+# Heavy source decks are converted to PNGs in client/public/slides/ —
+# keep the originals out of git. Only this folder's README/.gitignore are tracked.
+*
+!.gitignore
+!README.md
