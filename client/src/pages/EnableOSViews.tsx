@@ -3536,11 +3536,11 @@ export function TrainingExperienceView() {
         competencyGap: "Consistent field coaching with observable follow-through",
         modules: [
           {
-            id: "preview-workflow-module",
-            title: "Turning QA findings into behavior coaching",
+            id: "preview-coaching-module",
+            title: "5 Coaching Pillars and field follow-through",
             format: "Microlearning",
             durationMinutes: 7,
-            skillFocus: "Behavior-based coaching",
+            skillFocus: "Trust-building and self-discovery",
             completionRate: 87,
           },
         ],
