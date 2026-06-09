@@ -215,16 +215,26 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open my assigned workspace");
   });
 
-  it("keeps the coach workspace on the inline weekly coaching log flow while preserving the shared structured composer", () => {
-    expect(trainingViewSource).toContain("Open weekly coaching log");
-    expect(trainingViewSource).toContain("The weekly coaching log is back in the coaching lane");
-    expect(trainingViewSource).toContain("jump directly to the inline coaching form below");
-    expect(trainingViewSource).toContain("coachWeeklyCoachingLogProps");
-    expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+  it("keeps the coach workspace on compact popup action cards while preserving weekly-log, follow-up, and history workflows", () => {
+    expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
+    expect(trainingViewSource).toContain('id="coach-weekly-logs" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4');
+    expect(trainingViewSource).toContain('activeTab === "coaching" ? (');
+    expect(trainingViewSource).toContain('activeTab === "transfer" ? (');
+    expect(trainingViewSource).toContain("Review the note, confirm the next action, and open the full thread from here.");
+    expect(trainingViewSource).toContain("Select a thread, review the next action, and open the full thread here when you need detail.");
+    expect(trainingViewSource).toContain("function CoachLaneActionCard");
+    expect(trainingViewSource).toContain("function CoachLaneDialogAction");
+    expect(trainingViewSource).toContain("Open coaching thread");
+    expect(trainingViewSource).not.toContain("Open the live coaching thread");
+    expect(trainingViewSource).toContain("Complete the weekly one-on-one");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
+    expect(trainingViewSource).toContain("Open coach follow-up");
+    expect(trainingViewSource).toContain("Open coaching history");
+    expect(trainingViewSource).toContain("Open retraining history");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
     expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");
-    expect(trainingViewSource).toContain("Open exact coaching log");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
     expect(trainingViewSource).toContain("Open document details");
     expect(trainingViewSource).toContain("This documentation summary is linked to the exact weekly coaching log recorded for");
     expect(trainingViewSource).toContain("This document captures the exact summary, evidence points, and metadata saved in the documentation stream for this record.");
@@ -235,12 +245,32 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Attach any file type to the coaching log");
     expect(trainingViewSource).toContain("Attach files to this log");
     expect(trainingViewSource).toContain("function CoachingAttachmentList");
+    expect(trainingViewSource).toContain("Write a coach follow-up or observation");
+    expect(trainingViewSource).toContain("Follow-up attachments");
+    expect(trainingViewSource).toContain("Coaching observation resources");
+    expect(trainingViewSource).toContain("Coach follow-up saved to Documentation.");
+    expect(trainingViewSource).toContain("Current learner");
+    expect(trainingViewSource).toContain("Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}");
+    expect(trainingViewSource).toContain("Select learner");
+    expect(trainingViewSource).toContain("Active threads");
+    expect(trainingViewSource).toContain("Open coaching work for this learner");
+    expect(trainingViewSource).toContain("Learning journey complete");
+    expect(trainingViewSource).toContain("Training transfer tasks");
+    expect(trainingViewSource).toContain("Open transfer roster");
+    expect(trainingViewSource).toContain("Open AI guidance");
+    expect(trainingViewSource).toContain("Open module transfer view");
+    expect(trainingViewSource).toContain("Open coach-ready assets");
+    expect(trainingViewSource).not.toContain("Selected learner");
+    expect(trainingViewSource).toContain("Documentation tasks");
+    expect(trainingViewSource).toContain("Open documentation queue");
+    expect(trainingViewSource).toContain("Open documentation feed");
+    expect(trainingViewSource).toContain("Alerts");
+    expect(trainingViewSource).toContain("Open alert queue");
+    expect(trainingViewSource).toContain("Open alert detail");
     expect(trainingViewSource).toContain("Public / Private visibility");
     expect(trainingViewSource).toContain("Public coaching log");
     expect(trainingViewSource).toContain("Private coaching note");
     expect(trainingViewSource).toContain("Private stays on file for leadership only and does not notify the learner.");
-    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
-    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
@@ -296,15 +326,20 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps coach and learner workspaces in the new segmented mission-control flow", () => {
-    expect(trainingViewSource).toContain("Coach studio mission");
-    expect(trainingViewSource).toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
+    expect(trainingViewSource).toContain(">Coach Studio<");
+    expect(trainingViewSource).toContain("Select a learner, review status, and open the next coaching task.");
+    expect(trainingViewSource).not.toContain("Coach studio mission");
+    expect(trainingViewSource).not.toContain("A calmer coach desk keeps guidance, evidence, and follow-through in one polished workspace.");
     expect(trainingViewSource).not.toContain("Coach control surface");
-    expect(trainingViewSource).toContain("Coach needs now live inside Documentation mode");
-    expect(trainingViewSource).toContain("Alerts mode keeps the coach queue compact until detail is needed.");
-    expect(trainingViewSource).toContain("Open weekly coaching log");
-    expect(trainingViewSource).toContain("text-slate-700\">Switch between live coaching, transfer evidence, documentation, and alerts without leaving one endless page.");
+    expect(trainingViewSource).toContain("Training transfer tasks");
+    expect(trainingViewSource).toContain("Documentation tasks");
+    expect(trainingViewSource).toContain("Alerts");
+    expect(trainingViewSource).toContain("Open weekly one-on-one");
+    expect(trainingViewSource).toContain("Open documentation queue");
+    expect(trainingViewSource).toContain("Open alert queue");
+    expect(trainingViewSource).toContain("Choose a tab to coach, review transfer, document evidence, or respond to alerts.");
     expect(trainingViewSource).toContain("border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))]");
-    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_16px_35px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:bg-white");
+    expect(trainingViewSource).toContain("border-slate-200 bg-white/88 shadow-[0_10px_22px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white");
     expect(trainingViewSource).not.toContain("Coach-visible signal trend");
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");

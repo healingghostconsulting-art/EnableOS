@@ -577,3 +577,40 @@
 - [x] Enforce strict role-specific sidebar behavior so a learner never sees non-learner navigation after opening Training Zone or Mission Hub.
 - [x] Trace and fix shared-route role resolution so Training Zone and Mission Hub preserve the originating learner role instead of expanding to broader menu grants.
 - [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the strict role-specific navigation repair.
+- [x] Make the EnableOS Guide available to every role through the role-based navigation and route access rules.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the cross-role Guide access change.
+- [x] Move attachments into the Coach Studio follow-up and observation flow within the coaching lane so users can add them while writing coaching follow-up notes.
+- [x] Replace the current coaching observation resources control with a button that opens a popup for selecting which resource to attach from the coaching lane.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the coaching-lane attachment and resource-popup update.
+- [x] Confirm that the Coach Studio coaching lane should use popup-based buttons for a more compact layout instead of keeping the inline weekly coaching section.
+- [x] Convert the main Coach Studio coaching-lane sections into button-triggered popups while preserving the existing log and follow-up workflows.
+- [x] Update regression coverage, rerun validation, confirm project health, and save a checkpoint for the Coach Studio layout refinement.
+- [x] Review color visibility and contrast in the updated Coach Studio popup-based coaching lane and related shared surfaces.
+- [x] Adjust weak color combinations, revalidate the affected UI, and include the contrast improvements in the next checkpoint.
+- [x] Audit each remaining Coach Studio section and identify where long inline panels should become compact action cards with focused popups.
+- [x] Apply the popup-based compact workflow pattern consistently across all remaining Coach Studio sections while preserving existing functionality.
+- [x] Review and improve color visibility and contrast across the full Coach Studio experience so the expanded redesign stays readable and consistent.
+- [x] Update regression coverage, rerun TypeScript and Vitest, verify project health, and save a checkpoint for the Coach Studio section-wide refinement.
+- [x] Replace the large Coach Studio workspace hero with a slim title strip that keeps only a short title and one line of context.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the slimmer Coach Studio header refinement.
+- [x] Convert the four large Coach Studio KPI cards into one compact stat row with small labels and values.
+- [x] Remove duplicated active-learner details so the selected learner appears in only one Current learner location within /coach.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the compact Coach Studio stat-row refinement.
+- [x] Remove self-referential Coach Studio copy and keep only functional, coach-directed instructions in the /coach workspace.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio functional-copy refinement.
+- [x] Move the five focused-popup coach tools to the top of the Coaching lane as the primary compact action grid.
+- [x] Make Coach Modes tabs render only the active mode content instead of stacking content below the tab switcher.
+- [x] Remove duplicate coaching-thread rendering so the selected thread appears only once in the primary coaching workspace.
+- [x] Preview the updated /coach page, rerun validation, verify health, and save a checkpoint for the Coach Studio tool-priority and tab-gating refinement.
+- [x] Reduce vertical whitespace and padding across the Coach Studio header, stat row, mode strip, and action-card layout so the page reads as one compact desk.
+- [x] Ensure the active learner, weekly-log action, and next coaching action are visible in the first 1440×900 viewport without reintroducing duplicate learner or thread details.
+- [x] Preview the updated /coach page at 1440×900, rerun validation, verify health, and save a checkpoint for the compact Coach Studio spacing refinement.
+- [x] Restore the ability to change the selected agent or learner in Coach Studio after the compact-layout spacing refactor.
+- [x] Preview the repaired /coach interaction, rerun validation, verify health, and save a checkpoint for the Coach Studio agent-switching fix.
+- [x] Remove duplicate active-learner blocks from Coach Studio mode panels so the current learner appears only once in the top row.
+- [x] Fix mismatched Coach Studio stat-row sublabels so each metric description matches the value being shown.
+- [x] Consolidate duplicate live-thread entry paths in the Coaching lane into one clear coaching-thread workflow while keeping the other four action cards.
+- [x] Tighten Coach Studio action-card height and surrounding spacing so the active learner, weekly-log action, and current next action are visible at 1440×900.
+- [x] Review all four Coach Modes tabs, remove any remaining large vertical whitespace gaps, preview each tab, rerun validation, verify health, and save a checkpoint for the compact-desk refinement.
+- [x] Restore the full weekly Coach Studio one-on-one flow so the weekly coaching experience includes the complete one-on-one content, agent takeaways, and SMART goal details again.
+- [x] Preview the repaired weekly coaching experience, rerun validation, verify health, and save a checkpoint for the weekly one-on-one restoration.

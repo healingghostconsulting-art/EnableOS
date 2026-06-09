@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BarChart3, BookOpen, BookText, Building2, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { BarChart3, BookOpen, BookText, Building2, Compass, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
@@ -8,7 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
-import { ChcgAdminView, ContentLibraryView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 
 export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
 
@@ -16,6 +16,7 @@ const STATIC_WORKSPACE_ROLE_KEY = "chcg-enableos-static-workspace-role";
 
 export const baseWorkspaceMenu: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
+  { icon: Compass, label: "EnableOS Guide", path: "/guide" },
   { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   { icon: Users2, label: "Coach Studio", path: "/coach" },
@@ -32,20 +33,23 @@ export const adminWorkspaceMenu: DashboardMenuItem[] = [
 
 export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
   item.path === "/mission-hub"
+  || item.path === "/guide"
   || item.path === "/reporting"
 ));
 
 export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/reporting");
 
 export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/coach"
+  item.path === "/guide"
+  || item.path === "/coach"
   || item.path === "/learner"
   || item.path === "/training"
   || item.path === "/library"
 ));
 
 export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/learner"
+  item.path === "/guide"
+  || item.path === "/learner"
   || item.path === "/training"
   || item.path === "/library"
 ));
@@ -53,7 +57,7 @@ export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filte
 export function buildRoleScopedPath(path: string, role?: string | null) {
   const normalizedRole = normalizeGrantRole(role);
 
-  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub")) {
+  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub" && path !== "/guide")) {
     return path;
   }
 
@@ -177,6 +181,7 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
       return normalizedRole !== "coach" && normalizedRole !== "learner";
     case "/coach":
       return normalizedRole !== "learner";
+    case "/guide":
     case "/learner":
     case "/training":
     case "/library":
@@ -211,6 +216,7 @@ export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMe
     case "/learner":
       return learnerWorkspaceMenu;
     case "/mission-hub":
+    case "/guide":
     case "/training":
     case "/library": {
       switch (effectiveRole) {
@@ -330,6 +336,13 @@ function Router() {
           {() => (
             <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
               <MissionHubView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/guide">
+          {() => (
+            <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide">
+              <GuideView />
             </GuardedWorkspaceShell>
           )}
         </Route>

@@ -88,6 +88,13 @@ const workspaceMissionSignals: Record<string, {
     next: "Keep support hidden until it is needed and let the lesson stay in control.",
     reward: "Player ready",
   },
+  "/guide": {
+    eyebrow: "EnableOS guide",
+    headline: "Orient every role from one shared playbook.",
+    focus: "Platform guidance",
+    next: "Start with the role home, then use shared workspaces only when the next action needs them.",
+    reward: "Guidance ready",
+  },
   "/admin": {
     eyebrow: "Client control",
     headline: "Finish setup in clear operating steps.",
