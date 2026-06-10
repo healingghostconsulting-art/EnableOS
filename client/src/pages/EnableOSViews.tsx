@@ -1693,7 +1693,8 @@ export function buildLearnerInterventionTrainingOptions({
   return [
     ...(activeRetrainingAssignment ? [{
       id: `assignment-${activeRetrainingAssignment.id}`,
-      title: activeRetrainingAssignment.moduleTitle,
+      // Dereferenced: the assignment title lives only in the priority strip; reference it here.
+      title: "Your assigned retraining",
       subtitle: `${activeRetrainingAssignment.journeyTitle} · Assigned retraining`,
       detail: activeRetrainingAssignment.skillFocus,
       path: primaryTrainingPath,

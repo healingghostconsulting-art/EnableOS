@@ -56,7 +56,7 @@ describe("learner journey routing", () => {
     })).toEqual([
       {
         id: "assignment-assignment-1",
-        title: "Workflow reset",
+        title: "Your assigned retraining",
         subtitle: "Service Foundations · Assigned retraining",
         detail: "Process accuracy",
         path: "/training?journeyId=journey-service-foundations&moduleId=mod-sf-2&assignmentId=assignment-1&freshStart=1",
