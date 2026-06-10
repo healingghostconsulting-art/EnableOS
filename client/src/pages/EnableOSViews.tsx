@@ -10,6 +10,8 @@ import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartToo
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { KpiScorecard } from "@/components/KpiScorecard";
+import { getKpiProfile, getKpiScorecard } from "../../../shared/kpiScorecards";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1527,6 +1529,16 @@ const CONTENT_LIBRARY_TRAINING_TARGET_PRESETS: Record<string, Omit<ContentLibrar
     previewScenarioId: "leadership",
     curriculumStatusLabel: "Curriculum preview ready",
     nextActionLabel: "Open Engagement metrics that matter in the focused player",
+  },
+  "journey-wfm-kpi": {
+    moduleId: "mod-wfm-1",
+    journeyTitle: "Workforce Management & KPIs",
+    moduleTitle: "WFM Foundations and Adherence",
+    moduleFormat: "Playbook",
+    skillFocus: "Schedule adherence",
+    previewScenarioId: "workflow",
+    curriculumStatusLabel: "Curriculum preview ready",
+    nextActionLabel: "Open WFM Foundations and Adherence in the focused player",
   },
 };
 
@@ -4390,6 +4402,12 @@ export function TrainingExperienceView() {
     ? Math.min(selectedDeckVisualIndex, interactiveGalleryVisuals.length - 1)
     : 0;
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
+  // Live per-client KPI scorecard (WFM & KPI training). Defaults to the deck's source
+  // client; map a workspace to a client in shared/kpiScorecards.ts → tenantClientId.
+  const kpiProfile = getKpiProfile();
+  const activeScorecard = activeInteractiveVisual?.scorecardId
+    ? getKpiScorecard(kpiProfile, activeInteractiveVisual.scorecardId)
+    : null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
@@ -5195,7 +5213,11 @@ export function TrainingExperienceView() {
                                   </div>
                                   <button type="button" onClick={() => setSlideLightboxOpen(true)} aria-label="Enlarge slide" className="block w-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/85 shadow-[0_28px_80px_rgba(2,8,23,0.55)] transition hover:border-[#FCBC34]/40">
                                     <div className="flex aspect-video w-full items-center justify-center bg-black/40 p-2 sm:p-3">
-                                      <TrainingVisualFrame visual={activeInteractiveVisual} />
+                                      {activeScorecard ? (
+                                        <KpiScorecard scorecard={activeScorecard} clientName={kpiProfile.clientName} note={kpiProfile.note} />
+                                      ) : (
+                                        <TrainingVisualFrame visual={activeInteractiveVisual} />
+                                      )}
                                     </div>
                                   </button>
                                   <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/60 px-4 py-3">
@@ -6153,7 +6175,11 @@ export function TrainingExperienceView() {
               <DialogDescription className="text-slate-400">{activeInteractiveVisual?.pageLabel ?? ""}{activeInteractiveVisual ? ` · ${activeInteractiveVisual.sourceDeck}` : ""} · Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</DialogDescription>
             </DialogHeader>
             <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
-              {activeInteractiveVisual ? <TrainingVisualFrame visual={activeInteractiveVisual} /> : null}
+              {activeScorecard ? (
+                <KpiScorecard scorecard={activeScorecard} clientName={kpiProfile.clientName} note={kpiProfile.note} />
+              ) : activeInteractiveVisual ? (
+                <TrainingVisualFrame visual={activeInteractiveVisual} />
+              ) : null}
             </div>
             <DialogFooter className="sm:justify-between">
               <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm text-white transition hover:bg-white/12 disabled:opacity-40">

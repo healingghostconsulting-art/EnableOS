@@ -17,6 +17,8 @@ export type TrainingDeckVisual = {
   imageUrl: string;
   sourceDeck: string;
   pageLabel: string;
+  /** When set, the lesson renders the live per-client KPI scorecard for this slide. */
+  scorecardId?: string;
 };
 
 export type TrainingInsightDatum = {
@@ -2971,6 +2973,7 @@ function realDeckVisualsForModule(module: ModuleLike): TrainingDeckVisual[] {
     imageUrl: `/slides/${slide.file}`,
     sourceDeck: deck.sourceDeck,
     pageLabel: slidePageLabel(slide.file),
+    ...(slide.scorecard ? { scorecardId: slide.scorecard } : {}),
   }));
 }
 
