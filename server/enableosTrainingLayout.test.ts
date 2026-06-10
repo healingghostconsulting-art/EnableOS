@@ -347,7 +347,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Learner journey");
     expect(trainingViewSource).toContain("Learner modes");
     expect(trainingViewSource).toContain("Re-engagements");
-    expect(trainingViewSource).toContain("One clear next step at a time");
+    // Self-narrating workspace copy was stripped (L2); these must not return.
+    expect(trainingViewSource).not.toContain("One clear next step at a time");
+    expect(trainingViewSource).not.toContain("without making people hunt through one long page");
+    expect(trainingViewSource).not.toContain("Use the guided modes below");
+    expect(trainingViewSource).not.toContain("Recommendation framing");
+    expect(trainingViewSource).not.toContain("one mode at a time instead of reading the whole workspace");
   });
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {

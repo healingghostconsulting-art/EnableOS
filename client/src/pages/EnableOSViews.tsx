@@ -806,9 +806,9 @@ const sectionMissionNarratives: Record<string, {
   },
   Learner: {
     focus: "Next mission",
-    next: "Show the next step, recent win, and current streak before revealing optional history or side content.",
+    next: "Start your assigned retraining, then continue the next module in your journey.",
     reward: "Progress celebrated",
-    guide: "Learners should feel guided and rewarded, with one clear mission and visible progress cues.",
+    guide: "Start the assigned retraining, continue the recommended module, then review coaching and evidence.",
   },
   Training: {
     focus: "Checkpoint flow",
@@ -10622,11 +10622,9 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Learner journey</Badge>
-              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-50/80">One clear next step at a time</span>
             </div>
             <div>
-              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">The learner workspace now guides progress, action, and evidence without making people hunt through one long page.</h2>
-              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">Use the guided modes below to continue the journey, handle assigned re-engagements, respond to coaching, and review evidence only when it is needed.</p>
+              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">{data.activeJourney.title}</h2>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href={primaryTrainingPath}>
@@ -10697,7 +10695,6 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Learner modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Move through the journey with one mode at a time instead of reading the whole workspace top to bottom.</p>
             </div>
             <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
               <TabsTrigger value="journey" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Journey</TabsTrigger>
@@ -10732,10 +10729,8 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                 <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
                   <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Learning signals</p>
                   <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
-                  <p className="mt-3 text-sm leading-7 text-slate-100">The learner workspace now surfaces a clearer recommended path, visible continuation context, and the next coaching checkpoint before the learner enters the full course player.</p>
                 </div>
                 <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5"><p className="text-xs uppercase tracking-[0.22em] text-slate-300">Achievement layer</p><p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p></div>
-                <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5"><p className="text-xs uppercase tracking-[0.22em] text-slate-300">Recommendation framing</p><p className="mt-2 text-sm font-medium text-white">Use the training route for the immersive lesson player and the learner workspace for high-level progress, continuation, and next-step discovery.</p></div>
               </div>
             </CardContent>
           </PremiumCard>
@@ -10782,7 +10777,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
               </CardContent>
             </PremiumCard>
             {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Review what was already finished before the next intervention starts." assignments={retrainingHistory} launchRole="learner" /> : null}
-            <WorkflowLibraryPanel title="Journey resource mix" description="Your learning path can now blend CHCG core modules with tenant-provided launch or compliance materials." resources={data.workflowLibraryMix.journeyResources} />
+            <WorkflowLibraryPanel title="Journey resource mix" description="CHCG core modules and tenant-provided launch or compliance materials for this journey." resources={data.workflowLibraryMix.journeyResources} />
           </div>
         </TabsContent>
 
