@@ -12,6 +12,8 @@ export type TrainingGalleryVisual = {
   stageId: "deck" | "brief" | "practice" | "apply";
   stageLabel: string;
   visualType: "deck" | "generated";
+  /** Present on deck slides that should render the live per-client KPI scorecard. */
+  scorecardId?: string;
 };
 
 export function buildTrainingVisualGallery(presentation: TrainingPresentation): TrainingGalleryVisual[] {

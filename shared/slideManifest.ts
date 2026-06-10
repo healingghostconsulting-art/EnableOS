@@ -14,6 +14,12 @@ export interface ManifestSlide {
   title?: string;
   /** Optional learner-facing caption. Falls back to a generic in-platform note. */
   caption?: string;
+  /**
+   * Optional KPI scorecard id (see shared/kpiScorecards.ts). When set, the lesson
+   * renders the live, per-client scorecard table over the slide image so targets
+   * stay editable without re-exporting the deck.
+   */
+  scorecard?: string;
 }
 
 export interface SlideDeck {
@@ -268,6 +274,61 @@ export const slideDecks: SlideDeck[] = [
       { file: "engagement-25.jpg", title: "Adjust & Right Set" },
       { file: "engagement-26.jpg", title: "Go Put It Into Practice" },
       { file: "engagement-27.jpg", title: "Reflection Slide" },
+    ],
+  },
+  {
+    id: "wfm-kpi",
+    sourceDeck: "Workforce Management & KPIs",
+    modulePrefixes: ["mod-wfm", "preview-wfm"],
+    slides: [
+      { file: "wfm-kpi-01.jpg", title: "Workforce Management & Key Performance Indicators (KPIs)" },
+      { file: "wfm-kpi-02.jpg", title: "Workforce Management & Key Performance Indicators (KPIs)" },
+      { file: "wfm-kpi-03.jpg", title: "What is WFM?" },
+      { file: "wfm-kpi-04.jpg", title: "What Is WFM? (Definition)" },
+      { file: "wfm-kpi-05.jpg", title: "Who is WFM?" },
+      { file: "wfm-kpi-06.jpg", title: "Key Workforce Management Components" },
+      { file: "wfm-kpi-07.jpg", title: "Forecasting, Staffing & Scheduling Overview" },
+      { file: "wfm-kpi-08.jpg", title: "Why WFM Matters to Agents" },
+      { file: "wfm-kpi-09.jpg", title: "Workforce Management & Key Performance Indicators (KPIs)" },
+      { file: "wfm-kpi-10.jpg", title: "Adherence & Scheduling" },
+      { file: "wfm-kpi-11.jpg", title: "Scheduling & Adherence" },
+      { file: "wfm-kpi-12.jpg", title: "Adherence & Attendance" },
+      { file: "wfm-kpi-13.jpg", title: "How Schedules Are Built" },
+      { file: "wfm-kpi-14.jpg", title: "Interval-Based Planning" },
+      { file: "wfm-kpi-15.jpg", title: "Break & Lunch Adherence" },
+      { file: "wfm-kpi-16.jpg", title: "Which Scenario Breaks Adherence?" },
+      { file: "wfm-kpi-17.jpg", title: "Productivity & Efficiency" },
+      { file: "wfm-kpi-18.jpg", title: "AUX Codes & System States – Finesse" },
+      { file: "wfm-kpi-19.jpg", title: "AUX Codes & System States – Calabrio" },
+      { file: "wfm-kpi-20.jpg", title: "AUX Codes & System States – Calabrio Cont." },
+      { file: "wfm-kpi-21.jpg", title: "Early/Late Return Impacts" },
+      { file: "wfm-kpi-22.jpg", title: "Occupancy" },
+      { file: "wfm-kpi-23.jpg", title: "Utilization" },
+      { file: "wfm-kpi-24.jpg", title: "Handle Time Efficiency" },
+      { file: "wfm-kpi-25.jpg", title: "Productivity Challenge" },
+      { file: "wfm-kpi-26.jpg", title: "Avoiding Productivity Traps" },
+      { file: "wfm-kpi-27.jpg", title: "KPI Deep Dive" },
+      { file: "wfm-kpi-28.jpg", title: "Workforce Management & KPIs" },
+      { file: "wfm-kpi-29.jpg", title: "KPI Scorecard — Patient Service", scorecard: "patient-service" },
+      { file: "wfm-kpi-30.jpg", title: "KPI Scorecard — Efficiency", scorecard: "efficiency" },
+      { file: "wfm-kpi-31.jpg", title: "KPI Scorecard — WFM", scorecard: "wfm" },
+      { file: "wfm-kpi-32.jpg", title: "Workforce Management & Key Performance Indicators (KPIs) - After-Call Work (ACW)" },
+      { file: "wfm-kpi-33.jpg", title: "What is ACW?" },
+      { file: "wfm-kpi-34.jpg", title: "The Impact of ACW on Productivity" },
+      { file: "wfm-kpi-35.jpg", title: "Benefits of Optimizing ACW" },
+      { file: "wfm-kpi-36.jpg", title: "Quality Score Impact on Agent Performance" },
+      { file: "wfm-kpi-37.jpg", title: "Workforce KPIs: Measuring Success" },
+      { file: "wfm-kpi-38.jpg", title: "How KPIs Interact" },
+      { file: "wfm-kpi-39.jpg", title: "Patient Satisfaction (CSAT) and Net Promoter Score (NPS)" },
+      { file: "wfm-kpi-40.jpg", title: "First Call Resolution (FCR)" },
+      { file: "wfm-kpi-41.jpg", title: "Workforce Scheduling & Optimization" },
+      { file: "wfm-kpi-42.jpg", title: "Agent Dashboards & Scorecard" },
+      { file: "wfm-kpi-43.jpg", title: "Dashboard" },
+      { file: "wfm-kpi-44.jpg", title: "When to Ask for Support" },
+      { file: "wfm-kpi-45.jpg", title: "Workforce Management & Key Performance Indicators (KPIs)" },
+      { file: "wfm-kpi-46.jpg", title: "Knowledge Check" },
+      { file: "wfm-kpi-47.jpg", title: "Short Quiz" },
+      { file: "wfm-kpi-48.jpg", title: "You Now Understand the Metrics That Drive Your Success" },
     ],
   },
 ];

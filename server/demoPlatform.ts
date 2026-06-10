@@ -623,6 +623,19 @@ const journeys: LearningJourney[] = [
       { id: "mod-hcd-2", title: "Operating rhythm for distributed teams", format: "Checklist", durationMinutes: 7, skillFocus: "Leadership cadence", completionRate: 59 },
     ],
   },
+  {
+    id: "journey-wfm-kpi",
+    tenantId: "atlas-operations",
+    role: "learner",
+    title: "Workforce Management & KPIs",
+    progress: 0,
+    competencyGap: "Schedule adherence and KPI literacy for frontline agents",
+    modules: [
+      { id: "mod-wfm-1", title: "WFM Foundations and Adherence", format: "Playbook", durationMinutes: 10, skillFocus: "Schedule adherence", completionRate: 0 },
+      { id: "mod-wfm-2", title: "Productivity, Occupancy, and Utilization", format: "Microlearning", durationMinutes: 9, skillFocus: "Efficiency metrics", completionRate: 0 },
+      { id: "mod-wfm-3", title: "KPI Scorecards and Targets", format: "Checklist", durationMinutes: 8, skillFocus: "KPI literacy", completionRate: 0 },
+    ],
+  },
 ];
 
 const rules: InterventionRule[] = [

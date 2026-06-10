@@ -115,3 +115,31 @@ pnpm dev           # open /training, page through the lesson with Previous/Next
 
 The lesson's "Visual X of N" counter should equal the number of slides you
 listed for that deck, and Previous/Next should page through them in order.
+
+---
+
+## Per-client KPI scorecards (WFM & KPI training)
+
+The **Workforce Management & KPIs** deck (`mod-wfm-*` → deck `wfm-kpi`) has three
+"KPI Scorecard" slides that are **not** shown as static images. Instead the lesson
+renders a **live table** from [`shared/kpiScorecards.ts`](../shared/kpiScorecards.ts),
+so each client's targets stay editable without re-exporting PowerPoint.
+
+How it's wired:
+- In `shared/slideManifest.ts`, the three scorecard slides carry a `scorecard` id:
+  `wfm-kpi-29` → `"patient-service"`, `wfm-kpi-30` → `"efficiency"`, `wfm-kpi-31` → `"wfm"`.
+- The player swaps the slide image for the `<KpiScorecard>` component whenever a slide
+  has a `scorecard` id.
+
+### Edit a client's targets
+Open `shared/kpiScorecards.ts` and change the `goal` values in `aspirusKpiProfile`.
+Each row is `{ metric, goal, definition }` — `goal` is the per-client number.
+
+### Onboard a new client
+1. Copy `aspirusKpiProfile`, rename it (e.g. `acmeKpiProfile`), set `clientId` / `clientName`.
+2. Edit the `goal` values (and rows) for that client.
+3. Register it in `clientKpiProfiles` (keyed by `clientId`).
+4. (Optional) map a workspace tenant to that client in `tenantClientId` so the right
+   targets show automatically per tenant. With no mapping it falls back to Aspirus.
+
+No image work and no PowerPoint re-export is needed to change KPI numbers.
