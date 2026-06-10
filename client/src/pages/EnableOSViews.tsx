@@ -10617,78 +10617,39 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
         <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
       </div>
 
-      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-cyan-400/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_30%),linear-gradient(135deg,rgba(6,24,42,0.98),rgba(15,23,42,0.96))] px-6 py-6 shadow-[0_26px_80px_rgba(8,15,35,0.24)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(18rem,0.82fr)] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Learner journey</Badge>
-            </div>
-            <div>
-              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">{data.activeJourney.title}</h2>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href={primaryTrainingPath}>
-                <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-                  if (activeRetrainingAssignment?.status === "assigned") {
-                    updateActiveAssignmentStatus("in_progress");
-                  }
-                }}>
-                  {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining") : "Resume guided training"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/library">
-                <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Browse mapped resources</Button>
-              </Link>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-5 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current focus</p>
-              <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#334E5E]">{activeRetrainingAssignment ? `Assigned from ${activeRetrainingAssignment.journeyTitle} with ${formatDueWindow(activeRetrainingAssignment.dueAt).toLowerCase()}.` : `Next recommendation inside ${data.activeJourney.title} with ${data.activeJourney.progress}% journey completion so far.`}</p>
-            </div>
-            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Progress celebration</p>
-              <p className="mt-2 text-sm leading-6">{learnerCelebrationCopy}</p>
-            </div>
-          </div>
+      {/* Priority next-step — the learner's single most important action (assigned retraining, or the
+          next recommended module). The assignment title is shown here and nowhere else. */}
+      <div id="learner-priority-strip" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(69,26,3,0.55),rgba(15,23,42,0.94))] px-4 py-3 shadow-[0_16px_44px_rgba(8,15,35,0.22)]">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+          <Badge className="rounded-full border-amber-200/25 bg-amber-300/16 text-amber-50">{activeRetrainingAssignment ? "Priority retraining" : "Next step"}</Badge>
+          <span className="truncate text-sm font-semibold text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</span>
+          <span className="text-slate-500">·</span>
+          <span className="text-xs text-slate-300">{activeRetrainingAssignment?.journeyTitle ?? data.activeJourney.title}</span>
+          {activeRetrainingAssignment ? (
+            <>
+              <span className="text-slate-500">·</span>
+              <span className="text-xs font-medium text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</span>
+            </>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Link href={primaryTrainingPath}>
+            <Button size="sm" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+              if (activeRetrainingAssignment?.status === "assigned") {
+                updateActiveAssignmentStatus("in_progress");
+              }
+            }}>
+              {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review retraining" : "Start retraining") : "Resume training"}
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Button>
+          </Link>
+          {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
+            <Button type="button" size="sm" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
+              {updateRetrainingStatus.isPending ? "Saving..." : "Mark complete"}
+            </Button>
+          ) : null}
         </div>
       </div>
-
-      {activeRetrainingAssignment ? (
-        <div id="learner-priority-retraining" className="rounded-[1.8rem] border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(253,224,71,0.18),transparent_34%),linear-gradient(135deg,rgba(69,26,3,0.92),rgba(15,23,42,0.98))] p-5 shadow-[0_24px_72px_rgba(8,15,35,0.26)]">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-50">Priority retraining notification</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{activeRetrainingAssignment.status === "completed" ? `${activeRetrainingAssignment.moduleTitle} is complete` : `${activeRetrainingAssignment.moduleTitle} has been assigned to you`}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment.status === "completed" ? `You finished this targeted retraining from ${activeRetrainingAssignment.journeyTitle}. Your manager and coach can now see the completed chip in their oversight lanes.` : `Complete this targeted refresher from ${activeRetrainingAssignment.journeyTitle} within 48 hours. It has been moved to the top of your learner journey so you can start it before returning to the broader path.`}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge value={activeRetrainingAssignment.status} />
-              <Badge className="rounded-full border-amber-200/25 bg-amber-300/16 px-3 py-1 text-amber-50 shadow-[0_10px_24px_rgba(180,83,9,0.18)]">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</Badge>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link href={primaryTrainingPath}>
-              <Button className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-                if (activeRetrainingAssignment.status === "assigned") {
-                  updateActiveAssignmentStatus("in_progress");
-                }
-              }}>
-                {activeRetrainingAssignment.status === "completed" ? "Review completed retraining" : "Start assigned retraining now"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            {activeRetrainingAssignment.status !== "completed" ? (
-              <Button type="button" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
-                {updateRetrainingStatus.isPending ? "Saving completion..." : "Mark retraining complete"}
-              </Button>
-            ) : null}
-            <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/28 px-3 py-1 text-slate-50">Assigned by {activeRetrainingAssignment.requestedByRole}</Badge>
-          </div>
-        </div>
-      ) : null}
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")} className="space-y-4">
         <div className="command-band px-4 py-4 md:px-5">
@@ -10710,18 +10671,18 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
             <CardContent className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
               <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">{activeRetrainingAssignment ? "Required retraining" : "Continue learning"}</Badge>
-                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment?.moduleFormat ?? primaryLearnerModule?.format ?? "Learning path"}</Badge>
-                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{activeRetrainingAssignment ? formatDueWindow(activeRetrainingAssignment.dueAt) : `${data.activeJourney.progress}% path progress`}</Badge>
+                  <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Continue learning</Badge>
+                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{primaryLearnerModule?.format ?? "Learning path"}</Badge>
+                  <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{`${data.activeJourney.progress}% path progress`}</Badge>
                 </div>
                 <div className="mt-5 max-w-3xl">
-                  <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">{activeRetrainingAssignment ? "Targeted retraining" : "Recommended path"}</p>
-                  <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{activeRetrainingAssignment?.moduleTitle ?? primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? `Your manager or coach assigned ${activeRetrainingAssignment.moduleTitle} from ${activeRetrainingAssignment.journeyTitle}. Complete this focused retraining within the next 48 hours before returning to the broader learning path.` : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title} with role-aware training, coaching prompts, and mapped resources.`}</p>
+                  <p className="text-sm uppercase tracking-[0.24em] text-cyan-50">Recommended path</p>
+                  <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? "Finish your assigned retraining (pinned in the priority bar above) before resuming the recommended path below." : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title}.`}</p>
                 </div>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Modules completed</p><p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p></div>
-                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Recommended next</p><p className="mt-2 text-sm font-medium text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p></div>
+                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Recommended next</p><p className="mt-2 text-sm font-medium text-white">{nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p></div>
                   <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Coach milestone</p><p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p></div>
                 </div>
               </div>

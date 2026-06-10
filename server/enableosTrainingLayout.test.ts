@@ -180,11 +180,20 @@ describe("learner training layout helpers", () => {
 
   it("preserves the stronger learner readability treatments on the assignment and banner cards", () => {
     expect(trainingViewSource).toContain("Learner journey");
-    expect(trainingViewSource).toContain("Priority retraining notification");
     expect(trainingViewSource).toContain("Recommended path");
     expect(trainingViewSource).toContain("text-cyan-50");
     expect(trainingViewSource).toContain("text-slate-50");
     expect(trainingViewSource).toContain("text-slate-300");
+  });
+
+  it("collapses required retraining into a single priority next-step strip (L3)", () => {
+    // One slim strip carries the assignment; the big amber notification + duplicate cards are gone.
+    expect(trainingViewSource).toContain('id="learner-priority-strip"');
+    expect(trainingViewSource).not.toContain("Priority retraining notification");
+    expect(trainingViewSource).not.toContain('id="learner-priority-retraining"');
+    expect(trainingViewSource).not.toContain("has been assigned to you");
+    // The Journey-tab card references the strip instead of restating the assignment title.
+    expect(trainingViewSource).toContain("pinned in the priority bar above");
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
