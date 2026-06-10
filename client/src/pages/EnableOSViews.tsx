@@ -10610,11 +10610,33 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Readiness score" value={`${data.learner.readinessScore}`} supporting={data.learner.title} icon={<Gauge className="h-4 w-4" />} />
-        <MetricCard label="Journey progress" value={`${data.activeJourney.progress}%`} supporting={data.activeJourney.title} icon={<BookOpen className="h-4 w-4" />} />
-        <MetricCard label={learnerWorkspaceCopy.assignedReengagementsMetricLabel} value={`${data.assignedInterventions.length}`} supporting={learnerWorkspaceCopy.assignedReengagementsMetricSupporting} icon={<Target className="h-4 w-4" />} />
-        <MetricCard label="Next coaching milestone" value={new Date(data.nextCoachingSession.dueDate).toLocaleDateString()} supporting={data.nextCoachingSession.title} icon={<Bell className="h-4 w-4" />} />
+      {/* Single compact stat row (mirrors Coach Studio). Re-engagements / coaching tiles jump to their mode. */}
+      <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
+          <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Readiness score</span></div>
+          <p className="mt-1.5 text-base font-semibold text-white">{data.learner.readinessScore}</p>
+          <p className="truncate text-[11px] leading-4 text-slate-400">{data.learner.title}</p>
+        </div>
+        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
+          <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
+          <p className="mt-1.5 text-base font-semibold text-white">{data.activeJourney.progress}%</p>
+          <p className="truncate text-[11px] leading-4 text-slate-400">{data.activeJourney.title}</p>
+        </div>
+        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
+          <div className="flex items-center gap-2 text-slate-300"><CheckCircle2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Modules complete</span></div>
+          <p className="mt-1.5 text-base font-semibold text-white">{completedLearnerModules}/{learnerModules.length}</p>
+          <p className="truncate text-[11px] leading-4 text-slate-400">Over 80% complete</p>
+        </div>
+        <button type="button" onClick={() => setActiveTab("reengagements")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+          <div className="flex items-center gap-2 text-slate-300"><Target className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{learnerWorkspaceCopy.assignedReengagementsMetricLabel}</span></div>
+          <p className="mt-1.5 text-base font-semibold text-white">{data.assignedInterventions.length}</p>
+          <p className="truncate text-[11px] leading-4 text-slate-400">{learnerWorkspaceCopy.assignedReengagementsMetricSupporting}</p>
+        </button>
+        <button type="button" onClick={() => setActiveTab("coaching")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+          <div className="flex items-center gap-2 text-slate-300"><Bell className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Next coaching</span></div>
+          <p className="mt-1.5 text-base font-semibold text-white">{new Date(data.nextCoachingSession.dueDate).toLocaleDateString()}</p>
+          <p className="truncate text-[11px] leading-4 text-slate-400">{data.nextCoachingSession.title}</p>
+        </button>
       </div>
 
       {/* Priority next-step — the learner's single most important action (assigned retraining, or the
@@ -10668,7 +10690,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
 
         <TabsContent value="journey" className="mt-0 grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
           <PremiumCard className="overflow-hidden">
-            <CardContent className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)]">
+            <CardContent className="p-5 sm:p-6">
               <div className="rounded-[2rem] border border-cyan-300/25 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_35%),linear-gradient(135deg,rgba(8,47,73,0.95),rgba(15,23,42,0.98))] p-6 shadow-[0_24px_80px_rgba(8,15,35,0.28)]">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Continue learning</Badge>
@@ -10680,18 +10702,8 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                   <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white">{primaryLearnerModule?.title ?? data.activeJourney.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-50">{activeRetrainingAssignment ? "Finish your assigned retraining (pinned in the priority bar above) before resuming the recommended path below." : primaryLearnerModule ? `Resume ${primaryLearnerModule.title} to keep building ${primaryLearnerModule.skillFocus.toLowerCase()} inside ${data.activeJourney.title}.` : `Continue the active journey inside ${data.activeJourney.title}.`}</p>
                 </div>
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Modules completed</p><p className="mt-2 text-xl font-semibold text-white">{completedLearnerModules}</p></div>
-                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Recommended next</p><p className="mt-2 text-sm font-medium text-white">{nextLearnerModule?.title ?? "Finish the current module to unlock the next lesson."}</p></div>
-                  <div className="rounded-2xl border border-white/12 bg-slate-950/68 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Coach milestone</p><p className="mt-2 text-sm font-medium text-white">{data.nextCoachingSession.title}</p></div>
-                </div>
-              </div>
-              <div className="grid gap-4">
-                <div className="rounded-[1.8rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(15,23,42,0.9))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-300">Learning signals</p>
-                  <h4 className="mt-3 text-xl font-semibold text-white">{data.activeJourney.competencyGap}</h4>
-                </div>
-                <div className="rounded-[1.6rem] border border-white/12 bg-white/8 p-5"><p className="text-xs uppercase tracking-[0.22em] text-slate-300">Achievement layer</p><p className="mt-2 text-sm font-medium text-white">{completedLearnerModules}/{learnerModules.length} modules have already crossed the 80% completion mark.</p></div>
+                <p className="mt-5 text-xs uppercase tracking-[0.22em] text-slate-300">Focus area</p>
+                <p className="mt-1 text-sm font-medium text-white">{data.activeJourney.competencyGap}</p>
               </div>
             </CardContent>
           </PremiumCard>

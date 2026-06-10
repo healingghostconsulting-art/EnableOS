@@ -196,6 +196,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("pinned in the priority bar above");
   });
 
+  it("consolidates learner stats into one compact top row (L4)", () => {
+    expect(trainingViewSource).toContain("Single compact stat row (mirrors Coach Studio)");
+    expect(trainingViewSource).toContain("Modules complete");
+    // The scattered learner mid-page stat clusters are gone (folded into the top row or dropped).
+    expect(trainingViewSource).not.toContain("Coach milestone");
+    expect(trainingViewSource).not.toContain("Achievement layer");
+    expect(trainingViewSource).not.toContain("Learning signals");
+  });
+
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
     expect(trainingViewSource).toContain("Speaker and facilitator notes stay out of the learner flow until opened.");
     expect(trainingViewSource).toContain("Transcript");
