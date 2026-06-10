@@ -205,6 +205,17 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Learning signals");
   });
 
+  it("gates the four learner modes and folds resources + history into the right modes (L5)", () => {
+    // Exactly four modes, Radix-gated (only the active TabsContent renders), default Journey.
+    expect(trainingViewSource).toContain('useState<"journey" | "reengagements" | "coaching" | "evidence">("journey")');
+    expect(trainingViewSource).toContain('setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")');
+    // Mapped resources folded into Journey as a secondary "Resources" section (no own tab).
+    expect(trainingViewSource).toContain('<WorkflowLibraryPanel title="Resources"');
+    expect(trainingViewSource).not.toContain('title="Journey resource mix"');
+    // Past retraining history lives in Evidence alongside completion records.
+    expect(trainingViewSource).toContain('title="Past retraining history"');
+  });
+
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
     expect(trainingViewSource).toContain("Speaker and facilitator notes stay out of the learner flow until opened.");
     expect(trainingViewSource).toContain("Transcript");

@@ -10749,8 +10749,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
                 ))}
               </CardContent>
             </PremiumCard>
-            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Review what was already finished before the next intervention starts." assignments={retrainingHistory} launchRole="learner" /> : null}
-            <WorkflowLibraryPanel title="Journey resource mix" description="CHCG core modules and tenant-provided launch or compliance materials for this journey." resources={data.workflowLibraryMix.journeyResources} />
+            <WorkflowLibraryPanel title="Resources" description="CHCG core modules and tenant-provided launch or compliance materials for this journey." resources={data.workflowLibraryMix.journeyResources} />
           </div>
         </TabsContent>
 
@@ -10884,7 +10883,10 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
               </div>
             </CardContent>
           </PremiumCard>
-          <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
+          <div className="space-y-6">
+            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Completed retraining and the evidence already recorded." assignments={retrainingHistory} launchRole="learner" /> : null}
+            <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
