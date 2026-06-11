@@ -413,6 +413,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("id=\"learner-priority-strip\"");
   });
 
+  it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
+    // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
+    expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
+    // The recommended (first) module takes the same gold highlighted-primary gradient as Coach's main action.
+    expect(trainingViewSource).toContain("const isPrimary = index === 0;");
+    expect(trainingViewSource).toContain("bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))]");
+    expect(trainingViewSource).toContain("border-[#F6C453]/60 bg-[#FCBC34] text-slate-950");
+  });
+
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain(">Pages<");

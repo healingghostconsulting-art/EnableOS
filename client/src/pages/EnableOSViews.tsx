@@ -10691,39 +10691,44 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
                 <CardDescription className="text-slate-400">{learnerWorkspaceCopy.activeJourneyDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {data.activeJourney.modules.map((module: any, index: number) => (
-                  <div key={module.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                {data.activeJourney.modules.map((module: any, index: number) => {
+                  // Align to Coach Studio's action-card chrome; the recommended (first) module takes
+                  // the gold highlighted-primary treatment like Coach's main action.
+                  const isPrimary = index === 0;
+                  return (
+                  <div key={module.id} className={`rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ${isPrimary ? "border-[#E6BE5A]/70 bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))]" : "border-slate-700/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92))]"}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{module.format}</p>
-                          {index === 0 ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Recommended</Badge> : null}
+                          <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${isPrimary ? "text-[#9A6700]" : "text-slate-200"}`}>{module.format}</p>
+                          {index === 0 ? <Badge className="rounded-full border-[#9A6700]/25 bg-[#9A6700]/12 text-[#7A5200]">Recommended</Badge> : null}
                           {index === 1 ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Up next</Badge> : null}
-                          {module.completionRate >= 80 ? <Badge className="rounded-full border-emerald-400/20 bg-emerald-400/10 text-emerald-100">Strong progress</Badge> : null}
-                          {activeRetrainingAssignment?.moduleId === module.id ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 text-amber-100">Assigned</Badge> : null}
+                          {module.completionRate >= 80 ? <Badge className={`rounded-full ${isPrimary ? "border-emerald-700/30 bg-emerald-600/15 text-emerald-800" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"}`}>Strong progress</Badge> : null}
+                          {activeRetrainingAssignment?.moduleId === module.id ? <Badge className={`rounded-full ${isPrimary ? "border-amber-700/30 bg-amber-600/15 text-amber-900" : "border-amber-400/20 bg-amber-400/12 text-amber-100"}`}>Assigned</Badge> : null}
                         </div>
-                        <h4 className="mt-2 text-lg font-medium text-white">{module.title}</h4>
-                        <p className="mt-2 text-sm text-slate-300">Skill focus: {module.skillFocus}</p>
+                        <h4 className={`mt-1.5 text-[15px] font-semibold leading-5 ${isPrimary ? "text-slate-950" : "text-white"}`}>{module.title}</h4>
+                        <p className={`mt-1 text-[13px] leading-5 ${isPrimary ? "text-slate-700" : "text-slate-200"}`}>Skill focus: {module.skillFocus}</p>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{module.durationMinutes} min</Badge>
+                      <Badge className={`rounded-full ${isPrimary ? "border-[#9A6700]/25 bg-[#9A6700]/10 text-[#7A5200]" : "border-white/10 bg-white/8 text-slate-200"}`}>{module.durationMinutes} min</Badge>
                     </div>
-                    <div className="mt-4">
-                      <div className="mb-2 flex items-center justify-between text-sm text-slate-400"><span>{index === 0 ? "Recommended path" : "Completion"}</span><span>{module.completionRate}%</span></div>
-                      <Progress value={module.completionRate} className="h-2 bg-white/8" />
+                    <div className="mt-2.5">
+                      <div className={`mb-2 flex items-center justify-between text-sm ${isPrimary ? "text-slate-600" : "text-slate-400"}`}><span>{index === 0 ? "Recommended path" : "Completion"}</span><span>{module.completionRate}%</span></div>
+                      <Progress value={module.completionRate} className={`h-2 ${isPrimary ? "bg-slate-950/10" : "bg-white/8"}`} />
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-3">
+                    <div className="mt-2.5 flex flex-wrap gap-3">
                       <Link href={launchTrainingPath(module)}>
                         <Button type="button" variant="outline" onClick={() => {
                           if (activeRetrainingAssignment?.moduleId === module.id && activeRetrainingAssignment.status === "assigned") {
                             updateActiveAssignmentStatus("in_progress");
                           }
-                        }} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                        }} className={isPrimary ? "rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" : "rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"}>
                           {activeRetrainingAssignment?.moduleId === module.id ? (activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Resume assigned module") : "Open this module"}
                         </Button>
                       </Link>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </PremiumCard>
             <WorkflowLibraryPanel title="Resources" description="CHCG core modules and tenant-provided launch or compliance materials for this journey." resources={data.workflowLibraryMix.journeyResources} />
