@@ -617,6 +617,6 @@
 - [x] Restore the structured weekly one-on-one coaching log workflow in Coach Studio so the popup opens blank and saves through the full composer instead of the generic fallback
 - [x] Update the seeded Maya Johnson weekly coaching log back to structured non-generic content and keep it aligned with the coach workflow
 - [x] Re-establish regression coverage for the weekly one-on-one popup and coaching log data so generic placeholder behavior cannot return unnoticed
-- [ ] Commit and push the weekly coaching log durability fix to GitHub main so future resets do not overwrite it
+- [x] Commit and push the weekly coaching log durability fix to GitHub main so future resets do not overwrite it
 - [ ] Reconfirm the GitHub-matching publish-ready checkpoint after the durable coaching-log fix lands
 - [ ] Prepare a refreshed development-plan summary covering all major updates, current progress, and improvements made across the EnableOS demo
