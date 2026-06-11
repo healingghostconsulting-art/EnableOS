@@ -9,130 +9,64 @@ import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardL
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import {
+  WORKSPACE_ORDER,
+  canGrantAccessWorkspace,
+  normalizeGrantRole,
+  permittedWorkspaces,
+  resolveActiveWorkspaceRole,
+  roleHomePath,
+  type GrantRole,
+  type WorkspacePath,
+} from "../../shared/workspaceAccess";
 
-export type WorkspaceGrantRole = "platform_admin" | "client_admin" | "executive" | "manager" | "coach" | "learner";
+export type WorkspaceGrantRole = GrantRole;
 
-const STATIC_WORKSPACE_ROLE_KEY = "chcg-enableos-static-workspace-role";
+const ACTIVE_WORKSPACE_ROLE_KEY = "chcg-enableos-active-workspace-role";
 
-export const baseWorkspaceMenu: DashboardMenuItem[] = [
-  { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
-  { icon: Compass, label: "EnableOS Guide", path: "/guide" },
-  { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
-  { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
-  { icon: Users2, label: "Coach Studio", path: "/coach" },
-  { icon: BookOpen, label: "Learner Journey", path: "/learner" },
-  { icon: BookOpen, label: "Training Zone", path: "/training" },
-  { icon: Building2, label: "Client Control", path: "/admin" },
-  { icon: BookText, label: "Content Missions", path: "/library" },
-];
+// Ordered menu metadata (icon + label) for every workspace path.
+const WORKSPACE_MENU_ITEMS: Record<WorkspacePath, DashboardMenuItem> = {
+  "/mission-hub": { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
+  "/guide": { icon: Compass, label: "EnableOS Guide", path: "/guide" },
+  "/reporting": { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
+  "/manager": { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
+  "/coach": { icon: Users2, label: "Coach Studio", path: "/coach" },
+  "/learner": { icon: BookOpen, label: "Learner Journey", path: "/learner" },
+  "/training": { icon: BookOpen, label: "Training Zone", path: "/training" },
+  "/library": { icon: BookText, label: "Content Missions", path: "/library" },
+  "/admin": { icon: Building2, label: "Client Control", path: "/admin" },
+  "/chcg-admin": { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
+};
 
-export const adminWorkspaceMenu: DashboardMenuItem[] = [
-  ...baseWorkspaceMenu,
-  { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
-];
-
-export const executiveWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/mission-hub"
-  || item.path === "/guide"
-  || item.path === "/reporting"
-));
-
-export const managerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => item.path !== "/reporting");
-
-export const coachWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/guide"
-  || item.path === "/coach"
-  || item.path === "/learner"
-  || item.path === "/training"
-  || item.path === "/library"
-));
-
-export const learnerWorkspaceMenu: DashboardMenuItem[] = baseWorkspaceMenu.filter((item) => (
-  item.path === "/guide"
-  || item.path === "/learner"
-  || item.path === "/training"
-  || item.path === "/library"
-));
-
-export function buildRoleScopedPath(path: string, role?: string | null) {
-  const normalizedRole = normalizeGrantRole(role);
-
-  if (!normalizedRole || (path !== "/training" && path !== "/library" && path !== "/mission-hub" && path !== "/guide")) {
-    return path;
-  }
-
-  const params = new URLSearchParams();
-  params.set("role", normalizedRole);
-  return `${path}?${params.toString()}`;
+/** The sidebar nav for a role — the matrix-permitted workspaces, in display order. */
+export function buildWorkspaceMenu(role: GrantRole | null | undefined): DashboardMenuItem[] {
+  return permittedWorkspaces(role).map((path) => WORKSPACE_MENU_ITEMS[path]);
 }
 
-export function scopeMenuItemsToRole(menuItems: DashboardMenuItem[], role?: string | null) {
-  return menuItems.map((item) => ({
-    ...item,
-    path: buildRoleScopedPath(item.path, role),
-  }));
-}
+// Per-role menu constants, all derived from the single WORKSPACE_ACCESS matrix.
+export const baseWorkspaceMenu: DashboardMenuItem[] = WORKSPACE_ORDER.map((path) => WORKSPACE_MENU_ITEMS[path]);
+export const adminWorkspaceMenu: DashboardMenuItem[] = buildWorkspaceMenu("platform_admin");
+export const executiveWorkspaceMenu: DashboardMenuItem[] = buildWorkspaceMenu("executive");
+export const managerWorkspaceMenu: DashboardMenuItem[] = buildWorkspaceMenu("manager");
+export const coachWorkspaceMenu: DashboardMenuItem[] = buildWorkspaceMenu("coach");
+export const learnerWorkspaceMenu: DashboardMenuItem[] = buildWorkspaceMenu("learner");
 
-function normalizeGrantRole(grantRole?: string | null): WorkspaceGrantRole | null {
-  switch (grantRole) {
-    case "platform_admin":
-    case "client_admin":
-    case "executive":
-    case "manager":
-    case "coach":
-    case "learner":
-      return grantRole;
-    default:
-      return null;
-  }
-}
-
-function getStoredStaticWorkspaceRole() {
+function getStoredActiveWorkspaceRole(): GrantRole | null {
   if (typeof window === "undefined") {
     return null;
   }
-
-  return normalizeGrantRole(window.sessionStorage.getItem(STATIC_WORKSPACE_ROLE_KEY));
+  return normalizeGrantRole(window.sessionStorage.getItem(ACTIVE_WORKSPACE_ROLE_KEY));
 }
 
-function setStoredStaticWorkspaceRole(role?: string | null) {
+function setStoredActiveWorkspaceRole(role?: GrantRole | null) {
   if (typeof window === "undefined") {
     return;
   }
-
-  const normalizedRole = normalizeGrantRole(role);
-
-  if (!normalizedRole) {
-    window.sessionStorage.removeItem(STATIC_WORKSPACE_ROLE_KEY);
+  if (!role) {
+    window.sessionStorage.removeItem(ACTIVE_WORKSPACE_ROLE_KEY);
     return;
   }
-
-  window.sessionStorage.setItem(STATIC_WORKSPACE_ROLE_KEY, normalizedRole);
-}
-
-function resolveEffectiveWorkspaceRole(options?: { workspacePath?: string | null; sharedRouteRole?: string | null; grantRole?: string | null }) {
-  const normalizedSharedRole = normalizeGrantRole(options?.sharedRouteRole);
-
-  if (normalizedSharedRole) {
-    return normalizedSharedRole;
-  }
-
-  switch (options?.workspacePath) {
-    case "/reporting":
-      return "executive";
-    case "/manager":
-      return "manager";
-    case "/coach":
-      return "coach";
-    case "/learner":
-      return "learner";
-    case "/admin":
-      return "client_admin";
-    case "/chcg-admin":
-      return "platform_admin";
-    default:
-      return getStoredStaticWorkspaceRole() ?? normalizeGrantRole(options?.grantRole);
-  }
+  window.sessionStorage.setItem(ACTIVE_WORKSPACE_ROLE_KEY, role);
 }
 
 export function buildLegacyExecutiveRedirectPath(location: string) {
@@ -143,138 +77,36 @@ export function buildLegacyExecutiveRedirectPath(location: string) {
 }
 
 export function resolveRoleHomePath(grantRole?: string | null) {
-  const normalizedRole = normalizeGrantRole(grantRole);
-
-  switch (normalizedRole) {
-    case "platform_admin":
-      return "/chcg-admin";
-    case "client_admin":
-      return "/admin";
-    case "executive":
-      return "/reporting";
-    case "manager":
-      return "/manager";
-    case "coach":
-      return "/coach";
-    case "learner":
-      return "/learner";
-    default:
-      return "/";
-  }
+  return roleHomePath(normalizeGrantRole(grantRole));
 }
 
 export function canAccessWorkspacePath(path: string, grantRole?: string | null) {
-  const normalizedRole = normalizeGrantRole(grantRole);
-
-  if (path === "/" || path === "/404") {
-    return true;
-  }
-
-  if (!normalizedRole) {
-    return false;
-  }
-
-  switch (path) {
-    case "/reporting":
-      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive";
-    case "/manager":
-      return normalizedRole !== "coach" && normalizedRole !== "learner";
-    case "/coach":
-      return normalizedRole !== "learner";
-    case "/guide":
-    case "/learner":
-    case "/training":
-    case "/library":
-      return true;
-    case "/admin":
-      return normalizedRole === "platform_admin" || normalizedRole === "client_admin" || normalizedRole === "executive" || normalizedRole === "manager";
-    case "/chcg-admin":
-      return normalizedRole === "platform_admin";
-    default:
-      return true;
-  }
+  return canGrantAccessWorkspace(normalizeGrantRole(grantRole), path);
 }
 
-function resolveStaticMenuRole(options?: { workspacePath?: string | null; sharedRouteRole?: string | null; grantRole?: string | null }) {
-  return resolveEffectiveWorkspaceRole(options);
-}
-
-export function resolveWorkspaceMenu(options?: { menuItemsOverride?: DashboardMenuItem[]; grantRole?: string | null; workspacePath?: string | null; sharedRouteRole?: string | null }) {
-  if (options?.menuItemsOverride) {
-    return options.menuItemsOverride;
-  }
-
-  const effectiveRole = resolveEffectiveWorkspaceRole(options);
-
-  switch (options?.workspacePath) {
-    case "/reporting":
-      return executiveWorkspaceMenu;
-    case "/manager":
-      return managerWorkspaceMenu;
-    case "/coach":
-      return coachWorkspaceMenu;
-    case "/learner":
-      return learnerWorkspaceMenu;
-    case "/mission-hub":
-    case "/guide":
-    case "/training":
-    case "/library": {
-      switch (effectiveRole) {
-        case "platform_admin":
-          return adminWorkspaceMenu;
-        case "client_admin":
-          return baseWorkspaceMenu;
-        case "executive":
-          return executiveWorkspaceMenu;
-        case "manager":
-          return managerWorkspaceMenu;
-        case "coach":
-          return coachWorkspaceMenu;
-        case "learner":
-          return learnerWorkspaceMenu;
-        default:
-          break;
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
-  switch (effectiveRole) {
-    case "platform_admin":
-      return adminWorkspaceMenu;
-    case "manager":
-      return managerWorkspaceMenu;
-    case "coach":
-      return coachWorkspaceMenu;
-    case "learner":
-      return learnerWorkspaceMenu;
-    default:
-      return baseWorkspaceMenu;
-  }
-}
-
-function WorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { children: React.ReactNode; path: string; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
-  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
-  const [location] = useLocation();
-  const locationSearch = location.includes("?") ? location.slice(location.indexOf("?") + 1) : "";
-  const sharedRouteRole = locationSearch ? new URLSearchParams(locationSearch).get("role") : null;
-  const staticMenuRole = resolveStaticMenuRole({
-    workspacePath: path,
-    sharedRouteRole,
-    grantRole: access.data?.grant.role,
+/**
+ * The sidebar nav for a workspace render: the matrix menu for the active role (clamped
+ * to the grant). Shared routes keep the current role; dedicated role routes adopt their
+ * persona without ever shrinking the nav. The `?role=` query param is NOT consulted.
+ */
+export function resolveWorkspaceMenu(options?: { grantRole?: string | null; workspacePath?: string | null; persisted?: string | null }) {
+  const activeRole = resolveActiveWorkspaceRole({
+    path: options?.workspacePath ?? "",
+    grantRole: normalizeGrantRole(options?.grantRole),
+    persisted: normalizeGrantRole(options?.persisted),
   });
-  const menuItems = scopeMenuItemsToRole(resolveWorkspaceMenu({
-    menuItemsOverride,
-    grantRole: access.data?.grant.role,
-    workspacePath: path,
-    sharedRouteRole,
-  }), staticMenuRole);
+  return buildWorkspaceMenu(activeRole);
+}
+
+function WorkspaceShell({ children, path, roleLabel }: { children: React.ReactNode; path: string; roleLabel: string }) {
+  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
+  const grantRole = normalizeGrantRole(access.data?.grant.role);
+  const activeRole = resolveActiveWorkspaceRole({ path, grantRole, persisted: getStoredActiveWorkspaceRole() });
+  const menuItems = buildWorkspaceMenu(activeRole);
 
   useEffect(() => {
-    setStoredStaticWorkspaceRole(staticMenuRole);
-  }, [staticMenuRole]);
+    setStoredActiveWorkspaceRole(activeRole);
+  }, [activeRole]);
 
   return (
     <DashboardLayout
@@ -292,15 +124,15 @@ function WorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { chil
   );
 }
 
-function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }: { children: React.ReactNode; path: string; roleLabel: string; menuItemsOverride?: DashboardMenuItem[] }) {
+function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.ReactNode; path: string; roleLabel: string }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const [, setLocation] = useLocation();
-  const grantRole = access.data?.grant.role ?? null;
-  const canAccess = canAccessWorkspacePath(path, grantRole);
+  const grantRole = normalizeGrantRole(access.data?.grant.role);
+  const canAccess = canGrantAccessWorkspace(grantRole, path);
 
   useEffect(() => {
     if (access.isSuccess && !canAccess) {
-      setLocation(resolveRoleHomePath(grantRole));
+      setLocation(roleHomePath(grantRole));
     }
   }, [access.isSuccess, canAccess, grantRole, setLocation]);
 
@@ -309,7 +141,7 @@ function GuardedWorkspaceShell({ children, path, roleLabel, menuItemsOverride }:
   }
 
   return (
-    <WorkspaceShell path={path} roleLabel={roleLabel} menuItemsOverride={menuItemsOverride}>
+    <WorkspaceShell path={path} roleLabel={roleLabel}>
       {children}
     </WorkspaceShell>
   );
@@ -356,21 +188,21 @@ function Router() {
         </Route>
         <Route path="/manager">
           {() => (
-            <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace" menuItemsOverride={managerWorkspaceMenu}>
+            <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace">
               <RoleWorkspace role="manager" />
             </GuardedWorkspaceShell>
           )}
         </Route>
         <Route path="/coach">
           {() => (
-            <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace" menuItemsOverride={coachWorkspaceMenu}>
+            <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace">
               <RoleWorkspace role="coach" />
             </GuardedWorkspaceShell>
           )}
         </Route>
         <Route path="/learner">
           {() => (
-            <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey" menuItemsOverride={learnerWorkspaceMenu}>
+            <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
               <RoleWorkspace role="learner" />
             </GuardedWorkspaceShell>
           )}
