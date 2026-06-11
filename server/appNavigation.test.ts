@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   adminWorkspaceMenu,
   buildLegacyExecutiveRedirectPath,
-  buildRoleScopedPath,
+  buildWorkspaceMenu,
   canAccessWorkspacePath,
   coachWorkspaceMenu,
   executiveWorkspaceMenu,
@@ -11,116 +11,51 @@ import {
   managerWorkspaceMenu,
   resolveRoleHomePath,
   resolveWorkspaceMenu,
-  scopeMenuItemsToRole,
 } from "../client/src/App";
+import { WORKSPACE_ACCESS, canGrantAccessWorkspace, resolveActiveWorkspaceRole } from "../shared/workspaceAccess";
 
-describe("workspace navigation resolution", () => {
-  it("keeps the learner workspace focused on the Guide plus learner, training, and content flows", () => {
-    expect(learnerWorkspaceMenu.map((item) => item.label)).toEqual([
-      "EnableOS Guide",
-      "Learner Journey",
-      "Training Zone",
-      "Content Missions",
-    ]);
-    expect(learnerWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/guide",
-      "/learner",
-      "/training",
-      "/library",
-    ]);
+const paths = (menu: { path: string }[]) => menu.map((item) => item.path);
+
+describe("workspace navigation resolution (matrix-driven)", () => {
+  it("derives every role menu from the one WORKSPACE_ACCESS matrix", () => {
+    expect(paths(learnerWorkspaceMenu)).toEqual(["/guide", "/learner", "/training", "/library"]);
+    expect(paths(coachWorkspaceMenu)).toEqual(["/guide", "/reporting", "/coach", "/learner", "/training", "/library"]);
+    expect(paths(managerWorkspaceMenu)).toEqual(["/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
+    expect(paths(executiveWorkspaceMenu)).toEqual(["/mission-hub", "/guide", "/reporting", "/training", "/library"]);
+    // platform admin sees everything incl. CHCG Command; client admin sees all but CHCG Command.
+    expect(paths(adminWorkspaceMenu)).toContain("/chcg-admin");
+    expect(paths(buildWorkspaceMenu("client_admin"))).not.toContain("/chcg-admin");
+    expect(paths(buildWorkspaceMenu("client_admin"))).toContain("/admin");
+    // The menu set always matches the matrix.
+    expect(new Set(paths(coachWorkspaceMenu))).toEqual(new Set(WORKSPACE_ACCESS.coach));
   });
 
-  it("keeps the coaching workspace aligned to the shared Guide plus coach, learner, training, and library access", () => {
-    expect(coachWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/guide",
-      "/coach",
-      "/learner",
-      "/training",
-      "/library",
-    ]);
-  });
-
-  it("keeps reporting as the executive-facing top-level section while exposing the shared Guide to executive and manager menus", () => {
-    expect(executiveWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/mission-hub",
-      "/guide",
-      "/reporting",
-    ]);
-    expect(managerWorkspaceMenu.map((item) => item.path)).toEqual([
-      "/mission-hub",
-      "/guide",
-      "/manager",
-      "/coach",
-      "/learner",
-      "/training",
-      "/admin",
-      "/library",
-    ]);
-    expect(adminWorkspaceMenu.map((item) => item.path)).toEqual(expect.arrayContaining(["/reporting"]));
-    expect(adminWorkspaceMenu.map((item) => item.path)).not.toContain("/executive");
-  });
-
-  it("adds CHCG command only for platform admins when no override is supplied", () => {
+  it("drives the nav from the grant role and ignores the ?role= content param", () => {
     expect(resolveWorkspaceMenu({ grantRole: "platform_admin" })).toEqual(adminWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "coach" })).toEqual(coachWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "manager" })).toEqual(managerWorkspaceMenu);
     expect(resolveWorkspaceMenu({ grantRole: "learner" })).toEqual(learnerWorkspaceMenu);
   });
 
-  it("prefers an explicit shell override so the learner route stays learner-scoped even for broader grants", () => {
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", menuItemsOverride: learnerWorkspaceMenu })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "manager", menuItemsOverride: coachWorkspaceMenu })).toEqual(coachWorkspaceMenu);
+  it("keeps the nav stable across shared workspaces (the Coach → Training Zone bug)", () => {
+    // Coach lands on /coach, then opens the shared Training Zone — nav must NOT change.
+    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/training" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/library" })).toEqual(coachWorkspaceMenu);
+    expect(paths(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/training" }))).toContain("/coach");
+    // Manager keeps Manager Ops everywhere, incl. the shared Training Zone.
+    expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/training" })).toEqual(managerWorkspaceMenu);
+    // A dedicated sub-route never shrinks the nav: coach visiting /learner keeps Coach Studio.
+    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/learner" })).toEqual(coachWorkspaceMenu);
   });
 
-  it("adds static role context to shared guide, mission hub, training, and library links so shared routes stay role-scoped", () => {
-    expect(buildRoleScopedPath("/mission-hub", "learner")).toBe("/mission-hub?role=learner");
-    expect(buildRoleScopedPath("/guide", "learner")).toBe("/guide?role=learner");
-    expect(buildRoleScopedPath("/training", "learner")).toBe("/training?role=learner");
-    expect(buildRoleScopedPath("/library", "manager")).toBe("/library?role=manager");
-    expect(buildRoleScopedPath("/learner", "learner")).toBe("/learner");
-    expect(scopeMenuItemsToRole(learnerWorkspaceMenu, "learner").map((item) => item.path)).toEqual([
-      "/guide?role=learner",
-      "/learner",
-      "/training?role=learner",
-      "/library?role=learner",
-    ]);
-    expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[0]?.path).toBe("/mission-hub?role=manager");
-    expect(scopeMenuItemsToRole(managerWorkspaceMenu, "manager")[1]?.path).toBe("/guide?role=manager");
-  });
-
-  it("keeps learner and reporting shells path-scoped even when the viewer has broader navigation grants", () => {
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "client_admin", workspacePath: "/reporting" })).toEqual(executiveWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/guide", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", sharedRouteRole: "learner" })).toEqual(learnerWorkspaceMenu);
-    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/library", sharedRouteRole: "manager" })).toEqual(managerWorkspaceMenu);
-  });
-
-  it("reuses the stored learner workspace role when shared routes are opened without a role query", () => {
-    const previousWindow = globalThis.window;
-    const sessionValues = new Map<string, string>([["chcg-enableos-static-workspace-role", "learner"]]);
-
-    globalThis.window = {
-      sessionStorage: {
-        getItem: (key: string) => sessionValues.get(key) ?? null,
-        setItem: (key: string, value: string) => {
-          sessionValues.set(key, value);
-        },
-        removeItem: (key: string) => {
-          sessionValues.delete(key);
-        },
-      },
-    } as Window & typeof globalThis;
-
-    try {
-      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training" })).toEqual(learnerWorkspaceMenu);
-      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/mission-hub" })).toEqual(learnerWorkspaceMenu);
-      expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/guide" })).toEqual(learnerWorkspaceMenu);
-    } finally {
-      globalThis.window = previousWindow;
-    }
+  it("resolveActiveWorkspaceRole: shared routes keep the role; dedicated routes never downgrade", () => {
+    expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "coach" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "coach" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/coach", grantRole: "coach" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/chcg-admin", grantRole: "platform_admin" })).toBe("platform_admin");
+    // A stale persisted role outside the grant is clamped back to the grant.
+    expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "coach", persisted: "manager" })).toBe("coach");
   });
 
   it("redirects each role back to its allowed home view when a route is blocked", () => {
@@ -137,16 +72,27 @@ describe("workspace navigation resolution", () => {
     expect(buildLegacyExecutiveRedirectPath("/executive?from_webdev=1&role=executive")).toBe("/reporting?from_webdev=1&role=executive");
   });
 
-  it("enforces route access by workspace role", () => {
-    expect(canAccessWorkspacePath("/reporting", "manager")).toBe(false);
+  it("enforces route access from the same matrix the nav uses (guard and nav can't disagree)", () => {
+    // Matrix now grants coaches and managers Reporting.
+    expect(canAccessWorkspacePath("/reporting", "coach")).toBe(true);
+    expect(canAccessWorkspacePath("/reporting", "manager")).toBe(true);
     expect(canAccessWorkspacePath("/reporting", "executive")).toBe(true);
-    expect(canAccessWorkspacePath("/admin", "manager")).toBe(true);
+    // Managers no longer reach Client Control (matrix excludes /admin for manager).
+    expect(canAccessWorkspacePath("/admin", "manager")).toBe(false);
     expect(canAccessWorkspacePath("/guide", "learner")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "coach")).toBe(true);
     expect(canAccessWorkspacePath("/manager", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/admin", "coach")).toBe(false);
     expect(canAccessWorkspacePath("/learner", "learner")).toBe(true);
     expect(canAccessWorkspacePath("/coach", "learner")).toBe(false);
+    expect(canAccessWorkspacePath("/training", "executive")).toBe(true);
+    expect(canAccessWorkspacePath("/manager", "executive")).toBe(false);
     expect(canAccessWorkspacePath("/chcg-admin", "platform_admin")).toBe(true);
+    expect(canAccessWorkspacePath("/chcg-admin", "client_admin")).toBe(false);
+    // Guard and nav are the same map: every nav item is accessible, nothing outside is.
+    for (const path of WORKSPACE_ACCESS.coach) {
+      expect(canGrantAccessWorkspace("coach", path)).toBe(true);
+    }
+    expect(canGrantAccessWorkspace("coach", "/manager")).toBe(false);
   });
 });
