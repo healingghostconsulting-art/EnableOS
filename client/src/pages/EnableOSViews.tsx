@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard } from "../../../shared/kpiScorecards";
+import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -863,6 +864,7 @@ function SectionShell({
   actions,
   children,
   compact = true,
+  hideHeader = false,
 }: {
   eyebrow: string;
   title: string;
@@ -870,7 +872,13 @@ function SectionShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
   compact?: boolean;
+  hideHeader?: boolean;
 }) {
+  // Workspaces that render their own chrome (WorkspaceShell) suppress the shared
+  // header so it isn't drawn twice.
+  if (hideHeader) {
+    return <>{children}</>;
+  }
   const narrative = resolveSectionMissionNarrative(eyebrow, title);
   const usesSlimCoachHeader = compact && (eyebrow === "Coach / Supervisor" || title === "Coach or supervisor workspace");
 
@@ -3428,6 +3436,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         eyebrow={roleDescriptor?.eyebrow ?? "Workspace"}
         title={roleDescriptor?.title ?? "Workspace"}
         description={roleDescriptor?.subtitle ?? "Open a role-specific workspace with the correct tenant-scoped data."}
+        hideHeader={role === "coach"}
         actions={
           access.data ? (
             <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
@@ -3459,7 +3468,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           ) : role === "manager" ? (
             <ManagerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
           ) : role === "coach" ? (
-            <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+            <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">{access.data.tenant.name}</Badge> : null} />
           ) : role === "learner" ? (
             <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
           ) : (
@@ -9457,7 +9466,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
   );
 }
 
-function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?: () => void; headerActions?: ReactNode }) {
   const teamLearners = data.teamLearners?.length ? data.teamLearners : [data.directLearner];
   const teamCoachingSessions = data.teamCoachingSessions?.length ? data.teamCoachingSessions : data.coachingSessions;
   const teamWeeklyCoachingLogs = data.teamWeeklyCoachingLogs?.length ? data.teamWeeklyCoachingLogs : data.weeklyCoachingLogs;
@@ -9559,95 +9568,79 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
     }
   }, [selectedCoachingSessionId, selectedCoachingSessions]);
 
+  const coachWorkspaceStats: WorkspaceStat[] = [
+    { label: "Coach readiness", value: data.coach.readinessScore, sub: data.coach.name, icon: <ShieldCheck className="h-4 w-4" />, onClick: () => openCoachView("coaching", "coach-overview") },
+    { label: "Active threads", value: selectedCoachingSessions.length, sub: "Open coaching work for this learner", icon: <Users2 className="h-4 w-4" />, onClick: () => openCoachView("coaching", "coach-coaching-lane") },
+    { label: "Weekly logs", value: selectedWeeklyCoachingLogs.length, sub: "Structured coaching cycles recorded", icon: <BookOpen className="h-4 w-4" />, onClick: () => openCoachView("coaching", "coach-weekly-logs") },
+    { label: "Journey progress", value: `${data.activeJourney.progress}%`, sub: "Learning journey complete", icon: <Gauge className="h-4 w-4" />, onClick: () => openCoachView("transfer", "coach-transfer-lane") },
+  ];
+
   return (
-    <div className="space-y-3">
-      <div className="rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
-        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-          <div className="rounded-[1rem] border border-white/12 bg-white/6 px-3 py-2 xl:min-w-[16rem]">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
-              <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedLearner.readinessScore} readiness</Badge>
-            </div>
-            {teamLearners.length > 1 ? (
-              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
-                <SelectTrigger className="mt-2 h-9 border-white/12 bg-slate-950/55 text-sm text-slate-50 shadow-none [color-scheme:dark]">
-                  <SelectValue placeholder="Select learner" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamLearners.map((learner: any) => (
-                    <SelectItem key={learner.id} value={learner.id}>
-                      {learner.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <p className="mt-2 text-sm font-semibold text-white">{selectedLearner.name}</p>
-            )}
-            <p className="mt-1 text-xs leading-4 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
+    <WorkspaceShell
+      title="Coach Studio"
+      subtitle="Select a learner, review status, and open the next coaching task."
+      actions={headerActions}
+      modesLabel="Coach modes"
+      modesSubtitle="Choose a tab to coach, review transfer, document evidence, or respond to alerts."
+      activeTab={activeTab}
+      onTabChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")}
+      stats={coachWorkspaceStats}
+      tabs={[
+        { value: "coaching", label: "Coaching lane" },
+        { value: "transfer", label: "Training transfer" },
+        { value: "documentation", label: "Documentation" },
+        { value: "alerts", label: "Alerts" },
+      ]}
+      statsLead={
+        <div className="rounded-[1rem] border border-white/12 bg-white/6 px-3 py-2 xl:min-w-[16rem]">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Current learner</p>
+            <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedLearner.readinessScore} readiness</Badge>
           </div>
-          <div className="grid flex-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
-            <button type="button" onClick={() => openCoachView("coaching", "coach-overview")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-              <div className="flex items-center gap-2 text-slate-300"><ShieldCheck className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Coach readiness</span></div>
-              <p className="mt-1.5 text-base font-semibold text-white">{data.coach.readinessScore}</p>
-              <p className="text-[11px] leading-4 text-slate-400">{data.coach.name}</p>
-            </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-coaching-lane")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-              <div className="flex items-center gap-2 text-slate-300"><Users2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Active threads</span></div>
-              <p className="mt-1.5 text-base font-semibold text-white">{selectedCoachingSessions.length}</p>
-              <p className="text-[11px] leading-4 text-slate-400">Open coaching work for this learner</p>
-            </button>
-            <button type="button" onClick={() => openCoachView("coaching", "coach-weekly-logs")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-              <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Weekly logs</span></div>
-              <p className="mt-1.5 text-base font-semibold text-white">{selectedWeeklyCoachingLogs.length}</p>
-              <p className="text-[11px] leading-4 text-slate-400">Structured coaching cycles recorded</p>
-            </button>
-            <button type="button" onClick={() => openCoachView("transfer", "coach-transfer-lane")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-              <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
-              <p className="mt-1.5 text-base font-semibold text-white">{data.activeJourney.progress}%</p>
-              <p className="text-[11px] leading-4 text-slate-400">Learning journey complete</p>
-            </button>
-          </div>
+          {teamLearners.length > 1 ? (
+            <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
+              <SelectTrigger className="mt-2 h-9 border-white/12 bg-slate-950/55 text-sm text-slate-50 shadow-none [color-scheme:dark]">
+                <SelectValue placeholder="Select learner" />
+              </SelectTrigger>
+              <SelectContent>
+                {teamLearners.map((learner: any) => (
+                  <SelectItem key={learner.id} value={learner.id}>
+                    {learner.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="mt-2 text-sm font-semibold text-white">{selectedLearner.name}</p>
+          )}
+          <p className="mt-1 text-xs leading-4 text-slate-300">{selectedLearner.title ?? selectedLearner.roleTitle}{selectedLearner.team ? ` · ${selectedLearner.team}` : ""}</p>
         </div>
-      </div>
-
-      <div id="coach-overview" className="scroll-mt-24" />
-
-      <WeeklyCoachingLogDetailDialog
-        entry={selectedCoachNeedEntry}
-        log={selectedCoachNeedWeeklyCoachingLog}
-        open={Boolean(selectedCoachNeedUsesCoachingPopup)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedCoachNeedEntryId(null);
-          }
-        }}
-      />
-      <DocumentationEntryDetailDialog
-        entry={selectedCoachNeedUsesCoachingPopup ? null : selectedCoachNeedEntry}
-        open={Boolean(selectedCoachNeedEntry && !selectedCoachNeedUsesCoachingPopup)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedCoachNeedEntryId(null);
-          }
-        }}
-      />
-
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")} className="space-y-2.5">
-        <div className="command-band px-4 py-2.5 md:px-4.5">
-          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Coach modes</p>
-              <p className="mt-1 text-sm leading-5 text-slate-700">Choose a tab to coach, review transfer, document evidence, or respond to alerts.</p>
-            </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
-              <TabsTrigger value="coaching" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching lane</TabsTrigger>
-              <TabsTrigger value="transfer" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Training transfer</TabsTrigger>
-              <TabsTrigger value="documentation" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-              <TabsTrigger value="alerts" className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
+      }
+      betweenStatsAndTabs={
+        <>
+          <div id="coach-overview" className="scroll-mt-24" />
+          <WeeklyCoachingLogDetailDialog
+            entry={selectedCoachNeedEntry}
+            log={selectedCoachNeedWeeklyCoachingLog}
+            open={Boolean(selectedCoachNeedUsesCoachingPopup)}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedCoachNeedEntryId(null);
+              }
+            }}
+          />
+          <DocumentationEntryDetailDialog
+            entry={selectedCoachNeedUsesCoachingPopup ? null : selectedCoachNeedEntry}
+            open={Boolean(selectedCoachNeedEntry && !selectedCoachNeedUsesCoachingPopup)}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedCoachNeedEntryId(null);
+              }
+            }}
+          />
+        </>
+      }
+    >
 
         {activeTab === "coaching" ? (
           <TabsContent value="coaching" id="coach-coaching-lane" className="mt-0 space-y-3 scroll-mt-24">
@@ -10174,8 +10167,7 @@ function CoachPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           </div>
           </TabsContent>
         ) : null}
-      </Tabs>
-    </div>
+    </WorkspaceShell>
   );
 }
 

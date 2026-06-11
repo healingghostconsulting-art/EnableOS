@@ -384,6 +384,21 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("one mode at a time instead of reading the whole workspace");
   });
 
+  it("extracts the Coach Studio chrome into a reusable WorkspaceShell (W1)", () => {
+    const shellSource = readFileSync(join(process.cwd(), "client/src/components/WorkspaceShell.tsx"), "utf8");
+    // The shell owns the slim header, the dark high-contrast stat band, and the gated mode tabs.
+    expect(shellSource).toContain("export function WorkspaceShell");
+    expect(shellSource).toContain("bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))]"); // dark stat band
+    expect(shellSource).toContain("command-band"); // gated mode tabs
+    expect(shellSource).toContain("data-[state=active]:bg-white data-[state=active]:text-slate-950"); // tab treatment
+    // /coach renders through the shell (non-visual refactor), and the shared header is suppressed
+    // so it isn't drawn twice.
+    expect(trainingViewSource).toContain("<WorkspaceShell");
+    expect(trainingViewSource).toContain("title=\"Coach Studio\"");
+    expect(trainingViewSource).toContain("modesLabel=\"Coach modes\"");
+    expect(trainingViewSource).toContain("hideHeader={role === \"coach\"}");
+  });
+
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain(">Pages<");
