@@ -614,3 +614,9 @@
 - [x] Review all four Coach Modes tabs, remove any remaining large vertical whitespace gaps, preview each tab, rerun validation, verify health, and save a checkpoint for the compact-desk refinement.
 - [x] Restore the full weekly Coach Studio one-on-one flow so the weekly coaching experience includes the complete one-on-one content, agent takeaways, and SMART goal details again.
 - [x] Preview the repaired weekly coaching experience, rerun validation, verify health, and save a checkpoint for the weekly one-on-one restoration.
+- [x] Restore the structured weekly one-on-one coaching log workflow in Coach Studio so the popup opens blank and saves through the full composer instead of the generic fallback
+- [x] Update the seeded Maya Johnson weekly coaching log back to structured non-generic content and keep it aligned with the coach workflow
+- [x] Re-establish regression coverage for the weekly one-on-one popup and coaching log data so generic placeholder behavior cannot return unnoticed
+- [x] Commit and push the weekly coaching log durability fix to GitHub main so future resets do not overwrite it
+- [x] Reconfirm the GitHub-matching publish-ready checkpoint after the durable coaching-log fix lands
+- [ ] Prepare a refreshed development-plan summary covering all major updates, current progress, and improvements made across the EnableOS demo

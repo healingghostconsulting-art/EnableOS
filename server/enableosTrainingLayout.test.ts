@@ -262,6 +262,10 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open coaching history");
     expect(trainingViewSource).toContain("Open retraining history");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogPopupBox");
+    expect(trainingViewSource).toContain("<WeeklyCoachingLogComposer");
+    expect(trainingViewSource).not.toContain("Coach Studio pop-up entry");
+    expect(trainingViewSource).not.toContain("Coaching log captured from the Coach Studio modal dialog.");
+    expect(trainingViewSource).not.toContain("initialValues");
     expect(trainingViewSource).toContain("function WeeklyCoachingLogDetailDialog");
     expect(trainingViewSource).toContain("function DocumentationEntryDetailDialog");
     expect(trainingViewSource).toContain("Open weekly one-on-one");
