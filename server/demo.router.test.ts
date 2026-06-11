@@ -447,20 +447,22 @@ describe("demo router", () => {
       subjectUserId: "u-learn-1",
       coachRole: "manager",
       sessionDate: "2026-04-27",
-      attendance: "Present and on time.",
-      followUpFromPrevious: "The learner partially met the prior SMART goal and needs one more week of monitored reinforcement.",
-      coachingComments: "Reviewed verification, empathy, and concise closing language with clear examples from recent QA samples.",
-      smartGoalCommitment: "Use the approved closing structure on 90% of monitored calls by 2026-05-04 and review results on 2026-05-05.",
-      additionalSupport: "Coach will provide two annotated call samples and one live side-by-side review.",
+      attendance: "Present, punctual, and ready with the prior call notes.",
+      followUpFromPrevious: "Nina met the verification target on four of the last five monitored calls, but she still needs a cleaner final next-step statement before wrap-up.",
+      coachingComments: "Reviewed recent callback examples, reinforced the approved close, and agreed that Nina will name the owner, next action, and timing before ending each interaction.",
+      smartGoalCommitment: "By 2026-05-04, Nina will use the approved owner-and-next-step close on 90% of monitored callbacks and review five scored interactions on 2026-05-05.",
+      additionalSupport: "Coach will provide two annotated callback examples and one live side-by-side review before the next check-in.",
       managerOfSupervisorEmail: "executive-copy@enterpriseworkspace.demo",
-      agentTakeaways: "I need to slow down before the final summary so my next steps sound confident.",
+      agentTakeaways: "I need to keep the close short, specific, and confident so the member knows what happens next.",
       visibility: "public",
     });
 
     expect(created.visibility).toBe("public");
     expect(created.supervisorEmail).toContain('@');
     expect(created.managerOfSupervisorEmail).toBe("executive-copy@enterpriseworkspace.demo");
-    expect(created.agentTakeaways).toContain("slow down");
+    expect(created.agentTakeaways).toContain("specific");
+    expect(created.followUpFromPrevious).toContain("final next-step statement");
+    expect(created.additionalSupport).not.toContain("Coach Studio modal dialog");
 
     const learner = await caller.demo.learner({ tenantId: "atlas-operations" });
     expect(learner.weeklyCoachingLogs[0]?.sessionDate).toBe("2026-04-27");
@@ -471,6 +473,26 @@ describe("demo router", () => {
         weeklyCoachingLogId: learner.weeklyCoachingLogs[0]?.id,
       }),
     );
+  });
+
+  it("keeps the Maya Johnson weekly coaching seed structured and non-generic in the coach workspace", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    const coach = await caller.demo.coach({ tenantId: "atlas-operations" });
+    const mayaLog = coach.teamWeeklyCoachingLogs.find((entry: any) => entry.employeeName === "Maya Johnson");
+
+    expect(mayaLog).toEqual(
+      expect.objectContaining({
+        coachName: "Renee Lawson",
+        sessionDate: "2026-04-21",
+        visibility: "public",
+      }),
+    );
+    expect(mayaLog?.followUpFromPrevious).toContain("final next-step statement");
+    expect(mayaLog?.coachingComments).toContain("what will happen next");
+    expect(mayaLog?.smartGoalCommitment).toContain("owner-and-next-step close");
+    expect(mayaLog?.additionalSupport).not.toContain("Coach Studio modal dialog");
+    expect(mayaLog?.attendance).not.toBe("Coach Studio pop-up entry");
   });
 
 

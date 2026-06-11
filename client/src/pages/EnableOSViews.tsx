@@ -8149,116 +8149,27 @@ function WeeklyCoachingLogPopupBox({
   onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [learnerName, setLearnerName] = useState(() => composerProps.employeeName || "Nina Patel");
-  const [coachNotes, setCoachNotes] = useState("");
-  const [behaviorObserved, setBehaviorObserved] = useState("");
-  const [nextMilestone, setNextMilestone] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
-  const trimmedCoachNotes = coachNotes.trim();
-  const trimmedBehaviorObserved = behaviorObserved.trim();
-  const trimmedNextMilestone = nextMilestone.trim();
-  const canSave = Boolean(sessionDate && learnerName.trim() && trimmedCoachNotes && trimmedBehaviorObserved && trimmedNextMilestone);
-  const visibilityPresentation = getWeeklyCoachingVisibilityPresentation(visibility);
-  const createWeeklyCoachingLog = trpc.demo.secureCreateWeeklyCoachingLog.useMutation({
-    onSuccess: () => {
-      setCoachNotes("");
-      setBehaviorObserved("");
-      setNextMilestone("");
-      setVisibility("public");
-      setOpen(false);
-      onCreated?.();
-    },
-  });
-
-  useEffect(() => {
-    if (!open) {
-      setSessionDate(new Date().toISOString().slice(0, 10));
-      setLearnerName(composerProps.employeeName || "Nina Patel");
-    }
-  }, [composerProps.employeeName, open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button type="button" variant="outline" onClick={() => setOpen(true)} className={buttonClassName}>
         {buttonLabel}
       </Button>
-      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription className="text-slate-300">{dialogDescription}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-5 rounded-[1.8rem] border border-white/10 bg-slate-950/85 p-5 shadow-[0_24px_60px_rgba(2,8,23,0.36)]">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-2 text-sm text-slate-200">
-              <span>Session date</span>
-              <input type="date" value={sessionDate} onChange={(event) => setSessionDate(event.target.value)} className={FORM_INPUT_SURFACE_CLASS} />
-            </label>
-            <label className="space-y-2 text-sm text-slate-200">
-              <span>Learner name</span>
-              <input value={learnerName} readOnly className={READONLY_FORM_INPUT_SURFACE_CLASS} />
-            </label>
-          </div>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Coach notes</span>
-            <textarea value={coachNotes} onChange={(event) => setCoachNotes(event.target.value)} rows={4} placeholder="Summarize the coaching conversation, context, and decisions." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
-          </label>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Behavior observed</span>
-            <textarea value={behaviorObserved} onChange={(event) => setBehaviorObserved(event.target.value)} rows={4} placeholder="Document the exact behavior observed during the session." className={`min-h-[120px] ${FORM_INPUT_SURFACE_CLASS}`} />
-          </label>
-          <label className="space-y-2 text-sm text-slate-200">
-            <span>Next milestone</span>
-            <input value={nextMilestone} onChange={(event) => setNextMilestone(event.target.value)} placeholder="Enter the next milestone to track after this session." className={FORM_INPUT_SURFACE_CLASS} />
-          </label>
-          <div className="space-y-3 rounded-[1.4rem] border border-white/10 bg-white/6 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-slate-100">Visibility</p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">Choose whether this entry is shared as a public coaching log or kept as a private coaching note.</p>
-              </div>
-              <Badge className={`rounded-full border ${visibilityPresentation.badgeClassName}`}>{visibilityPresentation.label}</Badge>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <button type="button" onClick={() => setVisibility("public")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "public" ? "border-emerald-300/40 bg-emerald-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
-                <span className="font-medium">Public coaching log</span>
-                <span className="mt-1 block text-xs leading-5 text-inherit/80">Share the coaching record with the learner and support chain.</span>
-              </button>
-              <button type="button" onClick={() => setVisibility("private")} className={`rounded-[1.2rem] border px-4 py-3 text-left text-sm transition ${visibility === "private" ? "border-violet-300/40 bg-violet-400/14 text-white" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}>
-                <span className="font-medium">Private coaching note</span>
-                <span className="mt-1 block text-xs leading-5 text-inherit/80">Keep the note visible only to leadership and coaching oversight.</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-            <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-slate-300 underline-offset-4 transition hover:text-white hover:underline">
-              Cancel
-            </button>
-            <div className="flex flex-col items-end gap-2">
-              <Button
-                type="button"
-                className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100"
-                disabled={createWeeklyCoachingLog.isPending || !canSave}
-                onClick={() => createWeeklyCoachingLog.mutate({
-                  tenantId: composerProps.tenantId,
-                  subjectUserId: composerProps.subjectUserId,
-                  coachRole: composerProps.coachRole,
-                  sessionDate,
-                  attendance: "Coach Studio pop-up entry",
-                  followUpFromPrevious: trimmedBehaviorObserved,
-                  coachingComments: trimmedCoachNotes,
-                  smartGoalCommitment: trimmedNextMilestone,
-                  additionalSupport: "Coaching log captured from the Coach Studio modal dialog.",
-                  visibility,
-                  managerOfSupervisorEmail: composerProps.managerOfSupervisorEmail,
-                })}
-              >
-                {createWeeklyCoachingLog.isPending ? "Saving..." : "Save log"}
-              </Button>
-              {createWeeklyCoachingLog.isError ? <p className="text-sm text-rose-300">{createWeeklyCoachingLog.error.message}</p> : null}
-            </div>
-          </div>
-        </div>
+        {open ? (
+          <WeeklyCoachingLogComposer
+            key={`${composerProps.subjectUserId}-${composerProps.employeeName}-${open ? "open" : "closed"}`}
+            {...composerProps}
+            onCreated={() => {
+              setOpen(false);
+              onCreated?.();
+            }}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );
@@ -9505,7 +9416,7 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
     tenantId: data.tenant.id,
     subjectUserId: selectedLearner.id,
     coachRole: "coach" as const,
-    title: "Capture a weekly coaching log from the coach workspace",
+    title: "Complete the weekly one-on-one",
     employeeName: selectedLearner.name,
     employeeEmail: selectedLearner.email,
     coachName: data.coach.name,
