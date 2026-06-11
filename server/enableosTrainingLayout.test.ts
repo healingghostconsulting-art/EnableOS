@@ -197,7 +197,8 @@ describe("learner training layout helpers", () => {
   });
 
   it("consolidates learner stats into one compact top row (L4)", () => {
-    expect(trainingViewSource).toContain("Single compact stat row (mirrors Coach Studio)");
+    // The learner stat row is now a WorkspaceShell stats array (one compact dark band, like Coach Studio).
+    expect(trainingViewSource).toContain("const learnerStats: WorkspaceStat[]");
     expect(trainingViewSource).toContain("Modules complete");
     // The scattered learner mid-page stat clusters are gone (folded into the top row or dropped).
     expect(trainingViewSource).not.toContain("Coach milestone");
@@ -396,7 +397,20 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("<WorkspaceShell");
     expect(trainingViewSource).toContain("title=\"Coach Studio\"");
     expect(trainingViewSource).toContain("modesLabel=\"Coach modes\"");
-    expect(trainingViewSource).toContain("hideHeader={role === \"coach\"}");
+    expect(trainingViewSource).toContain("hideHeader={role ===");
+  });
+
+  it("routes the Learner Journey through WorkspaceShell with a short header (W2)", () => {
+    // Short title + one-line subtitle (demoted from the old long H2); redundant eyebrow dropped.
+    expect(trainingViewSource).toContain("title=\"Learner Journey\"");
+    expect(trainingViewSource).toContain("subtitle=\"Complete assignments tied to skill opportunities, coaching actions, and readiness progress.\"");
+    expect(trainingViewSource).not.toContain("LEARNER ENABLEMENT JOURNEY");
+    // The 5 stat tiles inherit the dark high-contrast band via the shell.
+    expect(trainingViewSource).toContain("const learnerStats: WorkspaceStat[]");
+    expect(trainingViewSource).toContain("modesLabel=\"Learner modes\"");
+    // The priority strip stays between the stat row and the tabs.
+    expect(trainingViewSource).toContain("betweenStatsAndTabs={");
+    expect(trainingViewSource).toContain("id=\"learner-priority-strip\"");
   });
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {

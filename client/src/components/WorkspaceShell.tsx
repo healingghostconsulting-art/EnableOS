@@ -38,6 +38,8 @@ export function WorkspaceShell({
   statsLead,
   actions,
   betweenStatsAndTabs,
+  statsGridClassName = "grid flex-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4",
+  subTruncate = false,
   children,
 }: {
   title: string;
@@ -55,6 +57,10 @@ export function WorkspaceShell({
   /** Optional element(s) between the stat band and the tabs (e.g. a priority strip).
    *  Pass a fragment so its children flatten into the space-y-3 stack. */
   betweenStatsAndTabs?: ReactNode;
+  /** className for the stat-tile grid (defaults to Coach Studio's 4-up layout). */
+  statsGridClassName?: string;
+  /** Truncate stat sub-labels to one line (keeps long subs compact). */
+  subTruncate?: boolean;
   /** Gated <TabsContent> blocks, for tabs that don't supply `content` inline. */
   children?: ReactNode;
 }) {
@@ -74,13 +80,13 @@ export function WorkspaceShell({
           <div className="rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               {statsLead}
-              <div className="grid flex-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
+              <div className={statsGridClassName}>
                 {stats.map((stat, index) => {
                   const inner = (
                     <>
                       <div className="flex items-center gap-2 text-slate-300">{stat.icon}<span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{stat.label}</span></div>
                       <p className="mt-1.5 text-base font-semibold text-white">{stat.value}</p>
-                      {stat.sub ? <p className="text-[11px] leading-4 text-slate-400">{stat.sub}</p> : null}
+                      {stat.sub ? <p className={subTruncate ? "truncate text-[11px] leading-4 text-slate-400" : "text-[11px] leading-4 text-slate-400"}>{stat.sub}</p> : null}
                     </>
                   );
                   return stat.onClick ? (

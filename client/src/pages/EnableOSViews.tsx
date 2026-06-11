@@ -3436,7 +3436,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         eyebrow={roleDescriptor?.eyebrow ?? "Workspace"}
         title={roleDescriptor?.title ?? "Workspace"}
         description={roleDescriptor?.subtitle ?? "Open a role-specific workspace with the correct tenant-scoped data."}
-        hideHeader={role === "coach"}
+        hideHeader={role === "coach" || role === "learner"}
         actions={
           access.data ? (
             <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
@@ -3470,7 +3470,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           ) : role === "coach" ? (
             <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">{access.data.tenant.name}</Badge> : null} />
           ) : role === "learner" ? (
-            <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+            <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">{access.data.tenant.name}</Badge> : null} />
           ) : (
             <AdminPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
           )
@@ -10543,7 +10543,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   );
 }
 
-function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUpdated?: () => void; freshStart?: boolean }) {
+function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { data: any; onUpdated?: () => void; freshStart?: boolean; headerActions?: ReactNode }) {
   const learnerModules = data.activeJourney.modules;
   const primaryLearnerModule = learnerModules[0] ?? null;
   const activeRetrainingAssignment = data.currentRetrainingAssignment ?? data.retrainingAssignments?.[0] ?? null;
@@ -10601,85 +10601,69 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
     ? "You have already crossed the halfway mark in your guided journey."
     : "Each completed module unlocks the next coaching and readiness milestone.";
 
+  const learnerStats: WorkspaceStat[] = [
+    { label: "Readiness score", value: data.learner.readinessScore, sub: data.learner.title, icon: <Gauge className="h-4 w-4" /> },
+    { label: "Journey progress", value: `${data.activeJourney.progress}%`, sub: data.activeJourney.title, icon: <BookOpen className="h-4 w-4" /> },
+    { label: "Modules complete", value: `${completedLearnerModules}/${learnerModules.length}`, sub: "Over 80% complete", icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: learnerWorkspaceCopy.assignedReengagementsMetricLabel, value: data.assignedInterventions.length, sub: learnerWorkspaceCopy.assignedReengagementsMetricSupporting, icon: <Target className="h-4 w-4" />, onClick: () => setActiveTab("reengagements") },
+    { label: "Next coaching", value: new Date(data.nextCoachingSession.dueDate).toLocaleDateString(), sub: data.nextCoachingSession.title, icon: <Bell className="h-4 w-4" />, onClick: () => setActiveTab("coaching") },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Single compact stat row (mirrors Coach Studio). Re-engagements / coaching tiles jump to their mode. */}
-      <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
-          <div className="flex items-center gap-2 text-slate-300"><Gauge className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Readiness score</span></div>
-          <p className="mt-1.5 text-base font-semibold text-white">{data.learner.readinessScore}</p>
-          <p className="truncate text-[11px] leading-4 text-slate-400">{data.learner.title}</p>
-        </div>
-        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
-          <div className="flex items-center gap-2 text-slate-300"><BookOpen className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Journey progress</span></div>
-          <p className="mt-1.5 text-base font-semibold text-white">{data.activeJourney.progress}%</p>
-          <p className="truncate text-[11px] leading-4 text-slate-400">{data.activeJourney.title}</p>
-        </div>
-        <div className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2">
-          <div className="flex items-center gap-2 text-slate-300"><CheckCircle2 className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Modules complete</span></div>
-          <p className="mt-1.5 text-base font-semibold text-white">{completedLearnerModules}/{learnerModules.length}</p>
-          <p className="truncate text-[11px] leading-4 text-slate-400">Over 80% complete</p>
-        </div>
-        <button type="button" onClick={() => setActiveTab("reengagements")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-          <div className="flex items-center gap-2 text-slate-300"><Target className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{learnerWorkspaceCopy.assignedReengagementsMetricLabel}</span></div>
-          <p className="mt-1.5 text-base font-semibold text-white">{data.assignedInterventions.length}</p>
-          <p className="truncate text-[11px] leading-4 text-slate-400">{learnerWorkspaceCopy.assignedReengagementsMetricSupporting}</p>
-        </button>
-        <button type="button" onClick={() => setActiveTab("coaching")} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
-          <div className="flex items-center gap-2 text-slate-300"><Bell className="h-4 w-4" /><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">Next coaching</span></div>
-          <p className="mt-1.5 text-base font-semibold text-white">{new Date(data.nextCoachingSession.dueDate).toLocaleDateString()}</p>
-          <p className="truncate text-[11px] leading-4 text-slate-400">{data.nextCoachingSession.title}</p>
-        </button>
-      </div>
-
-      {/* Priority next-step — the learner's single most important action (assigned retraining, or the
-          next recommended module). The assignment title is shown here and nowhere else. */}
-      <div id="learner-priority-strip" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(69,26,3,0.55),rgba(15,23,42,0.94))] px-4 py-3 shadow-[0_16px_44px_rgba(8,15,35,0.22)]">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
-          <Badge className="rounded-full border-amber-200/25 bg-amber-300/16 text-amber-50">{activeRetrainingAssignment ? "Priority retraining" : "Next step"}</Badge>
-          <span className="truncate text-sm font-semibold text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</span>
-          <span className="text-slate-500">·</span>
-          <span className="text-xs text-slate-300">{activeRetrainingAssignment?.journeyTitle ?? data.activeJourney.title}</span>
-          {activeRetrainingAssignment ? (
-            <>
+    <WorkspaceShell
+      title="Learner Journey"
+      subtitle="Complete assignments tied to skill opportunities, coaching actions, and readiness progress."
+      actions={headerActions}
+      modesLabel="Learner modes"
+      activeTab={activeTab}
+      onTabChange={(value) => setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")}
+      stats={learnerStats}
+      statsGridClassName="grid flex-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+      subTruncate
+      tabs={[
+        { value: "journey", label: "Journey" },
+        { value: "reengagements", label: "Re-engagements" },
+        { value: "coaching", label: "Coaching" },
+        { value: "evidence", label: "Evidence" },
+      ]}
+      betweenStatsAndTabs={
+        <>
+          {/* Priority next-step — the learner's single most important action (assigned retraining, or the
+              next recommended module). The assignment title is shown here and nowhere else. */}
+          <div id="learner-priority-strip" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(69,26,3,0.55),rgba(15,23,42,0.94))] px-4 py-3 shadow-[0_16px_44px_rgba(8,15,35,0.22)]">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+              <Badge className="rounded-full border-amber-200/25 bg-amber-300/16 text-amber-50">{activeRetrainingAssignment ? "Priority retraining" : "Next step"}</Badge>
+              <span className="truncate text-sm font-semibold text-white">{activeRetrainingAssignment?.moduleTitle ?? nextLearnerModule?.title ?? data.activeJourney.title}</span>
               <span className="text-slate-500">·</span>
-              <span className="text-xs font-medium text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</span>
-            </>
-          ) : null}
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Link href={primaryTrainingPath}>
-            <Button size="sm" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
-              if (activeRetrainingAssignment?.status === "assigned") {
-                updateActiveAssignmentStatus("in_progress");
-              }
-            }}>
-              {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review retraining" : "Start retraining") : "Resume training"}
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Button>
-          </Link>
-          {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
-            <Button type="button" size="sm" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
-              {updateRetrainingStatus.isPending ? "Saving..." : "Mark complete"}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")} className="space-y-4">
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Learner modes</p>
+              <span className="text-xs text-slate-300">{activeRetrainingAssignment?.journeyTitle ?? data.activeJourney.title}</span>
+              {activeRetrainingAssignment ? (
+                <>
+                  <span className="text-slate-500">·</span>
+                  <span className="text-xs font-medium text-amber-100">{activeRetrainingAssignment.status === "completed" && activeRetrainingAssignment.completedAt ? `Completed ${new Date(activeRetrainingAssignment.completedAt).toLocaleDateString()}` : formatDueWindow(activeRetrainingAssignment.dueAt)}</span>
+                </>
+              ) : null}
             </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
-              <TabsTrigger value="journey" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Journey</TabsTrigger>
-              <TabsTrigger value="reengagements" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Re-engagements</TabsTrigger>
-              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching</TabsTrigger>
-              <TabsTrigger value="evidence" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Evidence</TabsTrigger>
-            </TabsList>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <Link href={primaryTrainingPath}>
+                <Button size="sm" className="rounded-full bg-white text-slate-950 hover:bg-slate-100" onClick={() => {
+                  if (activeRetrainingAssignment?.status === "assigned") {
+                    updateActiveAssignmentStatus("in_progress");
+                  }
+                }}>
+                  {activeRetrainingAssignment ? (activeRetrainingAssignment.status === "completed" ? "Review retraining" : "Start retraining") : "Resume training"}
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              </Link>
+              {activeRetrainingAssignment && activeRetrainingAssignment.status !== "completed" ? (
+                <Button type="button" size="sm" variant="outline" onClick={() => updateActiveAssignmentStatus("completed")} disabled={updateRetrainingStatus.isPending} className="rounded-full border-white/16 bg-slate-950/35 text-white hover:bg-slate-900/55 hover:text-white">
+                  {updateRetrainingStatus.isPending ? "Saving..." : "Mark complete"}
+                </Button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </>
+      }
+    >
 
         <TabsContent value="journey" className="mt-0 grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
           <PremiumCard className="overflow-hidden">
@@ -10881,8 +10865,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false }: { data: any; onUp
             <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
+    </WorkspaceShell>
   );
 }
 
