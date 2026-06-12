@@ -6303,7 +6303,7 @@ export function ContentLibraryView() {
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
-  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("launcher");
+  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("explore");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -6760,150 +6760,59 @@ export function ContentLibraryView() {
               </div>
 
               <TabsContent value="explore" className="mt-0" id="library-explore-rows">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
-                  <PremiumCard>
-                    <CardHeader className="space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <CardTitle className="text-white">Training queue</CardTitle>
-                          <CardDescription className="text-slate-400">Compact rows keep more content above the fold and update the selected detail panel instantly.</CardDescription>
-                        </div>
-                        <Badge className="rounded-full border-white/10 bg-white/10 text-slate-100">{assets.length} results</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {groupedAssets.length > 0 ? groupedAssets.map((group) => (
-                        <div key={group.id} className="space-y-2.5">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{group.title}</p>
-                              <p className="mt-1 text-xs text-slate-400">{group.description}</p>
-                            </div>
-                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{group.assets.length} titles</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {group.assets.map((asset: any) => {
-                              const active = selectedAsset?.id === asset.id;
-                              const assetMinutes = (() => {
-                                const runtimeByFormat: Record<string, number> = { Deck: 28, Playbook: 24, Checklist: 12, Guide: 20, Worksheet: 18, Microlearning: 10, Document: 16 };
-                                return (runtimeByFormat[asset.format] ?? 18) + Math.min(asset.tags.length * 2, 10);
-                              })();
-                              return (
-                                <button
-                                  key={asset.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedAssetId(asset.id);
-                                    setLibraryMode("launcher");
-                                  }}
-                                  className={`w-full rounded-[1.25rem] border px-4 py-3 text-left transition ${active ? "border-cyan-400/38 bg-cyan-400/12 shadow-[0_18px_46px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/6 hover:bg-white/10"}`}
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{asset.format}</p>
-                                        <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/22 bg-cyan-400/12 text-cyan-100" : "border-emerald-400/22 bg-emerald-400/12 text-emerald-100"}`}>{asset.sourceKind === "chcg" ? "Core" : "Imported"}</Badge>
-                                      </div>
-                                      <p className="mt-2 line-clamp-1 text-sm font-semibold text-white">{asset.title}</p>
-                                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">{asset.summary}</p>
-                                    </div>
-                                    <div className="shrink-0 text-right">
-                                      <p className="text-sm font-semibold text-white">{assetMinutes} min</p>
-                                      <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">Detail</p>
-                                    </div>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="rounded-[1.25rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">No library assets match the current search and filter combination.</div>
-                      )}
-                    </CardContent>
-                  </PremiumCard>
-
-                  <PremiumCard>
-                    <CardHeader className="space-y-3" id="library-launcher-mode">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <CardTitle className="text-white">Selected course detail</CardTitle>
-                          <CardDescription className="text-slate-400">Keep objectives, curriculum fit, and the next action in the same assignment-style panel instead of routing through another long page.</CardDescription>
-                        </div>
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{libraryProgressValue}% staged</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {selectedAsset ? (
-                        <>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
-                          </div>
+                <div className="space-y-6">
+                  {library.data.courses.length === 0 ? (
+                    <p className="text-sm text-slate-400">No courses match the current filters.</p>
+                  ) : null}
+                  {library.data.tracks.map((track: any) => {
+                    const trackCourses = library.data.courses.filter((course: any) => course.track === track.id);
+                    if (!trackCourses.length) return null;
+                    return (
+                      <section key={track.id} className="space-y-3">
+                        <div className="flex flex-wrap items-end justify-between gap-2">
                           <div>
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Course detail staging</p>
-                            <h3 className="mt-2 text-[1.9rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
-                            <p className="mt-3 text-sm leading-7 text-slate-300">{selectedAsset.summary}</p>
+                            <h3 className="text-base font-semibold text-white">{track.title}</h3>
+                            <p className="mt-0.5 text-sm text-slate-400">{track.summary}</p>
                           </div>
-                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum preview</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCurriculumStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetTrainingTarget?.journeyTitle ?? selectedAssetPlannedTrainingTarget?.journeyTitle ?? "Use shelf review until a launch target is mapped."}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Source type</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSourceTypeLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch note</p><p className="mt-2 text-sm leading-6 text-white">{selectedAssetLaunchReadinessNote}</p></div>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch sequence</p>
-                              <p className="text-xs text-cyan-100">{libraryProgressSteps.join(" · ")}</p>
-                            </div>
-                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} /></div>
-                            <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Curriculum handoff</p>
-                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-emerald-300/25 bg-emerald-400/12 text-emerald-100">Deck available</Badge> : selectedAssetPlannedTrainingTarget ? <Badge className="rounded-full border-amber-300/25 bg-amber-400/12 text-amber-100">Staged target</Badge> : <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Review only</Badge>}
-                            </div>
-                            <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `The focused player will open ${selectedAssetTrainingTarget.journeyTitle} on ${selectedAssetTrainingTarget.moduleTitle}, keeping the journey, module, and curriculum state aligned through launch.` : selectedAssetPlannedTrainingTarget ? `${selectedAssetPlannedTrainingTarget.journeyTitle} is already staged around ${selectedAssetPlannedTrainingTarget.moduleTitle}, but the asset remains in curriculum-maintenance mode until launch readiness is complete.` : "This asset remains visible for shelf review, but it does not yet carry a direct player route."}</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside this module</p>
-                            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                              {selectedAssetOutcomeLines.map((line) => (
-                                <div key={line} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{line}</span></div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {selectedAssetRoleOptions.map((linkedRole) => (
-                                <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
-                                  {getRoleLabel(linkedRole)}
-                                </Button>
-                              ))}
-                            </div>
-                            <p className="mt-3 text-sm leading-6 text-slate-300">{selectedAssetWorkflowBrief.title} keeps the launch handoff aligned to the active audience lens.</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedAsset.tags.map((tag: string) => (
-                              <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs text-slate-300">#{tag}</span>
-                            ))}
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
-                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Back to shelves</Button>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">Select a shelf row to activate the module detail panel.</div>
-                      )}
-                    </CardContent>
-                  </PremiumCard>
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trackCourses.length} {trackCourses.length === 1 ? "course" : "courses"}</Badge>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          {trackCourses.map((course: any) => (
+                            <button
+                              key={course.id}
+                              type="button"
+                              onClick={() => setLocation(course.launchPath)}
+                              className="group overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.04] text-left transition hover:border-[#FCBC34]/45 hover:bg-white/[0.07]"
+                            >
+                              <div className="aspect-video w-full overflow-hidden bg-slate-900">
+                                {course.coverImage ? (
+                                  <img src={course.coverImage} alt={course.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-xs text-slate-600">No preview</div>
+                                )}
+                              </div>
+                              <div className="space-y-2 p-3.5">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-white">{course.title}</p>
+                                  {course.status === "completed" ? (
+                                    <Badge className="shrink-0 rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge>
+                                  ) : course.status === "in_progress" ? (
+                                    <Badge className="shrink-0 rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{course.percentComplete}%</Badge>
+                                  ) : course.status === "recommended" ? (
+                                    <Badge className="shrink-0 rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="shrink-0 rounded-full border-white/15 bg-white/6 text-slate-300">New</Badge>
+                                  )}
+                                </div>
+                                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{course.slideCount} slides · {course.durationMinutes} min</p>
+                                {course.status === "in_progress" ? <Progress value={course.percentComplete} className="h-1.5 bg-white/8" /> : null}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
                 </div>
               </TabsContent>
 

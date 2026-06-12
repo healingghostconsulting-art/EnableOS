@@ -469,12 +469,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("The library now keeps more titles");
     expect(trainingViewSource).not.toContain("intentionally denser");
     expect(trainingViewSource).not.toContain("Scan many modules, inspect one detail panel");
-    expect(trainingViewSource).toContain("Compact rows");
-    expect(trainingViewSource).toContain("Training queue");
+    // CAT3: explore mode is shelves-by-track with real deck covers + seeded status badges.
+    expect(trainingViewSource).toContain("course.track === track.id");
+    expect(trainingViewSource).toContain("course.coverImage");
+    expect(trainingViewSource).toContain("{course.slideCount} slides · {course.durationMinutes} min");
     expect(trainingViewSource).toContain("Selected course detail");
-    expect(trainingViewSource).toContain("Course detail staging");
     expect(trainingViewSource).toContain("Curriculum preview");
-    expect(trainingViewSource).toContain("Curriculum handoff");
     expect(trainingViewSource).toContain("Structured ingestion lane");
     expect(trainingViewSource).toContain("Curriculum maintenance plan");
     expect(trainingViewSource).toContain("Launch-readiness note");
