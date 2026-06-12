@@ -6352,6 +6352,7 @@ export function ContentLibraryView() {
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("explore");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
@@ -6758,6 +6759,8 @@ export function ContentLibraryView() {
   const continueCourses = filteredCatalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
   const recommendedCourses = filteredCatalogCourses.filter((course) => course.recommended);
   const filtersActive = Boolean(searchQuery.trim()) || trackFilter !== "all" || assetView !== "all" || statusFilter !== "all";
+  // CAT6: the course detail "course page" opened from a cover click.
+  const selectedCourse = catalogCourses.find((course) => course.id === selectedCourseId) ?? null;
 
   // CAT5: one compact filter bar under the stat row — search · track · status · source.
   const libraryFilterBar = (
@@ -6837,7 +6840,7 @@ export function ContentLibraryView() {
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {continueCourses.map((course: any) => (
-                          <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setLocation(course.launchPath)} />
+                          <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
                         ))}
                       </div>
                     </section>
@@ -6850,7 +6853,7 @@ export function ContentLibraryView() {
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {recommendedCourses.map((course: any) => (
-                          <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setLocation(course.launchPath)} />
+                          <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
                         ))}
                       </div>
                     </section>
@@ -6873,7 +6876,7 @@ export function ContentLibraryView() {
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             {trackCourses.map((course: any) => (
-                              <LibraryCourseCard key={course.id} course={course} onOpen={() => setLocation(course.launchPath)} />
+                              <LibraryCourseCard key={course.id} course={course} onOpen={() => setSelectedCourseId(course.id)} />
                             ))}
                           </div>
                         </section>
@@ -7093,6 +7096,45 @@ export function ContentLibraryView() {
                   </PremiumCard>
                 </div>
               </TabsContent>
+            {/* CAT6: focused course page opened from a cover click. */}
+            <Dialog open={Boolean(selectedCourse)} onOpenChange={(open) => (!open ? setSelectedCourseId(null) : null)}>
+              <DialogContent className="max-w-2xl overflow-hidden border-white/10 bg-slate-950 p-0 text-slate-100">
+                {selectedCourse ? (
+                  <>
+                    <div className="aspect-video w-full overflow-hidden bg-slate-900">
+                      {selectedCourse.coverImage ? <img src={selectedCourse.coverImage} alt={selectedCourse.title} className="h-full w-full object-cover" /> : null}
+                    </div>
+                    <div className="space-y-4 p-6">
+                      <DialogHeader className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{(library.data?.tracks ?? []).find((track: any) => track.id === selectedCourse.track)?.title ?? "Course"}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 text-slate-300">{selectedCourse.source === "chcg" ? "CHCG core" : "Client import"}</Badge>
+                          {selectedCourse.status === "completed" ? <Badge className="rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge> : selectedCourse.status === "in_progress" ? <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedCourse.percentComplete}% complete</Badge> : selectedCourse.recommended ? <Badge className="rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge> : null}
+                        </div>
+                        <DialogTitle className="text-xl text-white">{selectedCourse.title}</DialogTitle>
+                        <DialogDescription className="text-sm leading-6 text-slate-300">{selectedCourse.description}</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">What's inside</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.slideCount} slides</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Runtime</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.durationMinutes} min</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Status</p><p className="mt-1 text-sm font-semibold capitalize text-white">{selectedCourse.status.replace("_", " ")}</p></div>
+                      </div>
+                      {selectedCourse.tags?.length ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCourse.tags.map((tag: string) => <Badge key={tag} variant="outline" className="rounded-full border-white/12 bg-white/5 text-[11px] text-slate-300">{tag}</Badge>)}
+                        </div>
+                      ) : null}
+                      <DialogFooter className="sm:justify-start">
+                        <Button type="button" onClick={() => { const path = selectedCourse.launchPath; setSelectedCourseId(null); setLocation(path); }} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                          {selectedCourse.status === "in_progress" ? "Resume course" : selectedCourse.status === "completed" ? "Review course" : "Launch course"}
+                          <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Button>
+                      </DialogFooter>
+                    </div>
+                  </>
+                ) : null}
+              </DialogContent>
+            </Dialog>
             <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
           <DialogContent className="sm:max-w-[30rem]">
             <DialogHeader>

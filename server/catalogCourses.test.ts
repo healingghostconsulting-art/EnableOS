@@ -12,6 +12,7 @@ describe("catalog courses (CAT3 data layer)", () => {
       expect(deck).toBeTruthy();
       expect(course.coverImage).toBe(`/slides/${deck!.slides[0].file}`);
       expect(course.slideCount).toBe(deck!.slides.length);
+      expect(course.description.length).toBeGreaterThan(0);
       expect(course.durationMinutes).toBeGreaterThan(0);
       expect(course.launchPath).toContain(`journeyId=`);
       expect(course.launchPath).toContain(`moduleId=`);

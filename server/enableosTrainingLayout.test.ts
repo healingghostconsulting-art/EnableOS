@@ -484,6 +484,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Search courses");
     expect(trainingViewSource).toContain("const filteredCatalogCourses = catalogCourses.filter");
     expect(trainingViewSource).toContain("statusFilter === \"all\" || course.status === statusFilter");
+    // CAT6: clicking a cover opens a focused course-page dialog (cover, description, what's inside, tags, launch).
+    expect(trainingViewSource).toContain("onOpen={() => setSelectedCourseId(course.id)}");
+    expect(trainingViewSource).toContain("const selectedCourse = catalogCourses.find");
+    expect(trainingViewSource).toContain("{selectedCourse.description}");
+    expect(trainingViewSource).toContain("What's inside");
+    expect(trainingViewSource).toContain("Resume course");
     expect(trainingViewSource).toContain("Selected course detail");
     expect(trainingViewSource).toContain("Curriculum preview");
     expect(trainingViewSource).toContain("Structured ingestion lane");

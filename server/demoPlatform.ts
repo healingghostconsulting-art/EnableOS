@@ -1850,6 +1850,7 @@ function getWorkflowLibraryMix(tenantId: string, role: DemoRole) {
 export type CatalogCourse = {
   id: string;
   title: string;
+  description: string;
   track: string;
   deckId: string;
   coverImage: string;
@@ -1864,7 +1865,7 @@ export type CatalogCourse = {
   launchPath: string;
 };
 
-const CATALOG_COURSE_SEED: Array<Omit<CatalogCourse, "coverImage" | "slideCount" | "durationMinutes" | "source" | "launchPath"> & { journeyId: string; moduleId: string }> = [
+const CATALOG_COURSE_SEED: Array<Omit<CatalogCourse, "description" | "coverImage" | "slideCount" | "durationMinutes" | "source" | "launchPath"> & { journeyId: string; moduleId: string }> = [
   { id: "course-softskills", title: "Soft Skills & Customer Service Foundations", track: "track-service-foundations", deckId: "softskills", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", tags: ["communication", "empathy", "service recovery"], status: "completed", percentComplete: 100, recommended: false },
   { id: "course-qa", title: "Quality Assurance Essentials", track: "track-workflow-precision", deckId: "qa", journeyId: "journey-workflow-precision", moduleId: "mod-wp-1", tags: ["qa", "verification", "calibration"], status: "in_progress", percentComplete: 62, lastSlideIndex: 23, recommended: false },
   { id: "course-coaching", title: "Real-time Coaching", track: "track-real-time-coaching", deckId: "coaching", journeyId: "journey-coach-practice-atlas", moduleId: "mod-rtc-1", tags: ["coaching", "feedback", "accountability"], status: "in_progress", percentComplete: 34, lastSlideIndex: 10, recommended: false },
@@ -1873,6 +1874,16 @@ const CATALOG_COURSE_SEED: Array<Omit<CatalogCourse, "coverImage" | "slideCount"
   { id: "course-leadership-data", title: "Unlocking the Power of Data", track: "track-data-leadership", deckId: "leadership-data", journeyId: "journey-data-led-leadership", moduleId: "mod-dl-1", tags: ["kpi", "trends", "root cause"], status: "not_started", percentComplete: 0, recommended: false },
   { id: "course-gamification", title: "Gamification for Remote Teams", track: "track-engagement-recognition", deckId: "gamification", journeyId: "journey-engagement-systems-hc", moduleId: "mod-hce-1", tags: ["recognition", "motivation", "remote"], status: "not_started", percentComplete: 0, recommended: false },
 ];
+
+const CATALOG_COURSE_DESCRIPTIONS: Record<string, string> = {
+  softskills: "Build the communication, empathy, and service-recovery habits that define every great patient and customer interaction.",
+  qa: "Understand how quality is measured, what great looks like, and how to turn QA findings into stronger calls.",
+  coaching: "The five coaching pillars, SMART goals, and accountability conversations that make real-time coaching stick.",
+  "wfm-kpi": "How workforce management and the KPIs behind it shape adherence, occupancy, and your day-to-day performance.",
+  "performance-leadership": "Segment performance fairly, calibrate without bias, and build improvement plans that move the middle.",
+  "leadership-data": "Read KPIs with confidence, separate signal from noise, and turn data into clear, owned action.",
+  gamification: "Design recognition, rewards, and pulse rhythms that keep distributed teams engaged and motivated.",
+};
 
 export function buildCatalogCourses(): CatalogCourse[] {
   return CATALOG_COURSE_SEED.map((seed) => {
@@ -1884,6 +1895,7 @@ export function buildCatalogCourses(): CatalogCourse[] {
     const { journeyId: _journeyId, moduleId: _moduleId, ...course } = seed;
     return {
       ...course,
+      description: CATALOG_COURSE_DESCRIPTIONS[seed.deckId] ?? "",
       coverImage,
       slideCount,
       durationMinutes: Math.max(10, Math.round(slideCount * 0.8)),
