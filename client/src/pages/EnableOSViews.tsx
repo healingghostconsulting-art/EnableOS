@@ -3553,6 +3553,8 @@ export function TrainingExperienceView() {
   const completedAssignmentId = queryParams.get("completedAssignmentId");
   const requestedLearnerFocus = queryParams.get("focus");
   const requestedFreshStart = queryParams.get("freshStart") === "1";
+  // Resume point: the catalog's "Continue learning" links carry ?slide=N (the deck index).
+  const requestedSlideIndex = Number.parseInt(queryParams.get("slide") ?? "", 10);
   const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId, freshStart: requestedFreshStart } : { freshStart: requestedFreshStart }, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
@@ -3568,6 +3570,7 @@ export function TrainingExperienceView() {
   const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
   const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
+  const resumeSlideAppliedRef = useRef(false);
   const [curriculumViewerOpen, setCurriculumViewerOpen] = useState(false);
   const [selectedCurriculumSlideIndex, setSelectedCurriculumSlideIndex] = useState(0);
   const [narrationRate, setNarrationRate] = useState("0.95");
@@ -4412,6 +4415,16 @@ export function TrainingExperienceView() {
     ? Math.min(selectedDeckVisualIndex, interactiveGalleryVisuals.length - 1)
     : 0;
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
+  // Resume to ?slide=N once the deck is ready (catalog "Continue learning" deep-links).
+  // Runs after the mount resets settle, so it wins; applied a single time.
+  useEffect(() => {
+    if (resumeSlideAppliedRef.current) return;
+    if (interactiveGalleryVisuals.length === 0) return;
+    resumeSlideAppliedRef.current = true;
+    if (Number.isInteger(requestedSlideIndex) && requestedSlideIndex > 0) {
+      setSelectedDeckVisualIndex(Math.min(requestedSlideIndex, interactiveGalleryVisuals.length - 1));
+    }
+  }, [interactiveGalleryVisuals.length, requestedSlideIndex]);
   // Live per-client KPI scorecard (WFM & KPI training). Defaults to the deck's source
   // client; map a workspace to a client in shared/kpiScorecards.ts → tenantClientId.
   const kpiProfile = getKpiProfile();
@@ -6297,13 +6310,50 @@ export function TrainingExperienceView() {
   return <Surface wide>{playerBody}</Surface>;
 }
 
+/** A catalog course card: real deck cover, title, slides·min, status badge + progress. */
+function LibraryCourseCard({ course, onOpen }: { course: any; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.04] text-left transition hover:border-[#FCBC34]/45 hover:bg-white/[0.07]"
+    >
+      <div className="aspect-video w-full overflow-hidden bg-slate-900">
+        {course.coverImage ? (
+          <img src={course.coverImage} alt={course.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-slate-600">No preview</div>
+        )}
+      </div>
+      <div className="space-y-2 p-3.5">
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-white">{course.title}</p>
+          {course.status === "completed" ? (
+            <Badge className="shrink-0 rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge>
+          ) : course.status === "in_progress" ? (
+            <Badge className="shrink-0 rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{course.percentComplete}%</Badge>
+          ) : course.status === "recommended" ? (
+            <Badge className="shrink-0 rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge>
+          ) : (
+            <Badge variant="outline" className="shrink-0 rounded-full border-white/15 bg-white/6 text-slate-300">New</Badge>
+          )}
+        </div>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{course.slideCount} slides · {course.durationMinutes} min</p>
+        {course.status === "in_progress" ? <Progress value={course.percentComplete} className="h-1.5 bg-white/8" /> : null}
+      </div>
+    </button>
+  );
+}
+
 export function ContentLibraryView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
-  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("launcher");
+  const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("explore");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -6689,249 +6739,150 @@ export function ContentLibraryView() {
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
 
-  return (
+  const libraryStats: WorkspaceStat[] = library.data ? [
+    { label: "Library assets", value: library.data.stats.totalAssets, sub: "Visible in this workspace", icon: <BookOpen className="h-4 w-4" /> },
+    { label: "CHCG core", value: library.data.stats.chcgAssets, sub: "Built-in tracks", icon: <Sparkles className="h-4 w-4" /> },
+    { label: "Client imports", value: library.data.stats.importedAssets, sub: "Tenant-provided", icon: <Layers3 className="h-4 w-4" /> },
+    { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Linked to training", icon: <Target className="h-4 w-4" /> },
+  ] : [];
+
+  // CAT4/CAT5: curated rows + filtered shelves from the seeded CatalogCourse values.
+  const catalogCourses: any[] = library.data?.courses ?? [];
+  const filteredCatalogCourses = catalogCourses.filter((course) => {
+    const haystack = `${course.title} ${(course.tags ?? []).join(" ")}`.toLowerCase();
+    const matchesSearch = !searchQuery.trim() || haystack.includes(searchQuery.trim().toLowerCase());
+    const matchesTrack = trackFilter === "all" || course.track === trackFilter;
+    const matchesSource = assetView === "all" || (assetView === "chcg" ? course.source === "chcg" : course.source === "client_upload");
+    const matchesStatus = statusFilter === "all" || course.status === statusFilter;
+    return matchesSearch && matchesTrack && matchesSource && matchesStatus;
+  });
+  const continueCourses = filteredCatalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
+  const recommendedCourses = filteredCatalogCourses.filter((course) => course.recommended);
+  const filtersActive = Boolean(searchQuery.trim()) || trackFilter !== "all" || assetView !== "all" || statusFilter !== "all";
+  // CAT6: the course detail "course page" opened from a cover click.
+  const selectedCourse = catalogCourses.find((course) => course.id === selectedCourseId) ?? null;
+
+  // CAT5: one compact filter bar under the stat row — search · track · status · source.
+  const libraryFilterBar = (
+    <div className="command-band px-4 py-3.5 md:px-5" id="library-filter-bar">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search courses</span>
+          <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+            <Search className="h-4 w-4 text-[#6B7E8A]" />
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search by title or topic..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
+          </div>
+        </label>
+        <label className="block space-y-1.5 text-sm text-[#1B303C]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
+          <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+            <option value="all">All tracks</option>
+            {(library.data?.tracks ?? []).map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
+          </select>
+        </label>
+        <label className="block space-y-1.5 text-sm text-[#1B303C]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Status</span>
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+            <option value="all">All statuses</option>
+            <option value="in_progress">In progress</option>
+            <option value="completed">Completed</option>
+            <option value="recommended">Recommended</option>
+            <option value="not_started">Not started</option>
+          </select>
+        </label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>All sources</Button>
+        <Button type="button" variant={assetView === "chcg" ? "default" : "outline"} onClick={() => setAssetView("chcg")} className={assetView === "chcg" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>CHCG core</Button>
+        <Button type="button" variant={assetView === "imported" ? "default" : "outline"} onClick={() => setAssetView("imported")} className={assetView === "imported" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Client imports</Button>
+      </div>
+    </div>
+  );
+
+  return library.isLoading || access.isLoading || !library.data ? (
     <Surface>
-      <SectionShell
-        eyebrow="Content Missions Library"
-        title="Compact shelves with in-panel course detail"
-        description="The library now keeps more titles, status, and launch cues in one screen. Browse dense shelf rows on the left, keep the selected course detail on the right, and only then enter the focused training player."
-        compact
-        actions={
-          <>
-            {access.data ? (
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-                {access.data.tenant.name}
-              </Badge>
-            ) : null}
-            <Button type="button" onClick={() => jumpToLibraryMode("launcher", "library-launcher-mode")} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-              Review course detail
-            </Button>
-            <Link href="/">
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                Back to overview
-              </Button>
-            </Link>
-          </>
-        }
-      >
-        {access.isLoading || library.isLoading ? <LoadingState /> : null}
-        {!library.isLoading && library.data ? (
-          <div className="space-y-5">
-            <div className="command-band px-4 py-4 md:px-5 md:py-5">
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-end">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Search-first library</Badge>
-                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Compact rows</Badge>
-                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Detail stays visible</Badge>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Mission library control</p>
-                    <h3 className="mt-2 text-[1.8rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.15rem]">Scan many modules, inspect one detail panel, and launch with less scroll.</h3>
-                    <p className="mt-2 max-w-3xl text-sm leading-7 text-[#4A6373]">The left shelf is intentionally denser. The right panel keeps runtime, sections, checkpoints, and role-aligned launch context visible so users do not bounce between separate long surfaces.</p>
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Visible assets</p>
-                    <p className="mt-1 text-lg font-semibold text-[#1B303C]">{assets.length}</p>
-                  </div>
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Focus track</p>
-                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedTrackTitle}</p>
-                  </div>
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Selected lane</p>
-                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedAssetWorkflowLabel}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
-              <div className="command-band px-4 py-4 md:px-5" id="library-explore-mode">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search assets</span>
-                      <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-                        <Search className="h-4 w-4 text-[#6B7E8A]" />
-                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search data, coaching, QA, engagement..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
-                      </div>
-                    </label>
-                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Role lens</span>
-                      <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as DemoRole | "all")} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
-                        <option value="all">All roles</option>
-                        {Object.entries(roleMeta).map(([key, item]) => <option key={key} value={key}>{item.title}</option>)}
-                      </select>
-                    </label>
-                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
-                      <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
-                        <option value="all">All tracks</option>
-                        {library.data.tracks.map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                  <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/75 p-1.5">
-                    <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Compact shelves</TabsTrigger>
-                    <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Course detail</TabsTrigger>
-                    <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
-                  </TabsList>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Blended view</Button>
-                  <Button type="button" variant={assetView === "chcg" ? "default" : "outline"} onClick={() => setAssetView("chcg")} className={assetView === "chcg" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>CHCG core</Button>
-                  <Button type="button" variant={assetView === "imported" ? "default" : "outline"} onClick={() => setAssetView("imported")} className={assetView === "imported" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Client imports</Button>
-                </div>
-              </div>
-
+      <LoadingState />
+    </Surface>
+  ) : (
+    <WorkspaceShell
+      title="Content missions"
+      subtitle="Browse the course catalog and launch focused training."
+      actions={
+        <>
+          {access.data ? (
+            <Badge variant="outline" className="rounded-full border-[#1B303C]/12 bg-white/70 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#4A6373]">
+              {access.data.tenant.name}
+            </Badge>
+          ) : null}
+          <Link href="/">
+            <Button variant="outline" className="rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10">Back to overview</Button>
+          </Link>
+        </>
+      }
+      stats={libraryStats}
+      modesLabel="Library modes"
+      activeTab={libraryMode}
+      onTabChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")}
+      tabs={[
+        { value: "explore", label: "Compact shelves" },
+        { value: "launcher", label: "Course detail" },
+        { value: "ingest", label: "Ingest" },
+      ]}
+      betweenStatsAndTabs={libraryFilterBar}
+    >
               <TabsContent value="explore" className="mt-0" id="library-explore-rows">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
-                  <PremiumCard>
-                    <CardHeader className="space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <CardTitle className="text-white">Training queue</CardTitle>
-                          <CardDescription className="text-slate-400">Compact rows keep more content above the fold and update the selected detail panel instantly.</CardDescription>
-                        </div>
-                        <Badge className="rounded-full border-white/10 bg-white/10 text-slate-100">{assets.length} results</Badge>
+                <div className="space-y-7">
+                  {continueCourses.length ? (
+                    <section className="space-y-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-white">Continue learning</h3>
+                        <p className="mt-0.5 text-sm text-slate-400">Pick up where you left off — resumes to your last slide.</p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {groupedAssets.length > 0 ? groupedAssets.map((group) => (
-                        <div key={group.id} className="space-y-2.5">
-                          <div className="flex items-center justify-between gap-3">
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {continueCourses.map((course: any) => (
+                          <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
+                  {recommendedCourses.length ? (
+                    <section className="space-y-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-white">Recommended for you</h3>
+                        <p className="mt-0.5 text-sm text-slate-400">Aligned to your readiness and assigned focus.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {recommendedCourses.map((course: any) => (
+                          <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
+                  <div className="space-y-6">
+                    {filteredCatalogCourses.length === 0 ? (
+                      <p className="text-sm text-slate-400">{filtersActive ? "No courses match the current filters." : "No courses available."}</p>
+                    ) : null}
+                    {library.data.tracks.map((track: any) => {
+                      const trackCourses = filteredCatalogCourses.filter((course: any) => course.track === track.id);
+                      if (!trackCourses.length) return null;
+                      return (
+                        <section key={track.id} className="space-y-3">
+                          <div className="flex flex-wrap items-end justify-between gap-2">
                             <div>
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{group.title}</p>
-                              <p className="mt-1 text-xs text-slate-400">{group.description}</p>
+                              <h3 className="text-base font-semibold text-white">{track.title}</h3>
+                              <p className="mt-0.5 text-sm text-slate-400">{track.summary}</p>
                             </div>
-                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{group.assets.length} titles</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {group.assets.map((asset: any) => {
-                              const active = selectedAsset?.id === asset.id;
-                              const assetMinutes = (() => {
-                                const runtimeByFormat: Record<string, number> = { Deck: 28, Playbook: 24, Checklist: 12, Guide: 20, Worksheet: 18, Microlearning: 10, Document: 16 };
-                                return (runtimeByFormat[asset.format] ?? 18) + Math.min(asset.tags.length * 2, 10);
-                              })();
-                              return (
-                                <button
-                                  key={asset.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedAssetId(asset.id);
-                                    setLibraryMode("launcher");
-                                  }}
-                                  className={`w-full rounded-[1.25rem] border px-4 py-3 text-left transition ${active ? "border-cyan-400/38 bg-cyan-400/12 shadow-[0_18px_46px_rgba(6,182,212,0.12)]" : "border-white/10 bg-white/6 hover:bg-white/10"}`}
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{asset.format}</p>
-                                        <Badge className={`rounded-full ${asset.sourceKind === "chcg" ? "border-cyan-400/22 bg-cyan-400/12 text-cyan-100" : "border-emerald-400/22 bg-emerald-400/12 text-emerald-100"}`}>{asset.sourceKind === "chcg" ? "Core" : "Imported"}</Badge>
-                                      </div>
-                                      <p className="mt-2 line-clamp-1 text-sm font-semibold text-white">{asset.title}</p>
-                                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">{asset.summary}</p>
-                                    </div>
-                                    <div className="shrink-0 text-right">
-                                      <p className="text-sm font-semibold text-white">{assetMinutes} min</p>
-                                      <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-500">Detail</p>
-                                    </div>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="rounded-[1.25rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">No library assets match the current search and filter combination.</div>
-                      )}
-                    </CardContent>
-                  </PremiumCard>
-
-                  <PremiumCard>
-                    <CardHeader className="space-y-3" id="library-launcher-mode">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <CardTitle className="text-white">Selected course detail</CardTitle>
-                          <CardDescription className="text-slate-400">Keep objectives, curriculum fit, and the next action in the same assignment-style panel instead of routing through another long page.</CardDescription>
-                        </div>
-                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{libraryProgressValue}% staged</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {selectedAsset ? (
-                        <>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge className={`rounded-full ${selectedAsset.sourceKind === "chcg" ? "border-cyan-400/30 bg-cyan-400/15 text-cyan-200" : "border-emerald-400/30 bg-emerald-400/15 text-emerald-200"}`}>{selectedAsset.sourceKind === "chcg" ? "CHCG asset" : "Client upload"}</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.format}</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{selectedAsset.category}</Badge>
-                          </div>
-                          <div>
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Course detail staging</p>
-                            <h3 className="mt-2 text-[1.9rem] font-semibold leading-tight text-white">{selectedAsset.title}</h3>
-                            <p className="mt-3 text-sm leading-7 text-slate-300">{selectedAsset.summary}</p>
+                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trackCourses.length} {trackCourses.length === 1 ? "course" : "courses"}</Badge>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetEstimatedMinutes} min</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum preview</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetCurriculumStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetTrainingTarget?.journeyTitle ?? selectedAssetPlannedTrainingTarget?.journeyTitle ?? "Use shelf review until a launch target is mapped."}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Source type</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetSourceTypeLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch note</p><p className="mt-2 text-sm leading-6 text-white">{selectedAssetLaunchReadinessNote}</p></div>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80">Launch sequence</p>
-                              <p className="text-xs text-cyan-100">{libraryProgressSteps.join(" · ")}</p>
-                            </div>
-                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.95),rgba(16,185,129,0.9))]" style={{ width: `${libraryProgressValue}%` }} /></div>
-                            <p className="mt-3 text-sm leading-6 text-slate-100">{selectedAssetStatusSupport}</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Curriculum handoff</p>
-                              {selectedAssetTrainingTarget ? <Badge className="rounded-full border-emerald-300/25 bg-emerald-400/12 text-emerald-100">Deck available</Badge> : selectedAssetPlannedTrainingTarget ? <Badge className="rounded-full border-amber-300/25 bg-amber-400/12 text-amber-100">Staged target</Badge> : <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Review only</Badge>}
-                            </div>
-                            <p className="mt-3 text-sm font-medium text-white">{selectedAssetNextActionLabel}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-100">{selectedAssetTrainingTarget ? `The focused player will open ${selectedAssetTrainingTarget.journeyTitle} on ${selectedAssetTrainingTarget.moduleTitle}, keeping the journey, module, and curriculum state aligned through launch.` : selectedAssetPlannedTrainingTarget ? `${selectedAssetPlannedTrainingTarget.journeyTitle} is already staged around ${selectedAssetPlannedTrainingTarget.moduleTitle}, but the asset remains in curriculum-maintenance mode until launch readiness is complete.` : "This asset remains visible for shelf review, but it does not yet carry a direct player route."}</p>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside this module</p>
-                            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                              {selectedAssetOutcomeLines.map((line) => (
-                                <div key={line} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{line}</span></div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {selectedAssetRoleOptions.map((linkedRole) => (
-                                <Button key={`selected-role-${selectedAsset.id}-${linkedRole}`} type="button" variant="outline" onClick={() => setSelectedAssetRole(linkedRole)} className={`rounded-full px-4 py-2 text-sm ${selectedAssetRole === linkedRole ? "border-white bg-white text-slate-950 hover:bg-slate-100" : "border-white/10 bg-slate-950/55 text-slate-200 hover:bg-white/10 hover:text-white"}`}>
-                                  {getRoleLabel(linkedRole)}
-                                </Button>
-                              ))}
-                            </div>
-                            <p className="mt-3 text-sm leading-6 text-slate-300">{selectedAssetWorkflowBrief.title} keeps the launch handoff aligned to the active audience lens.</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedAsset.tags.map((tag: string) => (
-                              <span key={`selected-${selectedAsset.id}-${tag}`} className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs text-slate-300">#{tag}</span>
+                            {trackCourses.map((course: any) => (
+                              <LibraryCourseCard key={course.id} course={course} onOpen={() => setSelectedCourseId(course.id)} />
                             ))}
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
-                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Back to shelves</Button>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-5 text-sm text-slate-300">Select a shelf row to activate the module detail panel.</div>
-                      )}
-                    </CardContent>
-                  </PremiumCard>
+                        </section>
+                      );
+                    })}
+                  </div>
                 </div>
               </TabsContent>
 
@@ -7145,11 +7096,46 @@ export function ContentLibraryView() {
                   </PremiumCard>
                 </div>
               </TabsContent>
-            </Tabs>
-          </div>
-        ) : null}
-
-        <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
+            {/* CAT6: focused course page opened from a cover click. */}
+            <Dialog open={Boolean(selectedCourse)} onOpenChange={(open) => (!open ? setSelectedCourseId(null) : null)}>
+              <DialogContent className="max-w-2xl overflow-hidden border-white/10 bg-slate-950 p-0 text-slate-100">
+                {selectedCourse ? (
+                  <>
+                    <div className="aspect-video w-full overflow-hidden bg-slate-900">
+                      {selectedCourse.coverImage ? <img src={selectedCourse.coverImage} alt={selectedCourse.title} className="h-full w-full object-cover" /> : null}
+                    </div>
+                    <div className="space-y-4 p-6">
+                      <DialogHeader className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{(library.data?.tracks ?? []).find((track: any) => track.id === selectedCourse.track)?.title ?? "Course"}</Badge>
+                          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 text-slate-300">{selectedCourse.source === "chcg" ? "CHCG core" : "Client import"}</Badge>
+                          {selectedCourse.status === "completed" ? <Badge className="rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge> : selectedCourse.status === "in_progress" ? <Badge className="rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{selectedCourse.percentComplete}% complete</Badge> : selectedCourse.recommended ? <Badge className="rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge> : null}
+                        </div>
+                        <DialogTitle className="text-xl text-white">{selectedCourse.title}</DialogTitle>
+                        <DialogDescription className="text-sm leading-6 text-slate-300">{selectedCourse.description}</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">What's inside</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.slideCount} slides</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Runtime</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.durationMinutes} min</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Status</p><p className="mt-1 text-sm font-semibold capitalize text-white">{selectedCourse.status.replace("_", " ")}</p></div>
+                      </div>
+                      {selectedCourse.tags?.length ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCourse.tags.map((tag: string) => <Badge key={tag} variant="outline" className="rounded-full border-white/12 bg-white/5 text-[11px] text-slate-300">{tag}</Badge>)}
+                        </div>
+                      ) : null}
+                      <DialogFooter className="sm:justify-start">
+                        <Button type="button" onClick={() => { const path = selectedCourse.launchPath; setSelectedCourseId(null); setLocation(path); }} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
+                          {selectedCourse.status === "in_progress" ? "Resume course" : selectedCourse.status === "completed" ? "Review course" : "Launch course"}
+                          <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Button>
+                      </DialogFooter>
+                    </div>
+                  </>
+                ) : null}
+              </DialogContent>
+            </Dialog>
+            <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
           <DialogContent className="sm:max-w-[30rem]">
             <DialogHeader>
               <DialogTitle>{libraryLaunchTitle}</DialogTitle>
@@ -7172,8 +7158,7 @@ export function ContentLibraryView() {
             </div>
           </DialogContent>
         </Dialog>
-      </SectionShell>
-    </Surface>
+    </WorkspaceShell>
   );
 }
 

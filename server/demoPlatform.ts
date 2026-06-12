@@ -1,3 +1,5 @@
+import { slideDecks } from "../shared/slideManifest";
+
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
 export type DemoTenant = {
@@ -1840,6 +1842,69 @@ function getWorkflowLibraryMix(tenantId: string, role: DemoRole) {
   };
 }
 
+// ── Catalog courses (deck-backed) ───────────────────────────────────────────
+// A "course" is a slide-deck-backed journey. Covers/slide counts come from
+// shared/slideManifest.ts; per-learner status is seeded here (realistic demo
+// values) so the catalog — and CAT4's continue-learning / recommended rows —
+// are alive without a live progress backend. See docs/library-catalog-gaps.md.
+export type CatalogCourse = {
+  id: string;
+  title: string;
+  description: string;
+  track: string;
+  deckId: string;
+  coverImage: string;
+  slideCount: number;
+  durationMinutes: number;
+  source: "chcg" | "client_upload";
+  tags: string[];
+  status: "not_started" | "in_progress" | "completed" | "recommended";
+  percentComplete: number;
+  lastSlideIndex?: number;
+  recommended: boolean;
+  launchPath: string;
+};
+
+const CATALOG_COURSE_SEED: Array<Omit<CatalogCourse, "description" | "coverImage" | "slideCount" | "durationMinutes" | "source" | "launchPath"> & { journeyId: string; moduleId: string }> = [
+  { id: "course-softskills", title: "Soft Skills & Customer Service Foundations", track: "track-service-foundations", deckId: "softskills", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", tags: ["communication", "empathy", "service recovery"], status: "completed", percentComplete: 100, recommended: false },
+  { id: "course-qa", title: "Quality Assurance Essentials", track: "track-workflow-precision", deckId: "qa", journeyId: "journey-workflow-precision", moduleId: "mod-wp-1", tags: ["qa", "verification", "calibration"], status: "in_progress", percentComplete: 62, lastSlideIndex: 23, recommended: false },
+  { id: "course-coaching", title: "Real-time Coaching", track: "track-real-time-coaching", deckId: "coaching", journeyId: "journey-coach-practice-atlas", moduleId: "mod-rtc-1", tags: ["coaching", "feedback", "accountability"], status: "in_progress", percentComplete: 34, lastSlideIndex: 10, recommended: false },
+  { id: "course-wfm-kpi", title: "Workforce Management & KPIs", track: "track-workforce-management", deckId: "wfm-kpi", journeyId: "journey-wfm-kpi", moduleId: "mod-wfm-1", tags: ["wfm", "kpi", "adherence"], status: "recommended", percentComplete: 0, recommended: true },
+  { id: "course-performance", title: "Utilizing Performance Management to Maximize Results", track: "track-performance-leadership", deckId: "performance-leadership", journeyId: "journey-performance-leadership-lf", moduleId: "mod-lfp-1", tags: ["calibration", "coaching", "performance"], status: "recommended", percentComplete: 0, recommended: true },
+  { id: "course-leadership-data", title: "Unlocking the Power of Data", track: "track-data-leadership", deckId: "leadership-data", journeyId: "journey-data-led-leadership", moduleId: "mod-dl-1", tags: ["kpi", "trends", "root cause"], status: "not_started", percentComplete: 0, recommended: false },
+  { id: "course-gamification", title: "Gamification for Remote Teams", track: "track-engagement-recognition", deckId: "gamification", journeyId: "journey-engagement-systems-hc", moduleId: "mod-hce-1", tags: ["recognition", "motivation", "remote"], status: "not_started", percentComplete: 0, recommended: false },
+];
+
+const CATALOG_COURSE_DESCRIPTIONS: Record<string, string> = {
+  softskills: "Build the communication, empathy, and service-recovery habits that define every great patient and customer interaction.",
+  qa: "Understand how quality is measured, what great looks like, and how to turn QA findings into stronger calls.",
+  coaching: "The five coaching pillars, SMART goals, and accountability conversations that make real-time coaching stick.",
+  "wfm-kpi": "How workforce management and the KPIs behind it shape adherence, occupancy, and your day-to-day performance.",
+  "performance-leadership": "Segment performance fairly, calibrate without bias, and build improvement plans that move the middle.",
+  "leadership-data": "Read KPIs with confidence, separate signal from noise, and turn data into clear, owned action.",
+  gamification: "Design recognition, rewards, and pulse rhythms that keep distributed teams engaged and motivated.",
+};
+
+export function buildCatalogCourses(): CatalogCourse[] {
+  return CATALOG_COURSE_SEED.map((seed) => {
+    const deck = slideDecks.find((entry) => entry.id === seed.deckId);
+    const slideCount = deck ? deck.slides.length : 0;
+    const coverImage = deck ? `/slides/${deck.slides[0].file}` : "";
+    const params = new URLSearchParams({ role: "learner", journeyId: seed.journeyId, moduleId: seed.moduleId });
+    if (seed.lastSlideIndex !== undefined) params.set("slide", String(seed.lastSlideIndex));
+    const { journeyId: _journeyId, moduleId: _moduleId, ...course } = seed;
+    return {
+      ...course,
+      description: CATALOG_COURSE_DESCRIPTIONS[seed.deckId] ?? "",
+      coverImage,
+      slideCount,
+      durationMinutes: Math.max(10, Math.round(slideCount * 0.8)),
+      source: "chcg" as const,
+      launchPath: `/training?${params.toString()}`,
+    };
+  });
+}
+
 export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
   const tenant = getTenant(tenantId);
   const baseAssets = getTenantLibraryAssets(tenant.id, role);
@@ -1884,7 +1949,18 @@ export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
         title: "Gamification for Remote Teams",
         summary: "Recognition loops, gamified motivation, pulse checks, and distributed-team rhythm.",
       },
+      {
+        id: "track-real-time-coaching",
+        title: "Real-time Coaching",
+        summary: "Coaching pillars, SMART goals, accountability conversations, and follow-through.",
+      },
+      {
+        id: "track-workforce-management",
+        title: "Workforce Management & KPIs",
+        summary: "Adherence, occupancy, scheduling, and the KPI scorecards that drive performance.",
+      },
     ],
+    courses: buildCatalogCourses(),
     featuredAssets: assets.slice(0, 6),
     chcgAssets,
     importedAssets,

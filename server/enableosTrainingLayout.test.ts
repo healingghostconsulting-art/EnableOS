@@ -462,13 +462,36 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps client control and content library in the mission-control pattern with the denser browse-and-detail flow", () => {
-    expect(trainingViewSource).toContain("Content Missions Library");
-    expect(trainingViewSource).toContain("Compact rows");
-    expect(trainingViewSource).toContain("Training queue");
+    // CAT2: /library routes through the shared WorkspaceShell; marketing + self-narrating copy removed.
+    expect(trainingViewSource).toContain("title=\"Content missions\"");
+    expect(trainingViewSource).toContain("modesLabel=\"Library modes\"");
+    expect(trainingViewSource).not.toContain("Content Missions Library");
+    expect(trainingViewSource).not.toContain("The library now keeps more titles");
+    expect(trainingViewSource).not.toContain("intentionally denser");
+    expect(trainingViewSource).not.toContain("Scan many modules, inspect one detail panel");
+    // CAT3: explore mode is shelves-by-track with real deck covers + seeded status badges.
+    expect(trainingViewSource).toContain("course.track === track.id");
+    expect(trainingViewSource).toContain("course.coverImage");
+    expect(trainingViewSource).toContain("function LibraryCourseCard");
+    // CAT4: curated Continue learning + Recommended rows; the player resumes to ?slide=N.
+    expect(trainingViewSource).toContain("Continue learning");
+    expect(trainingViewSource).toContain("Recommended for you");
+    expect(trainingViewSource).toContain("course.status === \"in_progress\"");
+    expect(trainingViewSource).toContain("course.recommended");
+    expect(trainingViewSource).toContain("queryParams.get(\"slide\")");
+    // CAT5: one compact filter bar under the stat row (search / track / status / source).
+    expect(trainingViewSource).toContain("betweenStatsAndTabs={libraryFilterBar}");
+    expect(trainingViewSource).toContain("Search courses");
+    expect(trainingViewSource).toContain("const filteredCatalogCourses = catalogCourses.filter");
+    expect(trainingViewSource).toContain("statusFilter === \"all\" || course.status === statusFilter");
+    // CAT6: clicking a cover opens a focused course-page dialog (cover, description, what's inside, tags, launch).
+    expect(trainingViewSource).toContain("onOpen={() => setSelectedCourseId(course.id)}");
+    expect(trainingViewSource).toContain("const selectedCourse = catalogCourses.find");
+    expect(trainingViewSource).toContain("{selectedCourse.description}");
+    expect(trainingViewSource).toContain("What's inside");
+    expect(trainingViewSource).toContain("Resume course");
     expect(trainingViewSource).toContain("Selected course detail");
-    expect(trainingViewSource).toContain("Course detail staging");
     expect(trainingViewSource).toContain("Curriculum preview");
-    expect(trainingViewSource).toContain("Curriculum handoff");
     expect(trainingViewSource).toContain("Structured ingestion lane");
     expect(trainingViewSource).toContain("Curriculum maintenance plan");
     expect(trainingViewSource).toContain("Launch-readiness note");
