@@ -1567,7 +1567,7 @@ const CONTENT_LIBRARY_INGEST_SOURCE_OPTIONS: Array<{ value: ContentLibraryIngest
 const CONTENT_LIBRARY_CURRICULUM_STATUS_OPTIONS: Array<{ value: ContentLibraryCurriculumStatus; label: string; detail: string }> = [
   { value: "mapped_ready", label: "Mapped and launch-ready", detail: "The uploaded asset can hand off directly into a focused Training Zone launch." },
   { value: "pending_alignment", label: "Pending curriculum alignment", detail: "The asset has a planned journey and module target but still needs final deck alignment before launch." },
-  { value: "review_only", label: "Shelf review only", detail: "The asset should remain reviewable in Content Missions without a direct Training Zone handoff yet." },
+  { value: "review_only", label: "Shelf review only", detail: "The asset should remain reviewable in Training Library without a direct Training Zone handoff yet." },
 ];
 
 const CONTENT_LIBRARY_INGEST_JOURNEY_OPTIONS = Object.entries(CONTENT_LIBRARY_TRAINING_TARGET_PRESETS).map(([journeyId, preset]) => ({
@@ -2812,7 +2812,7 @@ export function GuideView() {
     },
     {
       title: "Use shared spaces with purpose",
-      description: "Mission Hub, the Guide, Training Zone, and Content Missions work best as shared support surfaces, not as substitutes for the role home base.",
+      description: "Mission Hub, the Guide, Training Zone, and Training Library work best as shared support surfaces, not as substitutes for the role home base.",
     },
     {
       title: "Keep action before documentation",
@@ -2862,7 +2862,7 @@ export function GuideView() {
       description: "Open guided lessons, checkpoints, and narrated practice when the user needs a focused learning experience.",
     },
     {
-      title: "Content Missions",
+      title: "Training Library",
       audience: "Shared resource library",
       href: "/library",
       description: "Search, preview, and assign supporting content when a team needs the right asset fast.",
@@ -2894,7 +2894,7 @@ export function GuideView() {
     },
     {
       title: "Treat shared pages as bridges",
-      description: "Guide, Training Zone, and Content Missions should support the workflow by adding context, learning, or resources without replacing the operational queue.",
+      description: "Guide, Training Zone, and Training Library should support the workflow by adding context, learning, or resources without replacing the operational queue.",
     },
     {
       title: "Capture evidence at the end of the move",
@@ -3012,7 +3012,7 @@ export function GuideView() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Search className="mt-0.5 h-4 w-4 text-white" />
-                  <p>Use Content Missions and Training Zone when the next step requires assets or guided learning, not when the user needs to find their operational queue.</p>
+                  <p>Use Training Library and Training Zone when the next step requires assets or guided learning, not when the user needs to find their operational queue.</p>
                 </div>
               </div>
             </CardContent>
@@ -6805,7 +6805,7 @@ export function ContentLibraryView() {
     </Surface>
   ) : (
     <WorkspaceShell
-      title="Content missions"
+      title="Training Library"
       subtitle="Browse the course catalog and launch focused training."
       actions={
         <>

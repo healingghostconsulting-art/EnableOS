@@ -33,7 +33,7 @@ const WORKSPACE_MENU_ITEMS: Record<WorkspacePath, DashboardMenuItem> = {
   "/coach": { icon: Users2, label: "Coach Studio", path: "/coach" },
   "/learner": { icon: BookOpen, label: "Learner Journey", path: "/learner" },
   "/training": { icon: BookOpen, label: "Training Zone", path: "/training" },
-  "/library": { icon: BookText, label: "Content Missions", path: "/library" },
+  "/library": { icon: BookText, label: "Training Library", path: "/library" },
   "/admin": { icon: Building2, label: "Client Control", path: "/admin" },
   "/chcg-admin": { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
 };
@@ -234,7 +234,7 @@ function Router() {
         </Route>
         <Route path="/library">
           {() => (
-            <GuardedWorkspaceShell path="/library" roleLabel="Content Library">
+            <GuardedWorkspaceShell path="/library" roleLabel="Training Library">
               <ContentLibraryView />
             </GuardedWorkspaceShell>
           )}
