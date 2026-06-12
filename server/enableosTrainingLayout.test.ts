@@ -462,7 +462,13 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps client control and content library in the mission-control pattern with the denser browse-and-detail flow", () => {
-    expect(trainingViewSource).toContain("Content Missions Library");
+    // CAT2: /library routes through the shared WorkspaceShell; marketing + self-narrating copy removed.
+    expect(trainingViewSource).toContain("title=\"Content missions\"");
+    expect(trainingViewSource).toContain("modesLabel=\"Library modes\"");
+    expect(trainingViewSource).not.toContain("Content Missions Library");
+    expect(trainingViewSource).not.toContain("The library now keeps more titles");
+    expect(trainingViewSource).not.toContain("intentionally denser");
+    expect(trainingViewSource).not.toContain("Scan many modules, inspect one detail panel");
     expect(trainingViewSource).toContain("Compact rows");
     expect(trainingViewSource).toContain("Training queue");
     expect(trainingViewSource).toContain("Selected course detail");

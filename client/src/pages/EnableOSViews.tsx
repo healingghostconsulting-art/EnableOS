@@ -6689,66 +6689,43 @@ export function ContentLibraryView() {
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
 
-  return (
-    <Surface>
-      <SectionShell
-        eyebrow="Content Missions Library"
-        title="Compact shelves with in-panel course detail"
-        description="The library now keeps more titles, status, and launch cues in one screen. Browse dense shelf rows on the left, keep the selected course detail on the right, and only then enter the focused training player."
-        compact
-        actions={
-          <>
-            {access.data ? (
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-                {access.data.tenant.name}
-              </Badge>
-            ) : null}
-            <Button type="button" onClick={() => jumpToLibraryMode("launcher", "library-launcher-mode")} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">
-              Review course detail
-            </Button>
-            <Link href="/">
-              <Button variant="outline" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
-                Back to overview
-              </Button>
-            </Link>
-          </>
-        }
-      >
-        {access.isLoading || library.isLoading ? <LoadingState /> : null}
-        {!library.isLoading && library.data ? (
-          <div className="space-y-5">
-            <div className="command-band px-4 py-4 md:px-5 md:py-5">
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-end">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="rounded-full border-[#1B303C]/12 bg-[#1B303C] text-white">Search-first library</Badge>
-                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Compact rows</Badge>
-                    <Badge variant="outline" className="rounded-full border-[#1B303C]/10 bg-white/70 text-[#1B303C]">Detail stays visible</Badge>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Mission library control</p>
-                    <h3 className="mt-2 text-[1.8rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.15rem]">Scan many modules, inspect one detail panel, and launch with less scroll.</h3>
-                    <p className="mt-2 max-w-3xl text-sm leading-7 text-[#4A6373]">The left shelf is intentionally denser. The right panel keeps runtime, sections, checkpoints, and role-aligned launch context visible so users do not bounce between separate long surfaces.</p>
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Visible assets</p>
-                    <p className="mt-1 text-lg font-semibold text-[#1B303C]">{assets.length}</p>
-                  </div>
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Focus track</p>
-                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedTrackTitle}</p>
-                  </div>
-                  <div className="rounded-[1.2rem] border border-[#1B303C]/10 bg-white/82 px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B7E8A]">Selected lane</p>
-                    <p className="mt-1 text-sm font-semibold text-[#1B303C]">{selectedAssetWorkflowLabel}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+  const libraryStats: WorkspaceStat[] = library.data ? [
+    { label: "Library assets", value: library.data.stats.totalAssets, sub: "Visible in this workspace", icon: <BookOpen className="h-4 w-4" /> },
+    { label: "CHCG core", value: library.data.stats.chcgAssets, sub: "Built-in tracks", icon: <Sparkles className="h-4 w-4" /> },
+    { label: "Client imports", value: library.data.stats.importedAssets, sub: "Tenant-provided", icon: <Layers3 className="h-4 w-4" /> },
+    { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Linked to training", icon: <Target className="h-4 w-4" /> },
+  ] : [];
 
-            <Tabs value={libraryMode} onValueChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")} className="space-y-4">
+  return library.isLoading || access.isLoading || !library.data ? (
+    <Surface>
+      <LoadingState />
+    </Surface>
+  ) : (
+    <WorkspaceShell
+      title="Content missions"
+      subtitle="Browse the course catalog and launch focused training."
+      actions={
+        <>
+          {access.data ? (
+            <Badge variant="outline" className="rounded-full border-[#1B303C]/12 bg-white/70 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#4A6373]">
+              {access.data.tenant.name}
+            </Badge>
+          ) : null}
+          <Link href="/">
+            <Button variant="outline" className="rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10">Back to overview</Button>
+          </Link>
+        </>
+      }
+      stats={libraryStats}
+      modesLabel="Library modes"
+      activeTab={libraryMode}
+      onTabChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")}
+      tabs={[
+        { value: "explore", label: "Compact shelves" },
+        { value: "launcher", label: "Course detail" },
+        { value: "ingest", label: "Ingest" },
+      ]}
+    >
               <div className="command-band px-4 py-4 md:px-5" id="library-explore-mode">
                 <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -6774,11 +6751,6 @@ export function ContentLibraryView() {
                       </select>
                     </label>
                   </div>
-                  <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/75 p-1.5">
-                    <TabsTrigger value="explore" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Compact shelves</TabsTrigger>
-                    <TabsTrigger value="launcher" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Course detail</TabsTrigger>
-                    <TabsTrigger value="ingest" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Ingest</TabsTrigger>
-                  </TabsList>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Blended view</Button>
@@ -7145,11 +7117,7 @@ export function ContentLibraryView() {
                   </PremiumCard>
                 </div>
               </TabsContent>
-            </Tabs>
-          </div>
-        ) : null}
-
-        <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
+            <Dialog open={libraryLaunchOpen} onOpenChange={setLibraryLaunchOpen}>
           <DialogContent className="sm:max-w-[30rem]">
             <DialogHeader>
               <DialogTitle>{libraryLaunchTitle}</DialogTitle>
@@ -7172,8 +7140,7 @@ export function ContentLibraryView() {
             </div>
           </DialogContent>
         </Dialog>
-      </SectionShell>
-    </Surface>
+    </WorkspaceShell>
   );
 }
 
