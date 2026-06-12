@@ -417,6 +417,21 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("id=\"learner-priority-strip\"");
   });
 
+  it("routes Manager Ops through WorkspaceShell and strips the marketing hero (MGR2)", () => {
+    expect(trainingViewSource).toContain("title=\"Manager Ops\"");
+    expect(trainingViewSource).toContain("modesLabel=\"Manager modes\"");
+    // The four metrics become the shared dark stat row.
+    expect(trainingViewSource).toContain("const managerWorkspaceStats: WorkspaceStat[]");
+    expect(trainingViewSource).toContain("label: \"Active signals\"");
+    expect(trainingViewSource).toContain("label: \"Direct report readiness\"");
+    // The signal feed + guidance band sits between the stat row and the tabs.
+    expect(trainingViewSource).toContain("id=\"manager-signal-trend\"");
+    // Marketing header + self-narration removed.
+    expect(trainingViewSource).not.toContain("A guided manager desk replaces the long operations page");
+    expect(trainingViewSource).not.toContain("manager workspace now opens like");
+    expect(trainingViewSource).not.toContain("See the risk, coach the rep, close the action");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");

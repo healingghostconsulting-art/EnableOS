@@ -3436,7 +3436,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         eyebrow={roleDescriptor?.eyebrow ?? "Workspace"}
         title={roleDescriptor?.title ?? "Workspace"}
         description={roleDescriptor?.subtitle ?? "Open a role-specific workspace with the correct tenant-scoped data."}
-        hideHeader={role === "coach" || role === "learner"}
+        hideHeader={role === "coach" || role === "learner" || role === "manager"}
         actions={
           access.data ? (
             <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
@@ -10112,41 +10112,29 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
   const selectedNotification = data.notifications.find((item: any) => item.id === selectedNotificationId) ?? data.notifications[0] ?? null;
 
+  const managerWorkspaceStats: WorkspaceStat[] = [
+    { label: "Active signals", value: data.openSignals.length, sub: "Live KPI and QA feed requiring attention", icon: <CircleAlert className="h-4 w-4" />, onClick: () => openManagerView("interventions", "manager-signal-trend") },
+    { label: "Open interventions", value: data.interventions.length, sub: "Workflow actions from rule triggers", icon: <Target className="h-4 w-4" />, onClick: () => openManagerView("interventions", "manager-interventions-lane") },
+    { label: "Coaching follow-ups", value: data.coachingSessions.length, sub: "Structured sessions with action plans", icon: <Users2 className="h-4 w-4" />, onClick: () => openManagerView("coaching", "manager-coaching-lane") },
+    { label: "Direct report readiness", value: data.directReport.readinessScore, sub: data.directReport.name, icon: <ShieldCheck className="h-4 w-4" />, onClick: () => openManagerView("coaching", "manager-coach-oversight") },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Active signals" value={`${data.openSignals.length}`} supporting="Live KPI and QA feed requiring attention" icon={<CircleAlert className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-signal-trend")} actionLabel="Open signal feed" />
-        <MetricCard label="Open interventions" value={`${data.interventions.length}`} supporting="Workflow actions assigned from rule triggers" icon={<Target className="h-4 w-4" />} onClick={() => openManagerView("interventions", "manager-interventions-lane")} actionLabel="Open interventions" />
-        <MetricCard label="Coaching follow-ups" value={`${data.coachingSessions.length}`} supporting="Structured sessions with action plans and reminders" icon={<Users2 className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coaching-lane")} actionLabel="Open coaching lane" />
-        <MetricCard label="Direct report readiness" value={`${data.directReport.readinessScore}`} supporting={data.directReport.name} icon={<ShieldCheck className="h-4 w-4" />} onClick={() => openManagerView("coaching", "manager-coach-oversight")} actionLabel="Review coach oversight" />
-      </div>
-
-      <div className="mission-hero-card overflow-hidden rounded-[2rem] border border-amber-400/18 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_30%),linear-gradient(135deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-4 py-5 shadow-[0_26px_80px_rgba(8,15,35,0.24)] sm:px-5 md:px-6 md:py-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="mission-chip rounded-full border-amber-300/20 bg-amber-300/12 text-amber-50">Manager operations mission</Badge>
-              <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-50/80">See the risk, coach the rep, close the action</span>
-            </div>
-            <div>
-              <h2 className="text-[1.8rem] font-semibold tracking-tight text-white xl:text-[2.1rem]">A guided manager desk replaces the long operations page.</h2>
-              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">The manager workspace now opens like a case-management console: priority signals first, then split views for interventions, coaching, documentation, and alerts so users stay oriented without endless scrolling.</p>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div className="guide-card border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Today's focus</p>
-              <h3 className="mt-2 text-lg font-semibold text-white">{data.aiSuggestion.headline ?? data.aiSuggestion.title ?? "Resolve open signals and move coaching forward."}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-200">{data.aiSuggestion.summary ?? data.aiSuggestion.detail ?? "The manager lane should surface the most urgent workflow, quality, and coaching actions first."}</p>
-            </div>
-            <div className="trophy-card border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-emerald-50">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100/80">Momentum cue</p>
-              <p className="mt-2 text-sm leading-6">{data.directReport.name} is at {data.directReport.readinessScore} readiness with {data.coachingSessions.length} active coaching follow-ups in motion.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <WorkspaceShell
+      title="Manager Ops"
+      subtitle="Work signals, interventions, coaching, and alerts from one queue."
+      modesLabel="Manager modes"
+      modesSubtitle="Choose a tab to work interventions, coaching, documentation, or alerts."
+      activeTab={activeTab}
+      onTabChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")}
+      stats={managerWorkspaceStats}
+      tabs={[
+        { value: "interventions", label: "Interventions" },
+        { value: "coaching", label: "Coaching" },
+        { value: "documentation", label: "Documentation" },
+        { value: "notifications", label: "Alerts" },
+      ]}
+      betweenStatsAndTabs={
       <div id="manager-signal-trend" className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] scroll-mt-24">
         <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
           <ResponsiveContainer width="100%" height="100%">
@@ -10176,23 +10164,8 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           onUpdated={onUpdated}
         />
       </div>
-
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")} className="space-y-4">
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Manager modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Each mode keeps a short queue on one side and the selected case detail on the other.</p>
-            </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
-              <TabsTrigger value="interventions" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Interventions</TabsTrigger>
-              <TabsTrigger value="coaching" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Coaching</TabsTrigger>
-              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-              <TabsTrigger value="notifications" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Alerts</TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
+      }
+    >
         <TabsContent value="interventions" id="manager-interventions-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div className="space-y-4">
             {data.interventions.map((item: any) => (
@@ -10434,8 +10407,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             </CardContent>
           </PremiumCard>
         </TabsContent>
-      </Tabs>
-    </div>
+    </WorkspaceShell>
   );
 }
 
