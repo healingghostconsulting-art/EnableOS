@@ -3553,6 +3553,8 @@ export function TrainingExperienceView() {
   const completedAssignmentId = queryParams.get("completedAssignmentId");
   const requestedLearnerFocus = queryParams.get("focus");
   const requestedFreshStart = queryParams.get("freshStart") === "1";
+  // Resume point: the catalog's "Continue learning" links carry ?slide=N (the deck index).
+  const requestedSlideIndex = Number.parseInt(queryParams.get("slide") ?? "", 10);
   const learner = trpc.demo.secureTraining.useQuery(tenantId ? { tenantId, freshStart: requestedFreshStart } : { freshStart: requestedFreshStart }, { enabled: Boolean(tenantId) });
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
@@ -3568,6 +3570,7 @@ export function TrainingExperienceView() {
   const [finalQuizAnswers, setFinalQuizAnswers] = useState<Record<string, string>>({});
   const [finalQuizSubmitted, setFinalQuizSubmitted] = useState(false);
   const [selectedDeckVisualIndex, setSelectedDeckVisualIndex] = useState(0);
+  const resumeSlideAppliedRef = useRef(false);
   const [curriculumViewerOpen, setCurriculumViewerOpen] = useState(false);
   const [selectedCurriculumSlideIndex, setSelectedCurriculumSlideIndex] = useState(0);
   const [narrationRate, setNarrationRate] = useState("0.95");
@@ -4412,6 +4415,16 @@ export function TrainingExperienceView() {
     ? Math.min(selectedDeckVisualIndex, interactiveGalleryVisuals.length - 1)
     : 0;
   const activeInteractiveVisual = interactiveGalleryVisuals[activeInteractiveVisualIndex] ?? null;
+  // Resume to ?slide=N once the deck is ready (catalog "Continue learning" deep-links).
+  // Runs after the mount resets settle, so it wins; applied a single time.
+  useEffect(() => {
+    if (resumeSlideAppliedRef.current) return;
+    if (interactiveGalleryVisuals.length === 0) return;
+    resumeSlideAppliedRef.current = true;
+    if (Number.isInteger(requestedSlideIndex) && requestedSlideIndex > 0) {
+      setSelectedDeckVisualIndex(Math.min(requestedSlideIndex, interactiveGalleryVisuals.length - 1));
+    }
+  }, [interactiveGalleryVisuals.length, requestedSlideIndex]);
   // Live per-client KPI scorecard (WFM & KPI training). Defaults to the deck's source
   // client; map a workspace to a client in shared/kpiScorecards.ts → tenantClientId.
   const kpiProfile = getKpiProfile();
@@ -6297,6 +6310,41 @@ export function TrainingExperienceView() {
   return <Surface wide>{playerBody}</Surface>;
 }
 
+/** A catalog course card: real deck cover, title, slides·min, status badge + progress. */
+function LibraryCourseCard({ course, onOpen }: { course: any; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.04] text-left transition hover:border-[#FCBC34]/45 hover:bg-white/[0.07]"
+    >
+      <div className="aspect-video w-full overflow-hidden bg-slate-900">
+        {course.coverImage ? (
+          <img src={course.coverImage} alt={course.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-slate-600">No preview</div>
+        )}
+      </div>
+      <div className="space-y-2 p-3.5">
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-white">{course.title}</p>
+          {course.status === "completed" ? (
+            <Badge className="shrink-0 rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge>
+          ) : course.status === "in_progress" ? (
+            <Badge className="shrink-0 rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{course.percentComplete}%</Badge>
+          ) : course.status === "recommended" ? (
+            <Badge className="shrink-0 rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge>
+          ) : (
+            <Badge variant="outline" className="shrink-0 rounded-full border-white/15 bg-white/6 text-slate-300">New</Badge>
+          )}
+        </div>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{course.slideCount} slides · {course.durationMinutes} min</p>
+        {course.status === "in_progress" ? <Progress value={course.percentComplete} className="h-1.5 bg-white/8" /> : null}
+      </div>
+    </button>
+  );
+}
+
 export function ContentLibraryView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
@@ -6696,6 +6744,11 @@ export function ContentLibraryView() {
     { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Linked to training", icon: <Target className="h-4 w-4" /> },
   ] : [];
 
+  // CAT4: curated rows from the seeded CatalogCourse values.
+  const catalogCourses: any[] = library.data?.courses ?? [];
+  const continueCourses = catalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
+  const recommendedCourses = catalogCourses.filter((course) => course.recommended);
+
   return library.isLoading || access.isLoading || !library.data ? (
     <Surface>
       <LoadingState />
@@ -6760,59 +6813,58 @@ export function ContentLibraryView() {
               </div>
 
               <TabsContent value="explore" className="mt-0" id="library-explore-rows">
-                <div className="space-y-6">
-                  {library.data.courses.length === 0 ? (
-                    <p className="text-sm text-slate-400">No courses match the current filters.</p>
+                <div className="space-y-7">
+                  {continueCourses.length ? (
+                    <section className="space-y-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-white">Continue learning</h3>
+                        <p className="mt-0.5 text-sm text-slate-400">Pick up where you left off — resumes to your last slide.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {continueCourses.map((course: any) => (
+                          <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setLocation(course.launchPath)} />
+                        ))}
+                      </div>
+                    </section>
                   ) : null}
-                  {library.data.tracks.map((track: any) => {
-                    const trackCourses = library.data.courses.filter((course: any) => course.track === track.id);
-                    if (!trackCourses.length) return null;
-                    return (
-                      <section key={track.id} className="space-y-3">
-                        <div className="flex flex-wrap items-end justify-between gap-2">
-                          <div>
-                            <h3 className="text-base font-semibold text-white">{track.title}</h3>
-                            <p className="mt-0.5 text-sm text-slate-400">{track.summary}</p>
+                  {recommendedCourses.length ? (
+                    <section className="space-y-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-white">Recommended for you</h3>
+                        <p className="mt-0.5 text-sm text-slate-400">Aligned to your readiness and assigned focus.</p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {recommendedCourses.map((course: any) => (
+                          <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setLocation(course.launchPath)} />
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
+                  <div className="space-y-6">
+                    {library.data.courses.length === 0 ? (
+                      <p className="text-sm text-slate-400">No courses match the current filters.</p>
+                    ) : null}
+                    {library.data.tracks.map((track: any) => {
+                      const trackCourses = library.data.courses.filter((course: any) => course.track === track.id);
+                      if (!trackCourses.length) return null;
+                      return (
+                        <section key={track.id} className="space-y-3">
+                          <div className="flex flex-wrap items-end justify-between gap-2">
+                            <div>
+                              <h3 className="text-base font-semibold text-white">{track.title}</h3>
+                              <p className="mt-0.5 text-sm text-slate-400">{track.summary}</p>
+                            </div>
+                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trackCourses.length} {trackCourses.length === 1 ? "course" : "courses"}</Badge>
                           </div>
-                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trackCourses.length} {trackCourses.length === 1 ? "course" : "courses"}</Badge>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                          {trackCourses.map((course: any) => (
-                            <button
-                              key={course.id}
-                              type="button"
-                              onClick={() => setLocation(course.launchPath)}
-                              className="group overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.04] text-left transition hover:border-[#FCBC34]/45 hover:bg-white/[0.07]"
-                            >
-                              <div className="aspect-video w-full overflow-hidden bg-slate-900">
-                                {course.coverImage ? (
-                                  <img src={course.coverImage} alt={course.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-xs text-slate-600">No preview</div>
-                                )}
-                              </div>
-                              <div className="space-y-2 p-3.5">
-                                <div className="flex items-start justify-between gap-2">
-                                  <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-white">{course.title}</p>
-                                  {course.status === "completed" ? (
-                                    <Badge className="shrink-0 rounded-full border-emerald-400/30 bg-emerald-400/12 text-emerald-100">Completed</Badge>
-                                  ) : course.status === "in_progress" ? (
-                                    <Badge className="shrink-0 rounded-full border-cyan-400/30 bg-cyan-400/12 text-cyan-100">{course.percentComplete}%</Badge>
-                                  ) : course.status === "recommended" ? (
-                                    <Badge className="shrink-0 rounded-full border-[#FCBC34]/35 bg-[#FCBC34]/15 text-[#FCBC34]">Recommended</Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="shrink-0 rounded-full border-white/15 bg-white/6 text-slate-300">New</Badge>
-                                  )}
-                                </div>
-                                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{course.slideCount} slides · {course.durationMinutes} min</p>
-                                {course.status === "in_progress" ? <Progress value={course.percentComplete} className="h-1.5 bg-white/8" /> : null}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-                    );
-                  })}
+                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {trackCourses.map((course: any) => (
+                              <LibraryCourseCard key={course.id} course={course} onOpen={() => setLocation(course.launchPath)} />
+                            ))}
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
                 </div>
               </TabsContent>
 

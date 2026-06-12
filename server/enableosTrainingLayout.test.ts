@@ -472,7 +472,13 @@ describe("learner training layout helpers", () => {
     // CAT3: explore mode is shelves-by-track with real deck covers + seeded status badges.
     expect(trainingViewSource).toContain("course.track === track.id");
     expect(trainingViewSource).toContain("course.coverImage");
-    expect(trainingViewSource).toContain("{course.slideCount} slides · {course.durationMinutes} min");
+    expect(trainingViewSource).toContain("function LibraryCourseCard");
+    // CAT4: curated Continue learning + Recommended rows; the player resumes to ?slide=N.
+    expect(trainingViewSource).toContain("Continue learning");
+    expect(trainingViewSource).toContain("Recommended for you");
+    expect(trainingViewSource).toContain("course.status === \"in_progress\"");
+    expect(trainingViewSource).toContain("course.recommended");
+    expect(trainingViewSource).toContain("queryParams.get(\"slide\")");
     expect(trainingViewSource).toContain("Selected course detail");
     expect(trainingViewSource).toContain("Curriculum preview");
     expect(trainingViewSource).toContain("Structured ingestion lane");
