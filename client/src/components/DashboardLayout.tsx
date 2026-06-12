@@ -103,7 +103,7 @@ const workspaceMissionSignals: Record<string, {
     reward: "Controls aligned",
   },
   "/library": {
-    eyebrow: "Content missions",
+    eyebrow: "Training library",
     headline: "Find, preview, and assign content faster.",
     focus: "Focused browse",
     next: "Search first, preview only what matters, and keep assignment actions close to the content.",
