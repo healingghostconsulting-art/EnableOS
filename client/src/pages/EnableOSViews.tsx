@@ -6351,6 +6351,7 @@ export function ContentLibraryView() {
   const [roleFilter, setRoleFilter] = useState<DemoRole | "all">("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
   const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("explore");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
@@ -6744,10 +6745,56 @@ export function ContentLibraryView() {
     { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Linked to training", icon: <Target className="h-4 w-4" /> },
   ] : [];
 
-  // CAT4: curated rows from the seeded CatalogCourse values.
+  // CAT4/CAT5: curated rows + filtered shelves from the seeded CatalogCourse values.
   const catalogCourses: any[] = library.data?.courses ?? [];
-  const continueCourses = catalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
-  const recommendedCourses = catalogCourses.filter((course) => course.recommended);
+  const filteredCatalogCourses = catalogCourses.filter((course) => {
+    const haystack = `${course.title} ${(course.tags ?? []).join(" ")}`.toLowerCase();
+    const matchesSearch = !searchQuery.trim() || haystack.includes(searchQuery.trim().toLowerCase());
+    const matchesTrack = trackFilter === "all" || course.track === trackFilter;
+    const matchesSource = assetView === "all" || (assetView === "chcg" ? course.source === "chcg" : course.source === "client_upload");
+    const matchesStatus = statusFilter === "all" || course.status === statusFilter;
+    return matchesSearch && matchesTrack && matchesSource && matchesStatus;
+  });
+  const continueCourses = filteredCatalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
+  const recommendedCourses = filteredCatalogCourses.filter((course) => course.recommended);
+  const filtersActive = Boolean(searchQuery.trim()) || trackFilter !== "all" || assetView !== "all" || statusFilter !== "all";
+
+  // CAT5: one compact filter bar under the stat row — search · track · status · source.
+  const libraryFilterBar = (
+    <div className="command-band px-4 py-3.5 md:px-5" id="library-filter-bar">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search courses</span>
+          <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+            <Search className="h-4 w-4 text-[#6B7E8A]" />
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search by title or topic..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
+          </div>
+        </label>
+        <label className="block space-y-1.5 text-sm text-[#1B303C]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
+          <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+            <option value="all">All tracks</option>
+            {(library.data?.tracks ?? []).map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
+          </select>
+        </label>
+        <label className="block space-y-1.5 text-sm text-[#1B303C]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Status</span>
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
+            <option value="all">All statuses</option>
+            <option value="in_progress">In progress</option>
+            <option value="completed">Completed</option>
+            <option value="recommended">Recommended</option>
+            <option value="not_started">Not started</option>
+          </select>
+        </label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>All sources</Button>
+        <Button type="button" variant={assetView === "chcg" ? "default" : "outline"} onClick={() => setAssetView("chcg")} className={assetView === "chcg" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>CHCG core</Button>
+        <Button type="button" variant={assetView === "imported" ? "default" : "outline"} onClick={() => setAssetView("imported")} className={assetView === "imported" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Client imports</Button>
+      </div>
+    </div>
+  );
 
   return library.isLoading || access.isLoading || !library.data ? (
     <Surface>
@@ -6778,40 +6825,8 @@ export function ContentLibraryView() {
         { value: "launcher", label: "Course detail" },
         { value: "ingest", label: "Ingest" },
       ]}
+      betweenStatsAndTabs={libraryFilterBar}
     >
-              <div className="command-band px-4 py-4 md:px-5" id="library-explore-mode">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search assets</span>
-                      <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-                        <Search className="h-4 w-4 text-[#6B7E8A]" />
-                        <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search data, coaching, QA, engagement..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
-                      </div>
-                    </label>
-                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Role lens</span>
-                      <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as DemoRole | "all")} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
-                        <option value="all">All roles</option>
-                        {Object.entries(roleMeta).map(([key, item]) => <option key={key} value={key}>{item.title}</option>)}
-                      </select>
-                    </label>
-                    <label className="block space-y-1.5 text-sm text-[#1B303C]">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
-                      <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
-                        <option value="all">All tracks</option>
-                        {library.data.tracks.map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button type="button" variant={assetView === "all" ? "default" : "outline"} onClick={() => setAssetView("all")} className={assetView === "all" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Blended view</Button>
-                  <Button type="button" variant={assetView === "chcg" ? "default" : "outline"} onClick={() => setAssetView("chcg")} className={assetView === "chcg" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>CHCG core</Button>
-                  <Button type="button" variant={assetView === "imported" ? "default" : "outline"} onClick={() => setAssetView("imported")} className={assetView === "imported" ? "rounded-full bg-[#1B303C] text-white hover:bg-[#243f4d]" : "rounded-full border-[#1B303C]/10 bg-white text-[#1B303C] hover:bg-[#FCBC34]/10 hover:text-[#1B303C]"}>Client imports</Button>
-                </div>
-              </div>
-
               <TabsContent value="explore" className="mt-0" id="library-explore-rows">
                 <div className="space-y-7">
                   {continueCourses.length ? (
@@ -6841,11 +6856,11 @@ export function ContentLibraryView() {
                     </section>
                   ) : null}
                   <div className="space-y-6">
-                    {library.data.courses.length === 0 ? (
-                      <p className="text-sm text-slate-400">No courses match the current filters.</p>
+                    {filteredCatalogCourses.length === 0 ? (
+                      <p className="text-sm text-slate-400">{filtersActive ? "No courses match the current filters." : "No courses available."}</p>
                     ) : null}
                     {library.data.tracks.map((track: any) => {
-                      const trackCourses = library.data.courses.filter((course: any) => course.track === track.id);
+                      const trackCourses = filteredCatalogCourses.filter((course: any) => course.track === track.id);
                       if (!trackCourses.length) return null;
                       return (
                         <section key={track.id} className="space-y-3">

@@ -479,6 +479,11 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("course.status === \"in_progress\"");
     expect(trainingViewSource).toContain("course.recommended");
     expect(trainingViewSource).toContain("queryParams.get(\"slide\")");
+    // CAT5: one compact filter bar under the stat row (search / track / status / source).
+    expect(trainingViewSource).toContain("betweenStatsAndTabs={libraryFilterBar}");
+    expect(trainingViewSource).toContain("Search courses");
+    expect(trainingViewSource).toContain("const filteredCatalogCourses = catalogCourses.filter");
+    expect(trainingViewSource).toContain("statusFilter === \"all\" || course.status === statusFilter");
     expect(trainingViewSource).toContain("Selected course detail");
     expect(trainingViewSource).toContain("Curriculum preview");
     expect(trainingViewSource).toContain("Structured ingestion lane");
