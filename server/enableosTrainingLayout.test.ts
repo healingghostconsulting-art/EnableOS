@@ -494,13 +494,17 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("The library now keeps more titles");
     expect(trainingViewSource).not.toContain("intentionally denser");
     expect(trainingViewSource).not.toContain("Scan many modules, inspect one detail panel");
-    // CAT3: explore mode is shelves-by-track with real deck covers + seeded status badges.
-    expect(trainingViewSource).toContain("course.track === track.id");
+    // CAT3: real deck covers + the reusable course card.
     expect(trainingViewSource).toContain("course.coverImage");
     expect(trainingViewSource).toContain("function LibraryCourseCard");
     // CAT4: curated Continue learning + Recommended rows; the player resumes to ?slide=N.
     expect(trainingViewSource).toContain("Continue learning");
     expect(trainingViewSource).toContain("Recommended for you");
+    // CAT8: curated rows (incl. New) on top + one All-courses grid; per-track shelves removed.
+    expect(trainingViewSource).not.toContain("course.track === track.id");
+    expect(trainingViewSource).toContain("? \"Results\" : \"All courses\"");
+    expect(trainingViewSource).toContain("xl:grid-cols-4");
+    expect(trainingViewSource).toContain(">New</h3>");
     expect(trainingViewSource).toContain("course.status === \"in_progress\"");
     expect(trainingViewSource).toContain("course.recommended");
     expect(trainingViewSource).toContain("queryParams.get(\"slide\")");

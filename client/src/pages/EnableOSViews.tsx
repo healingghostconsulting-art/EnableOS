@@ -6758,6 +6758,7 @@ export function ContentLibraryView() {
   });
   const continueCourses = filteredCatalogCourses.filter((course) => course.status === "in_progress").sort((a, b) => b.percentComplete - a.percentComplete);
   const recommendedCourses = filteredCatalogCourses.filter((course) => course.recommended);
+  const newCourses = filteredCatalogCourses.filter((course) => course.status === "not_started");
   const filtersActive = Boolean(searchQuery.trim()) || trackFilter !== "all" || assetView !== "all" || statusFilter !== "all";
   // CAT6: the course detail "course page" opened from a cover click.
   const selectedCourse = catalogCourses.find((course) => course.id === selectedCourseId) ?? null;
@@ -6831,58 +6832,65 @@ export function ContentLibraryView() {
       betweenStatsAndTabs={libraryFilterBar}
     >
               <TabsContent value="explore" className="mt-0" id="library-explore-rows">
-                <div className="space-y-7">
-                  {continueCourses.length ? (
-                    <section className="space-y-3">
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Continue learning</h3>
-                        <p className="mt-0.5 text-sm text-slate-400">Pick up where you left off — resumes to your last slide.</p>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {continueCourses.map((course: any) => (
-                          <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
-                        ))}
-                      </div>
-                    </section>
-                  ) : null}
-                  {recommendedCourses.length ? (
-                    <section className="space-y-3">
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Recommended for you</h3>
-                        <p className="mt-0.5 text-sm text-slate-400">Aligned to your readiness and assigned focus.</p>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {recommendedCourses.map((course: any) => (
-                          <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
-                        ))}
-                      </div>
-                    </section>
-                  ) : null}
-                  <div className="space-y-6">
-                    {filteredCatalogCourses.length === 0 ? (
-                      <p className="text-sm text-slate-400">{filtersActive ? "No courses match the current filters." : "No courses available."}</p>
-                    ) : null}
-                    {library.data.tracks.map((track: any) => {
-                      const trackCourses = filteredCatalogCourses.filter((course: any) => course.track === track.id);
-                      if (!trackCourses.length) return null;
-                      return (
-                        <section key={track.id} className="space-y-3">
-                          <div className="flex flex-wrap items-end justify-between gap-2">
-                            <div>
-                              <h3 className="text-base font-semibold text-white">{track.title}</h3>
-                              <p className="mt-0.5 text-sm text-slate-400">{track.summary}</p>
-                            </div>
-                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{trackCourses.length} {trackCourses.length === 1 ? "course" : "courses"}</Badge>
+                <div className="space-y-5">
+                  {!filtersActive ? (
+                    <>
+                      {continueCourses.length ? (
+                        <section className="space-y-2.5">
+                          <div>
+                            <h3 className="text-base font-semibold text-white">Continue learning</h3>
+                            <p className="mt-0.5 text-sm text-slate-400">Pick up where you left off — resumes to your last slide.</p>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            {trackCourses.map((course: any) => (
-                              <LibraryCourseCard key={course.id} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                            {continueCourses.map((course: any) => (
+                              <LibraryCourseCard key={`continue-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
                             ))}
                           </div>
                         </section>
-                      );
-                    })}
-                  </div>
+                      ) : null}
+                      {recommendedCourses.length ? (
+                        <section className="space-y-2.5">
+                          <div>
+                            <h3 className="text-base font-semibold text-white">Recommended for you</h3>
+                            <p className="mt-0.5 text-sm text-slate-400">Aligned to your readiness and assigned focus.</p>
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {recommendedCourses.map((course: any) => (
+                              <LibraryCourseCard key={`recommended-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                            ))}
+                          </div>
+                        </section>
+                      ) : null}
+                      {newCourses.length ? (
+                        <section className="space-y-2.5">
+                          <div>
+                            <h3 className="text-base font-semibold text-white">New</h3>
+                            <p className="mt-0.5 text-sm text-slate-400">Courses you haven't started yet.</p>
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {newCourses.map((course: any) => (
+                              <LibraryCourseCard key={`new-${course.id}`} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                            ))}
+                          </div>
+                        </section>
+                      ) : null}
+                    </>
+                  ) : null}
+                  <section className="space-y-2.5">
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                      <h3 className="text-base font-semibold text-white">{filtersActive ? "Results" : "All courses"}</h3>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{filteredCatalogCourses.length} {filteredCatalogCourses.length === 1 ? "course" : "courses"}</Badge>
+                    </div>
+                    {filteredCatalogCourses.length === 0 ? (
+                      <p className="text-sm text-slate-400">{filtersActive ? "No courses match the current filters." : "No courses available."}</p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {filteredCatalogCourses.map((course: any) => (
+                          <LibraryCourseCard key={course.id} course={course} onOpen={() => setSelectedCourseId(course.id)} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
                 </div>
               </TabsContent>
 
