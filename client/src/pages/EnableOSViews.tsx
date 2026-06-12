@@ -10142,39 +10142,28 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         { value: "documentation", label: "Documentation" },
         { value: "notifications", label: "Alerts" },
       ]}
-      betweenStatsAndTabs={
-      <div id="manager-signal-trend" className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] scroll-mt-24">
-        <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
-              <defs>
-                <linearGradient id="signalFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2F6FED" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#2F6FED" stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
-              <Area type="monotone" dataKey="value" stroke="#60A5FA" fill="url(#signalFill)" strokeWidth={3} />
-              <Line type="monotone" dataKey="target" stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartFrame>
-        <GuidanceActionPanel
-          tenantId={data.tenant.id}
-          suggestion={data.aiSuggestion}
-          catalog={data.retrainingCatalog}
-          assignments={data.activeRetrainingAssignments}
-          actorRole="manager"
-          learnerName={data.directReport.name}
-          onUpdated={onUpdated}
-        />
-      </div>
-      }
     >
         <TabsContent value="interventions" id="manager-interventions-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+          <div id="manager-signal-trend" className="col-span-full scroll-mt-24">
+            <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.openSignals.map((signal: any) => ({ label: signal.label, value: signal.value, target: signal.target }))}>
+                  <defs>
+                    <linearGradient id="signalFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#2F6FED" stopOpacity={0.6} />
+                      <stop offset="100%" stopColor="#2F6FED" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                  <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                  <Area type="monotone" dataKey="value" stroke="#60A5FA" fill="url(#signalFill)" strokeWidth={3} />
+                  <Line type="monotone" dataKey="target" stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartFrame>
+          </div>
           <div className="space-y-4">
             {data.interventions.map((item: any) => (
               <button key={item.id} type="button" onClick={() => setSelectedInterventionId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedIntervention?.id === item.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
@@ -10222,6 +10211,17 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         </TabsContent>
 
         <TabsContent value="coaching" id="manager-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
+          <div className="col-span-full">
+            <GuidanceActionPanel
+              tenantId={data.tenant.id}
+              suggestion={data.aiSuggestion}
+              catalog={data.retrainingCatalog}
+              assignments={data.activeRetrainingAssignments}
+              actorRole="manager"
+              learnerName={data.directReport.name}
+              onUpdated={onUpdated}
+            />
+          </div>
           <div className="space-y-4">
             {data.coachingSessions.map((session: any) => (
               <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-emerald-400/30 bg-emerald-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>

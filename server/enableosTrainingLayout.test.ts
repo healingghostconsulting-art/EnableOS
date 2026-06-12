@@ -424,7 +424,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("const managerWorkspaceStats: WorkspaceStat[]");
     expect(trainingViewSource).toContain("label: \"Active signals\"");
     expect(trainingViewSource).toContain("label: \"Direct report readiness\"");
-    // The signal feed + guidance band sits between the stat row and the tabs.
+    // The signal feed keeps its deep-link anchor (relocated into the gated modes by MGR5).
     expect(trainingViewSource).toContain("id=\"manager-signal-trend\"");
     // Marketing header + self-narration removed.
     expect(trainingViewSource).not.toContain("A guided manager desk replaces the long operations page");
@@ -440,6 +440,26 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("composerProps={managerWeeklyCoachingLogProps}");
     // Gold primary highlight matching Coach Studio's weekly one-on-one card.
     expect(trainingViewSource).toContain("bg-[#FCBC34] text-slate-950");
+  });
+
+  it("moves the always-on manager blocks into the gated modes so nothing big sits above the tabs (MGR5)", () => {
+    // The manager shell no longer carries a betweenStatsAndTabs band (only the learner + library shells do).
+    const managerShellStart = trainingViewSource.indexOf("title=\"Manager Ops\"");
+    const managerShellOpenEnd = trainingViewSource.indexOf("\n    >", managerShellStart);
+    const managerShellHead = trainingViewSource.slice(managerShellStart, managerShellOpenEnd);
+    expect(managerShellHead).not.toContain("betweenStatsAndTabs");
+
+    const interventionsAnchor = trainingViewSource.indexOf("id=\"manager-interventions-lane\"");
+    const coachingAnchor = trainingViewSource.indexOf("id=\"manager-coaching-lane\"");
+    // The Signal severity feed now renders inside the Interventions mode (after its anchor, before Coaching).
+    const signalFeed = trainingViewSource.indexOf("Signal severity feed");
+    expect(signalFeed).toBeGreaterThan(interventionsAnchor);
+    expect(signalFeed).toBeLessThan(coachingAnchor);
+    // The AI coaching guidance panel (actorRole="manager") now renders inside the Coaching mode.
+    const managerGuidance = trainingViewSource.indexOf("actorRole=\"manager\"");
+    expect(managerGuidance).toBeGreaterThan(coachingAnchor);
+    // Relocated blocks span the full mode width rather than a column.
+    expect(trainingViewSource).toContain("className=\"col-span-full scroll-mt-24\"");
   });
 
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
