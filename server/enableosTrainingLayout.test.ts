@@ -432,6 +432,16 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("See the risk, coach the rep, close the action");
   });
 
+  it("aligns the manager coaching launcher to Coach Studio's gold action-card chrome (MGR3)", () => {
+    // The cyan PremiumCard launcher is replaced by the shared gold CoachLaneActionCard.
+    expect(trainingViewSource).not.toContain("Open the coaching log in a focused pop-up");
+    expect(trainingViewSource).not.toContain("Launch a cleaner writing surface without leaving the coaching lane");
+    expect(trainingViewSource).toContain("eyebrow=\"Manager coaching\"");
+    expect(trainingViewSource).toContain("composerProps={managerWeeklyCoachingLogProps}");
+    // Gold primary highlight matching Coach Studio's weekly one-on-one card.
+    expect(trainingViewSource).toContain("bg-[#FCBC34] text-slate-950");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");

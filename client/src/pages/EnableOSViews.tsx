@@ -10227,17 +10227,13 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                 </div>
               </button>
             ))}
-            <PremiumCard className="border-cyan-400/20 bg-cyan-400/8">
-              <CardHeader>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <CardTitle className="text-white">Open the coaching log in a focused pop-up</CardTitle>
-                    <CardDescription className="mt-2 text-slate-300">Launch a cleaner writing surface without leaving the coaching lane.</CardDescription>
-                  </div>
-                  <WeeklyCoachingLogPopupBox composerProps={managerWeeklyCoachingLogProps} onCreated={onUpdated} />
-                </div>
-              </CardHeader>
-            </PremiumCard>
+            <CoachLaneActionCard
+              eyebrow="Manager coaching"
+              title="Complete the weekly one-on-one"
+              description="Launch a focused writing surface and lock the coaching log into the learner record without leaving the lane."
+              accent="gold"
+              action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly one-on-one" dialogTitle="Weekly one-on-one" dialogDescription="Complete the full weekly one-on-one, including follow-up, coaching comments, SMART goal, support, and agent take-aways." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={managerWeeklyCoachingLogProps} onCreated={onUpdated} />}
+            />
           </div>
           <div className="space-y-6">
             {selectedCoachingSession ? (
