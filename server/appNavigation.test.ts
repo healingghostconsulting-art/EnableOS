@@ -45,17 +45,29 @@ describe("workspace navigation resolution (matrix-driven)", () => {
     expect(paths(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/training" }))).toContain("/coach");
     // Manager keeps Manager Ops everywhere, incl. the shared Training Zone.
     expect(resolveWorkspaceMenu({ grantRole: "manager", workspacePath: "/training" })).toEqual(managerWorkspaceMenu);
-    // A dedicated sub-route never shrinks the nav: coach visiting /learner keeps Coach Studio.
-    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/learner" })).toEqual(coachWorkspaceMenu);
+    // A dedicated route now selects its persona: a coach visiting /learner shows the learner nav.
+    expect(resolveWorkspaceMenu({ grantRole: "coach", workspacePath: "/learner" })).toEqual(learnerWorkspaceMenu);
   });
 
-  it("resolveActiveWorkspaceRole: shared routes keep the role; dedicated routes never downgrade", () => {
+  it("resolveActiveWorkspaceRole: shared routes keep the role; dedicated routes select their persona", () => {
     expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "coach" })).toBe("coach");
-    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "coach" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "coach" })).toBe("learner");
     expect(resolveActiveWorkspaceRole({ path: "/coach", grantRole: "coach" })).toBe("coach");
     expect(resolveActiveWorkspaceRole({ path: "/chcg-admin", grantRole: "platform_admin" })).toBe("platform_admin");
     // A stale persisted role outside the grant is clamped back to the grant.
     expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "coach", persisted: "manager" })).toBe("coach");
+    // Admin-nav fix: an admin's dedicated route reflects the picked persona, not the full set.
+    expect(resolveActiveWorkspaceRole({ path: "/coach", grantRole: "platform_admin" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/manager", grantRole: "platform_admin" })).toBe("manager");
+  });
+
+  it("an admin grant on a shared workspace keeps the selected persona (admin nav fix)", () => {
+    // Admin picked Coach Studio, then opens Training Zone — nav stays the coach set, not the full admin set.
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/coach" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/training", persisted: "coach" })).toEqual(coachWorkspaceMenu);
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/manager" })).toEqual(managerWorkspaceMenu);
+    // No selection yet → the admin's full set.
+    expect(resolveWorkspaceMenu({ grantRole: "platform_admin", workspacePath: "/chcg-admin" })).toEqual(adminWorkspaceMenu);
   });
 
   it("redirects each role back to its allowed home view when a route is blocked", () => {

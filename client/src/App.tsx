@@ -86,8 +86,9 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
 
 /**
  * The sidebar nav for a workspace render: the matrix menu for the active role (clamped
- * to the grant). Shared routes keep the current role; dedicated role routes adopt their
- * persona without ever shrinking the nav. The `?role=` query param is NOT consulted.
+ * to the grant). Dedicated role routes select their persona (so an admin on /coach sees
+ * the coach nav); shared routes keep the selected role. The `?role=` query param is NOT
+ * consulted.
  */
 export function resolveWorkspaceMenu(options?: { grantRole?: string | null; workspacePath?: string | null; persisted?: string | null }) {
   const activeRole = resolveActiveWorkspaceRole({
@@ -105,7 +106,10 @@ function WorkspaceShell({ children, path, roleLabel }: { children: React.ReactNo
   const menuItems = buildWorkspaceMenu(activeRole);
 
   useEffect(() => {
-    setStoredActiveWorkspaceRole(activeRole);
+    // Only persist a resolved role; never let the brief access-loading phase (activeRole
+    // null while viewerAccess is in flight) wipe the selected workspace role — that reset
+    // the nav to the grant's full set on shared routes after a fresh page load.
+    if (activeRole) setStoredActiveWorkspaceRole(activeRole);
   }, [activeRole]);
 
   return (

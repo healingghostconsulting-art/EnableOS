@@ -30,7 +30,7 @@ describe("WORKSPACE_ACCESS matrix", () => {
     expect(permittedWorkspaces(null)).toEqual([]);
   });
 
-  it("every adoptable sub-role's access is a subset of the grant role's access (no nav shrink on dedicated routes)", () => {
+  it("every adoptable sub-role's access is a subset of the grant role's access (clamp is always safe)", () => {
     (Object.keys(ADOPTABLE_ROLES) as GrantRole[]).forEach((grant) => {
       const grantSet = new Set(WORKSPACE_ACCESS[grant]);
       ADOPTABLE_ROLES[grant].forEach((sub) => {
@@ -57,12 +57,26 @@ describe("WORKSPACE_ACCESS matrix", () => {
     expect(clampActiveRole("coach", null)).toBe(null);
   });
 
-  it("resolveActiveWorkspaceRole keeps shared routes and never downgrades dedicated routes", () => {
+  it("selects the dedicated-route persona (clamped) and keeps the selected role on shared routes", () => {
+    // Shared routes never change the role.
     expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "coach" })).toBe("coach");
     expect(resolveActiveWorkspaceRole({ path: "/library", grantRole: "manager", persisted: "manager" })).toBe("manager");
-    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "coach" })).toBe("coach");
-    expect(resolveActiveWorkspaceRole({ path: "/chcg-admin", grantRole: "platform_admin" })).toBe("platform_admin");
+    // Dedicated routes select their persona, even when it shrinks the nav.
+    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "coach" })).toBe("learner");
     expect(resolveActiveWorkspaceRole({ path: "/anything", grantRole: null })).toBe(null);
+  });
+
+  it("an admin grant reflects the SELECTED workspace, not its full ceiling (the bug fix)", () => {
+    // platform_admin can adopt any persona — the dedicated route picks it (no longer the full set).
+    expect(resolveActiveWorkspaceRole({ path: "/coach", grantRole: "platform_admin" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/manager", grantRole: "platform_admin" })).toBe("manager");
+    expect(resolveActiveWorkspaceRole({ path: "/learner", grantRole: "platform_admin" })).toBe("learner");
+    expect(resolveActiveWorkspaceRole({ path: "/coach", grantRole: "client_admin" })).toBe("coach");
+    // Default with no selection (grant home) = the admin's full role.
+    expect(resolveActiveWorkspaceRole({ path: "/chcg-admin", grantRole: "platform_admin" })).toBe("platform_admin");
+    // Shared routes keep the previously selected persona — Coach Studio survives Training Zone.
+    expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "platform_admin", persisted: "coach" })).toBe("coach");
+    expect(resolveActiveWorkspaceRole({ path: "/training", grantRole: "platform_admin" })).toBe("platform_admin");
   });
 
   it("roleHomePath maps each role to its home route", () => {

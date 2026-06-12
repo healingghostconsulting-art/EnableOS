@@ -104,11 +104,15 @@ export function clampActiveRole(desired: GrantRole | null | undefined, grantRole
 }
 
 /**
- * Resolve the active workspace role that drives the sidebar.
- * - Shared workspaces (/training, /library, /guide, /mission-hub) keep the current role.
- * - A dedicated role route adopts its persona only if the grant may adopt it AND doing so
- *   does not shrink the nav (so a coach visiting /learner keeps the coach nav).
- * - Always clamped to the grant. Falls back to the grant role.
+ * Resolve the active workspace role that drives the sidebar. The nav reflects the
+ * SELECTED workspace, with the grant only as the permission ceiling:
+ * - A dedicated role route selects that persona (the picked workspace), clamped to what
+ *   the grant may adopt. So an admin on /coach sees the coach nav, on /manager the manager
+ *   nav, etc. — not the grant's full ceiling.
+ * - Shared workspaces (/training, /library, /guide, /mission-hub) keep the previously
+ *   selected role, so navigating to them never changes the nav (the Training Zone bug).
+ * - Default with no selection (home / grant home like /chcg-admin) = the grant's own role,
+ *   which for an admin is its full set.
  */
 export function resolveActiveWorkspaceRole(options: {
   path: string;
@@ -117,16 +121,11 @@ export function resolveActiveWorkspaceRole(options: {
 }): GrantRole | null {
   const { path, grantRole } = options;
   if (!grantRole) return null;
-  const base = clampActiveRole(options.persisted ?? grantRole, grantRole)!;
   const dedicated = DEDICATED_ROUTE_ROLE[path as WorkspacePath];
-  if (
-    dedicated &&
-    ADOPTABLE_ROLES[grantRole].includes(dedicated) &&
-    WORKSPACE_ACCESS[dedicated].length > WORKSPACE_ACCESS[base].length
-  ) {
-    return dedicated;
+  if (dedicated) {
+    return clampActiveRole(dedicated, grantRole);
   }
-  return base;
+  return clampActiveRole(options.persisted ?? grantRole, grantRole);
 }
 
 /** A role's home route, used for access-denied redirects. */
