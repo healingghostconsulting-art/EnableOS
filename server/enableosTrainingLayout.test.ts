@@ -507,6 +507,19 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("These milestones keep the next checkpoint and progress status visible");
   });
 
+  it("brings EnableOS Guide onto the shared slim header via a stat-less WorkspaceShell (COH2)", () => {
+    const shellSource = readFileSync(join(process.cwd(), "client/src/components/WorkspaceShell.tsx"), "utf8");
+    // The shell's stat row is now optional too, so a help page can use just the slim header.
+    expect(shellSource).toContain("stats = []");
+    expect(shellSource).toContain("stats.length > 0 ? (");
+    // The Guide renders through WorkspaceShell with a short title (no oversized SectionShell header).
+    expect(trainingViewSource).toContain("title=\"EnableOS Guide\"");
+    expect(trainingViewSource).not.toContain("compact={false}");
+    // Self-narrating header copy is gone.
+    expect(trainingViewSource).not.toContain("Learn where to start, what each workspace does, and how EnableOS should flow");
+    expect(trainingViewSource).not.toContain("Use this shared guide to orient new users");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");

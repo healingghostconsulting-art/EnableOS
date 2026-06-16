@@ -33,7 +33,7 @@ export interface WorkspaceTab {
 export function WorkspaceShell({
   title,
   subtitle,
-  stats,
+  stats = [],
   tabs = [],
   activeTab,
   onTabChange,
@@ -48,7 +48,8 @@ export function WorkspaceShell({
 }: {
   title: string;
   subtitle: string;
-  stats: WorkspaceStat[];
+  /** Dark stat-row tiles. Omit (or pass []) for a help/overview page with no metrics. */
+  stats?: WorkspaceStat[];
   /** Mode tabs. Omit (or pass []) for an overview page with no modes. */
   tabs?: WorkspaceTab[];
   activeTab?: string;
@@ -82,6 +83,7 @@ export function WorkspaceShell({
       </div>
       <div className="focus-stack">
         <div className="space-y-3">
+          {stats.length > 0 ? (
           <div className="rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               {statsLead}
@@ -107,6 +109,7 @@ export function WorkspaceShell({
               </div>
             </div>
           </div>
+          ) : null}
           {betweenStatsAndTabs}
           {tabs.length > 0 ? (
             <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-2.5">

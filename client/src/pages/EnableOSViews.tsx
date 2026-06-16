@@ -2911,22 +2911,21 @@ export function GuideView() {
   ];
 
   return (
-    <SectionShell
-      eyebrow="EnableOS Guide"
-      title="Learn where to start, what each workspace does, and how EnableOS should flow."
-      description="Use this shared guide to orient new users, explain workspace navigation, and reinforce the best-practice rhythm for managers, coaches, learners, and admins."
-      compact={false}
-      actions={(
-        <>
-          <Button asChild className="rounded-full bg-[#1B303C] px-5 text-white hover:bg-[#13242D]">
-            <Link href={currentHomeHref}>Open my workspace</Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-full border-[#1B303C]/15 bg-white/80 text-[#1B303C] hover:bg-white">
-            <Link href="/mission-hub">Open Mission Hub</Link>
-          </Button>
-        </>
-      )}
-    >
+    <Surface>
+      <WorkspaceShell
+        title="EnableOS Guide"
+        subtitle="Where to start, what each workspace does, and how work should flow across roles."
+        actions={(
+          <>
+            <Button asChild className="rounded-full bg-[#1B303C] px-5 text-white hover:bg-[#13242D]">
+              <Link href={currentHomeHref}>Open my workspace</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full border-[#1B303C]/15 bg-white/80 text-[#1B303C] hover:bg-white">
+              <Link href="/mission-hub">Open Mission Hub</Link>
+            </Button>
+          </>
+        )}
+      >
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
         <div className="space-y-5">
           <Tabs defaultValue="quick-start" className="space-y-4">
@@ -3023,7 +3022,8 @@ export function GuideView() {
           </Card>
         </div>
       </div>
-    </SectionShell>
+      </WorkspaceShell>
+    </Surface>
   );
 }
 
