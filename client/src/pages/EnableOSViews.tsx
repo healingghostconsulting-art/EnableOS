@@ -1972,6 +1972,8 @@ function GuidanceActionPanel({
             </div>
           </div>
         ) : null}
+        {actorRole !== "manager" ? (
+          <>
         <div className="flex flex-wrap gap-3">
           <Button type="button" onClick={() => void submitGuidance("approve")} disabled={guidanceMutation.isPending} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
             {guidanceMutation.isPending ? "Sending guidance..." : "Approve guidance"}
@@ -2033,6 +2035,8 @@ function GuidanceActionPanel({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+          </>
+        ) : null}
       </CardContent>
     </PremiumCard>
   );
@@ -8197,6 +8201,60 @@ function CoachLaneActionCard({
   );
 }
 
+function PushCoachTrainingCard({ coaches, catalog }: { coaches: any[]; catalog: any[] }) {
+  const assetOptions = catalog.flatMap((journey: any) =>
+    (journey.modules ?? []).map((module: any) => ({ id: module.id, label: `${journey.title} · ${module.title}` })),
+  );
+  const [coachId, setCoachId] = useState(coaches[0]?.id ?? "");
+  const [assetId, setAssetId] = useState(assetOptions[0]?.id ?? "");
+  const [pushed, setPushed] = useState<{ coach: string; asset: string } | null>(null);
+  const selectedCoach = coaches.find((coach: any) => coach.id === coachId) ?? coaches[0] ?? null;
+  const selectedAsset = assetOptions.find((asset) => asset.id === assetId) ?? assetOptions[0] ?? null;
+
+  return (
+    <div className="space-y-4 rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-slate-200">Coach</p>
+          <Select value={coachId} onValueChange={(value) => { setCoachId(value); setPushed(null); }}>
+            <SelectTrigger className="border-white/10 bg-white/5 text-slate-100">
+              <SelectValue placeholder="Select a coach" />
+            </SelectTrigger>
+            <SelectContent>
+              {coaches.map((coach: any) => (
+                <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-slate-200">Training or development asset</p>
+          <Select value={assetId} onValueChange={(value) => { setAssetId(value); setPushed(null); }}>
+            <SelectTrigger className="border-white/10 bg-white/5 text-slate-100">
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assetOptions.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id}>{asset.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {pushed ? (
+        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm leading-7 text-emerald-50">
+          Pushed <span className="font-medium text-white">{pushed.asset}</span> to <span className="font-medium text-white">{pushed.coach}</span> as a coach development assignment.
+        </div>
+      ) : (
+        <p className="text-sm leading-7 text-slate-300">{selectedAsset ? `${selectedAsset.label} will be assigned to ${selectedCoach?.name ?? "the selected coach"} as a coach development track.` : "Select a development asset to assign to a coach."}</p>
+      )}
+      <Button type="button" disabled={!selectedCoach || !selectedAsset} onClick={() => setPushed({ coach: selectedCoach?.name ?? "", asset: selectedAsset?.label ?? "" })} className="rounded-full bg-[#FCBC34] text-slate-950 hover:bg-[#ffd56d]">
+        Push training to coach
+      </Button>
+    </div>
+  );
+}
+
 function CoachLaneDialogAction({
   buttonLabel,
   dialogTitle,
@@ -10210,31 +10268,17 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           </div>
         </TabsContent>
 
-        <TabsContent value="coaching" id="manager-coaching-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
-          <div className="col-span-full">
-            <GuidanceActionPanel
-              tenantId={data.tenant.id}
-              suggestion={data.aiSuggestion}
-              catalog={data.retrainingCatalog}
-              assignments={data.activeRetrainingAssignments}
-              actorRole="manager"
-              learnerName={data.directReport.name}
-              onUpdated={onUpdated}
-            />
-          </div>
-          <div className="space-y-4">
-            {data.coachingSessions.map((session: any) => (
-              <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-emerald-400/30 bg-emerald-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching session</p>
-                    <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
-                    <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
-                  </div>
-                  <StatusBadge value={session.status} />
-                </div>
-              </button>
-            ))}
+        <TabsContent value="coaching" id="manager-coaching-lane" className="mt-0 space-y-3 scroll-mt-24">
+          <GuidanceActionPanel
+            tenantId={data.tenant.id}
+            suggestion={data.aiSuggestion}
+            catalog={data.retrainingCatalog}
+            assignments={data.activeRetrainingAssignments}
+            actorRole="manager"
+            learnerName={data.directReport.name}
+            onUpdated={onUpdated}
+          />
+          <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4 scroll-mt-24">
             <CoachLaneActionCard
               eyebrow="Manager coaching"
               title="Complete the weekly one-on-one"
@@ -10242,102 +10286,141 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               accent="gold"
               action={<WeeklyCoachingLogPopupBox buttonLabel="Open weekly one-on-one" dialogTitle="Weekly one-on-one" dialogDescription="Complete the full weekly one-on-one, including follow-up, coaching comments, SMART goal, support, and agent take-aways." buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950" composerProps={managerWeeklyCoachingLogProps} onCreated={onUpdated} />}
             />
+            <CoachLaneActionCard
+              eyebrow="Weekly history"
+              title="Review coaching history"
+              description="Review every structured coaching field and confirm how the learner responds over time."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coaching history"
+                  dialogTitle="Weekly coaching log history"
+                  dialogDescription="Review every structured coaching field, confirm the simulated email-copy list, and track how the learner responds over time."
+                  renderContent={() => (
+                    <WeeklyCoachingLogTimeline title="Weekly coaching log history" description="Managers can review every structured coaching field, confirm the simulated email-copy list, and track how the learner responds over time." tenantId={data.tenant.id} logs={data.weeklyCoachingLogs} allowLogEditing onUpdated={onUpdated} />
+                  )}
+                />
+              }
+            />
+            <div id="manager-coach-oversight" className="scroll-mt-24">
+              <CoachLaneActionCard
+                eyebrow="Coach oversight"
+                title="Coach direct-report oversight"
+                description="Review the same direct-report coaching history and retraining the coach sees, by week or month."
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open coach oversight"
+                    dialogTitle="Coach direct-report oversight"
+                    dialogDescription="Review the same direct-report coaching history the coach sees without leaving the manager workspace."
+                    renderContent={() => (
+                      <div className="space-y-4">
+                        {data.coachCoverage.map((coverage: any) => {
+                          const filteredHistory = filterRetrainingHistoryByWindow(coverage.retrainingHistory ?? [], historyWindow);
+                          return (
+                            <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
+                                  <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
+                                  <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
+                                </div>
+                                <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
+                              </div>
+                              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p><p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p><p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p></div>
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p><p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p><p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p></div>
+                              </div>
+                              <div className="mt-4 space-y-3">
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
+                                      <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      <Button type="button" variant={historyWindow === "week" ? "default" : "outline"} className={historyWindow === "week" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("week")}>Week</Button>
+                                      <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>Month</Button>
+                                      <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white" onClick={() => exportRetrainingHistory(coverage.directReport.name, filteredHistory)} disabled={!filteredHistory.length}>Export CSV</Button>
+                                    </div>
+                                  </div>
+                                </div>
+                                <RetrainingHistorySection title="Targeted retraining history" description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane." assignments={filteredHistory} emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`} launchRole="manager" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  />
+                }
+              />
+            </div>
+            <CoachLaneActionCard
+              eyebrow="Coach development"
+              title="Push coach training"
+              description="Assign a training or development asset from the library to one of your coaches."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open push coach training"
+                  dialogTitle="Push coach training"
+                  dialogDescription="Select a coach and a training or development asset from the library to assign as a coach development track."
+                  renderContent={() => (
+                    <PushCoachTrainingCard coaches={data.coachCoverage.map((coverage: any) => coverage.coach)} catalog={data.retrainingCatalog} />
+                  )}
+                />
+              }
+            />
           </div>
-          <div className="space-y-6">
-            {selectedCoachingSession ? (
-              <PremiumCard>
-                <CardHeader>
+          <div className="grid gap-3 xl:grid-cols-[0.72fr_1.28fr]">
+            <div className="space-y-2.5">
+              {data.coachingSessions.map((session: any) => (
+                <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-emerald-400/30 bg-emerald-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <CardTitle className="text-white">{selectedCoachingSession.title}</CardTitle>
-                      <CardDescription className="mt-2 text-slate-400">{selectedCoachingSession.notes}</CardDescription>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching session</p>
+                      <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
+                      <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
                     </div>
-                    <StatusBadge value={selectedCoachingSession.status} />
+                    <StatusBadge value={session.status} />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
-                    <div className="mt-2 grid gap-3 md:grid-cols-2">
-                      {selectedCoachingSession.actionPlan.map((step: any) => (
-                        <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
-                    <div className="mt-2 space-y-2">
-                      {selectedCoachingSession.auditTrail.map((entry: any) => (
-                        <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
-                          <p className="mt-1">{entry.detail}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </PremiumCard>
-            ) : null}
-            <WeeklyCoachingLogComposer {...managerWeeklyCoachingLogProps} onCreated={onUpdated} />
-            <WeeklyCoachingLogTimeline
-              title="Weekly coaching log history"
-              description="Managers can review every structured coaching field, confirm the simulated email-copy list, and track how the learner responds over time."
-              tenantId={data.tenant.id}
-              logs={data.weeklyCoachingLogs}
-              allowLogEditing
-              onUpdated={onUpdated}
-            />
-            <PremiumCard className="scroll-mt-24" id="manager-coach-oversight">
-              <CardHeader>
-                <CardTitle className="text-white">Coach direct-report oversight</CardTitle>
-                <CardDescription className="text-slate-400">Review the same direct-report coaching history the coach sees without leaving the manager workspace.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {data.coachCoverage.map((coverage: any) => {
-                  const filteredHistory = filterRetrainingHistoryByWindow(coverage.retrainingHistory ?? [], historyWindow);
-                  return (
-                    <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
-                          <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
-                        </div>
-                        <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
+                </button>
+              ))}
+            </div>
+            <div className="space-y-6">
+              {selectedCoachingSession ? (
+                <PremiumCard>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-white">{selectedCoachingSession.title}</CardTitle>
+                        <CardDescription className="mt-2 text-slate-400">{selectedCoachingSession.notes}</CardDescription>
                       </div>
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p><p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p><p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p><p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p><p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p></div>
+                      <StatusBadge value={selectedCoachingSession.status} />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
+                      <div className="mt-2 grid gap-3 md:grid-cols-2">
+                        {selectedCoachingSession.actionPlan.map((step: any) => (
+                          <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
+                        ))}
                       </div>
-                      <div className="mt-4 space-y-3">
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
-                              <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button type="button" variant={historyWindow === "week" ? "default" : "outline"} className={historyWindow === "week" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("week")}>Week</Button>
-                              <Button type="button" variant={historyWindow === "month" ? "default" : "outline"} className={historyWindow === "month" ? "rounded-full bg-white text-slate-950 hover:bg-slate-100" : "rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white"} onClick={() => setHistoryWindow("month")}>Month</Button>
-                              <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200 hover:bg-white/12 hover:text-white" onClick={() => exportRetrainingHistory(coverage.directReport.name, filteredHistory)} disabled={!filteredHistory.length}>Export CSV</Button>
-                            </div>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
+                      <div className="mt-2 space-y-2">
+                        {selectedCoachingSession.auditTrail.map((entry: any) => (
+                          <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
+                            <p className="mt-1">{entry.detail}</p>
                           </div>
-                        </div>
-                        <RetrainingHistorySection title="Targeted retraining history" description="Managers can review the current retraining outcome, then export the filtered completion history with completion dates and assigning roles without leaving the coach-oversight lane." assignments={filteredHistory} emptyLabel={`No retraining completions fall inside the selected ${historyWindow} window yet.`} launchRole="manager" />
+                        ))}
                       </div>
                     </div>
-                  );
-                })}
-                <WeeklyCoachingLogTimeline
-                  title="Coach-lane direct-report logs"
-                  description="This mirrored timeline lets managers review the same direct-report coaching history the coach is working from without leaving the manager workspace."
-                  tenantId={data.tenant.id}
-                  logs={data.coachCoverage.flatMap((coverage: any) => coverage.weeklyCoachingLogs)}
-                  allowLogEditing
-                  onUpdated={onUpdated}
-                />
-              </CardContent>
-            </PremiumCard>
+                  </CardContent>
+                </PremiumCard>
+              ) : null}
+            </div>
           </div>
         </TabsContent>
 

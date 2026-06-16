@@ -462,6 +462,36 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("className=\"col-span-full scroll-mt-24\"");
   });
 
+  it("condenses the manager Coaching mode to Coach Studio's preview-to-popout pattern with the two functional changes (MGR6)", () => {
+    const coachingStart = trainingViewSource.indexOf("id=\"manager-coaching-lane\"");
+    const coachingEnd = trainingViewSource.indexOf("id=\"manager-documentation-lane\"");
+    const coachingLane = trainingViewSource.slice(coachingStart, coachingEnd);
+
+    // UI: the inline weekly-coaching-log form and the duplicate direct-report timeline are gone from the lane.
+    expect(coachingLane).not.toContain("<WeeklyCoachingLogComposer {...managerWeeklyCoachingLogProps}");
+    expect(coachingLane).not.toContain("Coach-lane direct-report logs");
+    // History, oversight, and push-training are now popup launcher cards (preview -> popout).
+    expect(coachingLane).toContain("Review coaching history");
+    expect(coachingLane).toContain("buttonLabel=\"Open coaching history\"");
+    expect(coachingLane).toContain("buttonLabel=\"Open coach oversight\"");
+    expect(coachingLane).toContain("<PushCoachTrainingCard");
+    // The weekly one-on-one still opens only via its popup launcher.
+    expect(coachingLane).toContain("buttonLabel=\"Open weekly one-on-one\"");
+    // The coaching-session cards + selected-session preview remain as the lane's at-a-glance content.
+    expect(coachingLane).toContain("Coaching session");
+    expect(coachingLane).toContain("Audit trail");
+
+    // Functional change 1: managers see the AI suggestion read-only; approve/override gated to non-managers.
+    expect(trainingViewSource).toContain("{actorRole !== \"manager\" ? (");
+    // The approve/override controls still ship for the coach role (Coach Studio unchanged).
+    expect(trainingViewSource).toContain("Approve guidance");
+    expect(trainingViewSource).toContain("Override suggestion");
+
+    // Functional change 2: the manager pushes coach trainings (select a coach + a library asset).
+    expect(trainingViewSource).toContain("function PushCoachTrainingCard");
+    expect(trainingViewSource).toContain("Push training to coach");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
