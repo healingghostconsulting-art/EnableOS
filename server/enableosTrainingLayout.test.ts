@@ -520,6 +520,21 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Use this shared guide to orient new users");
   });
 
+  it("gives Manager Documentation the preview-to-popout treatment and hides the stale override pill for managers (MGR7)", () => {
+    // The inline review-log form + inline history are now launcher cards that open in focused popups.
+    expect(trainingViewSource).toContain("title=\"Write a coaching log\"");
+    expect(trainingViewSource).toContain("buttonLabel=\"Open coaching log composer\"");
+    expect(trainingViewSource).toContain("title=\"Review log history\"");
+    expect(trainingViewSource).toContain("buttonLabel=\"Open review history\"");
+    // The documentation lane stacks launchers over reference content (not the old two-column inline layout).
+    expect(trainingViewSource).toContain("id=\"manager-documentation-lane\" className=\"mt-0 space-y-6 scroll-mt-24\"");
+    // The composer popup closes itself on save.
+    expect(trainingViewSource).toContain("onCreated={() => { close(); onUpdated?.(); }}");
+    // Cosmetic: the "Override enabled" pill is gated off for managers but kept for coaches.
+    expect(trainingViewSource).toContain("actorRole !== \"manager\" ? <Badge");
+    expect(trainingViewSource).toContain("Override enabled");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");

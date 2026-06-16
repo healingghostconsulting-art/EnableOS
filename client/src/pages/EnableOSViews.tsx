@@ -1935,7 +1935,7 @@ function GuidanceActionPanel({
             <CardTitle className="text-white">AI coaching suggestion</CardTitle>
             <CardDescription className="max-w-2xl text-slate-300/80">Explainable rationale with human override and targeted retraining delivery.</CardDescription>
           </div>
-          <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-200">Override enabled</Badge>
+          {actorRole !== "manager" ? <Badge className="rounded-full border-white/10 bg-white/8 px-3 py-1 text-slate-200">Override enabled</Badge> : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -10395,8 +10395,55 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
           </div>
         </TabsContent>
 
-        <TabsContent value="documentation" id="manager-documentation-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr] scroll-mt-24">
-          <div className="space-y-6">
+        <TabsContent value="documentation" id="manager-documentation-lane" className="mt-0 space-y-6 scroll-mt-24">
+          <div className="grid gap-2.5 md:grid-cols-2">
+            <CoachLaneActionCard
+              eyebrow="Manager documentation"
+              title="Write a coaching log"
+              description="Open a focused writing surface to record a one-on-one, quarterly, or annual coaching log on the direct-report record."
+              accent="gold"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open coaching log composer"
+                  dialogTitle="Write a one-on-one, quarterly, or annual coaching log"
+                  dialogDescription="Record the structured coaching log on the direct-report record without leaving the documentation lane."
+                  buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+                  renderContent={(close) => (
+                    <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={data.directReport.id} authorRole="manager" title="Write a one-on-one, quarterly, or annual coaching log" onCreated={() => { close(); onUpdated?.(); }} />
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Review history"
+              title="Review log history"
+              description="Open manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance cadence."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open review history"
+                  dialogTitle="Structured review history"
+                  dialogDescription="Manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance cadence."
+                  renderContent={() => (
+                    <div className="space-y-3">
+                      {data.reviewLogs.map((entry: any) => (
+                        <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h4 className="text-lg font-medium text-white">{entry.title}</h4>
+                              <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+                            </div>
+                            <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                          </div>
+                          <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                />
+              }
+            />
+          </div>
+          <div className="grid gap-6 xl:grid-cols-2">
             <PremiumCard>
               <CardHeader>
                 <CardTitle className="text-white">Auto-generated learning documentation</CardTitle>
@@ -10411,29 +10458,6 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               description="Review packets and coaching evidence can now blend tenant imports with CHCG governance references."
               resources={data.workflowLibraryMix.documentationResources}
             />
-          </div>
-          <div className="space-y-6">
-            <ReviewLogComposer tenantId={data.tenant.id} subjectUserId={data.directReport.id} authorRole="manager" title="Write a one-on-one, quarterly, or annual coaching log" onCreated={onUpdated} />
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Structured review history</CardTitle>
-                <CardDescription className="text-slate-400">Manager-authored logs and leadership checkpoints tied to the learner record and CHCG performance cadence.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {data.reviewLogs.map((entry: any) => (
-                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
-                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
-                      </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
-                    </div>
-                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </PremiumCard>
           </div>
         </TabsContent>
 
