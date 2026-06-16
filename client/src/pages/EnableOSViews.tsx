@@ -3211,17 +3211,13 @@ export function MissionHubView() {
   const role = viewerAccess.data?.grant.role ?? "learner";
   const tenantName = viewerAccess.data?.tenant.name ?? "your program";
   const missionHubContentByRole: Record<string, {
-    eyebrow: string;
     title: string;
-    description: string;
     activeGoals: string[];
     keyMilestones: string[];
     progress: Array<{ label: string; value: string }>;
   }> = {
     platform_admin: {
-      eyebrow: "Platform oversight",
       title: "Protect the operating system across every workspace.",
-      description: "Track platform health, governance completion, and the next oversight decision required to keep client delivery stable.",
       activeGoals: [
         "Keep governance signals reviewed before client launches.",
         "Confirm tenant-level access and role routing remain correctly scoped.",
@@ -3239,9 +3235,7 @@ export function MissionHubView() {
       ],
     },
     client_admin: {
-      eyebrow: "Client control",
       title: "Coordinate brand, access, and client-readiness work.",
-      description: "Keep client configuration aligned while supporting the reporting, manager, coach, and learner flows that depend on clean setup.",
       activeGoals: [
         "Confirm white-label configuration is current.",
         "Validate workspace entitlements before the next coaching cycle.",
@@ -3259,9 +3253,7 @@ export function MissionHubView() {
       ],
     },
     executive: {
-      eyebrow: "Reporting hub",
       title: "Focus the program on lift, proof, and risk.",
-      description: "Start with reporting signals, then move into trends, risk, and documentation only when a decision needs deeper proof.",
       activeGoals: [
         "Close the readiness gap to target.",
         "Review QA movement before expanding intervention volume.",
@@ -3279,9 +3271,7 @@ export function MissionHubView() {
       ],
     },
     manager: {
-      eyebrow: "Manager operations",
       title: "Guide interventions, coaching, and follow-through from one desk.",
-      description: "The mission hub should keep the current signal queue, coaching follow-ups, and direct-report status visible before you open deeper case detail.",
       activeGoals: [
         "Resolve the highest-severity open signal first.",
         "Move the next coaching follow-up into action.",
@@ -3299,9 +3289,7 @@ export function MissionHubView() {
       ],
     },
     coach: {
-      eyebrow: "Coach studio",
       title: "Keep the learner, the log, and the next action together.",
-      description: "Open the coaching lane with one clear mission: capture the next coaching record, review the current learner focus, and connect it back to training evidence.",
       activeGoals: [
         "Document the next weekly coaching session.",
         "Confirm the learner's current training focus.",
@@ -3319,9 +3307,7 @@ export function MissionHubView() {
       ],
     },
     learner: {
-      eyebrow: "Learner journey",
       title: "Stay on the next mission and keep progress visible.",
-      description: "Mission Hub should show the next assigned action, the current milestone, and completion momentum before you open the detailed training or library screens.",
       activeGoals: [
         "Complete the current training assignment.",
         "Keep progress moving inside the active journey.",
