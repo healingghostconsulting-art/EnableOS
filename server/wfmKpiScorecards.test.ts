@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { aspirusKpiProfile, defaultKpiProfile, getKpiProfile, getKpiScorecard } from "../shared/kpiScorecards";
+import { aspirusKpiProfile, classifyKpi, defaultKpiProfile, formatKpiValue, getKpiProfile, getKpiScorecard, kpiStatusLabel, rollupKpiProfile } from "../shared/kpiScorecards";
 import { slideDecks, slideDeckForModuleId } from "../shared/slideManifest";
 
 describe("WFM & KPI training — data-driven scorecards", () => {
@@ -44,5 +44,54 @@ describe("WFM & KPI training — data-driven scorecards", () => {
     expect(source).toContain("activeScorecard ? (");
     expect(source).toContain("<KpiScorecard scorecard={activeScorecard}");
     expect(source).toContain("getKpiScorecard(kpiProfile, activeInteractiveVisual.scorecardId)");
+  });
+
+  it("classifies measurements R/Y/G from value vs bands across all three directions", () => {
+    // higher-is-better
+    expect(classifyKpi({ currentValue: 92, unit: "%", direction: "higher_is_better", target: 90, green: [90, 100], yellow: [85, 90] })).toBe("green");
+    expect(classifyKpi({ currentValue: 87, unit: "%", direction: "higher_is_better", target: 90, green: [90, 100], yellow: [85, 90] })).toBe("yellow");
+    expect(classifyKpi({ currentValue: 80, unit: "%", direction: "higher_is_better", target: 90, green: [90, 100], yellow: [85, 90] })).toBe("red");
+    // lower-is-better
+    expect(classifyKpi({ currentValue: 3.5, unit: "min", direction: "lower_is_better", target: 4, green: [0, 4], yellow: [4, 4.5] })).toBe("green");
+    expect(classifyKpi({ currentValue: 4.3, unit: "min", direction: "lower_is_better", target: 4, green: [0, 4], yellow: [4, 4.5] })).toBe("yellow");
+    expect(classifyKpi({ currentValue: 6, unit: "min", direction: "lower_is_better", target: 4, green: [0, 4], yellow: [4, 4.5] })).toBe("red");
+    // in-range
+    expect(classifyKpi({ currentValue: 80, unit: "%", direction: "in_range", target: 80, green: [75, 85], yellow: [70, 90] })).toBe("green");
+    expect(classifyKpi({ currentValue: 88, unit: "%", direction: "in_range", target: 80, green: [75, 85], yellow: [70, 90] })).toBe("yellow");
+    expect(classifyKpi({ currentValue: 95, unit: "%", direction: "in_range", target: 80, green: [75, 85], yellow: [70, 90] })).toBe("red");
+    // green wins on a shared boundary value
+    expect(classifyKpi({ currentValue: 80, unit: "%", direction: "higher_is_better", target: 80, green: [80, 100], yellow: [72, 80] })).toBe("green");
+  });
+
+  it("seeds Aspirus with a believable green/yellow/red mix and a red overall rollup", () => {
+    const rollup = rollupKpiProfile(aspirusKpiProfile);
+    expect(rollup.total).toBe(12);
+    expect(rollup).toMatchObject({ green: 6, yellow: 4, red: 2, overall: "red" });
+    // Spot-check a representative status in each band.
+    const find = (id: string, pred: (m: string) => boolean) => getKpiScorecard(aspirusKpiProfile, id)!.rows.find((r) => pred(r.metric))!;
+    expect(classifyKpi(find("patient-service", (m) => m === "Service Level").measurement!)).toBe("yellow");
+    expect(classifyKpi(find("patient-service", (m) => m === "Abandonment Rate %").measurement!)).toBe("red");
+    expect(classifyKpi(find("patient-service", (m) => m.startsWith("ASA")).measurement!)).toBe("green");
+  });
+
+  it("formats values/labels and keeps the default template measurement-free", () => {
+    expect(formatKpiValue({ currentValue: 78, unit: "%", direction: "higher_is_better", target: 80, green: [80, 100], yellow: [72, 80] })).toBe("78%");
+    expect(formatKpiValue({ currentValue: 27, unit: "sec", direction: "lower_is_better", target: 30, green: [0, 30], yellow: [30, 40] })).toBe("27 sec");
+    expect(kpiStatusLabel("green")).toBe("On target");
+    expect(kpiStatusLabel("yellow")).toBe("Watch");
+    expect(kpiStatusLabel("red")).toBe("Off target");
+    // The blank template carries no demo measurements, so its rollup is empty.
+    expect(defaultKpiProfile.scorecards.every((c) => c.rows.every((r) => r.measurement === undefined))).toBe(true);
+    expect(rollupKpiProfile(defaultKpiProfile).total).toBe(0);
+  });
+
+  it("surfaces the team KPI board as a Manager Ops mode tab, leaving the training slides in reference mode", () => {
+    const source = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
+    expect(source).toContain("{ value: \"kpi-board\", label: \"KPI board\" }");
+    expect(source).toContain("id=\"manager-kpi-board\"");
+    expect(source).toContain("const kpiRollup = rollupKpiProfile(kpiBoardProfile)");
+    expect(source).toContain("<KpiScorecard key={card.id} scorecard={card} clientName={kpiBoardProfile.clientName} note={kpiBoardProfile.note} showStatus />");
+    // Training-slide scorecards stay in reference mode (no showStatus prop).
+    expect(source).toContain("<KpiScorecard scorecard={activeScorecard} clientName={kpiProfile.clientName} note={kpiProfile.note} />");
   });
 });

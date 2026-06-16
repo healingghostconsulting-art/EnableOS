@@ -10,8 +10,8 @@ import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartToo
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { KpiScorecard } from "@/components/KpiScorecard";
-import { getKpiProfile, getKpiScorecard } from "../../../shared/kpiScorecards";
+import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
+import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -10091,7 +10091,7 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
 }
 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
-  const [activeTab, setActiveTab] = useState<"interventions" | "coaching" | "documentation" | "notifications">("interventions");
+  const [activeTab, setActiveTab] = useState<"kpi-board" | "interventions" | "coaching" | "documentation" | "notifications">("interventions");
   const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
   const [selectedInterventionId, setSelectedInterventionId] = useState<string>(data.interventions[0]?.id ?? "");
   const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
@@ -10142,6 +10142,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
     { label: "Direct report readiness", value: data.directReport.readinessScore, sub: data.directReport.name, icon: <ShieldCheck className="h-4 w-4" />, onClick: () => openManagerView("coaching", "manager-coach-oversight") },
   ];
 
+  // Team KPI board (WFM & KPI). Tenant resolution stays as-is (always Aspirus);
+  // real multi-tenant mapping is a human-engineer item — see shared/kpiScorecards.ts.
+  const kpiBoardProfile = getKpiProfile();
+  const kpiRollup = rollupKpiProfile(kpiBoardProfile);
+
   return (
     <WorkspaceShell
       title="Manager Ops"
@@ -10149,15 +10154,39 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       modesLabel="Manager modes"
       modesSubtitle="Choose a tab to work interventions, coaching, documentation, or alerts."
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "interventions" | "coaching" | "documentation" | "notifications")}
+      onTabChange={(value) => setActiveTab(value as "kpi-board" | "interventions" | "coaching" | "documentation" | "notifications")}
       stats={managerWorkspaceStats}
       tabs={[
+        { value: "kpi-board", label: "KPI board" },
         { value: "interventions", label: "Interventions" },
         { value: "coaching", label: "Coaching" },
         { value: "documentation", label: "Documentation" },
         { value: "notifications", label: "Alerts" },
       ]}
     >
+        <TabsContent value="kpi-board" id="manager-kpi-board" className="mt-0 space-y-4 scroll-mt-24">
+          <div className="rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Team KPI health · {kpiBoardProfile.clientName}</p>
+                <h3 className="mt-1 text-lg font-medium text-white">Overall RAG rollup</h3>
+                <p className="mt-1 text-sm text-slate-400">{kpiRollup.total} tracked KPIs across Patient Service, Efficiency, and WFM.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <KpiStatusPill status={kpiRollup.overall} label={`Team ${kpiStatusLabel(kpiRollup.overall)}`} />
+                <span className="rounded-full border border-emerald-300/30 bg-emerald-400/12 px-2.5 py-1 text-[11px] font-medium text-emerald-100">{kpiRollup.green} on target</span>
+                <span className="rounded-full border border-amber-300/30 bg-amber-400/12 px-2.5 py-1 text-[11px] font-medium text-amber-100">{kpiRollup.yellow} watch</span>
+                <span className="rounded-full border border-rose-400/30 bg-rose-500/12 px-2.5 py-1 text-[11px] font-medium text-rose-100">{kpiRollup.red} off target</span>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            {kpiBoardProfile.scorecards.map((card) => (
+              <KpiScorecard key={card.id} scorecard={card} clientName={kpiBoardProfile.clientName} note={kpiBoardProfile.note} showStatus />
+            ))}
+          </div>
+        </TabsContent>
+
         <TabsContent value="interventions" id="manager-interventions-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
           <div id="manager-signal-trend" className="col-span-full scroll-mt-24">
             <ChartFrame title="Signal severity feed" description="Simulated KPI and QA signals tied to workflow precision, service foundations, and manager-led intervention logic.">
