@@ -3343,69 +3343,40 @@ export function MissionHubView() {
 
   return (
     <Surface>
-      <SectionShell
-        eyebrow={missionHubContent.eyebrow}
+      <WorkspaceShell
         title="Mission Hub"
-        description={missionHubContent.description}
+        subtitle={missionHubContent.title}
         actions={
           <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
             {tenantName}
           </Badge>
         }
+        stats={missionHubContent.progress.map((entry) => ({ label: entry.label, value: entry.value }))}
+        statsGridClassName="grid flex-1 gap-1.5 sm:grid-cols-3"
       >
-        <div className="space-y-6">
-          <div className="mission-hero-card overflow-hidden rounded-[1.9rem] border border-white/10 bg-[linear-gradient(180deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.18)]">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)] xl:items-start">
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <Badge className="mission-chip rounded-full border-cyan-300/20 bg-cyan-300/12 text-cyan-50">Current program mission</Badge>
-                  <span className="command-pill px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-50/80">{missionHubContent.eyebrow}</span>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Role-relevant summary</p>
-                  <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">{missionHubContent.title}</h2>
-                  <p className="max-w-4xl text-sm leading-6 text-slate-200">{missionHubContent.description}</p>
-                </div>
-              </div>
-              <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Progress status</p>
-                <div className="mt-3 space-y-3">
-                  {missionHubContent.progress.map((entry) => (
-                    <div key={entry.label} className="rounded-[1rem] border border-[#1B303C]/10 bg-white px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-[#6B7E8A]">{entry.label}</p>
-                      <p className="mt-2 text-lg font-semibold text-[#10212B]">{entry.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="grid gap-6 xl:grid-cols-2">
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Active goals</CardTitle>
-                <CardDescription className="text-slate-400">The current role should only see the goals that matter to the selected workspace context.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {missionHubContent.activeGoals.map((goal) => (
-                  <div key={goal} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{goal}</div>
-                ))}
-              </CardContent>
-            </PremiumCard>
-            <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Key milestones</CardTitle>
-                <CardDescription className="text-slate-400">These milestones keep the next checkpoint and progress status visible before the user drills into a deeper workspace.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {missionHubContent.keyMilestones.map((milestone) => (
-                  <div key={milestone} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{milestone}</div>
-                ))}
-              </CardContent>
-            </PremiumCard>
-          </div>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Active goals</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {missionHubContent.activeGoals.map((goal) => (
+                <div key={goal} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{goal}</div>
+              ))}
+            </CardContent>
+          </PremiumCard>
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Key milestones</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {missionHubContent.keyMilestones.map((milestone) => (
+                <div key={milestone} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{milestone}</div>
+              ))}
+            </CardContent>
+          </PremiumCard>
         </div>
-      </SectionShell>
+      </WorkspaceShell>
     </Surface>
   );
 }

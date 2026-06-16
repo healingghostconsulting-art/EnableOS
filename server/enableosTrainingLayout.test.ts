@@ -492,6 +492,21 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Push training to coach");
   });
 
+  it("routes Mission Hub through WorkspaceShell as a tab-less overview and strips its self-narration (COH1)", () => {
+    const shellSource = readFileSync(join(process.cwd(), "client/src/components/WorkspaceShell.tsx"), "utf8");
+    // The shell now supports a tab-less overview: tabs are optional and the tabs band is skipped when empty.
+    expect(shellSource).toContain("tabs = []");
+    expect(shellSource).toContain("tabs.length > 0 ? (");
+    // Mission Hub keeps the shared slim header + dark stat row (no SectionShell eyebrow hero, no fake modes).
+    expect(trainingViewSource).toContain("title=\"Mission Hub\"");
+    expect(trainingViewSource).toContain("stats={missionHubContent.progress.map((entry) => ({ label: entry.label, value: entry.value }))}");
+    // The big mission hero (the chip + meta-label unique to it) and its self-narrating copy are gone.
+    expect(trainingViewSource).not.toContain("Role-relevant summary");
+    expect(trainingViewSource).not.toContain("Current program mission");
+    expect(trainingViewSource).not.toContain("The current role should only see the goals that matter");
+    expect(trainingViewSource).not.toContain("These milestones keep the next checkpoint and progress status visible");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");

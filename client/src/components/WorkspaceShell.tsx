@@ -6,6 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
  * high-contrast stat-row band, and the gated mode tabs. Reused by /coach and
  * /learner so the two workspaces read as one product. The markup mirrors Coach
  * Studio exactly so routing /coach through it is a non-visual refactor.
+ *
+ * Overview pages with no modes (e.g. Mission Hub) can omit `tabs`; the tabs band
+ * is then skipped and `children` render directly under the stat row, keeping the
+ * shared slim header + stat-row design language without a hollow modes strip.
  */
 export interface WorkspaceStat {
   label: string;
@@ -30,7 +34,7 @@ export function WorkspaceShell({
   title,
   subtitle,
   stats,
-  tabs,
+  tabs = [],
   activeTab,
   onTabChange,
   modesLabel,
@@ -45,10 +49,11 @@ export function WorkspaceShell({
   title: string;
   subtitle: string;
   stats: WorkspaceStat[];
-  tabs: WorkspaceTab[];
-  activeTab: string;
-  onTabChange: (value: string) => void;
-  modesLabel: string;
+  /** Mode tabs. Omit (or pass []) for an overview page with no modes. */
+  tabs?: WorkspaceTab[];
+  activeTab?: string;
+  onTabChange?: (value: string) => void;
+  modesLabel?: string;
   modesSubtitle?: string;
   /** Optional leading element inside the stat band (e.g. the current-learner selector). */
   statsLead?: ReactNode;
@@ -103,29 +108,33 @@ export function WorkspaceShell({
             </div>
           </div>
           {betweenStatsAndTabs}
-          <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-2.5">
-            <div className="command-band px-4 py-2.5 md:px-4.5">
-              <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">{modesLabel}</p>
-                  {modesSubtitle ? <p className="mt-1 text-sm leading-5 text-slate-700">{modesSubtitle}</p> : null}
+          {tabs.length > 0 ? (
+            <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-2.5">
+              <div className="command-band px-4 py-2.5 md:px-4.5">
+                <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">{modesLabel}</p>
+                    {modesSubtitle ? <p className="mt-1 text-sm leading-5 text-slate-700">{modesSubtitle}</p> : null}
+                  </div>
+                  <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
+                    {tabs.map((tab) => (
+                      <TabsTrigger key={tab.value} value={tab.value} className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">{tab.label}</TabsTrigger>
+                    ))}
+                  </TabsList>
                 </div>
-                <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
-                  {tabs.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value} className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">{tab.label}</TabsTrigger>
-                  ))}
-                </TabsList>
               </div>
-            </div>
-            {tabs.map((tab) =>
-              tab.content !== undefined && activeTab === tab.value ? (
-                <TabsContent key={tab.value} value={tab.value} id={tab.contentId} className={tab.contentClassName}>
-                  {tab.content}
-                </TabsContent>
-              ) : null,
-            )}
-            {children}
-          </Tabs>
+              {tabs.map((tab) =>
+                tab.content !== undefined && activeTab === tab.value ? (
+                  <TabsContent key={tab.value} value={tab.value} id={tab.contentId} className={tab.contentClassName}>
+                    {tab.content}
+                  </TabsContent>
+                ) : null,
+              )}
+              {children}
+            </Tabs>
+          ) : (
+            children
+          )}
         </div>
       </div>
     </div>
