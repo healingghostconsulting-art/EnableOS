@@ -10226,16 +10226,24 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         </TabsContent>
 
         <TabsContent value="coaching" id="manager-coaching-lane" className="mt-0 space-y-3 scroll-mt-24">
-          <GuidanceActionPanel
-            tenantId={data.tenant.id}
-            suggestion={data.aiSuggestion}
-            catalog={data.retrainingCatalog}
-            assignments={data.activeRetrainingAssignments}
-            actorRole="manager"
-            learnerName={data.directReport.name}
-            onUpdated={onUpdated}
-          />
           <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4 scroll-mt-24">
+            <CoachLaneActionCard
+              eyebrow="AI guidance"
+              title="Review the AI coaching suggestion"
+              description="Inspect the current AI-guided retraining suggestion and the live assignment as read-only context."
+              accent="emerald"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open AI guidance"
+                  dialogTitle="AI coaching suggestion"
+                  dialogDescription="Review the explainable rationale and the live retraining assignment for the direct report."
+                  dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl"
+                  renderContent={() => (
+                    <GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole="manager" learnerName={data.directReport.name} onUpdated={onUpdated} />
+                  )}
+                />
+              }
+            />
             <CoachLaneActionCard
               eyebrow="Manager coaching"
               title="Complete the weekly one-on-one"

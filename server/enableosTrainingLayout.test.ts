@@ -535,6 +535,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Override enabled");
   });
 
+  it("condenses the manager AI coaching suggestion into an Open AI guidance launcher (MGR8)", () => {
+    // The inline multi-line GuidanceActionPanel no longer sits at the top of the coaching lane.
+    expect(trainingViewSource).not.toContain("<GuidanceActionPanel\n            tenantId={data.tenant.id}\n            suggestion={data.aiSuggestion}\n            catalog={data.retrainingCatalog}\n            assignments={data.activeRetrainingAssignments}\n            actorRole=\"manager\"");
+    // It is now a read-only preview card that opens the guidance panel in a focused popup.
+    expect(trainingViewSource).toContain("title=\"Review the AI coaching suggestion\"");
+    expect(trainingViewSource).toContain("dialogTitle=\"AI coaching suggestion\"");
+    expect(trainingViewSource).toContain("<GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole=\"manager\" learnerName={data.directReport.name} onUpdated={onUpdated} />");
+  });
+
   it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
     // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
