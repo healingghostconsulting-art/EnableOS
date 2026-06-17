@@ -10565,9 +10565,9 @@ function LeaderboardRow({ entry, isCurrent }: { entry: LeaderboardEntry; isCurre
         </div>
         <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
           {LEADERBOARD_SIGNALS.map((signal) => (
-            <span key={signal.key} className="text-[11px] text-slate-400">
-              <span className="text-slate-500">{signal.label}</span>{" "}
-              <span className="font-medium tabular-nums text-slate-200">{Math.round(entry.breakdown[signal.key])}</span>
+            <span key={signal.key} className="text-[11px] text-slate-300">
+              <span className="text-slate-400">{signal.label}</span>{" "}
+              <span className="font-semibold tabular-nums text-white">{Math.round(entry.breakdown[signal.key])}</span>
             </span>
           ))}
         </div>
