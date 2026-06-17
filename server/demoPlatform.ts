@@ -22,6 +22,12 @@ export type DemoUser = {
   team: string;
   avatarFallback: string;
   readinessScore: number;
+  // Leaderboard signals (LEAD2). Optional so non-learner roles can omit them and
+  // the accessor in shared/leaderboardConfig.ts falls back to 0 defensively.
+  journeyProgressPct?: number;
+  completedRatioPct?: number;
+  quizFirstPassPct?: number;
+  onTimeStreakWeeks?: number;
 };
 
 export type MetricKey = "aht" | "qaScore" | "csat" | "adherence";
@@ -453,20 +459,27 @@ const users: DemoUser[] = [
   { id: "u-exec-1", tenantId: "atlas-operations", name: "Alicia Warren", email: "alicia.warren@enterpriseworkspace.demo", title: "VP, Workforce Performance", role: "executive", team: "Enterprise", avatarFallback: "AW", readinessScore: 84 },
   { id: "u-mgr-1", tenantId: "atlas-operations", name: "Marcus Bell", email: "marcus.bell@enterpriseworkspace.demo", title: "Performance Enablement Manager", role: "manager", team: "Core Service Delivery", avatarFallback: "MB", readinessScore: 78 },
   { id: "u-coach-1", tenantId: "atlas-operations", name: "Renee Lawson", email: "renee.lawson@enterpriseworkspace.demo", title: "Frontline Coach Supervisor", role: "coach", team: "Core Service Delivery", avatarFallback: "RL", readinessScore: 79 },
-  { id: "u-learn-1", tenantId: "atlas-operations", name: "Nina Patel", email: "nina.patel@enterpriseworkspace.demo", title: "Senior Service Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "NP", readinessScore: 72 },
-  { id: "u-learn-1b", tenantId: "atlas-operations", name: "Avery Chen", email: "avery.chen@enterpriseworkspace.demo", title: "Service Specialist II", role: "learner", team: "Core Service Delivery", avatarFallback: "AC", readinessScore: 76 },
-  { id: "u-learn-1c", tenantId: "atlas-operations", name: "Maya Johnson", email: "maya.johnson@enterpriseworkspace.demo", title: "Customer Resolution Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "MJ", readinessScore: 68 },
+  { id: "u-learn-1", tenantId: "atlas-operations", name: "Nina Patel", email: "nina.patel@enterpriseworkspace.demo", title: "Senior Service Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "NP", readinessScore: 72, journeyProgressPct: 71, completedRatioPct: 50, quizFirstPassPct: 62, onTimeStreakWeeks: 8 },
+  { id: "u-learn-1b", tenantId: "atlas-operations", name: "Avery Chen", email: "avery.chen@enterpriseworkspace.demo", title: "Service Specialist II", role: "learner", team: "Core Service Delivery", avatarFallback: "AC", readinessScore: 76, journeyProgressPct: 71, completedRatioPct: 90, quizFirstPassPct: 65, onTimeStreakWeeks: 7 },
+  { id: "u-learn-1c", tenantId: "atlas-operations", name: "Maya Johnson", email: "maya.johnson@enterpriseworkspace.demo", title: "Customer Resolution Specialist", role: "learner", team: "Core Service Delivery", avatarFallback: "MJ", readinessScore: 68, journeyProgressPct: 71, completedRatioPct: 60, quizFirstPassPct: 73, onTimeStreakWeeks: 6 },
   { id: "u-admin-1", tenantId: "atlas-operations", name: "Jared Kim", email: "jared.kim@enterpriseworkspace.demo", title: "Client Admin", role: "client_admin", team: "Enablement Governance", avatarFallback: "JK", readinessScore: 90 },
   { id: "u-exec-2", tenantId: "lighthouse-finance", name: "Leah Porter", email: "leah.porter@regulatedworkspace.demo", title: "Chief Service Officer", role: "executive", team: "Enterprise", avatarFallback: "LP", readinessScore: 86 },
   { id: "u-mgr-2", tenantId: "lighthouse-finance", name: "Darius Cole", email: "darius.cole@regulatedworkspace.demo", title: "Quality and Coaching Supervisor", role: "manager", team: "Resolution Operations", avatarFallback: "DC", readinessScore: 80 },
   { id: "u-coach-2", tenantId: "lighthouse-finance", name: "Monica Ellis", email: "monica.ellis@regulatedworkspace.demo", title: "Coaching Supervisor", role: "coach", team: "Resolution Operations", avatarFallback: "ME", readinessScore: 78 },
-  { id: "u-learn-2", tenantId: "lighthouse-finance", name: "Emily Ross", email: "emily.ross@regulatedworkspace.demo", title: "Client Support Specialist", role: "learner", team: "Resolution Operations", avatarFallback: "ER", readinessScore: 74 },
+  { id: "u-learn-2", tenantId: "lighthouse-finance", name: "Emily Ross", email: "emily.ross@regulatedworkspace.demo", title: "Client Support Specialist", role: "learner", team: "Resolution Operations", avatarFallback: "ER", readinessScore: 74, journeyProgressPct: 66, completedRatioPct: 70, quizFirstPassPct: 62, onTimeStreakWeeks: 8 },
   { id: "u-admin-2", tenantId: "lighthouse-finance", name: "Tanya Brooks", email: "tanya.brooks@regulatedworkspace.demo", title: "Client Admin", role: "client_admin", team: "Operational Governance", avatarFallback: "TB", readinessScore: 91 },
   { id: "u-exec-3", tenantId: "horizon-commerce", name: "Devon Hayes", email: "devon.hayes@horizoncommerce.demo", title: "VP, Experience Operations", role: "executive", team: "Enterprise", avatarFallback: "DH", readinessScore: 81 },
   { id: "u-mgr-3", tenantId: "horizon-commerce", name: "Sofia Nguyen", email: "sofia.nguyen@horizoncommerce.demo", title: "Omnichannel Team Leader", role: "manager", team: "Digital Care", avatarFallback: "SN", readinessScore: 76 },
   { id: "u-coach-3", tenantId: "horizon-commerce", name: "Caleb Morris", email: "caleb.morris@horizoncommerce.demo", title: "Customer Care Coach", role: "coach", team: "Digital Care", avatarFallback: "CM", readinessScore: 77 },
-  { id: "u-learn-3", tenantId: "horizon-commerce", name: "Jordan Blake", email: "jordan.blake@horizoncommerce.demo", title: "Support Associate", role: "learner", team: "Digital Care", avatarFallback: "JB", readinessScore: 70 },
+  { id: "u-learn-3", tenantId: "horizon-commerce", name: "Jordan Blake", email: "jordan.blake@horizoncommerce.demo", title: "Support Associate", role: "learner", team: "Digital Care", avatarFallback: "JB", readinessScore: 70, journeyProgressPct: 63, completedRatioPct: 65, quizFirstPassPct: 60, onTimeStreakWeeks: 6 },
   { id: "u-admin-3", tenantId: "horizon-commerce", name: "Priya Shah", email: "priya.shah@horizoncommerce.demo", title: "Client Admin", role: "client_admin", team: "Experience Systems", avatarFallback: "PS", readinessScore: 88 },
+  // Additional learners (LEAD2) so Team standings are meaningful: Resolution Operations → 4, Digital Care → 4.
+  { id: "u-learn-2b", tenantId: "lighthouse-finance", name: "Owen Bradley", email: "owen.bradley@regulatedworkspace.demo", title: "Client Support Specialist", role: "learner", team: "Resolution Operations", avatarFallback: "OB", readinessScore: 81, journeyProgressPct: 88, completedRatioPct: 95, quizFirstPassPct: 84, onTimeStreakWeeks: 8 },
+  { id: "u-learn-2c", tenantId: "lighthouse-finance", name: "Carla Devlin", email: "carla.devlin@regulatedworkspace.demo", title: "Resolution Specialist", role: "learner", team: "Resolution Operations", avatarFallback: "CD", readinessScore: 70, journeyProgressPct: 60, completedRatioPct: 55, quizFirstPassPct: 58, onTimeStreakWeeks: 4 },
+  { id: "u-learn-2d", tenantId: "lighthouse-finance", name: "Trent Walsh", email: "trent.walsh@regulatedworkspace.demo", title: "Client Support Associate", role: "learner", team: "Resolution Operations", avatarFallback: "TW", readinessScore: 65, journeyProgressPct: 45, completedRatioPct: 40, quizFirstPassPct: 50, onTimeStreakWeeks: 3 },
+  { id: "u-learn-3b", tenantId: "horizon-commerce", name: "Hannah Kim", email: "hannah.kim@horizoncommerce.demo", title: "Support Associate", role: "learner", team: "Digital Care", avatarFallback: "HK", readinessScore: 73, journeyProgressPct: 70, completedRatioPct: 72, quizFirstPassPct: 68, onTimeStreakWeeks: 7 },
+  { id: "u-learn-3c", tenantId: "horizon-commerce", name: "Liam Foster", email: "liam.foster@horizoncommerce.demo", title: "Care Associate", role: "learner", team: "Digital Care", avatarFallback: "LF", readinessScore: 67, journeyProgressPct: 52, completedRatioPct: 48, quizFirstPassPct: 55, onTimeStreakWeeks: 5 },
+  { id: "u-learn-3d", tenantId: "horizon-commerce", name: "Gabriela Santos", email: "gabriela.santos@horizoncommerce.demo", title: "Senior Care Associate", role: "learner", team: "Digital Care", avatarFallback: "GS", readinessScore: 79, journeyProgressPct: 82, completedRatioPct: 88, quizFirstPassPct: 77, onTimeStreakWeeks: 8 },
 ];
 
 const journeys: LearningJourney[] = [
@@ -3274,7 +3287,31 @@ export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboar
   const learnerVisibleDocumentationEntries = getDocumentationEntries(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
   const learnerVisibleReviewLogs = getReviewLogs(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
 
+  // Leaderboard roster (LEAD2). Read-only projection over the seeded users — no seed
+  // values are mutated here. `team` is the current learner's team; `org` is every
+  // seeded learner so the Org-wide tab has a real population to rank.
+  // PRODUCTION: scope the org roster to the real organization/tenant boundary and
+  // resolve true team membership server-side (human-engineer item — same as our other
+  // multi-tenant flags). The demo intentionally spans tenants so both tabs are useful.
+  const allLearnerRoster = users.filter((entry) => entry.role === "learner").map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    team: entry.team,
+    tenantId: entry.tenantId,
+    readinessScore: entry.readinessScore,
+    journeyProgressPct: entry.journeyProgressPct,
+    completedRatioPct: entry.completedRatioPct,
+    quizFirstPassPct: entry.quizFirstPassPct,
+    onTimeStreakWeeks: entry.onTimeStreakWeeks,
+  }));
+  const leaderboard = {
+    currentLearnerId: learner.id,
+    teamRoster: allLearnerRoster.filter((entry) => entry.team === learner.team),
+    orgRoster: allLearnerRoster,
+  };
+
   return {
+    leaderboard,
     tenant,
     branding,
     learner,

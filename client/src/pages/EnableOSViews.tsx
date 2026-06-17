@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
+import { rankLeaderboard, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +53,9 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Trophy,
+  Medal,
+  Award,
   Volume2,
   VolumeX,
   Users2,
@@ -10516,6 +10520,135 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   );
 }
 
+// Identity rule: the current learner sees their own full name; everyone else is
+// shown as first name + last initial ("Nina P.") for a lightly anonymized board.
+function leaderboardIdentity(name: string, isCurrent: boolean): string {
+  if (isCurrent) return name;
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0] ?? name;
+  const last = parts.length > 1 ? parts[parts.length - 1] : "";
+  return last ? `${first} ${last[0]}.` : first;
+}
+
+// Top-3 treatment from the semantic palette — icon + text label, never color alone.
+const LEADERBOARD_TOP3: Record<number, { cls: string; Icon: typeof Trophy; label: string }> = {
+  1: { cls: "border-amber-300/40 bg-amber-400/15 text-amber-100", Icon: Trophy, label: "1st" },
+  2: { cls: "border-slate-300/40 bg-slate-300/15 text-slate-100", Icon: Medal, label: "2nd" },
+  3: { cls: "border-orange-300/40 bg-orange-400/15 text-orange-100", Icon: Award, label: "3rd" },
+};
+
+const LEADERBOARD_SIGNALS: { key: "completions" | "quiz" | "readiness" | "streaks"; label: string }[] = [
+  { key: "completions", label: "Completions" },
+  { key: "quiz", label: "Quiz" },
+  { key: "readiness", label: "Readiness" },
+  { key: "streaks", label: "Streak" },
+];
+
+function LeaderboardRow({ entry, isCurrent }: { entry: LeaderboardEntry; isCurrent: boolean }) {
+  const top3 = LEADERBOARD_TOP3[entry.rank];
+  return (
+    <div className={`flex items-center gap-3 rounded-[1.2rem] border px-3 py-2.5 ${isCurrent ? "border-[#FCBC34]/60 bg-[#FCBC34]/10 shadow-[0_10px_28px_rgba(252,188,52,0.16)]" : "border-white/10 bg-white/5"}`}>
+      <div className="flex w-9 shrink-0 items-center justify-center">
+        {top3 ? (
+          <span className={`inline-flex items-center justify-center rounded-full border px-1.5 py-1.5 ${top3.cls}`} title={`${top3.label} place`}>
+            <top3.Icon className="h-4 w-4" aria-hidden="true" />
+          </span>
+        ) : (
+          <span className="text-sm font-semibold tabular-nums text-slate-400">{entry.rank}</span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className={`truncate text-sm font-semibold ${isCurrent ? "text-white" : "text-slate-200"}`}>{leaderboardIdentity(entry.name, isCurrent)}</p>
+          {isCurrent ? <span className="shrink-0 rounded-full border border-[#FCBC34]/50 bg-[#FCBC34]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCBC34]">You</span> : null}
+          {top3 ? <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">{top3.label}</span> : null}
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+          {LEADERBOARD_SIGNALS.map((signal) => (
+            <span key={signal.key} className="text-[11px] text-slate-400">
+              <span className="text-slate-500">{signal.label}</span>{" "}
+              <span className="font-medium tabular-nums text-slate-200">{Math.round(entry.breakdown[signal.key])}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-base font-semibold tabular-nums text-white">{entry.points}</p>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">pts</p>
+      </div>
+    </div>
+  );
+}
+
+function LearnerLeaderboard({ leaderboard }: { leaderboard: any }) {
+  const [scope, setScope] = useState<"team" | "org">("team");
+  const currentLearnerId: string = leaderboard?.currentLearnerId ?? "";
+  const roster = (scope === "team" ? leaderboard?.teamRoster : leaderboard?.orgRoster) ?? [];
+  const standings = rankLeaderboard(roster);
+  const me = standings.find((entry) => entry.id === currentLearnerId) ?? null;
+  const total = standings.length;
+  const nextUp = me ? (standings.find((entry) => entry.rank === me.rank - 1) ?? null) : null;
+  const gapToNext = me && nextUp ? nextUp.points - me.points : 0;
+
+  return (
+    <div className="space-y-4">
+      <PremiumCard>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Your standing · {scope === "team" ? "your team" : "org-wide"}</p>
+              {me ? (
+                <>
+                  <h3 className="mt-1 text-xl font-semibold text-white">You're #{me.rank} of {total} on {scope === "team" ? "your team" : "the org"}</h3>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {me.points} pts · {nextUp ? `${gapToNext} pts to #${nextUp.rank} (${leaderboardIdentity(nextUp.name, false)})` : "you're at the top — hold the lead"}
+                  </p>
+                </>
+              ) : (
+                <h3 className="mt-1 text-lg font-medium text-slate-300">No standing yet for this scope.</h3>
+              )}
+            </div>
+            {/* TODO(LEAD): no period data is seeded yet. The selector is intentionally inert
+                with a single all-time period; wire it to real time-bucketed standings once the
+                backend serves per-period signals. Do not fake interim periods. */}
+            <select disabled aria-label="Leaderboard period" className="cursor-not-allowed rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400 opacity-70">
+              <option>This program · all time</option>
+            </select>
+          </div>
+        </CardContent>
+      </PremiumCard>
+
+      <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+        {([["team", "My team"], ["org", "Org-wide"]] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setScope(value)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${scope === value ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {standings.map((entry) => (
+          <LeaderboardRow key={entry.id} entry={entry} isCurrent={entry.id === currentLearnerId} />
+        ))}
+      </div>
+
+      {/* Current learner pinned to the bottom so their rank stays visible below the fold. */}
+      {me ? (
+        <div className="sticky bottom-2 z-10">
+          <div className="rounded-[1.35rem] border border-[#FCBC34]/40 bg-slate-950/85 p-1.5 shadow-[0_18px_40px_rgba(2,8,23,0.5)] backdrop-blur">
+            <LeaderboardRow entry={me} isCurrent />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { data: any; onUpdated?: () => void; freshStart?: boolean; headerActions?: ReactNode }) {
   const learnerModules = data.activeJourney.modules;
   const primaryLearnerModule = learnerModules[0] ?? null;
@@ -10524,7 +10657,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"journey" | "reengagements" | "coaching" | "evidence">("journey");
+  const [activeTab, setActiveTab] = useState<"journey" | "leaderboard" | "reengagements" | "coaching" | "evidence">("journey");
   const utils = trpc.useUtils();
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
@@ -10589,12 +10722,13 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
       actions={headerActions}
       modesLabel="Learner modes"
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")}
+      onTabChange={(value) => setActiveTab(value as "journey" | "leaderboard" | "reengagements" | "coaching" | "evidence")}
       stats={learnerStats}
       statsGridClassName="grid flex-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
       subTruncate
       tabs={[
         { value: "journey", label: "Journey" },
+        { value: "leaderboard", label: "Leaderboard" },
         { value: "reengagements", label: "Re-engagements" },
         { value: "coaching", label: "Coaching" },
         { value: "evidence", label: "Evidence" },
@@ -10706,6 +10840,10 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
             </PremiumCard>
             <WorkflowLibraryPanel title="Resources" description="CHCG core modules and tenant-provided launch or compliance materials for this journey." resources={data.workflowLibraryMix.journeyResources} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="mt-0">
+          <LearnerLeaderboard leaderboard={data.leaderboard} />
         </TabsContent>
 
         <TabsContent value="reengagements" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">

@@ -60,11 +60,15 @@ export interface LeaderboardLearnerRecord {
   onTimeStreakWeeks?: number;
 }
 
+/** Per-group normalized scores (0–100) behind the composite points. */
+export type LeaderboardBreakdown = Record<LeaderboardSignal, number>;
+
 export type ScoredLearner = {
   id: string;
   name: string;
   team?: string;
   signals: LearnerSignals;
+  breakdown: LeaderboardBreakdown;
   points: number;
 };
 
@@ -75,21 +79,27 @@ export interface LeaderboardEntry extends ScoredLearner {
 
 const clamp100 = (value: number): number => Math.max(0, Math.min(100, value));
 
+/** Per-group normalized scores (0–100) — the four bars behind the composite. */
+export function scoreBreakdown(signals: LearnerSignals, cfg: LeaderboardConfig = leaderboardConfig): LeaderboardBreakdown {
+  return {
+    completions: clamp100(
+      cfg.completionsMix.journeyProgress * signals.journeyProgressPct +
+        cfg.completionsMix.completedRatio * signals.completedRatioPct,
+    ),
+    quiz: clamp100(signals.quizFirstPassPct),
+    readiness: clamp100(signals.readinessScore),
+    streaks: Math.min(signals.onTimeStreakWeeks / cfg.streakTargetWeeks, 1) * 100,
+  };
+}
+
 /** Compute display points from normalized signals using the weighted model. */
 export function scoreLearner(signals: LearnerSignals, cfg: LeaderboardConfig = leaderboardConfig): number {
-  const completions = clamp100(
-    cfg.completionsMix.journeyProgress * signals.journeyProgressPct +
-      cfg.completionsMix.completedRatio * signals.completedRatioPct,
-  );
-  const quiz = clamp100(signals.quizFirstPassPct);
-  const readiness = clamp100(signals.readinessScore);
-  const streaks = Math.min(signals.onTimeStreakWeeks / cfg.streakTargetWeeks, 1) * 100;
-
+  const b = scoreBreakdown(signals, cfg);
   const weighted =
-    cfg.weights.completions * completions +
-    cfg.weights.quiz * quiz +
-    cfg.weights.readiness * readiness +
-    cfg.weights.streaks * streaks;
+    cfg.weights.completions * b.completions +
+    cfg.weights.quiz * b.quiz +
+    cfg.weights.readiness * b.readiness +
+    cfg.weights.streaks * b.streaks;
 
   return Math.round(weighted * cfg.pointsScale);
 }
@@ -122,6 +132,7 @@ export function toLeaderboardEntry(record: LeaderboardLearnerRecord, cfg: Leader
     name: record.name,
     team: record.team,
     signals,
+    breakdown: scoreBreakdown(signals, cfg),
     points: scoreLearner(signals, cfg),
   };
 }

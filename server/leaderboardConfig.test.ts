@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   leaderboardConfig,
   rankLeaderboard,
+  scoreBreakdown,
   scoreLearner,
   scoreLearnerRecord,
   toLearnerSignals,
   type LearnerSignals,
 } from "../shared/leaderboardConfig";
+import { getLearnerDashboard } from "./demoPlatform";
 
 describe("leaderboard scoring model", () => {
   it("keeps the signal weights balanced (sum to 1)", () => {
@@ -59,5 +61,39 @@ describe("leaderboard scoring model", () => {
     expect(standings[0].name).toBe("Avery Chen");
     expect(standings[0].points).toBeGreaterThan(standings[1].points);
     expect(standings.every((e) => Number.isFinite(e.points))).toBe(true);
+  });
+
+  it("exposes the per-group breakdown behind the composite (for the four-signal row)", () => {
+    const signals: LearnerSignals = { journeyProgressPct: 80, completedRatioPct: 90, quizFirstPassPct: 70, readinessScore: 75, onTimeStreakWeeks: 8 };
+    expect(scoreBreakdown(signals)).toEqual({ completions: 84, quiz: 70, readiness: 75, streaks: 100 });
+    const [entry] = rankLeaderboard([{ id: "a", name: "Avery Chen", ...signals }]);
+    expect(entry.breakdown).toEqual({ completions: 84, quiz: 70, readiness: 75, streaks: 100 });
+    expect(entry.points).toBe(815);
+  });
+});
+
+describe("leaderboard seed projection (LEAD2)", () => {
+  const board = getLearnerDashboard().leaderboard; // default tenant = atlas-operations
+
+  it("exposes a read-only team + org roster with the current learner id", () => {
+    expect(board.currentLearnerId).toBe("u-learn-1"); // Nina Patel
+    expect(board.teamRoster).toHaveLength(3); // Core Service Delivery
+    expect(board.orgRoster).toHaveLength(11); // Core 3 + Resolution 4 + Digital Care 4
+    expect(board.teamRoster.every((r) => r.team === "Core Service Delivery")).toBe(true);
+  });
+
+  it("ranks the seeded team standings with the current learner mid-pack", () => {
+    const team = rankLeaderboard(board.teamRoster);
+    expect(team.map((e) => e.name)).toEqual(["Avery Chen", "Nina Patel", "Maya Johnson"]);
+    const me = team.find((e) => e.id === board.currentLearnerId)!;
+    expect(me.rank).toBe(2);
+    expect(me.points).toBe(723);
+  });
+
+  it("ranks org-wide standings across all seeded learners", () => {
+    const org = rankLeaderboard(board.orgRoster);
+    expect(org[0].name).toBe("Owen Bradley"); // top scorer, 885
+    expect(org.find((e) => e.id === board.currentLearnerId)!.rank).toBe(6);
+    expect(org.every((e) => e.points > 0)).toBe(true);
   });
 });

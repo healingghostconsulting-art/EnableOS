@@ -206,15 +206,37 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Learning signals");
   });
 
-  it("gates the four learner modes and folds resources + history into the right modes (L5)", () => {
-    // Exactly four modes, Radix-gated (only the active TabsContent renders), default Journey.
-    expect(trainingViewSource).toContain('useState<"journey" | "reengagements" | "coaching" | "evidence">("journey")');
-    expect(trainingViewSource).toContain('setActiveTab(value as "journey" | "reengagements" | "coaching" | "evidence")');
+  it("gates the learner modes and folds resources + history into the right modes (L5)", () => {
+    // Radix-gated modes (only the active TabsContent renders), default Journey. The
+    // Leaderboard mode (LEAD2) was added after Journey.
+    expect(trainingViewSource).toContain('useState<"journey" | "leaderboard" | "reengagements" | "coaching" | "evidence">("journey")');
+    expect(trainingViewSource).toContain('setActiveTab(value as "journey" | "leaderboard" | "reengagements" | "coaching" | "evidence")');
     // Mapped resources folded into Journey as a secondary "Resources" section (no own tab).
     expect(trainingViewSource).toContain('<WorkflowLibraryPanel title="Resources"');
     expect(trainingViewSource).not.toContain('title="Journey resource mix"');
     // Past retraining history lives in Evidence alongside completion records.
     expect(trainingViewSource).toContain('title="Past retraining history"');
+  });
+
+  it("adds the learner leaderboard mode ranked via rankLeaderboard with the identity + pin rules (LEAD2)", () => {
+    // New mode tab + content, ranked from the config helper.
+    expect(trainingViewSource).toContain('{ value: "leaderboard", label: "Leaderboard" }');
+    expect(trainingViewSource).toContain("<LearnerLeaderboard leaderboard={data.leaderboard} />");
+    expect(trainingViewSource).toContain("rankLeaderboard(roster)");
+    // Two scopes via tabs, My team default.
+    expect(trainingViewSource).toContain('useState<"team" | "org">("team")');
+    expect(trainingViewSource).toContain('["team", "My team"], ["org", "Org-wide"]');
+    // Identity: current learner sees full name; others are first name + last initial.
+    expect(trainingViewSource).toContain("function leaderboardIdentity(name: string, isCurrent: boolean)");
+    expect(trainingViewSource).toContain("if (isCurrent) return name;");
+    // Personal rank summary + gap to next.
+    expect(trainingViewSource).toContain("You're #");
+    expect(trainingViewSource).toContain("pts to #");
+    // Top-3 semantic treatment (icon + label) and the pinned current-learner row.
+    expect(trainingViewSource).toContain("const LEADERBOARD_TOP3");
+    expect(trainingViewSource).toContain("sticky bottom-2");
+    // Period selector is intentionally inert until period data exists.
+    expect(trainingViewSource).toContain('disabled aria-label="Leaderboard period"');
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
