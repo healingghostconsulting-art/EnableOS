@@ -218,6 +218,23 @@
     backdrop-filter: blur(20px);
   }
 
+  /* Dark workspace surface for lane cards that would otherwise inherit the light
+     mission-shell. Gives bg-white/5 overlays a real dark backing so their
+     dark-designed (white/slate) text composites with legible contrast. */
+  .surface-dark {
+    background: linear-gradient(160deg, #0b1826, #0f2334);
+  }
+
+  /* Semantic muted-label tokens for text ON dark surfaces (WCAG AA on navy).
+     Use in place of text-slate-500 (~2.9:1) for eyebrow/section/secondary labels. */
+  .text-muted-dark {
+    color: #94a3b8; /* slate-400 — ~5:1 on the dark cards */
+  }
+
+  .text-subtle-dark {
+    color: #cbd5e1; /* slate-300 — brighter subtle label */
+  }
+
   .energy-frame {
     position: relative;
     overflow: hidden;

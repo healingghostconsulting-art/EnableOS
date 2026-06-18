@@ -10172,10 +10172,10 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       ]}
     >
         <TabsContent value="kpi-board" id="manager-kpi-board" className="mt-0 space-y-4 scroll-mt-24">
-          <div className="rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+          <div className="surface-dark rounded-[1.45rem] border border-white/10 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Team KPI health · {kpiBoardProfile.clientName}</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-muted-dark">Team KPI health · {kpiBoardProfile.clientName}</p>
                 <h3 className="mt-1 text-lg font-medium text-white">Overall RAG rollup</h3>
                 <p className="mt-1 text-sm text-slate-400">{kpiRollup.total} tracked KPIs across Patient Service, Efficiency, and WFM.</p>
               </div>
@@ -10219,12 +10219,12 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               </ResponsiveContainer>
             </ChartFrame>
           </div>
-          <div className="space-y-4">
+          <div className="surface-dark space-y-4 rounded-[1.6rem] border border-white/10 p-3">
             {data.interventions.map((item: any) => (
               <button key={item.id} type="button" onClick={() => setSelectedInterventionId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedIntervention?.id === item.id ? "border-cyan-400/30 bg-cyan-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{item.gap}</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-muted-dark">{item.gap}</p>
                     <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
                     <p className="mt-2 text-sm text-slate-300">Due {new Date(item.dueDate).toLocaleDateString()}</p>
                   </div>
@@ -10376,12 +10376,12 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
             />
           </div>
           <div className="grid gap-3 xl:grid-cols-[0.72fr_1.28fr]">
-            <div className="space-y-2.5">
+            <div className="surface-dark space-y-2.5 rounded-[1.6rem] border border-white/10 p-3">
               {data.coachingSessions.map((session: any) => (
                 <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedCoachingSession?.id === session.id ? "border-emerald-400/30 bg-emerald-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching session</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-muted-dark">Coaching session</p>
                       <h3 className="mt-2 text-base font-medium text-white">{session.title}</h3>
                       <p className="mt-2 text-sm text-slate-300">{session.notes}</p>
                     </div>
@@ -10583,7 +10583,7 @@ function LeaderboardRow({ entry, isCurrent, mask = true }: { entry: LeaderboardE
       </div>
       <div className="shrink-0 text-right">
         <p className="text-base font-semibold tabular-nums text-white">{entry.points}</p>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">pts</p>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-dark">pts</p>
       </div>
     </div>
   );
@@ -10678,7 +10678,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Team leaderboard</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-dark">Team leaderboard</p>
                 <h3 className="mt-1 text-xl font-semibold text-white">{contextLabel}</h3>
                 <p className="mt-1 text-sm text-slate-300">Ranked on training performance — completions, quiz, readiness, and streak.</p>
               </div>
@@ -10689,6 +10689,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
           </CardContent>
         </PremiumCard>
 
+        <div className="surface-dark space-y-3 rounded-[1.6rem] border border-white/10 p-3 sm:p-3.5">
         {/* Three-level scope filter: Org (everyone) → Coach Team → one Learner. */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
@@ -10713,6 +10714,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
             <LeaderboardRow key={entry.id} entry={entry} isCurrent={false} mask={false} />
           ))}
         </div>
+        </div>
       </div>
     );
   }
@@ -10732,7 +10734,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Your standing · {scope === "team" ? "your team" : "org-wide"}</p>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-muted-dark">Your standing · {scope === "team" ? "your team" : "org-wide"}</p>
               {me ? (
                 <>
                   <h3 className="mt-1 text-xl font-semibold text-white">You're #{me.rank} of {total} on {scope === "team" ? "your team" : "the org"}</h3>
@@ -10754,6 +10756,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
         </CardContent>
       </PremiumCard>
 
+      <div className="surface-dark space-y-3 rounded-[1.6rem] border border-white/10 p-3 sm:p-3.5">
       <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
         {([["team", "My team"], ["org", "Org-wide"]] as const).map(([value, label]) => (
           <button
@@ -10772,11 +10775,12 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
           <LeaderboardRow key={entry.id} entry={entry} isCurrent={entry.id === currentLearnerId} />
         ))}
       </div>
+      </div>
 
       {/* Current learner pinned to the bottom so their rank stays visible below the fold. */}
       {me ? (
         <div className="sticky bottom-2 z-10">
-          <div className="rounded-[1.35rem] border border-[#FCBC34]/40 bg-slate-950/85 p-1.5 shadow-[0_18px_40px_rgba(2,8,23,0.5)] backdrop-blur">
+          <div className="surface-dark rounded-[1.35rem] border border-[#FCBC34]/40 p-1.5 shadow-[0_18px_40px_rgba(2,8,23,0.5)] backdrop-blur">
             <LeaderboardRow entry={me} isCurrent />
           </div>
         </div>

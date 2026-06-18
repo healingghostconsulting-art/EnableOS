@@ -248,6 +248,22 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("leaderboardReward.text");
   });
 
+  it("gives washed bg-white/5 lane cards a dark surface and lifts muted labels off slate-500 (CONTRAST2)", () => {
+    const css = readFileSync(join(process.cwd(), "client/src/index.css"), "utf8");
+    // Shared tokens: dark surface + muted/subtle on-dark label colors.
+    expect(css).toContain(".surface-dark");
+    expect(css).toContain(".text-muted-dark");
+    expect(css).toContain(".text-subtle-dark");
+    // Leaderboard standings + manager queues now sit on a real dark surface.
+    expect(trainingViewSource).toContain('className="surface-dark space-y-3 rounded-[1.6rem] border border-white/10 p-3 sm:p-3.5"');
+    expect(trainingViewSource).toContain('className="surface-dark space-y-4 rounded-[1.6rem] border border-white/10 p-3"');
+    expect(trainingViewSource).toContain('className="surface-dark space-y-2.5 rounded-[1.6rem] border border-white/10 p-3"');
+    // On-dark eyebrow/secondary labels lifted off slate-500 (~2.9:1) to the AA token.
+    expect(trainingViewSource).toContain('tracking-[0.22em] text-muted-dark">Your standing');
+    expect(trainingViewSource).toContain('tracking-[0.22em] text-muted-dark">Team leaderboard');
+    expect(trainingViewSource).toContain('text-muted-dark">pts</p>');
+  });
+
   it("reuses the leaderboard component for a manager board with a three-level scope (LEAD5)", () => {
     // Same component, manager variant, surfaced as a Manager Ops mode.
     expect(trainingViewSource).toContain('<LearnerLeaderboard leaderboard={data.leaderboard} variant="manager" />');
