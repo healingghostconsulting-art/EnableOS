@@ -264,6 +264,16 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('text-muted-dark">pts</p>');
   });
 
+  it("sets explicit legible on-dark tick + tooltip-label colors on the dark charts (CONTRAST3)", () => {
+    // Axis ticks get an explicit on-dark fill rather than inheriting the dark page color.
+    expect(trainingViewSource).toContain('tick={{ fill: "#94a3b8" }}');
+    // Tooltip label text lifted off Recharts' default dark color onto a legible slate.
+    expect(trainingViewSource).toContain('labelStyle={{ color: "#cbd5e1" }}');
+    // No dark-chart axis is left without a tick fill.
+    expect(trainingViewSource).not.toMatch(/<YAxis stroke="#94a3b8" tickLine=\{false\} axisLine=\{false\} \/>/);
+    expect(trainingViewSource).not.toMatch(/<XAxis dataKey="(label|week|period)" stroke="#94a3b8" tickLine=\{false\} axisLine=\{false\} \/>/);
+  });
+
   it("reuses the leaderboard component for a manager board with a three-level scope (LEAD5)", () => {
     // Same component, manager variant, surfaced as a Manager Ops mode.
     expect(trainingViewSource).toContain('<LearnerLeaderboard leaderboard={data.leaderboard} variant="manager" />');

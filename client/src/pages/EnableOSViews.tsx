@@ -8899,10 +8899,10 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data.correlationSeries}>
                   <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                  <XAxis dataKey="week" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                  <XAxis dataKey="week" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                  <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} labelStyle={{ color: "#cbd5e1" }} />
                   <Bar yAxisId="left" dataKey="interventions" fill="#2F6FED" radius={[10, 10, 0, 0]} />
                   <Line yAxisId="right" dataKey="readiness" stroke="#7DD3FC" strokeWidth={3} dot={{ r: 4, fill: "#7DD3FC" }} />
                 </LineChart>
@@ -8993,9 +8993,9 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={data.roiTrendSeries}>
                         <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} labelStyle={{ color: "#cbd5e1" }} />
                         <Line type="monotone" dataKey={selectedRoiTrendConfig.valueKey} name={selectedRoiTrendConfig.label} stroke={selectedRoiTrendConfig.color} strokeWidth={3} dot={{ r: 4, fill: selectedRoiTrendConfig.color }} activeDot={{ r: 5 }} />
                         <Line type="monotone" dataKey={selectedRoiTrendConfig.benchmarkKey} name={selectedRoiTrendConfig.benchmarkLabel} stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
                       </LineChart>
@@ -9041,9 +9041,9 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
                           </linearGradient>
                         </defs>
                         <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                        <XAxis dataKey="period" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                        <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                        <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} labelStyle={{ color: "#cbd5e1" }} />
                         <Area type="monotone" dataKey={selectedErrorTrendMetric} name={selectedErrorTrendConfig.label} stroke={selectedErrorTrendConfig.color} fill="url(#reporting-error-trend)" strokeWidth={3} />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -10210,9 +10210,9 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                  <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} />
+                  <XAxis dataKey="label" stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                  <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+                  <Tooltip contentStyle={{ background: "#08111f", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18 }} labelStyle={{ color: "#cbd5e1" }} />
                   <Area type="monotone" dataKey="value" stroke="#60A5FA" fill="url(#signalFill)" strokeWidth={3} />
                   <Line type="monotone" dataKey="target" stroke="#F8FAFC" strokeDasharray="4 4" strokeWidth={2} dot={false} />
                 </AreaChart>
