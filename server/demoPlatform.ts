@@ -3114,6 +3114,13 @@ export function getManagerDashboard(tenantId?: string) {
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "manager" || item.audience === "all")),
     rules: rules.filter((rule) => ["qaScore", "aht", "adherence", "csat"].includes(rule.metric)),
     workflowLibraryMix,
+    // Leaderboard roster for the manager board (LEAD5). Managers oversee reports
+    // org-wide; the component derives Coach Team groups and the per-learner drill-down
+    // from the `team` field. directReportId is the manager's primary report.
+    leaderboard: {
+      directReportId: learner.id,
+      orgRoster: buildLeaderboardRoster(),
+    },
   };
 }
 
@@ -3191,6 +3198,28 @@ type LearnerDashboardOptions = {
   viewerName?: string | null;
   viewerOpenId?: string | null;
 };
+
+// Read-only leaderboard roster projection over the seeded users — no seed values are
+// mutated here. Shared by the learner board (LEAD2) and the manager board (LEAD5).
+// PRODUCTION: scope this to the real organization/tenant boundary and resolve true
+// team membership server-side (human-engineer item — same as our other multi-tenant
+// flags). The demo intentionally spans tenants so the Org / Coach Team / Learner
+// scopes all have a meaningful population.
+function buildLeaderboardRoster() {
+  return users
+    .filter((entry) => entry.role === "learner")
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      team: entry.team,
+      tenantId: entry.tenantId,
+      readinessScore: entry.readinessScore,
+      journeyProgressPct: entry.journeyProgressPct,
+      completedRatioPct: entry.completedRatioPct,
+      quizFirstPassPct: entry.quizFirstPassPct,
+      onTimeStreakWeeks: entry.onTimeStreakWeeks,
+    }));
+}
 
 function buildFreshLearnerIdentity(tenantId: string, viewerName?: string | null, viewerOpenId?: string | null) {
   const baseLearner = getUser("learner", tenantId);
@@ -3287,23 +3316,9 @@ export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboar
   const learnerVisibleDocumentationEntries = getDocumentationEntries(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
   const learnerVisibleReviewLogs = getReviewLogs(tenant.id, learner.id).filter((entry) => !entry.weeklyCoachingLogId || learnerVisibleWeeklyCoachingLogIds.has(entry.weeklyCoachingLogId));
 
-  // Leaderboard roster (LEAD2). Read-only projection over the seeded users — no seed
-  // values are mutated here. `team` is the current learner's team; `org` is every
-  // seeded learner so the Org-wide tab has a real population to rank.
-  // PRODUCTION: scope the org roster to the real organization/tenant boundary and
-  // resolve true team membership server-side (human-engineer item — same as our other
-  // multi-tenant flags). The demo intentionally spans tenants so both tabs are useful.
-  const allLearnerRoster = users.filter((entry) => entry.role === "learner").map((entry) => ({
-    id: entry.id,
-    name: entry.name,
-    team: entry.team,
-    tenantId: entry.tenantId,
-    readinessScore: entry.readinessScore,
-    journeyProgressPct: entry.journeyProgressPct,
-    completedRatioPct: entry.completedRatioPct,
-    quizFirstPassPct: entry.quizFirstPassPct,
-    onTimeStreakWeeks: entry.onTimeStreakWeeks,
-  }));
+  // Leaderboard roster (LEAD2). `team` = the current learner's team; `org` = every
+  // seeded learner so the Org-wide scope has a real population to rank.
+  const allLearnerRoster = buildLeaderboardRoster();
   const leaderboard = {
     currentLearnerId: learner.id,
     teamRoster: allLearnerRoster.filter((entry) => entry.team === learner.team),

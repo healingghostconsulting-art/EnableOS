@@ -9,7 +9,7 @@ import {
   toLearnerSignals,
   type LearnerSignals,
 } from "../shared/leaderboardConfig";
-import { getLearnerDashboard } from "./demoPlatform";
+import { getLearnerDashboard, getManagerDashboard } from "./demoPlatform";
 
 describe("leaderboard scoring model", () => {
   it("keeps the signal weights balanced (sum to 1)", () => {
@@ -103,5 +103,16 @@ describe("leaderboard seed projection (LEAD2)", () => {
     expect(org[0].name).toBe("Owen Bradley"); // top scorer, 885
     expect(org.find((e) => e.id === board.currentLearnerId)!.rank).toBe(6);
     expect(org.every((e) => e.points > 0)).toBe(true);
+  });
+
+  it("exposes the same org roster to the manager board, groupable into coach teams (LEAD5)", () => {
+    const managerBoard = getManagerDashboard().leaderboard;
+    expect(managerBoard.orgRoster).toHaveLength(11);
+    expect(managerBoard.directReportId).toBe("u-learn-1");
+    // Group by the learner team field → three coach teams.
+    const teams = new Set(managerBoard.orgRoster.map((r) => r.team));
+    expect([...teams].sort()).toEqual(["Core Service Delivery", "Digital Care", "Resolution Operations"]);
+    // Org-wide ranking matches the learner board's (same roster + helper).
+    expect(rankLeaderboard(managerBoard.orgRoster)[0].name).toBe("Owen Bradley");
   });
 });

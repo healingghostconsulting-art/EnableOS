@@ -248,6 +248,18 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("leaderboardReward.text");
   });
 
+  it("reuses the leaderboard component for a manager board with a three-level scope (LEAD5)", () => {
+    // Same component, manager variant, surfaced as a Manager Ops mode.
+    expect(trainingViewSource).toContain('<LearnerLeaderboard leaderboard={data.leaderboard} variant="manager" />');
+    expect(trainingViewSource).toContain('{ value: "leaderboard", label: "Leaderboard" }');
+    expect(trainingViewSource).toContain('id="manager-leaderboard"');
+    // Three-level scope Org → Coach Team → Learner, default Org.
+    expect(trainingViewSource).toContain('useState<"org" | "team" | "learner">("org")');
+    expect(trainingViewSource).toContain('["org", "Org"], ["team", "Coach team"], ["learner", "Learner"]');
+    // Managers see full names — the "First L." mask is turned off.
+    expect(trainingViewSource).toContain("isCurrent={false} mask={false}");
+  });
+
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
     expect(trainingViewSource).toContain("Speaker and facilitator notes stay out of the learner flow until opened.");
     expect(trainingViewSource).toContain("Transcript");

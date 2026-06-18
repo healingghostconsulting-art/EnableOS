@@ -10097,7 +10097,7 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
 }
 
 function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
-  const [activeTab, setActiveTab] = useState<"kpi-board" | "interventions" | "coaching" | "documentation" | "notifications">("interventions");
+  const [activeTab, setActiveTab] = useState<"kpi-board" | "leaderboard" | "interventions" | "coaching" | "documentation" | "notifications">("interventions");
   const [historyWindow, setHistoryWindow] = useState<RetrainingHistoryWindow>("month");
   const [selectedInterventionId, setSelectedInterventionId] = useState<string>(data.interventions[0]?.id ?? "");
   const [selectedCoachingSessionId, setSelectedCoachingSessionId] = useState<string>(data.coachingSessions[0]?.id ?? "");
@@ -10160,10 +10160,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       modesLabel="Manager modes"
       modesSubtitle="Choose a tab to work interventions, coaching, documentation, or alerts."
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "kpi-board" | "interventions" | "coaching" | "documentation" | "notifications")}
+      onTabChange={(value) => setActiveTab(value as "kpi-board" | "leaderboard" | "interventions" | "coaching" | "documentation" | "notifications")}
       stats={managerWorkspaceStats}
       tabs={[
         { value: "kpi-board", label: "KPI board" },
+        { value: "leaderboard", label: "Leaderboard" },
         { value: "interventions", label: "Interventions" },
         { value: "coaching", label: "Coaching" },
         { value: "documentation", label: "Documentation" },
@@ -10191,6 +10192,10 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
               <KpiScorecard key={card.id} scorecard={card} clientName={kpiBoardProfile.clientName} note={kpiBoardProfile.note} showStatus />
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="leaderboard" id="manager-leaderboard" className="mt-0 scroll-mt-24">
+          <LearnerLeaderboard leaderboard={data.leaderboard} variant="manager" />
         </TabsContent>
 
         <TabsContent value="interventions" id="manager-interventions-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
@@ -10546,8 +10551,10 @@ const LEADERBOARD_SIGNALS: { key: "completions" | "quiz" | "readiness" | "streak
   { key: "streaks", label: "Streak" },
 ];
 
-function LeaderboardRow({ entry, isCurrent }: { entry: LeaderboardEntry; isCurrent: boolean }) {
+function LeaderboardRow({ entry, isCurrent, mask = true }: { entry: LeaderboardEntry; isCurrent: boolean; mask?: boolean }) {
   const top3 = LEADERBOARD_TOP3[entry.rank];
+  // Learner board masks others ("Nina P."); the manager board shows full names.
+  const displayName = mask ? leaderboardIdentity(entry.name, isCurrent) : entry.name;
   return (
     <div className={`flex items-center gap-3 rounded-[1.2rem] border px-3 py-2.5 ${isCurrent ? "border-[#FCBC34]/60 bg-[#FCBC34]/10 shadow-[0_10px_28px_rgba(252,188,52,0.16)]" : "border-white/10 bg-white/5"}`}>
       <div className="flex w-9 shrink-0 items-center justify-center">
@@ -10561,7 +10568,7 @@ function LeaderboardRow({ entry, isCurrent }: { entry: LeaderboardEntry; isCurre
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className={`truncate text-sm font-semibold ${isCurrent ? "text-white" : "text-slate-200"}`}>{leaderboardIdentity(entry.name, isCurrent)}</p>
+          <p className={`truncate text-sm font-semibold ${isCurrent ? "text-white" : "text-slate-200"}`}>{displayName}</p>
           {isCurrent ? <span className="shrink-0 rounded-full border border-[#FCBC34]/50 bg-[#FCBC34]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCBC34]">You</span> : null}
           {top3 ? <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">{top3.label}</span> : null}
         </div>
@@ -10629,8 +10636,83 @@ function LeaderboardRewardCallout() {
   );
 }
 
-function LearnerLeaderboard({ leaderboard }: { leaderboard: any }) {
+function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard: any; variant?: "learner" | "manager" }) {
   const [scope, setScope] = useState<"team" | "org">("team");
+  const [managerLevel, setManagerLevel] = useState<"org" | "team" | "learner">("org");
+  const [managerTeam, setManagerTeam] = useState<string>("");
+  const [managerLearnerId, setManagerLearnerId] = useState<string>("");
+
+  // ── Manager board: a three-level scope filter (Org → Coach Team → Learner),
+  // full names throughout (the manager's reports), no personal pin/"you" highlight.
+  // Reuses the same rows, breakdown, and reward callout as the learner board.
+  if (variant === "manager") {
+    const orgRoster = leaderboard?.orgRoster ?? [];
+    const teams: string[] = Array.from(new Set(orgRoster.map((entry: any) => entry.team)));
+    const effectiveTeam = managerTeam && teams.includes(managerTeam) ? managerTeam : (teams[0] ?? "");
+    const teamRanked = rankLeaderboard(orgRoster.filter((entry: any) => entry.team === effectiveTeam));
+    const effectiveLearnerId = teamRanked.some((entry) => entry.id === managerLearnerId) ? managerLearnerId : (teamRanked[0]?.id ?? "");
+    const standings =
+      managerLevel === "org"
+        ? rankLeaderboard(orgRoster)
+        : managerLevel === "team"
+          ? teamRanked
+          : teamRanked.filter((entry) => entry.id === effectiveLearnerId);
+    const focusLearner = teamRanked.find((entry) => entry.id === effectiveLearnerId) ?? null;
+    const contextLabel =
+      managerLevel === "org"
+        ? `Org-wide · ${orgRoster.length} learners`
+        : managerLevel === "team"
+          ? `${effectiveTeam} · ${teamRanked.length} learners`
+          : focusLearner
+            ? `${focusLearner.name} · #${focusLearner.rank} of ${teamRanked.length} in ${effectiveTeam}`
+            : effectiveTeam;
+
+    return (
+      <div className="space-y-4">
+        <LeaderboardRewardCallout />
+        <PremiumCard>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Team leaderboard</p>
+                <h3 className="mt-1 text-xl font-semibold text-white">{contextLabel}</h3>
+                <p className="mt-1 text-sm text-slate-300">Ranked on training performance — completions, quiz, readiness, and streak.</p>
+              </div>
+              <select disabled aria-label="Leaderboard period" className="cursor-not-allowed rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400 opacity-70">
+                <option>This program · all time</option>
+              </select>
+            </div>
+          </CardContent>
+        </PremiumCard>
+
+        {/* Three-level scope filter: Org (everyone) → Coach Team → one Learner. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+            {([["org", "Org"], ["team", "Coach team"], ["learner", "Learner"]] as const).map(([value, label]) => (
+              <button key={value} type="button" onClick={() => setManagerLevel(value)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${managerLevel === value ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"}`}>{label}</button>
+            ))}
+          </div>
+          {managerLevel !== "org" ? (
+            <select value={effectiveTeam} onChange={(event) => { setManagerTeam(event.target.value); setManagerLearnerId(""); }} aria-label="Coach team" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
+              {teams.map((team) => <option key={team} value={team} className="text-slate-900">{team}</option>)}
+            </select>
+          ) : null}
+          {managerLevel === "learner" ? (
+            <select value={effectiveLearnerId} onChange={(event) => setManagerLearnerId(event.target.value)} aria-label="Learner" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
+              {teamRanked.map((entry) => <option key={entry.id} value={entry.id} className="text-slate-900">{entry.name}</option>)}
+            </select>
+          ) : null}
+        </div>
+
+        <div className="space-y-2">
+          {standings.map((entry) => (
+            <LeaderboardRow key={entry.id} entry={entry} isCurrent={false} mask={false} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const currentLearnerId: string = leaderboard?.currentLearnerId ?? "";
   const roster = (scope === "team" ? leaderboard?.teamRoster : leaderboard?.orgRoster) ?? [];
   const standings = rankLeaderboard(roster);
