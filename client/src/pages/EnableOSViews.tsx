@@ -10650,7 +10650,11 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
     const teams: string[] = Array.from(new Set(orgRoster.map((entry: any) => entry.team)));
     const effectiveTeam = managerTeam && teams.includes(managerTeam) ? managerTeam : (teams[0] ?? "");
     const teamRanked = rankLeaderboard(orgRoster.filter((entry: any) => entry.team === effectiveTeam));
-    const effectiveLearnerId = teamRanked.some((entry) => entry.id === managerLearnerId) ? managerLearnerId : (teamRanked[0]?.id ?? "");
+    // Default the Learner scope to the manager's direct report when they're on the
+    // selected team, otherwise fall back to that team's #1.
+    const directReportId: string = leaderboard?.directReportId ?? "";
+    const defaultLearnerId = teamRanked.some((entry) => entry.id === directReportId) ? directReportId : (teamRanked[0]?.id ?? "");
+    const effectiveLearnerId = teamRanked.some((entry) => entry.id === managerLearnerId) ? managerLearnerId : defaultLearnerId;
     const standings =
       managerLevel === "org"
         ? rankLeaderboard(orgRoster)

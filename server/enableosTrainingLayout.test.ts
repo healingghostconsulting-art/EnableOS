@@ -258,6 +258,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('["org", "Org"], ["team", "Coach team"], ["learner", "Learner"]');
     // Managers see full names — the "First L." mask is turned off.
     expect(trainingViewSource).toContain("isCurrent={false} mask={false}");
+    // Learner scope defaults to the manager's direct report (else the team's #1).
+    expect(trainingViewSource).toContain("leaderboard?.directReportId");
   });
 
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
