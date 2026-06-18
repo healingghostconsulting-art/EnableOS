@@ -239,6 +239,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('disabled aria-label="Leaderboard period"');
   });
 
+  it("shows the org reward callout, admin-editable and read-only otherwise (LEAD3)", () => {
+    expect(trainingViewSource).toContain("function LeaderboardRewardCallout()");
+    expect(trainingViewSource).toContain("<LeaderboardRewardCallout />");
+    // Edit affordance gated to admin grant roles only.
+    expect(trainingViewSource).toContain('grantRole === "client_admin" || grantRole === "platform_admin"');
+    expect(trainingViewSource).toContain("This period's reward");
+    expect(trainingViewSource).toContain("leaderboardReward.text");
+  });
+
   it("keeps the learner training shell concise and explicit about reveal-on-demand support", () => {
     expect(trainingViewSource).toContain("Speaker and facilitator notes stay out of the learner flow until opened.");
     expect(trainingViewSource).toContain("Transcript");

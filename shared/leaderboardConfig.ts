@@ -32,6 +32,23 @@ export const leaderboardConfig: LeaderboardConfig = {
   completionsMix: { journeyProgress: 0.6, completedRatio: 0.4 },
 };
 
+/**
+ * Org-configured "this period's reward" callout shown on the leaderboard (LEAD3).
+ * Display only — no prize logic and no fulfillment. The org sets the text here;
+ * admins (client_admin / platform_admin) can edit it in-app, everyone else sees it
+ * read-only. PRODUCTION: persist the org's edited text via a backend mutation
+ * (human-engineer item); the in-app edit is in-session today.
+ */
+export interface LeaderboardReward {
+  enabled: boolean;
+  text: string;
+}
+
+export const leaderboardReward: LeaderboardReward = {
+  enabled: true,
+  text: "Top performer this month earns a $50 gift card.",
+};
+
 /** Normalized 0–100 inputs for one learner. */
 export interface LearnerSignals {
   journeyProgressPct: number; // 0–100

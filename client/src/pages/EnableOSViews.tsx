@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
-import { rankLeaderboard, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
+import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +56,8 @@ import {
   Trophy,
   Medal,
   Award,
+  Gift,
+  Pencil,
   Volume2,
   VolumeX,
   Users2,
@@ -10580,6 +10582,53 @@ function LeaderboardRow({ entry, isCurrent }: { entry: LeaderboardEntry; isCurre
   );
 }
 
+// Org-configured "this period's reward" callout (LEAD3). Display only — no prize
+// logic or fulfillment. Text comes from the leaderboard config; admins
+// (client_admin / platform_admin) can edit it, everyone else sees it read-only.
+function LeaderboardRewardCallout() {
+  const access = trpc.demo.viewerAccess.useQuery();
+  const grantRole = access.data?.grant.role;
+  const canEdit = grantRole === "client_admin" || grantRole === "platform_admin";
+  const [text, setText] = useState(leaderboardReward.text);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(text);
+
+  if (!leaderboardReward.enabled) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-[1.35rem] border border-[#FCBC34]/35 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
+      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FCBC34]/40 bg-[#FCBC34]/15 text-[#FCBC34]">
+        <Gift className="h-4 w-4" aria-hidden="true" />
+      </span>
+      {editing ? (
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            aria-label="Reward text"
+            className="min-w-[16rem] flex-1 rounded-full border border-[#FCBC34]/40 bg-slate-950/40 px-3 py-1.5 text-sm text-white outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/40"
+          />
+          {/* In-session edit; production persists the org's reward text via a backend mutation. */}
+          <button type="button" onClick={() => { setText(draft.trim() || text); setEditing(false); }} className="rounded-full bg-[#FCBC34] px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-[#ffd56d]">Save</button>
+          <button type="button" onClick={() => { setDraft(text); setEditing(false); }} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/10">Cancel</button>
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#FCBC34]/80">This period's reward</p>
+            <p className="text-sm font-medium text-white">{text}</p>
+          </div>
+          {canEdit ? (
+            <button type="button" onClick={() => { setDraft(text); setEditing(true); }} className="inline-flex items-center gap-1.5 rounded-full border border-[#FCBC34]/40 bg-[#FCBC34]/10 px-3 py-1.5 text-xs font-semibold text-[#FCBC34] hover:bg-[#FCBC34]/20">
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+            </button>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LearnerLeaderboard({ leaderboard }: { leaderboard: any }) {
   const [scope, setScope] = useState<"team" | "org">("team");
   const currentLearnerId: string = leaderboard?.currentLearnerId ?? "";
@@ -10592,6 +10641,7 @@ function LearnerLeaderboard({ leaderboard }: { leaderboard: any }) {
 
   return (
     <div className="space-y-4">
+      <LeaderboardRewardCallout />
       <PremiumCard>
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   leaderboardConfig,
+  leaderboardReward,
   rankLeaderboard,
   scoreBreakdown,
   scoreLearner,
@@ -61,6 +62,13 @@ describe("leaderboard scoring model", () => {
     expect(standings[0].name).toBe("Avery Chen");
     expect(standings[0].points).toBeGreaterThan(standings[1].points);
     expect(standings.every((e) => Number.isFinite(e.points))).toBe(true);
+  });
+
+  it("exposes an org-configured, display-only reward callout (LEAD3)", () => {
+    expect(leaderboardReward.enabled).toBe(true);
+    expect(typeof leaderboardReward.text).toBe("string");
+    expect(leaderboardReward.text.length).toBeGreaterThan(0);
+    expect(leaderboardReward.text).toContain("gift card");
   });
 
   it("exposes the per-group breakdown behind the composite (for the four-signal row)", () => {
