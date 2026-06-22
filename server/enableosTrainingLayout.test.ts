@@ -192,8 +192,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Priority retraining notification");
     expect(trainingViewSource).not.toContain('id="learner-priority-retraining"');
     expect(trainingViewSource).not.toContain("has been assigned to you");
-    // The Journey-tab card references the strip instead of restating the assignment title.
-    expect(trainingViewSource).toContain("pinned in the priority bar above");
+    // The Journey-tab gold action card is assignment-aware (ALIGN3): assigned retraining vs recommended path.
+    expect(trainingViewSource).toContain('title={assignmentDue ? "Open assigned retraining" : "Resume the recommended path"}');
   });
 
   it("consolidates learner stats into one compact top row (L4)", () => {
@@ -631,13 +631,20 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("<GuidanceActionPanel tenantId={data.tenant.id} suggestion={data.aiSuggestion} catalog={data.retrainingCatalog} assignments={data.activeRetrainingAssignments} actorRole=\"manager\" learnerName={data.directReport.name} onUpdated={onUpdated} />");
   });
 
-  it("aligns Journey-mode module cards to Coach Studio's action-card chrome (W3)", () => {
-    // Coach's action-card frame: rounded-[1.25rem], border, compact padding, the shared shadow.
+  it("maps Journey + Coaching onto the shared action-card pattern, dark surfaces (ALIGN3)", () => {
+    // The shared CoachLaneActionCard gold chrome is still the row primitive.
     expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
-    // The recommended (first) module takes the same gold highlighted-primary gradient as Coach's main action.
-    expect(trainingViewSource).toContain("const isPrimary = index === 0;");
     expect(trainingViewSource).toContain("bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))]");
-    expect(trainingViewSource).toContain("border-[#F6C453]/60 bg-[#FCBC34] text-slate-950");
+    // Journey: action row (gold + dark launchers) → selectable path → "Selected module" detail.
+    expect(trainingViewSource).toContain('title="Browse the learning path"');
+    expect(trainingViewSource).toContain("setSelectedModuleId(module.id)");
+    expect(trainingViewSource).toContain('<CardTitle className="text-white">Selected module</CardTitle>');
+    // The path list (and the ALIGN2 lists) sit on a real dark surface, not bare bg-white/5.
+    expect(trainingViewSource).toContain("surface-dark space-y-2.5 rounded-[1.6rem] border border-white/10 p-3");
+    // Coaching: gold take-aways + history popout, with the editable timeline kept as the body.
+    expect(trainingViewSource).toContain('title="Add your weekly take-aways"');
+    expect(trainingViewSource).toContain('id="learner-coaching-timeline"');
+    expect(trainingViewSource).toContain("allowTakeawayEditing");
   });
 
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
