@@ -218,6 +218,22 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('title="Past retraining history"');
   });
 
+  it("brings learner Re-engagements + Evidence onto the shared action-card + preview->popout pattern (ALIGN2)", () => {
+    // Reuses the shared CoachLaneActionCard row (gold primary + dark secondaries), not Coach's light list cards.
+    expect(trainingViewSource).toContain('eyebrow="Priority re-engagement"');
+    expect(trainingViewSource).toContain('title="Start the priority re-engagement"');
+    // Re-engagements: selectable list → "Selected re-engagement" detail with a popout.
+    expect(trainingViewSource).toContain('>Selected re-engagement<');
+    expect(trainingViewSource).toContain('buttonLabel="Open re-engagement plan"');
+    // Evidence: gold "latest review" launcher + selectable review list (new state) → detail + popout.
+    expect(trainingViewSource).toContain('title="Open your latest review"');
+    expect(trainingViewSource).toContain('setSelectedReviewId(entry.id)');
+    expect(trainingViewSource).toContain('>Selected review<');
+    expect(trainingViewSource).toContain('buttonLabel="Open review"');
+    // The old forced two-column "Documentation hub" card is gone (folded into the popout).
+    expect(trainingViewSource).not.toContain('<CardTitle className="text-white">Documentation hub</CardTitle>');
+  });
+
   it("adds the learner leaderboard mode ranked via rankLeaderboard with the identity + pin rules (LEAD2)", () => {
     // New mode tab + content, ranked from the config helper.
     expect(trainingViewSource).toContain('{ value: "leaderboard", label: "Leaderboard" }');

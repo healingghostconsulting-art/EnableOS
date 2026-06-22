@@ -10797,6 +10797,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
   const nextLearnerModule = learnerModules.find((module: any) => module.completionRate < 80) ?? learnerModules[0] ?? null;
   const completedLearnerModules = learnerModules.filter((module: any) => module.completionRate >= 80).length;
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"journey" | "leaderboard" | "reengagements" | "coaching" | "evidence">("journey");
   const utils = trpc.useUtils();
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
@@ -10843,6 +10844,14 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
     freshStart,
   });
   const activeIntervention = data.assignedInterventions.find((item: any) => item.id === selectedInterventionId) ?? null;
+  // Re-engagements: detail defaults to the first assigned re-engagement until one is picked.
+  const priorityIntervention = data.assignedInterventions[0] ?? null;
+  const effectiveIntervention = activeIntervention ?? priorityIntervention;
+  const priorityInterventionPath = interventionTrainingOptions[0]?.path ?? primaryTrainingPath;
+  // Evidence: review logs sorted most-recent-first; detail defaults to the latest.
+  const sortedReviewLogs = [...(data.reviewLogs ?? [])].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const latestReviewLog = sortedReviewLogs[0] ?? null;
+  const effectiveReviewLog = sortedReviewLogs.find((entry: any) => entry.id === selectedReviewId) ?? latestReviewLog;
   const learnerCelebrationCopy = completedLearnerModules >= Math.max(1, Math.ceil(learnerModules.length / 2))
     ? "You have already crossed the halfway mark in your guided journey."
     : "Each completed module unlocks the next coaching and readiness milestone.";
@@ -10986,91 +10995,144 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
           <LearnerLeaderboard leaderboard={data.leaderboard} />
         </TabsContent>
 
-        <TabsContent value="reengagements" className="mt-0 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">{learnerWorkspaceCopy.assignedReengagementsCardTitle}</CardTitle>
-              <CardDescription className="text-slate-400">Auto-assigned actions with clear accountability, grounded in workflow reliability and customer-service fundamentals.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
+        <TabsContent value="reengagements" className="mt-0 space-y-4">
+          <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+            <CoachLaneActionCard
+              eyebrow="Priority re-engagement"
+              title="Start the priority re-engagement"
+              description={priorityIntervention ? `Jump into ${priorityIntervention.title} and begin the assigned re-engagement now.` : "Begin your highest-priority assigned re-engagement."}
+              accent="gold"
+              action={
+                <Link href={priorityInterventionPath}>
+                  <Button type="button" onClick={() => { if (activeRetrainingAssignment?.status === "assigned") updateActiveAssignmentStatus("in_progress"); }} className="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950">
+                    Start re-engagement <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Training path"
+              title="Choose training path"
+              description="Pick the best module to continue an assigned re-engagement."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open training options"
+                  dialogTitle="Choose the training to continue this re-engagement"
+                  dialogDescription="Route into the right module so you land exactly where the assigned re-engagement should continue."
+                  buttonClassName="w-full justify-between rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                  renderContent={(close) => (
+                    <div className="space-y-3">
+                      {interventionTrainingOptions.map((option) => (
+                        <Link key={option.id} href={option.path}>
+                          <button type="button" onClick={() => { if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") updateActiveAssignmentStatus("in_progress"); close(); }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <h4 className="text-base font-semibold text-white">{option.title}</h4>
+                                <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
+                                <p className="mt-2 text-sm text-cyan-100/85">{option.detail}</p>
+                              </div>
+                              <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
+                            </div>
+                          </button>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                />
+              }
+            />
+            {activeRetrainingAssignment ? (
+              <CoachLaneActionCard
+                eyebrow="Assigned retraining"
+                title="Open assigned module"
+                description={`Resume ${activeRetrainingAssignment.moduleTitle ?? "your assigned retraining"} from the priority bar.`}
+                action={
+                  <Link href={primaryTrainingPath}>
+                    <Button type="button" onClick={() => { if (activeRetrainingAssignment.status === "assigned") updateActiveAssignmentStatus("in_progress"); }} className="w-full justify-between rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                      {activeRetrainingAssignment.status === "completed" ? "Review assigned module" : "Resume assigned module"} <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                }
+              />
+            ) : null}
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <div className="space-y-2.5">
               {data.assignedInterventions.map((item: any) => (
-                <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <button key={item.id} type="button" onClick={() => setSelectedInterventionId(item.id)} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${effectiveIntervention?.id === item.id ? "border-cyan-300/40 bg-cyan-400/10 shadow-[0_14px_28px_rgba(8,145,178,0.14)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h4 className="text-lg font-medium text-white">{item.title}</h4>
-                      <p className="mt-2 text-sm text-slate-300">{item.gap}</p>
+                      <p className={`text-xs uppercase tracking-[0.22em] ${effectiveIntervention?.id === item.id ? "text-cyan-200" : "text-slate-500"}`}>Re-engagement</p>
+                      <h3 className="mt-1.5 text-base font-medium text-white">{item.title}</h3>
+                      <p className="mt-1 text-sm leading-5 text-slate-300">{item.gap}</p>
                     </div>
                     <StatusBadge value={item.status} />
                   </div>
-                  <div className="mt-4 space-y-2 text-sm text-slate-300">
-                    {item.assignedActions.map((action: any) => (
-                      <button key={action} type="button" onClick={() => setSelectedInterventionId(item.id)} className="flex w-full items-start gap-2 rounded-2xl border border-white/8 bg-slate-950/35 px-3 py-3 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"><ChevronRight className="mt-0.5 h-4 w-4 text-cyan-200" /><span>{action}</span></button>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <Button type="button" variant="outline" onClick={() => setSelectedInterventionId(item.id)} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Choose training for this re-engagement</Button>
-                    {activeRetrainingAssignment ? <Badge className="rounded-full border-amber-400/20 bg-amber-400/12 text-amber-100">Assigned module available now</Badge> : null}
-                  </div>
-                </div>
+                </button>
               ))}
-            </CardContent>
-          </PremiumCard>
-          <div className="space-y-6">
+              {!data.assignedInterventions.length ? (
+                <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-300">No assigned re-engagements right now. New auto-assignments will appear here.</div>
+              ) : null}
+            </div>
             <PremiumCard>
-              <CardHeader>
-                <CardTitle className="text-white">Re-engagement guidance</CardTitle>
-                <CardDescription className="text-slate-400">Choose the best training continuation path when a re-engagement is assigned.</CardDescription>
+              <CardHeader className="space-y-0 p-4 pb-2.5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-white">Selected re-engagement</CardTitle>
+                    <CardDescription className="mt-1 text-sm leading-5 text-slate-300">{effectiveIntervention ? "Review the gap and assigned actions, then open the full plan." : "Select a re-engagement to review its plan."}</CardDescription>
+                  </div>
+                  {effectiveIntervention ? <StatusBadge value={effectiveIntervention.status} /> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {interventionTrainingOptions.map((option) => (
-                  <Link key={option.id} href={option.path}>
-                    <button type="button" onClick={() => {
-                      if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
-                        updateActiveAssignmentStatus("in_progress");
-                      }
-                    }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <h4 className="text-base font-semibold text-white">{option.title}</h4>
-                          <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
-                          <p className="mt-2 text-sm text-cyan-100/85">{option.detail}</p>
+              <CardContent className="space-y-2.5 p-4 pt-0">
+                {effectiveIntervention ? (
+                  <>
+                    <div className="rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200"><span className="font-medium text-white">Gap:</span> {effectiveIntervention.gap}</div>
+                    <div className="space-y-2">
+                      {effectiveIntervention.assignedActions.map((action: string) => (
+                        <div key={action} className="flex items-start gap-2 rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200"><ChevronRight className="mt-0.5 h-4 w-4 text-cyan-200" /><span>{action}</span></div>
+                      ))}
+                    </div>
+                    <CoachLaneDialogAction
+                      buttonLabel="Open re-engagement plan"
+                      dialogTitle={`${effectiveIntervention.title} · re-engagement plan`}
+                      dialogDescription="Review the full gap and assigned actions, then choose the training to continue."
+                      buttonClassName="w-full justify-between rounded-full border-cyan-200/55 bg-cyan-300/18 text-white shadow-[0_12px_30px_rgba(34,211,238,0.14)] hover:bg-cyan-300/26 hover:text-white"
+                      renderContent={(close) => (
+                        <div className="space-y-4 rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusBadge value={effectiveIntervention.status} />
+                            <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{effectiveIntervention.gap}</Badge>
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {effectiveIntervention.assignedActions.map((action: string) => (
+                              <div key={action} className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><div className="flex items-start gap-2"><ChevronRight className="mt-0.5 h-4 w-4 text-cyan-300" /><span>{action}</span></div></div>
+                            ))}
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Continue with training</p>
+                            {interventionTrainingOptions.map((option) => (
+                              <Link key={option.id} href={option.path}>
+                                <button type="button" onClick={() => { if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") updateActiveAssignmentStatus("in_progress"); close(); }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+                                  <div className="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                      <h4 className="text-base font-semibold text-white">{option.title}</h4>
+                                      <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
+                                    </div>
+                                    <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
+                                  </div>
+                                </button>
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                        <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
-                      </div>
-                    </button>
-                  </Link>
-                ))}
+                      )}
+                    />
+                  </>
+                ) : null}
               </CardContent>
             </PremiumCard>
-            <Dialog open={Boolean(activeIntervention)} onOpenChange={(open) => !open ? setSelectedInterventionId(null) : null}>
-              <DialogContent className="border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Select the training to continue this re-engagement</DialogTitle>
-                  <DialogDescription className="text-slate-400">{activeIntervention ? `Route ${activeIntervention.title} into the right module so the learner lands exactly where the assigned re-engagement should continue.` : "Choose a module to continue this re-engagement."}</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3">
-                  {interventionTrainingOptions.map((option) => (
-                    <Link key={option.id} href={option.path}>
-                      <button type="button" onClick={() => {
-                        if (option.isAssigned && activeRetrainingAssignment?.status === "assigned") {
-                          updateActiveAssignmentStatus("in_progress");
-                        }
-                        setSelectedInterventionId(null);
-                      }} className="w-full rounded-[1.4rem] border border-white/10 bg-white/5 p-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <h4 className="text-base font-semibold text-white">{option.title}</h4>
-                            <p className="mt-1 text-sm text-slate-300">{option.subtitle}</p>
-                            <p className="mt-2 text-sm text-cyan-100/85">{option.detail}</p>
-                          </div>
-                          <Badge className={`rounded-full ${option.isAssigned ? "border-amber-400/20 bg-amber-400/12 text-amber-100" : "border-white/10 bg-white/8 text-slate-200"}`}>{option.isAssigned ? "Assigned now" : "Available module"}</Badge>
-                        </div>
-                      </button>
-                    </Link>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </TabsContent>
 
@@ -11092,33 +11154,135 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
           <WorkflowLibraryPanel title="Coaching support assets" description="Use mapped resources to prepare for your next coaching step and reinforce the right behaviors before the next review." resources={data.workflowLibraryMix.documentationResources} />
         </TabsContent>
 
-        <TabsContent value="evidence" className="mt-0 grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Documentation hub</CardTitle>
-              <CardDescription className="text-slate-400">Automatically generated evidence and leadership review notes connected to your Service Foundations, Workflow Precision, and coaching history.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
-              <div className="space-y-3">
-                {data.reviewLogs.map((entry: any) => (
-                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="text-lg font-medium text-white">{entry.title}</h4>
-                        <p className="mt-2 text-sm text-slate-300">{entry.notes}</p>
+        <TabsContent value="evidence" className="mt-0 space-y-4">
+          <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
+            <CoachLaneActionCard
+              eyebrow="Latest review"
+              title="Open your latest review"
+              description={latestReviewLog ? `Read ${latestReviewLog.title} and your next step.` : "Your most recent leadership review will appear here."}
+              accent="gold"
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open latest review"
+                  dialogTitle={latestReviewLog ? `${latestReviewLog.title} · review` : "Latest review"}
+                  dialogDescription="Review the leadership note, the review type, and your next step."
+                  buttonClassName="w-full justify-between rounded-full border-[#F6C453]/60 bg-[#FCBC34] text-slate-950 shadow-[0_12px_32px_rgba(252,188,52,0.28)] hover:bg-[#ffd56d] hover:text-slate-950"
+                  renderContent={() => (
+                    latestReviewLog ? (
+                      <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{latestReviewLog.reviewType.replaceAll("_", " ")}</Badge>
+                        <p className="text-sm leading-6 text-slate-200">{latestReviewLog.notes}</p>
+                        <div className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><span className="font-medium text-white">Next step:</span> {latestReviewLog.nextStep}</div>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
+                    ) : (
+                      <div className="rounded-[1.5rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">No leadership reviews recorded yet.</div>
+                    )
+                  )}
+                />
+              }
+            />
+            <CoachLaneActionCard
+              eyebrow="Documentation"
+              title="Browse documentation"
+              description="See auto-generated completion evidence from your training and coaching."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open documentation"
+                  dialogTitle="Documentation hub"
+                  dialogDescription="Auto-generated evidence connected to your Service Foundations, Workflow Precision, and coaching history."
+                  buttonClassName="w-full justify-between rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                  renderContent={() => (
+                    <DocumentationFeed entries={data.documentationEntries} weeklyCoachingLogs={data.weeklyCoachingLogs} />
+                  )}
+                />
+              }
+            />
+            {retrainingHistory.length ? (
+              <CoachLaneActionCard
+                eyebrow="Retraining"
+                title="Past retraining history"
+                description="Completed retraining and the evidence already recorded."
+                action={
+                  <CoachLaneDialogAction
+                    buttonLabel="Open retraining history"
+                    dialogTitle="Past retraining history"
+                    dialogDescription="Completed retraining and the evidence already recorded."
+                    buttonClassName="w-full justify-between rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                    renderContent={() => (
+                      <RetrainingHistorySection title="Past retraining history" description="Completed retraining and the evidence already recorded." assignments={retrainingHistory} launchRole="learner" />
+                    )}
+                  />
+                }
+              />
+            ) : null}
+            <CoachLaneActionCard
+              eyebrow="Support assets"
+              title="Documentation assets"
+              description="CHCG governance assets and tenant-authored documents that support your evidence."
+              action={
+                <CoachLaneDialogAction
+                  buttonLabel="Open assets"
+                  dialogTitle="Documentation support assets"
+                  dialogDescription="Review evidence can be supported with both CHCG governance assets and tenant-authored documents."
+                  buttonClassName="w-full justify-between rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+                  renderContent={() => (
+                    <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
+                  )}
+                />
+              }
+            />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
+            <div className="space-y-2.5">
+              {sortedReviewLogs.map((entry: any) => (
+                <button key={entry.id} type="button" onClick={() => setSelectedReviewId(entry.id)} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${effectiveReviewLog?.id === entry.id ? "border-cyan-300/40 bg-cyan-400/10 shadow-[0_14px_28px_rgba(8,145,178,0.14)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className={`text-xs uppercase tracking-[0.22em] ${effectiveReviewLog?.id === entry.id ? "text-cyan-200" : "text-slate-500"}`}>Review</p>
+                      <h3 className="mt-1.5 text-base font-medium text-white">{entry.title}</h3>
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-300">{entry.notes}</p>
                     </div>
-                    <p className="mt-3 text-sm text-slate-400">Next step: {entry.nextStep}</p>
+                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{entry.reviewType.replaceAll("_", " ")}</Badge>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </PremiumCard>
-          <div className="space-y-6">
-            {retrainingHistory.length ? <RetrainingHistorySection title="Past retraining history" description="Completed retraining and the evidence already recorded." assignments={retrainingHistory} launchRole="learner" /> : null}
-            <WorkflowLibraryPanel title="Documentation support assets" description="Review evidence can be supported with both CHCG governance assets and tenant-authored documents." resources={data.workflowLibraryMix.documentationResources} />
+                </button>
+              ))}
+              {!sortedReviewLogs.length ? (
+                <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-300">No leadership reviews recorded yet.</div>
+              ) : null}
+            </div>
+            <PremiumCard>
+              <CardHeader className="space-y-0 p-4 pb-2.5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-white">Selected review</CardTitle>
+                    <CardDescription className="mt-1 text-sm leading-5 text-slate-300">{effectiveReviewLog ? "Review the note and your next step, then open the full review." : "Select a review to read the note and next step."}</CardDescription>
+                  </div>
+                  {effectiveReviewLog ? <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{effectiveReviewLog.reviewType.replaceAll("_", " ")}</Badge> : <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">Waiting for selection</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2.5 p-4 pt-0">
+                {effectiveReviewLog ? (
+                  <>
+                    <div className="rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200"><span className="font-medium text-white">{effectiveReviewLog.title}:</span> {effectiveReviewLog.notes}</div>
+                    <div className="rounded-[1.05rem] border border-white/14 bg-white/7 px-3.5 py-3 text-sm leading-5 text-slate-200"><span className="font-medium text-white">Next step:</span> {effectiveReviewLog.nextStep}</div>
+                    <CoachLaneDialogAction
+                      buttonLabel="Open review"
+                      dialogTitle={`${effectiveReviewLog.title} · review`}
+                      dialogDescription="Review the leadership note, the review type, and your next step."
+                      buttonClassName="w-full justify-between rounded-full border-cyan-200/55 bg-cyan-300/18 text-white shadow-[0_12px_30px_rgba(34,211,238,0.14)] hover:bg-cyan-300/26 hover:text-white"
+                      renderContent={() => (
+                        <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
+                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200 capitalize">{effectiveReviewLog.reviewType.replaceAll("_", " ")}</Badge>
+                          <p className="text-sm leading-6 text-slate-200">{effectiveReviewLog.notes}</p>
+                          <div className="rounded-2xl border border-white/14 bg-slate-950 p-3 text-sm text-slate-100"><span className="font-medium text-white">Next step:</span> {effectiveReviewLog.nextStep}</div>
+                        </div>
+                      )}
+                    />
+                  </>
+                ) : null}
+              </CardContent>
+            </PremiumCard>
           </div>
         </TabsContent>
     </WorkspaceShell>
