@@ -9406,12 +9406,29 @@ const REMINDER_TYPE_LABEL: Record<ReminderType, string> = {
   announcement: "Announcement",
 };
 
+// Only these reminder types carry a real deadline → show "Due"/"Overdue". The
+// snapshot types (readiness_red, kpi_red, knowledge_check_failed), cadence gaps,
+// and announcements get a non-deadline label instead of a misleading "Due …".
+const DEADLINE_REMINDER_TYPES = new Set<ReminderType>(["training_due", "coaching_follow_up", "one_on_one_scheduled"]);
+
+function reminderDateBadge(reminder: Reminder): { text: string; overdue: boolean } {
+  if (DEADLINE_REMINDER_TYPES.has(reminder.type) && reminder.dueAt) {
+    const date = new Date(reminder.dueAt).toLocaleDateString();
+    return reminder.overdue ? { text: `Overdue ${date}`, overdue: true } : { text: `Due ${date}`, overdue: false };
+  }
+  // Performance signals carry the moment they fired.
+  if (reminder.type === "readiness_red" && reminder.dueAt) {
+    return { text: `Occurred ${new Date(reminder.dueAt).toLocaleDateString()}`, overdue: false };
+  }
+  return { text: "Flagged", overdue: false };
+}
+
 function ReminderRow({ reminder, selected, onSelect }: { reminder: Reminder; selected: boolean; onSelect: () => void }) {
   return (
     <button type="button" onClick={onSelect} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${selected ? "border-rose-400/40 bg-rose-400/10 shadow-[0_14px_28px_rgba(244,63,94,0.12)]" : "border-white/12 bg-white/[0.07] hover:border-white/20 hover:bg-white/10"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-dark">{REMINDER_TYPE_LABEL[reminder.type]}{reminder.overdue ? " · Overdue" : ""}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-dark">{REMINDER_TYPE_LABEL[reminder.type]}{DEADLINE_REMINDER_TYPES.has(reminder.type) && reminder.overdue ? " · Overdue" : ""}</p>
           <h3 className="mt-1 truncate text-sm font-semibold text-white">{reminder.subject}</h3>
           <p className="mt-1 line-clamp-2 text-[13px] leading-5 text-slate-300">{reminder.reason}</p>
         </div>
@@ -9430,9 +9447,10 @@ function ReminderDetail({ reminder, onOpen }: { reminder: Reminder | null; onOpe
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge value={reminder.severity} />
         <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{REMINDER_TYPE_LABEL[reminder.type]}</Badge>
-        {reminder.dueAt ? (
-          <Badge className={`rounded-full ${reminder.overdue ? "border-rose-400/30 bg-rose-500/15 text-rose-100" : "border-white/12 bg-white/8 text-slate-200"}`}>{reminder.overdue ? "Overdue" : "Due"} {new Date(reminder.dueAt).toLocaleDateString()}</Badge>
-        ) : null}
+        {(() => {
+          const badge = reminderDateBadge(reminder);
+          return <Badge className={`rounded-full ${badge.overdue ? "border-rose-400/30 bg-rose-500/15 text-rose-100" : "border-white/12 bg-white/8 text-slate-200"}`}>{badge.text}</Badge>;
+        })()}
       </div>
       <div className="surface-dark rounded-[1.3rem] border border-white/12 p-4 text-sm leading-7 text-slate-200">{reminder.reason}</div>
       {reminder.deepLink ? (
