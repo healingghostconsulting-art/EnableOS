@@ -290,6 +290,15 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toMatch(/<XAxis dataKey="(label|week|period)" stroke="#94a3b8" tickLine=\{false\} axisLine=\{false\} \/>/);
   });
 
+  it("retargets the Coach + Manager Alerts onto the reminder engine (NOTIF1)", () => {
+    expect(trainingViewSource).toContain('buildReminders("coach"');
+    expect(trainingViewSource).toContain('buildReminders("manager"');
+    expect(trainingViewSource).toContain("<ReminderRow");
+    expect(trainingViewSource).toContain("<ReminderDetail");
+    // The static notification list is gone from both Alerts modes.
+    expect(trainingViewSource).not.toContain("data.notifications.map");
+  });
+
   it("reuses the leaderboard component for a manager board with a three-level scope (LEAD5)", () => {
     // Same component, manager variant, surfaced as a Manager Ops mode.
     expect(trainingViewSource).toContain('<LearnerLeaderboard leaderboard={data.leaderboard} variant="manager" />');

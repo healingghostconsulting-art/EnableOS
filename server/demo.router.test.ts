@@ -484,10 +484,11 @@ describe("demo router", () => {
     expect(mayaLog).toEqual(
       expect.objectContaining({
         coachName: "Renee Lawson",
-        sessionDate: "2026-04-21",
         visibility: "public",
       }),
     );
+    // sessionDate is now demoNow-relative (NOTIF1) — assert the date-only shape, not a fixed literal.
+    expect(mayaLog?.sessionDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(mayaLog?.followUpFromPrevious).toContain("final next-step statement");
     expect(mayaLog?.coachingComments).toContain("what will happen next");
     expect(mayaLog?.smartGoalCommitment).toContain("owner-and-next-step close");

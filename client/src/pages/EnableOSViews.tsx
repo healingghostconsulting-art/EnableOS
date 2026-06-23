@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
 import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
+import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
+import { demoNow } from "../../../shared/demoClock";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -9391,6 +9393,66 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
   );
 }
 
+// Shared reminder chrome (NOTIF1) — the Coach + Manager Alerts modes both render
+// reminders from buildReminders() through these, keeping the dark list→detail look.
+const REMINDER_TYPE_LABEL: Record<ReminderType, string> = {
+  training_due: "Training due",
+  coaching_follow_up: "Coaching follow-up",
+  one_on_one_scheduled: "One-on-one",
+  knowledge_check_failed: "Knowledge check",
+  readiness_red: "Performance",
+  kpi_red: "KPI red",
+  coaching_cadence_gap: "Cadence gap",
+  announcement: "Announcement",
+};
+
+function ReminderRow({ reminder, selected, onSelect }: { reminder: Reminder; selected: boolean; onSelect: () => void }) {
+  return (
+    <button type="button" onClick={onSelect} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${selected ? "border-rose-400/40 bg-rose-400/10 shadow-[0_14px_28px_rgba(244,63,94,0.12)]" : "border-white/12 bg-white/[0.07] hover:border-white/20 hover:bg-white/10"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-dark">{REMINDER_TYPE_LABEL[reminder.type]}{reminder.overdue ? " · Overdue" : ""}</p>
+          <h3 className="mt-1 truncate text-sm font-semibold text-white">{reminder.subject}</h3>
+          <p className="mt-1 line-clamp-2 text-[13px] leading-5 text-slate-300">{reminder.reason}</p>
+        </div>
+        <StatusBadge value={reminder.severity} />
+      </div>
+    </button>
+  );
+}
+
+function ReminderDetail({ reminder, onOpen }: { reminder: Reminder | null; onOpen: (reminder: Reminder) => void }) {
+  if (!reminder) {
+    return <p className="text-sm leading-7 text-slate-300">Select a reminder to see the recommendation and where to act.</p>;
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge value={reminder.severity} />
+        <Badge className="rounded-full border-white/12 bg-white/10 text-slate-200">{REMINDER_TYPE_LABEL[reminder.type]}</Badge>
+        {reminder.dueAt ? (
+          <Badge className={`rounded-full ${reminder.overdue ? "border-rose-400/30 bg-rose-500/15 text-rose-100" : "border-white/12 bg-white/8 text-slate-200"}`}>{reminder.overdue ? "Overdue" : "Due"} {new Date(reminder.dueAt).toLocaleDateString()}</Badge>
+        ) : null}
+      </div>
+      <div className="surface-dark rounded-[1.3rem] border border-white/12 p-4 text-sm leading-7 text-slate-200">{reminder.reason}</div>
+      {reminder.deepLink ? (
+        <Button type="button" onClick={() => onOpen(reminder)} className="rounded-full bg-[#FCBC34] text-slate-950 hover:bg-[#ffd56d]">
+          Open {reminder.deepLink.tab ? REMINDER_DEEPLINK_LABEL[reminder.deepLink.tab] ?? "workspace" : "workspace"}
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+const REMINDER_DEEPLINK_LABEL: Record<string, string> = {
+  coaching: "coaching lane",
+  interventions: "interventions",
+  "kpi-board": "KPI board",
+  reengagements: "re-engagements",
+  journey: "journey",
+};
+
 function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?: () => void; headerActions?: ReactNode }) {
   const teamLearners = data.teamLearners?.length ? data.teamLearners : [data.directLearner];
   const teamCoachingSessions = data.teamCoachingSessions?.length ? data.teamCoachingSessions : data.coachingSessions;
@@ -9441,7 +9503,21 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
   };
 
   const selectedCoachingSession = selectedCoachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? selectedCoachingSessions[0] ?? null;
-  const selectedAlert = data.notifications.find((item: any) => item.id === selectedAlertId) ?? data.notifications[0] ?? null;
+  const coachReminders = buildReminders("coach", {
+    now: demoNow(),
+    coachingSessions: data.teamCoachingSessions,
+    weeklyCoachingLogs: data.teamWeeklyCoachingLogs,
+    learners: data.teamLearners,
+    performanceSignals: data.openSignals,
+    notifications: data.notifications,
+  });
+  const selectedAlert = coachReminders.find((item) => item.id === selectedAlertId) ?? coachReminders[0] ?? null;
+  const openReminderTarget = (reminder: Reminder) => {
+    if (reminder.deepLink?.tab) {
+      setActiveTab(reminder.deepLink.tab as "coaching" | "transfer" | "documentation" | "alerts");
+      if (reminder.deepLink.sectionId) window.setTimeout(() => revealWorkspaceSection(reminder.deepLink!.sectionId!), 20);
+    }
+  };
   const coachNeedEntries = selectedDocumentationEntries.slice(0, 3);
   const selectedCoachNeedEntry = selectedCoachNeedEntryId
     ? selectedDocumentationEntries.find((entry: any) => entry.id === selectedCoachNeedEntryId) ?? null
@@ -9999,14 +10075,14 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
                   <CardTitle className="text-white">Alerts</CardTitle>
                   <CardDescription className="mt-2 text-slate-300">Review the queue, inspect the selected alert, and take the next action.</CardDescription>
                 </div>
-                <Badge className="rounded-full border-rose-300/35 bg-rose-300/12 text-rose-100">{data.notifications.length} open alerts</Badge>
+                <Badge className="rounded-full border-rose-300/35 bg-rose-300/12 text-rose-100">{coachReminders.length} open reminders</Badge>
               </div>
             </CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-3">
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Selected alert</p>
-                <p className="mt-2 text-lg font-semibold text-white">{selectedAlert?.title ?? "Waiting for selection"}</p>
-                <p className="mt-1 text-sm text-slate-300">Priority {selectedAlert?.priority ?? "not set"}</p>
+                <p className="mt-2 text-lg font-semibold text-white">{selectedAlert?.subject ?? "Waiting for selection"}</p>
+                <p className="mt-1 text-sm text-slate-300">{selectedAlert ? REMINDER_TYPE_LABEL[selectedAlert.type] : "not set"}</p>
               </div>
               <div className="rounded-[1.3rem] border border-white/12 bg-white/6 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Queue posture</p>
@@ -10034,18 +10110,9 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
                   dialogClassName="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-5xl"
                   buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
                   renderContent={() => (
-                    <div className="space-y-3 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                      {data.notifications.map((item: any) => (
-                        <button key={item.id} type="button" onClick={() => setSelectedAlertId(item.id)} className={`w-full rounded-[1.55rem] border px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${selectedAlert?.id === item.id ? "border-rose-300 bg-[linear-gradient(180deg,rgba(255,241,242,0.98),rgba(254,226,226,0.94))] shadow-[0_20px_45px_rgba(225,29,72,0.12)]" : "border-white/12 bg-slate-950/70 hover:border-white/22 hover:bg-slate-900"}`}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${selectedAlert?.id === item.id ? "text-rose-700" : "text-slate-300"}`}>Alert</p>
-                              <h3 className={`mt-2 text-base font-semibold ${selectedAlert?.id === item.id ? "text-slate-950" : "text-white"}`}>{item.title}</h3>
-                              <p className={`mt-2 text-sm ${selectedAlert?.id === item.id ? "text-slate-600" : "text-slate-300"}`}>{new Date(item.createdAt).toLocaleString()}</p>
-                            </div>
-                            <StatusBadge value={item.priority} />
-                          </div>
-                        </button>
+                    <div className="space-y-2.5 rounded-[1.8rem] border border-white/10 bg-slate-950/60 p-5">
+                      {coachReminders.map((item) => (
+                        <ReminderRow key={item.id} reminder={item} selected={selectedAlert?.id === item.id} onSelect={() => setSelectedAlertId(item.id)} />
                       ))}
                     </div>
                   )}
@@ -10060,23 +10127,13 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
               action={
                 <CoachLaneDialogAction
                   buttonLabel="Open alert detail"
-                  dialogTitle={selectedAlert?.title ?? "Alert detail"}
+                  dialogTitle={selectedAlert?.subject ?? "Reminder detail"}
                     dialogDescription="Review the selected alert and decide the next step."
 
                   buttonClassName="w-full justify-between rounded-full border-rose-300/55 bg-rose-300/16 text-white shadow-[0_12px_30px_rgba(244,114,182,0.16)] hover:bg-rose-300/24 hover:text-white"
                   renderContent={() => (
-                    <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                      {selectedAlert ? (
-                        <>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <StatusBadge value={selectedAlert.priority} />
-                            <Badge className="rounded-full border-white/12 bg-white/10 text-slate-100">{new Date(selectedAlert.createdAt).toLocaleString()}</Badge>
-                          </div>
-                          <div className="rounded-[1.45rem] border border-white/12 bg-slate-950/80 p-4 text-sm leading-7 text-slate-200">{selectedAlert.detail}</div>
-                        </>
-                      ) : (
-                        <div className="rounded-[1.45rem] border border-dashed border-white/18 bg-slate-900/72 px-4 py-5 text-sm leading-6 text-slate-200">Select an alert from the queue to inspect the coach-facing recommendation and timing context.</div>
-                      )}
+                    <div className="space-y-4 rounded-[1.8rem] border border-white/10 bg-slate-950/60 p-5">
+                      <ReminderDetail reminder={selectedAlert} onOpen={openReminderTarget} />
                     </div>
                   )}
                 />
@@ -10139,7 +10196,22 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
 
   const selectedIntervention = data.interventions.find((item: any) => item.id === selectedInterventionId) ?? data.interventions[0] ?? null;
   const selectedCoachingSession = data.coachingSessions.find((session: any) => session.id === selectedCoachingSessionId) ?? data.coachingSessions[0] ?? null;
-  const selectedNotification = data.notifications.find((item: any) => item.id === selectedNotificationId) ?? data.notifications[0] ?? null;
+  const managerReminders = buildReminders("manager", {
+    now: demoNow(),
+    retrainingAssignments: data.retrainingAssignments,
+    performanceSignals: data.openSignals,
+    weeklyCoachingLogs: data.weeklyCoachingLogs,
+    learners: [data.directReport],
+    kpiProfile: getKpiProfile(),
+    notifications: data.notifications,
+  });
+  const selectedNotification = managerReminders.find((item) => item.id === selectedNotificationId) ?? managerReminders[0] ?? null;
+  const openManagerReminder = (reminder: Reminder) => {
+    if (reminder.deepLink?.tab) {
+      setActiveTab(reminder.deepLink.tab as "kpi-board" | "leaderboard" | "interventions" | "coaching" | "documentation" | "notifications");
+      if (reminder.deepLink.sectionId) window.setTimeout(() => revealWorkspaceSection(reminder.deepLink!.sectionId!), 20);
+    }
+  };
 
   const managerWorkspaceStats: WorkspaceStat[] = [
     { label: "Active signals", value: data.openSignals.length, sub: "Live KPI and QA feed requiring attention", icon: <CircleAlert className="h-4 w-4" />, onClick: () => openManagerView("interventions", "manager-signal-trend") },
@@ -10496,30 +10568,21 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         </TabsContent>
 
         <TabsContent value="notifications" id="manager-alerts-lane" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr] scroll-mt-24">
-          <div className="space-y-4">
-            {data.notifications.map((item: any) => (
-              <button key={item.id} type="button" onClick={() => setSelectedNotificationId(item.id)} className={`w-full rounded-[1.45rem] border p-4 text-left transition ${selectedNotification?.id === item.id ? "border-rose-400/30 bg-rose-400/10 shadow-[0_20px_45px_rgba(8,15,35,0.18)]" : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8"}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Alert</p>
-                    <h3 className="mt-2 text-base font-medium text-white">{item.title}</h3>
-                    <p className="mt-2 text-sm text-slate-300">{new Date(item.createdAt).toLocaleString()}</p>
-                  </div>
-                  <StatusBadge value={item.priority} />
-                </div>
-              </button>
+          <div className="surface-dark space-y-2.5 rounded-[1.6rem] border border-white/10 p-3">
+            {managerReminders.map((item) => (
+              <ReminderRow key={item.id} reminder={item} selected={selectedNotification?.id === item.id} onSelect={() => setSelectedNotificationId(item.id)} />
             ))}
+            {!managerReminders.length ? <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-300">No active reminders right now.</div> : null}
           </div>
           <PremiumCard>
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
-                <CardTitle className="text-white">{selectedNotification?.title ?? "Alert details"}</CardTitle>
-                {selectedNotification ? <StatusBadge value={selectedNotification.priority} /> : null}
+                <CardTitle className="text-white">{selectedNotification?.subject ?? "Reminder details"}</CardTitle>
+                {selectedNotification ? <StatusBadge value={selectedNotification.severity} /> : null}
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-7 text-slate-300">{selectedNotification?.detail ?? "Select an alert to inspect the full manager-facing recommendation and time stamp."}</p>
-              {selectedNotification ? <p className="mt-4 text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(selectedNotification.createdAt).toLocaleString()}</p> : null}
+              <ReminderDetail reminder={selectedNotification} onOpen={openManagerReminder} />
             </CardContent>
           </PremiumCard>
         </TabsContent>
