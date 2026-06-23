@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
+import { useReminderBadge } from "@/lib/reminderBadge";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Building2, ChevronLeft, ChevronRight, Compass, Flame, LogOut, Sparkles, Target, Trophy, type LucideIcon } from "lucide-react";
 import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
@@ -270,6 +271,7 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const autoCollapseTimeoutRef = useRef<number | null>(null);
   const normalizedLocationPath = normalizeMenuPath(location);
+  const { unreadByPath } = useReminderBadge();
   const activeMenuItem = menuItems.find((item) => normalizeMenuPath(item.path) === normalizedLocationPath);
   const isMobile = useIsMobile();
   const desktopSidebarUi = getDesktopSidebarUiState({ isMobile, isCollapsed });
@@ -412,6 +414,7 @@ function DashboardLayoutContent({
             <SidebarMenu className="gap-2">
               {menuItems.map((item, index) => {
                 const isActive = normalizedLocationPath === normalizeMenuPath(item.path);
+                const unread = unreadByPath[item.path] ?? 0;
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
@@ -427,9 +430,13 @@ function DashboardLayoutContent({
                       </div>
                       <div className="flex min-w-0 flex-1 items-center justify-between gap-3 transition-all duration-300 ease-out">
                         <span className="min-w-0 leading-5 whitespace-normal">{item.label}</span>
-                        {!isCollapsed ? (
-                          isActive ? <Badge className="rounded-full border-none bg-white/15 text-[11px] uppercase tracking-[0.18em] text-white">live</Badge> : <span className="text-xs text-[#4A6373]">{String(index + 1).padStart(2, "0")}</span>
-                        ) : null}
+                        <div className="flex items-center gap-1.5">
+                          {/* Unread reminder count, published per-route by the active workspace panel. */}
+                          {unread > 0 ? <Badge className="rounded-full border-none bg-rose-500 px-1.5 text-[10px] font-semibold leading-4 text-white" aria-label={`${unread} unread reminders`}>{unread}</Badge> : null}
+                          {!isCollapsed ? (
+                            isActive ? <Badge className="rounded-full border-none bg-white/15 text-[11px] uppercase tracking-[0.18em] text-white">live</Badge> : <span className="text-xs text-[#4A6373]">{String(index + 1).padStart(2, "0")}</span>
+                          ) : null}
+                        </div>
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

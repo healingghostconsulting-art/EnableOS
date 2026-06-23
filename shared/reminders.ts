@@ -1,21 +1,20 @@
 // ──────────────────────────────────────────────────────────────────────────────
 // REMINDER ENGINE — one typed model every surface consumes (NOTIF1).
 //
-// buildReminders(audience, ctx) derives reminders from the existing data signals
-// (coaching due dates, retraining due dates, performance signals, KPI bands,
-// coaching cadence, quiz pass rate, readiness) using the per-audience trigger
-// rules. Inputs are structural (decoupled from server types). Due/overdue math
-// uses ctx.now ?? demoNow(). Static seed notifications fold in as `announcement`
-// reminders. The `read` flag powers the upcoming nav unread count.
+// buildReminders(audience, ctx) derives reminders from coaching + training
+// signals only (NOTIF2 scope trim): retraining due dates, coaching follow-ups,
+// scheduled one-on-ones, coaching cadence, and quiz pass rate. Telephony/WFM
+// signals (performance, KPI bands, readiness) are intentionally NOT alerted on —
+// the seed data stays, but no reminders are generated from it. Inputs are
+// structural (decoupled from server types). Due/overdue math uses ctx.now ??
+// demoNow(). Static seed notifications fold in as `announcement` reminders. The
+// `read` flag powers the nav unread count.
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { demoNow } from "./demoClock";
-import { classifyKpi, type ClientKpiProfile } from "./kpiScorecards";
 
 /** quizFirstPassPct below this is a failed knowledge check. */
 export const KNOWLEDGE_CHECK_PASS = 60;
-/** readinessScore below this is "readiness red". */
-export const READINESS_RED = 70;
 /** A coaching log older than this many days is a cadence gap. */
 export const COACHING_CADENCE_DAYS = 7;
 /** A due date within this many days (and not past) is "due soon". */
@@ -26,8 +25,6 @@ export type ReminderType =
   | "coaching_follow_up"
   | "one_on_one_scheduled"
   | "knowledge_check_failed"
-  | "readiness_red"
-  | "kpi_red"
   | "coaching_cadence_gap"
   | "announcement";
 
@@ -67,10 +64,8 @@ export interface ReminderContext {
   now?: Date;
   coachingSessions?: any[];
   retrainingAssignments?: any[];
-  performanceSignals?: any[];
   weeklyCoachingLogs?: any[];
   learners?: any[];
-  kpiProfile?: ClientKpiProfile | null;
   notifications?: any[];
 }
 
@@ -191,67 +186,6 @@ export function buildReminders(audience: ReminderAudience, ctx: ReminderContext)
         createdAt: now.toISOString(),
         read: false,
       });
-    }
-  }
-
-  // ── Readiness red — low readinessScore (coach: team; manager: report) + high-sev signals ──
-  if (audience === "coach" || audience === "manager") {
-    for (const l of learners) {
-      if (typeof l?.readinessScore !== "number" || l.readinessScore >= READINESS_RED) continue;
-      out.push({
-        id: `rem-readiness-${l.id}`,
-        type: "readiness_red",
-        audience,
-        severity: "warning",
-        subject: l.name,
-        subjectUserId: l.id,
-        reason: `${l.name}'s readiness is ${l.readinessScore} — below the ${READINESS_RED} red line.`,
-        overdue: false,
-        deepLink: audience === "manager" ? { route: "/manager", tab: "coaching", sectionId: "manager-coach-oversight" } : { route: "/coach", tab: "coaching" },
-        source: { kind: "readiness_red", refId: l.id },
-        createdAt: now.toISOString(),
-        read: false,
-      });
-    }
-    for (const sig of ctx.performanceSignals ?? []) {
-      if (sig?.severity !== "high" && sig?.severity !== "medium") continue;
-      out.push({
-        id: `rem-signal-${sig.id}`,
-        type: "readiness_red",
-        audience,
-        severity: sig.severity === "high" ? "critical" : "warning",
-        subject: sig.label ?? sig.metric,
-        subjectUserId: sig.userId,
-        reason: `${sig.label ?? sig.metric} is ${sig.value} vs ${sig.target} target (${sig.severity}-severity ${sig.source} signal).`,
-        dueAt: sig.occurredAt,
-        overdue: false,
-        deepLink: audience === "manager" ? { route: "/manager", tab: "interventions", sectionId: "manager-signal-trend" } : { route: "/coach", tab: "coaching" },
-        source: { kind: "readiness_red", refId: sig.id },
-        createdAt: sig.occurredAt ?? now.toISOString(),
-        read: false,
-      });
-    }
-  }
-
-  // ── KPI red (manager) ─────────────────────────────────────────────────────────
-  if (audience === "manager" && ctx.kpiProfile) {
-    for (const card of ctx.kpiProfile.scorecards) {
-      for (const row of card.rows) {
-        if (!row.measurement || classifyKpi(row.measurement) !== "red") continue;
-        out.push({
-          id: `rem-kpi-${card.id}-${row.metric.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`,
-          type: "kpi_red",
-          audience,
-          severity: "critical",
-          subject: row.metric,
-          reason: `${row.metric} is ${row.measurement.currentValue}${row.measurement.unit} — off target (goal ${row.goal}).`,
-          overdue: false,
-          deepLink: { route: "/manager", tab: "kpi-board" },
-          source: { kind: "kpi_red", refId: `${card.id}:${row.metric}` },
-          createdAt: now.toISOString(),
-          read: false,
-        });
-      }
     }
   }
 

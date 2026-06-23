@@ -22,6 +22,8 @@ export interface WorkspaceStat {
 export interface WorkspaceTab {
   value: string;
   label: string;
+  /** Optional unread count badge (e.g. the Alerts tab). 0/undefined hides it. */
+  badge?: number;
   /** Tab body. Omit to supply the gated <TabsContent> blocks via `children` instead. */
   content?: ReactNode;
   /** className on the TabsContent wrapper (preserves each tab's own layout). */
@@ -121,7 +123,12 @@ export function WorkspaceShell({
                   </div>
                   <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
                     {tabs.map((tab) => (
-                      <TabsTrigger key={tab.value} value={tab.value} className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">{tab.label}</TabsTrigger>
+                      <TabsTrigger key={tab.value} value={tab.value} className="rounded-full px-3.5 py-1.5 text-slate-700 transition hover:bg-slate-100 data-[state=active]:bg-white data-[state=active]:text-slate-950">
+                        <span className="inline-flex items-center gap-1.5">
+                          {tab.label}
+                          {tab.badge ? <span className="inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold leading-4 text-white">{tab.badge}</span> : null}
+                        </span>
+                      </TabsTrigger>
                     ))}
                   </TabsList>
                 </div>

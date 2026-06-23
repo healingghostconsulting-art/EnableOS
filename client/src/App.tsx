@@ -6,6 +6,7 @@ import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
+import { ReminderBadgeProvider } from "./lib/reminderBadge";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
@@ -113,18 +114,20 @@ function WorkspaceShell({ children, path, roleLabel }: { children: React.ReactNo
   }, [activeRole]);
 
   return (
-    <DashboardLayout
-      menuItems={menuItems}
-      title="CHCG EnableOS"
-      subtitle="Enterprise enablement and coaching intelligence"
-      requireAuth
-      demoProfile={{
-        name: "CHCG Demo Workspace",
-        roleLabel,
-      }}
-    >
-      {children}
-    </DashboardLayout>
+    <ReminderBadgeProvider>
+      <DashboardLayout
+        menuItems={menuItems}
+        title="CHCG EnableOS"
+        subtitle="Enterprise enablement and coaching intelligence"
+        requireAuth
+        demoProfile={{
+          name: "CHCG Demo Workspace",
+          roleLabel,
+        }}
+      >
+        {children}
+      </DashboardLayout>
+    </ReminderBadgeProvider>
   );
 }
 

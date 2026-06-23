@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { buildReminders, COACHING_CADENCE_DAYS, KNOWLEDGE_CHECK_PASS, READINESS_RED } from "../shared/reminders";
+import { buildReminders, COACHING_CADENCE_DAYS, KNOWLEDGE_CHECK_PASS } from "../shared/reminders";
 import { setDemoNow } from "../shared/demoClock";
 
 const NOW = new Date("2026-06-18T12:00:00Z");
@@ -55,34 +55,30 @@ describe("buildReminders — triggers fire against a pinned demoNow", () => {
     expect(r.find((x) => x.id === "rem-quiz-u2")).toBeUndefined();
   });
 
-  it("readiness_red: low readiness + high/medium signals, low signal skipped", () => {
-    const r = buildReminders("manager", {
+  it("scope trim (NOTIF2): performance / KPI / readiness signals no longer generate reminders", () => {
+    // Inputs that used to fire readiness_red / kpi_red — low readiness, a high-severity
+    // performance signal, and a red KPI band. None of them should produce a reminder now.
+    const ctxExtras = {
       now: NOW,
-      learners: [{ id: "u1", name: "Nina", readinessScore: READINESS_RED - 1 }],
+      learners: [{ id: "u1", name: "Nina", readinessScore: 50, quizFirstPassPct: 80 }],
       performanceSignals: [
         { id: "s1", userId: "u1", label: "QA score", value: 81, target: 90, severity: "high", source: "QA", occurredAt: days(-2) },
-        { id: "s2", userId: "u1", label: "Adherence", value: 86, target: 90, severity: "low", source: "WFM", occurredAt: days(-1) },
       ],
-    });
-    expect(r.find((x) => x.id === "rem-readiness-u1")).toMatchObject({ type: "readiness_red", severity: "warning" });
-    expect(r.find((x) => x.id === "rem-signal-s1")).toMatchObject({ type: "readiness_red", severity: "critical" });
-    expect(r.find((x) => x.id === "rem-signal-s2")).toBeUndefined();
-  });
-
-  it("kpi_red: only red bands, manager-only", () => {
-    const kpiProfile = {
-      clientId: "t", clientName: "T",
-      scorecards: [{ id: "sc", title: "SC", rows: [
-        { metric: "Abandonment Rate %", goal: "≤ 5%", definition: "", measurement: { currentValue: 8.1, unit: "%", direction: "lower_is_better", target: 5, green: [0, 5], yellow: [5, 7] } },
-        { metric: "Occupancy Rate", goal: "75%–85%", definition: "", measurement: { currentValue: 82, unit: "%", direction: "in_range", target: 80, green: [75, 85], yellow: [70, 90] } },
-      ] }],
-    };
-    const manager = buildReminders("manager", { now: NOW, kpiProfile: kpiProfile as any });
-    const kpi = manager.filter((x) => x.type === "kpi_red");
-    expect(kpi).toHaveLength(1);
-    expect(kpi[0]).toMatchObject({ subject: "Abandonment Rate %", severity: "critical" });
-    // A coach never gets KPI reminders.
-    expect(buildReminders("coach", { now: NOW, kpiProfile: kpiProfile as any }).some((x) => x.type === "kpi_red")).toBe(false);
+      kpiProfile: {
+        clientId: "t", clientName: "T",
+        scorecards: [{ id: "sc", title: "SC", rows: [
+          { metric: "Abandonment Rate %", goal: "≤ 5%", definition: "", measurement: { currentValue: 8.1, unit: "%", direction: "lower_is_better", target: 5, green: [0, 5], yellow: [5, 7] } },
+        ] }],
+      },
+    } as any;
+    const manager = buildReminders("manager", ctxExtras);
+    const coach = buildReminders("coach", ctxExtras);
+    for (const reminder of [...manager, ...coach]) {
+      expect(["readiness_red", "kpi_red"]).not.toContain(reminder.type);
+    }
+    // No reminder is sourced from those (removed) signals.
+    expect(manager.some((x) => /^rem-(readiness|signal|kpi)-/.test(x.id))).toBe(false);
+    expect(coach.some((x) => /^rem-(readiness|signal|kpi)-/.test(x.id))).toBe(false);
   });
 
   it("coaching_cadence_gap: latest log per subject vs the window", () => {

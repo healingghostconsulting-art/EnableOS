@@ -209,13 +209,29 @@ describe("learner training layout helpers", () => {
   it("gates the learner modes and folds resources + history into the right modes (L5)", () => {
     // Radix-gated modes (only the active TabsContent renders), default Journey. The
     // Leaderboard mode (LEAD2) was added after Journey.
-    expect(trainingViewSource).toContain('useState<"journey" | "leaderboard" | "reengagements" | "coaching" | "evidence">("journey")');
-    expect(trainingViewSource).toContain('setActiveTab(value as "journey" | "leaderboard" | "reengagements" | "coaching" | "evidence")');
+    expect(trainingViewSource).toContain('useState<"journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence">("journey")');
+    expect(trainingViewSource).toContain('value as "journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence"');
     // Mapped resources folded into Journey as a secondary "Resources" section (no own tab).
     expect(trainingViewSource).toContain('<WorkflowLibraryPanel title="Resources"');
     expect(trainingViewSource).not.toContain('title="Journey resource mix"');
     // Past retraining history lives in Evidence alongside completion records.
     expect(trainingViewSource).toContain('title="Past retraining history"');
+  });
+
+  it("adds a learner Alerts mode + per-audience unread badge, scoped to coaching+training (NOTIF2)", () => {
+    // Learner Alerts mode consuming the engine, with the same reminder chrome.
+    expect(trainingViewSource).toContain('buildReminders("learner"');
+    expect(trainingViewSource).toContain('{ value: "alerts", label: "Alerts", badge: learnerUnread }');
+    expect(trainingViewSource).toContain("<TabsContent value=\"alerts\"");
+    expect(trainingViewSource).toContain("reminder={selectedLearnerAlert}");
+    // Unread badge wiring on every workspace Alerts tab + mark-read on open.
+    expect(trainingViewSource).toContain("badge: coachUnread");
+    expect(trainingViewSource).toContain("badge: managerUnread");
+    expect(trainingViewSource).toContain("markLearnerRemindersRead()");
+    expect(trainingViewSource).toContain("useReminderInbox(");
+    // Scope trim: the telephony/WFM reminder labels are gone from the chrome.
+    expect(trainingViewSource).not.toContain("kpi_red:");
+    expect(trainingViewSource).not.toContain('readiness_red: "Performance"');
   });
 
   it("brings learner Re-engagements + Evidence onto the shared action-card + preview->popout pattern (ALIGN2)", () => {

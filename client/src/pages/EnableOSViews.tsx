@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { trpc } from "@/lib/trpc";
 import { buildRetrainingHistoryCsv, filterRetrainingHistoryByWindow, type RetrainingHistoryWindow } from "../../../shared/retrainingHistory";
@@ -15,6 +15,7 @@ import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from
 import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
 import { demoNow } from "../../../shared/demoClock";
+import { useReminderBadge } from "@/lib/reminderBadge";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -9400,15 +9401,13 @@ const REMINDER_TYPE_LABEL: Record<ReminderType, string> = {
   coaching_follow_up: "Coaching follow-up",
   one_on_one_scheduled: "One-on-one",
   knowledge_check_failed: "Knowledge check",
-  readiness_red: "Performance",
-  kpi_red: "KPI red",
   coaching_cadence_gap: "Cadence gap",
   announcement: "Announcement",
 };
 
 // Only these reminder types carry a real deadline → show "Due"/"Overdue". The
-// snapshot types (readiness_red, kpi_red, knowledge_check_failed), cadence gaps,
-// and announcements get a non-deadline label instead of a misleading "Due …".
+// snapshot types (knowledge_check_failed), cadence gaps, and announcements get a
+// non-deadline label instead of a misleading "Due …".
 const DEADLINE_REMINDER_TYPES = new Set<ReminderType>(["training_due", "coaching_follow_up", "one_on_one_scheduled"]);
 
 function reminderDateBadge(reminder: Reminder): { text: string; overdue: boolean } {
@@ -9416,11 +9415,51 @@ function reminderDateBadge(reminder: Reminder): { text: string; overdue: boolean
     const date = new Date(reminder.dueAt).toLocaleDateString();
     return reminder.overdue ? { text: `Overdue ${date}`, overdue: true } : { text: `Due ${date}`, overdue: false };
   }
-  // Performance signals carry the moment they fired.
-  if (reminder.type === "readiness_red" && reminder.dueAt) {
-    return { text: `Occurred ${new Date(reminder.dueAt).toLocaleDateString()}`, overdue: false };
-  }
   return { text: "Flagged", overdue: false };
+}
+
+// Client-side reminder read-state (NOTIF2). TODO: persist server-side per user;
+// localStorage is a per-browser stopgap so the unread badge survives reloads.
+const REMINDER_READ_PREFIX = "chcg-reminders-read";
+function loadReadReminderIds(key: string): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(key) ?? "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
+function saveReadReminderIds(key: string, ids: Set<string>): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(Array.from(ids)));
+  } catch {
+    /* storage unavailable — read-state just won't persist */
+  }
+}
+
+/**
+ * Tracks unread reminders for one workspace, publishes the count to the sidebar
+ * badge (keyed by route), and exposes markAllRead (called when the Alerts mode
+ * opens). Reminders are rebuilt each render, so unread/markAllRead read the
+ * current list from the caller.
+ */
+function useReminderInbox(route: string, storageScope: string, reminders: Reminder[]) {
+  const key = `${REMINDER_READ_PREFIX}:${storageScope}`;
+  const [readIds, setReadIds] = useState<Set<string>>(() => loadReadReminderIds(key));
+  const unread = reminders.filter((reminder) => !readIds.has(reminder.id)).length;
+  const { publishUnread } = useReminderBadge();
+  useEffect(() => {
+    publishUnread(route, unread);
+    return () => publishUnread(route, 0);
+  }, [route, unread, publishUnread]);
+  const markAllRead = useCallback(() => {
+    setReadIds((prev) => {
+      const next = new Set(prev);
+      for (const reminder of reminders) next.add(reminder.id);
+      saveReadReminderIds(key, next);
+      return next;
+    });
+  }, [key, reminders]);
+  return { unread, markAllRead };
 }
 
 function ReminderRow({ reminder, selected, onSelect }: { reminder: Reminder; selected: boolean; onSelect: () => void }) {
@@ -9526,9 +9565,9 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
     coachingSessions: data.teamCoachingSessions,
     weeklyCoachingLogs: data.teamWeeklyCoachingLogs,
     learners: data.teamLearners,
-    performanceSignals: data.openSignals,
     notifications: data.notifications,
   });
+  const { unread: coachUnread, markAllRead: markCoachRemindersRead } = useReminderInbox("/coach", `coach:${data.tenant.id}`, coachReminders);
   const selectedAlert = coachReminders.find((item) => item.id === selectedAlertId) ?? coachReminders[0] ?? null;
   const openReminderTarget = (reminder: Reminder) => {
     if (reminder.deepLink?.tab) {
@@ -9602,13 +9641,13 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
       modesLabel="Coach modes"
       modesSubtitle="Choose a tab to coach, review transfer, document evidence, or respond to alerts."
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts")}
+      onTabChange={(value) => { if (value === "alerts") markCoachRemindersRead(); setActiveTab(value as "coaching" | "transfer" | "documentation" | "alerts"); }}
       stats={coachWorkspaceStats}
       tabs={[
         { value: "coaching", label: "Coaching lane" },
         { value: "transfer", label: "Training transfer" },
         { value: "documentation", label: "Documentation" },
-        { value: "alerts", label: "Alerts" },
+        { value: "alerts", label: "Alerts", badge: coachUnread },
       ]}
       statsLead={
         <div className="rounded-[1rem] border border-white/12 bg-white/6 px-3 py-2 xl:min-w-[16rem]">
@@ -10217,12 +10256,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
   const managerReminders = buildReminders("manager", {
     now: demoNow(),
     retrainingAssignments: data.retrainingAssignments,
-    performanceSignals: data.openSignals,
     weeklyCoachingLogs: data.weeklyCoachingLogs,
     learners: [data.directReport],
-    kpiProfile: getKpiProfile(),
     notifications: data.notifications,
   });
+  const { unread: managerUnread, markAllRead: markManagerRemindersRead } = useReminderInbox("/manager", `manager:${data.tenant.id}`, managerReminders);
   const selectedNotification = managerReminders.find((item) => item.id === selectedNotificationId) ?? managerReminders[0] ?? null;
   const openManagerReminder = (reminder: Reminder) => {
     if (reminder.deepLink?.tab) {
@@ -10250,7 +10288,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
       modesLabel="Manager modes"
       modesSubtitle="Choose a tab to work interventions, coaching, documentation, or alerts."
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "kpi-board" | "leaderboard" | "interventions" | "coaching" | "documentation" | "notifications")}
+      onTabChange={(value) => { if (value === "notifications") markManagerRemindersRead(); setActiveTab(value as "kpi-board" | "leaderboard" | "interventions" | "coaching" | "documentation" | "notifications"); }}
       stats={managerWorkspaceStats}
       tabs={[
         { value: "kpi-board", label: "KPI board" },
@@ -10258,7 +10296,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
         { value: "interventions", label: "Interventions" },
         { value: "coaching", label: "Coaching" },
         { value: "documentation", label: "Documentation" },
-        { value: "notifications", label: "Alerts" },
+        { value: "notifications", label: "Alerts", badge: managerUnread },
       ]}
     >
         <TabsContent value="kpi-board" id="manager-kpi-board" className="mt-0 space-y-4 scroll-mt-24">
@@ -10880,7 +10918,8 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"journey" | "leaderboard" | "reengagements" | "coaching" | "evidence">("journey");
+  const [selectedLearnerAlertId, setSelectedLearnerAlertId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence">("journey");
   const utils = trpc.useUtils();
   const updateRetrainingStatus = trpc.demo.secureUpdateRetrainingAssignmentStatus.useMutation({
     onSuccess: async () => {
@@ -10942,6 +10981,21 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
     ? "You have already crossed the halfway mark in your guided journey."
     : "Each completed module unlocks the next coaching and readiness milestone.";
 
+  // Learner Alerts (NOTIF2) — the learner's own training due dates, scheduled 1:1 /
+  // follow-up, and failed knowledge checks, plus folded announcements.
+  const learnerReminders = buildReminders("learner", {
+    now: demoNow(),
+    retrainingAssignments: data.retrainingAssignments,
+    coachingSessions: data.nextCoachingSession ? [data.nextCoachingSession] : [],
+    learners: [data.learner],
+    notifications: data.notifications,
+  });
+  const { unread: learnerUnread, markAllRead: markLearnerRemindersRead } = useReminderInbox("/learner", `learner:${data.tenant.id}`, learnerReminders);
+  const selectedLearnerAlert = learnerReminders.find((item) => item.id === selectedLearnerAlertId) ?? learnerReminders[0] ?? null;
+  const openLearnerReminder = (reminder: Reminder) => {
+    if (reminder.deepLink?.tab) setActiveTab(reminder.deepLink.tab as "journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence");
+  };
+
   const learnerStats: WorkspaceStat[] = [
     { label: "Readiness score", value: data.learner.readinessScore, sub: data.learner.title, icon: <Gauge className="h-4 w-4" /> },
     { label: "Journey progress", value: `${data.activeJourney.progress}%`, sub: data.activeJourney.title, icon: <BookOpen className="h-4 w-4" /> },
@@ -10957,13 +11011,14 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
       actions={headerActions}
       modesLabel="Learner modes"
       activeTab={activeTab}
-      onTabChange={(value) => setActiveTab(value as "journey" | "leaderboard" | "reengagements" | "coaching" | "evidence")}
+      onTabChange={(value) => { if (value === "alerts") markLearnerRemindersRead(); setActiveTab(value as "journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence"); }}
       stats={learnerStats}
       statsGridClassName="grid flex-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
       subTruncate
       tabs={[
         { value: "journey", label: "Journey" },
         { value: "leaderboard", label: "Leaderboard" },
+        { value: "alerts", label: "Alerts", badge: learnerUnread },
         { value: "reengagements", label: "Re-engagements" },
         { value: "coaching", label: "Coaching" },
         { value: "evidence", label: "Evidence" },
@@ -11144,6 +11199,26 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
 
         <TabsContent value="leaderboard" className="mt-0">
           <LearnerLeaderboard leaderboard={data.leaderboard} />
+        </TabsContent>
+
+        <TabsContent value="alerts" className="mt-0 grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
+          <div className="surface-dark space-y-2.5 rounded-[1.6rem] border border-white/10 p-3">
+            {learnerReminders.map((item) => (
+              <ReminderRow key={item.id} reminder={item} selected={selectedLearnerAlert?.id === item.id} onSelect={() => setSelectedLearnerAlertId(item.id)} />
+            ))}
+            {!learnerReminders.length ? <div className="rounded-[1.45rem] border border-dashed border-white/12 bg-white/5 px-4 py-5 text-sm leading-6 text-slate-300">You're all caught up — no reminders right now.</div> : null}
+          </div>
+          <PremiumCard>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <CardTitle className="text-white">{selectedLearnerAlert?.subject ?? "Reminder details"}</CardTitle>
+                {selectedLearnerAlert ? <StatusBadge value={selectedLearnerAlert.severity} /> : null}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ReminderDetail reminder={selectedLearnerAlert} onOpen={openLearnerReminder} />
+            </CardContent>
+          </PremiumCard>
         </TabsContent>
 
         <TabsContent value="reengagements" className="mt-0 space-y-4">
