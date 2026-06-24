@@ -2374,6 +2374,24 @@ function isAssessmentQuestionCorrect(question: any, answer?: string) {
   return answer === question.correctOptionId;
 }
 
+// Post-submit review helpers (QUIZ2), exported + pure for testing.
+// Only the questions the learner got wrong (drives the "Review your misses" recall deck).
+export function selectMissedQuestions(questions: any[], answers: Record<string, string>): any[] {
+  return (questions ?? []).filter((question) => !isAssessmentQuestionCorrect(question, answers[question.id]));
+}
+
+// Stable sort that floats missed questions to the top, keeping author order within each group.
+export function orderQuestionsMissedFirst<T>(items: T[], answers: Record<string, string>, getQuestion: (item: T) => any = (item) => item): T[] {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const aMissed = isAssessmentQuestionCorrect(getQuestion(a.item), answers[getQuestion(a.item).id]) ? 1 : 0;
+      const bMissed = isAssessmentQuestionCorrect(getQuestion(b.item), answers[getQuestion(b.item).id]) ? 1 : 0;
+      return aMissed - bMissed || a.index - b.index;
+    })
+    .map((entry) => entry.item);
+}
+
 export function getAssessmentResultStyles(passed: boolean) {
   return passed
     ? {
@@ -2536,6 +2554,7 @@ function AssessmentPanel({
   disabled,
   accent = "cyan",
   compact = false,
+  reviewMode = false,
 }: {
   eyebrow: string;
   assessment: any;
@@ -2550,6 +2569,10 @@ function AssessmentPanel({
   disabled?: boolean;
   accent?: "cyan" | "emerald" | "amber";
   compact?: boolean;
+  // Post-submit review (QUIZ2): order missed questions first, drop the intro + take-quiz
+  // footer (the host supplies score/threshold + Retry). The correct-option highlight is on
+  // whenever submitted, regardless of this flag.
+  reviewMode?: boolean;
 }) {
   if (!assessment) {
     return null;
@@ -2569,22 +2592,31 @@ function AssessmentPanel({
   const resultStyles = getAssessmentResultStyles(passed);
   const showAssessmentCelebration = submitted && passed;
 
+  // Review mode lists missed questions first; otherwise keep author order. Each entry
+  // keeps its ORIGINAL question number for the label.
+  const indexedReviewQuestions = (assessment.questions ?? []).map((question: any, questionIndex: number) => ({ question, questionIndex }));
+  const orderedReviewQuestions = reviewMode && submitted
+    ? orderQuestionsMissedFirst(indexedReviewQuestions, answers, (entry: any) => entry.question)
+    : indexedReviewQuestions;
+
   return (
     <div className={compact ? "space-y-3" : "space-y-4"}>
-      <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
-        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
-        <h4 className="mt-2 text-lg font-medium text-white">{assessment.title}</h4>
-        <p className="mt-3 text-sm leading-6 text-slate-300">{assessment.objective}</p>
-        <div className={`mt-4 rounded-2xl border p-4 ${accentFrameClass}`}>
-          <p className="text-sm leading-6 text-slate-100">{assessment.instructions}</p>
-          <p className={`mt-2 text-sm ${accentTextClass}`}>
-            Passing score: {assessment.passingScore}/{assessment.questions.length}
-            {assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}
-          </p>
+      {!reviewMode ? (
+        <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
+          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
+          <h4 className="mt-2 text-lg font-medium text-white">{assessment.title}</h4>
+          <p className="mt-3 text-sm leading-6 text-slate-300">{assessment.objective}</p>
+          <div className={`mt-4 rounded-2xl border p-4 ${accentFrameClass}`}>
+            <p className="text-sm leading-6 text-slate-100">{assessment.instructions}</p>
+            <p className={`mt-2 text-sm ${accentTextClass}`}>
+              Passing score: {assessment.passingScore}/{assessment.questions.length}
+              {assessment.passingPercent ? ` (${assessment.passingPercent}% required)` : ""}
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
       <div className="grid gap-4">
-        {assessment.questions.map((question: any, questionIndex: number) => {
+        {orderedReviewQuestions.map(({ question, questionIndex }: { question: any; questionIndex: number }) => {
           const answerValue = answers[question.id] ?? "";
           const questionCorrect = isAssessmentQuestionCorrect(question, answerValue);
           const questionOptions = question.options ?? [];
@@ -2619,9 +2651,15 @@ function AssessmentPanel({
                     placeholder={question.placeholder ?? "Enter your answer"}
                   />
                   {submitted ? (
-                    <p className={`text-sm ${questionCorrect ? "text-emerald-300" : "text-rose-300"}`}>
-                      {questionCorrect ? question.successFeedback : question.failureFeedback}
-                    </p>
+                    <div className="space-y-1.5">
+                      {/* Short-answer is the fuzzy case: show an accepted exemplar alongside the feedback. */}
+                      {question.acceptedAnswers?.length ? (
+                        <p className="text-sm leading-6 text-emerald-200/90"><span className="font-medium">Accepted example:</span> “{question.acceptedAnswers[0]}”</p>
+                      ) : null}
+                      <p className={`text-sm ${questionCorrect ? "text-emerald-300" : "text-rose-300"}`}>
+                        {questionCorrect ? question.successFeedback : question.failureFeedback}
+                      </p>
+                    </div>
                   ) : null}
                 </div>
               ) : (
@@ -2629,10 +2667,16 @@ function AssessmentPanel({
                   {questionOptions.map((option: any) => {
                     const selected = answerValue === option.id;
                     const isCorrect = option.id === question.correctOptionId;
-                    const stateClass = submitted && selected
-                      ? isCorrect
-                        ? "border-emerald-400/40 bg-emerald-400/10"
-                        : "border-rose-400/40 bg-rose-400/10"
+                    // Post-submit: the learner's pick is green/rose, AND the correct option is
+                    // highlighted green even when they didn't pick it (the one review gap).
+                    const stateClass = submitted
+                      ? selected
+                        ? isCorrect
+                          ? "border-emerald-400/45 bg-emerald-400/12"
+                          : "border-rose-400/45 bg-rose-400/12"
+                        : isCorrect
+                          ? "border-emerald-400/40 bg-emerald-400/8 ring-1 ring-emerald-300/30"
+                          : "border-white/10 bg-white/5 opacity-70"
                       : selected
                         ? "border-cyan-400/40 bg-cyan-400/10"
                         : "border-white/10 bg-white/5 hover:bg-white/8";
@@ -2644,6 +2688,12 @@ function AssessmentPanel({
                         onClick={() => onAnswer(question.id, option.id)}
                         className={`min-w-0 overflow-hidden rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
                       >
+                        {submitted && (isCorrect || selected) ? (
+                          <div className="mb-2 flex flex-wrap gap-2">
+                            {isCorrect ? <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-100"><CheckCircle2 className="h-3 w-3" /> Correct answer</span> : null}
+                            {selected ? <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${isCorrect ? "border-emerald-300/40 bg-emerald-400/10 text-emerald-100" : "border-rose-300/40 bg-rose-400/15 text-rose-100"}`}>Your pick</span> : null}
+                          </div>
+                        ) : null}
                         <p className="break-words text-sm font-medium text-white">{option.label}</p>
                         <p className="mt-2 break-words text-sm leading-6 text-slate-300">{option.rationale}</p>
                         {submitted && selected ? (
@@ -2660,41 +2710,43 @@ function AssessmentPanel({
           );
         })}
       </div>
-      <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-white">Assessment status</p>
-            <p className="mt-1 text-sm text-slate-300">{answeredCount}/{assessment.questions.length} questions answered.</p>
+      {!reviewMode ? (
+        <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-white">Assessment status</p>
+              <p className="mt-1 text-sm text-slate-300">{answeredCount}/{assessment.questions.length} questions answered.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onRetry}
+                className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
+              >
+                Retry
+              </Button>
+              <Button
+                type="button"
+                onClick={onSubmit}
+                disabled={answeredCount !== assessment.questions.length || disabled}
+                className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
+              >
+                {assessment.style === "kahoot" ? "Grade quiz" : "Grade checkpoint"}
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onRetry}
-              className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white"
-            >
-              Retry
-            </Button>
-            <Button
-              type="button"
-              onClick={onSubmit}
-              disabled={answeredCount !== assessment.questions.length || disabled}
-              className="rounded-full bg-white text-slate-950 hover:bg-slate-100 disabled:bg-white/20 disabled:text-slate-400"
-            >
-              {assessment.style === "kahoot" ? "Grade quiz" : "Grade checkpoint"}
-            </Button>
-          </div>
+          {submitted ? (
+            <div className={`relative mt-4 overflow-hidden rounded-2xl border p-4 ${resultStyles.containerClass}`}>
+              <CorrectAnswerCelebration active={showAssessmentCelebration} compact={compact} />
+              <p className={`text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
+              <p className={`mt-2 text-sm leading-6 ${resultStyles.bodyClass}`}>
+                {passed ? assessment.passMessage : assessment.failMessage}
+              </p>
+            </div>
+          ) : null}
         </div>
-        {submitted ? (
-          <div className={`relative mt-4 overflow-hidden rounded-2xl border p-4 ${resultStyles.containerClass}`}>
-            <CorrectAnswerCelebration active={showAssessmentCelebration} compact={compact} />
-            <p className={`text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
-            <p className={`mt-2 text-sm leading-6 ${resultStyles.bodyClass}`}>
-              {passed ? assessment.passMessage : assessment.failMessage}
-            </p>
-          </div>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -2744,6 +2796,14 @@ function InlineAssessmentShell({
   const previousSuccessFeedbackRef = useRef(false);
   const isFinalQuiz = trigger?.assessmentKey === "finalQuiz";
   const title = isFinalQuiz ? "Final Quiz" : assessment?.title ?? "Assessment";
+  // Post-submit review (QUIZ2): the missed questions + a recall deck over only those.
+  const missedQuestions = submitted ? selectMissedQuestions(questions, answers) : [];
+  const missedRecallCards = buildPracticeRecallCards(missedQuestions, []);
+  const [reviewingMisses, setReviewingMisses] = useState(false);
+  useEffect(() => {
+    // Drop back out of the misses recall pass whenever the attempt resets.
+    if (!submitted) setReviewingMisses(false);
+  }, [submitted]);
 
   useEffect(() => {
     if (successFeedbackActive && !previousSuccessFeedbackRef.current && !successSoundMuted) {
@@ -2871,12 +2931,15 @@ function InlineAssessmentShell({
                 {successSoundMuted ? "Success sound muted" : "Success sound on"}
               </Button>
             </div>
-            <div className="mt-8 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Active prompt</p>
-              <p className="mt-3 text-base font-medium leading-7 text-white">{activeQuestion.prompt}</p>
-            </div>
+            {!submitted ? (
+              <div className="mt-8 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Active prompt</p>
+                <p className="mt-3 text-base font-medium leading-7 text-white">{activeQuestion.prompt}</p>
+              </div>
+            ) : null}
             <div className="rounded-b-[1.6rem] border-x border-b border-[#c9d4af] bg-[#f8fbf1] px-5 py-6 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:px-6">
-              {activeQuestion.type === "short_answer" ? (
+              {!submitted ? (
+                activeQuestion.type === "short_answer" ? (
                 <div className="space-y-4">
                   <Textarea
                     value={activeAnswerValue}
@@ -2907,7 +2970,8 @@ function InlineAssessmentShell({
                     );
                   })}
                 </div>
-              )}
+              )
+              ) : null}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm leading-6 text-[#5d694d]">{submitted ? (passed ? "This assessment is complete. Return to the lesson when you are ready to continue." : "Review the feedback below, then retry the quiz to clear this checkpoint.") : "Answer the active question, then submit to keep the learner moving through the lesson."}</p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -2929,26 +2993,58 @@ function InlineAssessmentShell({
                 </div>
               </div>
               {submitted ? (
-                <div className={`relative mt-6 overflow-hidden rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
-                  <CorrectAnswerCelebration active={successFeedbackActive} />
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                      {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
-                      <span className={passed ? "text-emerald-700" : "text-rose-700"}>{passed ? "Checkpoint cleared" : "Retry required"}</span>
+                reviewingMisses ? (
+                  <div className="relative mt-6 space-y-4 overflow-hidden rounded-[1.25rem] border border-[#1f2b45] bg-[#26324a] p-4 sm:p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Review your misses · {missedRecallCards.length} card{missedRecallCards.length === 1 ? "" : "s"}</p>
+                      <Button type="button" variant="outline" onClick={() => setReviewingMisses(false)} className="rounded-full border-white/20 bg-white/10 px-4 text-white hover:bg-white/16 hover:text-white">Back to results</Button>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>Score {score}/{questions.length}</div>
-                      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium ${successSoundMuted ? "bg-slate-200 text-slate-700" : "bg-emerald-100 text-emerald-700"}`}>
-                        {successSoundMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                        {successSoundMuted ? "Sound muted" : "Sound ready"}
+                    {/* Reuses the FLASH2 recall session over only the missed questions. Ungraded,
+                        client-side only — same coaching/leaderboard seam as FLASH2, not wired. */}
+                    <PracticeRecallSession items={missedRecallCards} theme="dark" />
+                  </div>
+                ) : (
+                  <div className="mt-6 space-y-4">
+                    <div className={`relative overflow-hidden rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                      <CorrectAnswerCelebration active={successFeedbackActive} />
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                          {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
+                          <span className={passed ? "text-emerald-700" : "text-rose-700"}>{passed ? "Checkpoint cleared" : "Retry required"}</span>
+                        </div>
+                        <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                          Score {score}/{questions.length} · {assessment.passingPercent ? `${assessment.passingPercent}% to pass` : `${assessment.passingScore} to pass`}
+                        </div>
                       </div>
+                      <p className={`mt-3 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
+                      {missedQuestions.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1rem] bg-white/70 px-4 py-3">
+                          <p className="text-sm font-medium text-rose-800">You missed {missedQuestions.length} of {questions.length} — review below.</p>
+                          {missedRecallCards.length > 0 ? (
+                            <Button type="button" onClick={() => setReviewingMisses(true)} className="rounded-full bg-[#2b3750] px-4 text-white hover:bg-[#222c40]">Review your misses</Button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="rounded-[1.25rem] border border-[#1f2b45] bg-[#26324a] p-4 sm:p-5">
+                      <p className="mb-3 text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Per-question review · missed first</p>
+                      <AssessmentPanel
+                        reviewMode
+                        eyebrow="Results review"
+                        assessment={assessment}
+                        answers={answers}
+                        submitted
+                        answeredCount={questions.length}
+                        score={score}
+                        passed={passed}
+                        onAnswer={() => {}}
+                        onSubmit={() => {}}
+                        onRetry={onRetry}
+                        accent={isFinalQuiz ? "amber" : "cyan"}
+                      />
                     </div>
                   </div>
-                  <p className={`mt-3 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
-                  <div className={`mt-4 rounded-[1rem] px-4 py-3 text-sm leading-6 ${passed ? "bg-white/70 text-emerald-800" : "bg-white/70 text-rose-800"}`}>
-                    {passed ? "The learner can now return to the lesson with this result recorded as part of the guided course flow." : "Review the feedback, update the answer, and retry inside the same assessment surface without leaving the lesson context."}
-                  </div>
-                </div>
+                )
               ) : null}
             </div>
           </div>

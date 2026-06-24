@@ -5,6 +5,8 @@ import {
   buildLearnerFeedbackPreferencesStorageKey,
   buildPracticeRecallCards,
   nextUnknownIndex,
+  selectMissedQuestions,
+  orderQuestionsMissedFirst,
   getBriefBoxPages,
   getBriefCompletionStatus,
   getLearnerFeedbackDescription,
@@ -772,7 +774,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("slideInteractionCelebrationActive");
     expect(trainingViewSource).toContain("Success sound");
     expect(trainingViewSource).toContain("Success sound muted");
-    expect(trainingViewSource).toContain("Sound ready");
+    expect(trainingViewSource).toContain("Success sound on");
     expect(trainingViewSource).toContain("Knowledge-check sound on");
     expect(trainingViewSource).toContain("Knowledge-check sound muted");
     expect(trainingViewSource).toContain("Knowledge-check sound ready");
@@ -1052,5 +1054,44 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("items={selectedAssetBriefCards}");
     // The recall deck stands alone on Practice — the slide-image viewer is suppressed there.
     expect(trainingViewSource).toContain("trainingWorkspacePage === \"lesson\" && currentStage?.id !== \"practice\"");
+  });
+
+  it("selectMissedQuestions returns only the questions the learner got wrong (QUIZ2)", () => {
+    const questions = [
+      { id: "q1", prompt: "Q1", correctOptionId: "a", options: [{ id: "a", label: "A", rationale: "ra" }, { id: "b", label: "B", rationale: "rb" }] },
+      { id: "q2", prompt: "Q2", correctOptionId: "a", options: [{ id: "a", label: "A", rationale: "ra" }, { id: "b", label: "B", rationale: "rb" }] },
+      { id: "q3", prompt: "Q3", correctOptionId: "a", options: [{ id: "a", label: "A", rationale: "ra" }, { id: "b", label: "B", rationale: "rb" }] },
+      { id: "q4", type: "short_answer", acceptedAnswers: ["verify the evidence"] },
+    ];
+    const answers = { q1: "b", q2: "a", q3: "b", q4: "guessing" }; // q1, q3, q4 wrong; q2 right
+    const missed = selectMissedQuestions(questions, answers);
+    expect(missed.map((q: any) => q.id)).toEqual(["q1", "q3", "q4"]);
+    // The "Review your misses" recall deck is built from exactly those — MC only (short-answer q4 dropped).
+    const cards = buildPracticeRecallCards(missed, []);
+    expect(cards.map((c) => c.id)).toEqual(["q1", "q3"]);
+  });
+
+  it("orderQuestionsMissedFirst floats missed questions first, stable within groups (QUIZ2)", () => {
+    const questions = [
+      { id: "q1", correctOptionId: "a" }, // right
+      { id: "q2", correctOptionId: "a" }, // wrong
+      { id: "q3", correctOptionId: "a" }, // right
+      { id: "q4", correctOptionId: "a" }, // wrong
+    ];
+    const answers = { q1: "a", q2: "b", q3: "a", q4: "b" };
+    expect(orderQuestionsMissedFirst(questions, answers).map((q: any) => q.id)).toEqual(["q2", "q4", "q1", "q3"]);
+  });
+
+  it("revives AssessmentPanel as the post-submit review with the correct-option highlight (QUIZ2)", () => {
+    // Correct option is highlighted green even when the learner didn't pick it (the one gap).
+    expect(trainingViewSource).toContain("border-emerald-400/40 bg-emerald-400/8 ring-1 ring-emerald-300/30");
+    expect(trainingViewSource).toContain("Correct answer");
+    // Review wiring inside the shell: missed-first AssessmentPanel + score/threshold + miss count.
+    expect(trainingViewSource).toContain("reviewMode");
+    expect(trainingViewSource).toContain("<AssessmentPanel");
+    expect(trainingViewSource).toContain("You missed {missedQuestions.length} of {questions.length}");
+    // The recall launcher feeds only the missed questions into the FLASH2 session.
+    expect(trainingViewSource).toContain("selectMissedQuestions(questions, answers)");
+    expect(trainingViewSource).toContain("<PracticeRecallSession items={missedRecallCards} theme=\"dark\" />");
   });
 });
