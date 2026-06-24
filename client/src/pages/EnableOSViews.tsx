@@ -2800,9 +2800,16 @@ function InlineAssessmentShell({
   const missedQuestions = submitted ? selectMissedQuestions(questions, answers) : [];
   const missedRecallCards = buildPracticeRecallCards(missedQuestions, []);
   const [reviewingMisses, setReviewingMisses] = useState(false);
+  // QUIZ3: the post-submit results + per-question review live in a focused pop box.
+  const [resultsOpen, setResultsOpen] = useState(false);
   useEffect(() => {
-    // Drop back out of the misses recall pass whenever the attempt resets.
-    if (!submitted) setReviewingMisses(false);
+    // Auto-open the results box on submit; reset both when the attempt resets (retry).
+    if (submitted) {
+      setResultsOpen(true);
+    } else {
+      setResultsOpen(false);
+      setReviewingMisses(false);
+    }
   }, [submitted]);
 
   useEffect(() => {
@@ -2977,18 +2984,12 @@ function InlineAssessmentShell({
               )
               ) : null}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm leading-6 text-[#5d694d]">{submitted ? (passed ? "This assessment is complete. Return to the lesson when you are ready to continue." : "Review the feedback below, then retry the quiz to clear this checkpoint.") : "Answer the active question, then submit to keep the learner moving through the lesson."}</p>
+                <p className="text-sm leading-6 text-[#5d694d]">{submitted ? (passed ? "Checkpoint cleared — your results are in the pop box." : "Checkpoint graded — open the results to review your misses.") : "Answer the active question, then submit to keep the learner moving through the lesson."}</p>
                 <div className="flex flex-wrap items-center gap-3">
                   {submitted ? (
-                    passed ? (
-                      <Button type="button" onClick={onReturn} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
-                        Continue lesson
-                      </Button>
-                    ) : (
-                      <Button type="button" onClick={onRetry} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
-                        Retry quiz
-                      </Button>
-                    )
+                    <Button type="button" onClick={() => setResultsOpen(true)} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40]">
+                      View results
+                    </Button>
                   ) : (
                     <Button type="button" onClick={onSubmit} disabled={!currentQuestionAnswered || disabled} className="rounded-full bg-[#2b3750] px-5 text-white hover:bg-[#222c40] disabled:bg-[#b9c4a3] disabled:text-[#f6faec]">
                       Submit response
@@ -2996,42 +2997,46 @@ function InlineAssessmentShell({
                   )}
                 </div>
               </div>
-              {submitted ? (
-                reviewingMisses ? (
-                  <div className="relative mt-6 space-y-4 overflow-hidden rounded-[1.25rem] border border-[#1f2b45] bg-[#26324a] p-4 sm:p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Review your misses · {missedRecallCards.length} card{missedRecallCards.length === 1 ? "" : "s"}</p>
-                      <Button type="button" variant="outline" onClick={() => setReviewingMisses(false)} className="rounded-full border-white/20 bg-white/10 px-4 text-white hover:bg-white/16 hover:text-white">Back to results</Button>
-                    </div>
-                    {/* Reuses the FLASH2 recall session over only the missed questions. Ungraded,
-                        client-side only — same coaching/leaderboard seam as FLASH2, not wired. */}
-                    <PracticeRecallSession items={missedRecallCards} theme="dark" />
-                  </div>
-                ) : (
-                  <div className="mt-6 space-y-4">
-                    <div className={`relative overflow-hidden rounded-[1.25rem] border px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] ${passed ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
-                      <CorrectAnswerCelebration active={successFeedbackActive} />
+              {/* QUIZ3: results + per-question review live in a focused, bounded pop box so the
+                  page never grows. The misses recall swaps the body inside the same box. */}
+              <Dialog open={resultsOpen} onOpenChange={(open) => { setResultsOpen(open); if (!open) setReviewingMisses(false); }}>
+                <DialogContent className="flex max-h-[80vh] flex-col gap-0 overflow-hidden border-white/10 bg-slate-950 p-0 text-slate-100 sm:max-w-3xl">
+                  <DialogHeader className="shrink-0 space-y-3 border-b border-white/10 bg-slate-950 p-5 text-left">
+                    {reviewingMisses ? (
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                          {passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <CircleAlert className="h-4 w-4 text-rose-600" />}
-                          <span className={passed ? "text-emerald-700" : "text-rose-700"}>{passed ? "Checkpoint cleared" : "Retry required"}</span>
-                        </div>
-                        <div className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${passed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                          Score {score}/{questions.length} · {assessment.passingPercent ? `${assessment.passingPercent}% to pass` : `${assessment.passingScore} to pass`}
-                        </div>
+                        <DialogTitle className="text-white">Review your misses · {missedRecallCards.length} card{missedRecallCards.length === 1 ? "" : "s"}</DialogTitle>
+                        <Button type="button" variant="outline" onClick={() => setReviewingMisses(false)} className="rounded-full border-white/20 bg-white/10 px-4 text-white hover:bg-white/16 hover:text-white">Back to results</Button>
                       </div>
-                      <p className={`mt-3 text-sm leading-6 ${passed ? "text-emerald-700" : "text-rose-700"}`}>{passed ? assessment.passMessage : assessment.failMessage}</p>
-                      {missedQuestions.length > 0 ? (
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1rem] bg-white/70 px-4 py-3">
-                          <p className="text-sm font-medium text-rose-800">You missed {missedQuestions.length} of {questions.length} — review below.</p>
+                    ) : (
+                      <>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <DialogTitle className="flex items-center gap-2 text-white">
+                            {passed ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <CircleAlert className="h-5 w-5 text-rose-300" />}
+                            {passed ? "Checkpoint cleared" : "Retry required"}
+                          </DialogTitle>
+                          <Badge className={`rounded-full ${passed ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100" : "border-rose-400/40 bg-rose-500/15 text-rose-100"}`}>Score {score}/{questions.length} · {assessment.passingPercent ? `${assessment.passingPercent}% to pass` : `${assessment.passingScore} to pass`}</Badge>
+                        </div>
+                        <DialogDescription className={passed ? "text-emerald-100/90" : "text-rose-100/90"}>{passed ? assessment.passMessage : assessment.failMessage}</DialogDescription>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <p className={`mr-auto text-sm ${missedQuestions.length > 0 ? "text-slate-300" : "text-emerald-200"}`}>{missedQuestions.length > 0 ? `You missed ${missedQuestions.length} of ${questions.length}.` : `Clean sweep — all ${questions.length} correct.`}</p>
+                          {passed ? (
+                            <Button type="button" onClick={onReturn} className="rounded-full bg-emerald-500 text-white hover:bg-emerald-400">Continue lesson</Button>
+                          ) : (
+                            <Button type="button" onClick={onRetry} className="rounded-full border border-white/15 bg-white/8 text-white hover:bg-white/14 hover:text-white">Retry quiz</Button>
+                          )}
                           {missedRecallCards.length > 0 ? (
-                            <Button type="button" onClick={() => setReviewingMisses(true)} className="rounded-full bg-[#2b3750] px-4 text-white hover:bg-[#222c40]">Review your misses</Button>
+                            <Button type="button" onClick={() => setReviewingMisses(true)} className="rounded-full bg-[#FCBC34] text-slate-950 hover:bg-[#ffd56d]">Review your misses</Button>
                           ) : null}
                         </div>
-                      ) : null}
-                    </div>
-                    <div className="rounded-[1.25rem] border border-[#1f2b45] bg-[#26324a] p-4 sm:p-5">
-                      <p className="mb-3 text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Per-question review · missed first</p>
+                      </>
+                    )}
+                  </DialogHeader>
+                  <div className="min-h-0 flex-1 overflow-y-auto p-5">
+                    {reviewingMisses ? (
+                      // Reuses the FLASH2 recall session over only the missed questions. Ungraded,
+                      // client-side only — same coaching/leaderboard seam as FLASH2, not wired.
+                      <PracticeRecallSession items={missedRecallCards} theme="dark" />
+                    ) : (
                       <AssessmentPanel
                         reviewMode
                         eyebrow="Results review"
@@ -3046,10 +3051,10 @@ function InlineAssessmentShell({
                         onRetry={onRetry}
                         accent={isFinalQuiz ? "amber" : "cyan"}
                       />
-                    </div>
+                    )}
                   </div>
-                )
-              ) : null}
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>

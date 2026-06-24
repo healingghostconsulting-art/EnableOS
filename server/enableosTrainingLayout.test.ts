@@ -1089,9 +1089,25 @@ describe("learner training layout helpers", () => {
     // Review wiring inside the shell: missed-first AssessmentPanel + score/threshold + miss count.
     expect(trainingViewSource).toContain("reviewMode");
     expect(trainingViewSource).toContain("<AssessmentPanel");
-    expect(trainingViewSource).toContain("You missed {missedQuestions.length} of {questions.length}");
+    expect(trainingViewSource).toContain("You missed ${missedQuestions.length} of ${questions.length}");
     // The recall launcher feeds only the missed questions into the FLASH2 session.
     expect(trainingViewSource).toContain("selectMissedQuestions(questions, answers)");
     expect(trainingViewSource).toContain("<PracticeRecallSession items={missedRecallCards} theme=\"dark\" />");
+  });
+
+  it("renders the post-submit review inside a bounded focused pop box, taker unchanged (QUIZ3)", () => {
+    // Results live in a Dialog that auto-opens on submit; a "View results" reopen stays on the page.
+    expect(trainingViewSource).toContain("const [resultsOpen, setResultsOpen] = useState(false)");
+    expect(trainingViewSource).toContain("if (submitted) {\n      setResultsOpen(true);");
+    expect(trainingViewSource).toContain("View results");
+    // Bounded box: max-h-[80vh], flex column, sticky shrink-0 header + scrolling flex-1 body.
+    expect(trainingViewSource).toContain("flex max-h-[80vh] flex-col gap-0 overflow-hidden");
+    expect(trainingViewSource).toContain('<DialogHeader className="shrink-0');
+    expect(trainingViewSource).toContain('<div className="min-h-0 flex-1 overflow-y-auto p-5">');
+    // The misses recall swaps the dialog body in-box (Back to results), no second overlay.
+    expect(trainingViewSource).toContain("Back to results");
+    expect(trainingViewSource).toContain("<PracticeRecallSession items={missedRecallCards} theme=\"dark\" />");
+    // The one-question-at-a-time taker still posts via Submit response.
+    expect(trainingViewSource).toContain("Submit response");
   });
 });
