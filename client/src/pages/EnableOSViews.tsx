@@ -66,7 +66,7 @@ import {
   Users2,
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
-import { getTrainingPresentation } from "../../../shared/trainingContent";
+import { getTrainingPresentation, type TrainingApplicationQuestion } from "../../../shared/trainingContent";
 import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
 import {
@@ -557,6 +557,9 @@ function BriefFlashCardDeck({
   emptyTitle,
   emptyBody,
   theme = "light",
+  cardStatus,
+  onGotIt,
+  onReviewAgain,
 }: {
   items: BriefFlashCardItem[];
   activeIndex: number;
@@ -573,7 +576,13 @@ function BriefFlashCardDeck({
   emptyTitle?: string;
   emptyBody?: string;
   theme?: "light" | "dark";
+  // Optional active-recall controls (FLASH2). Absent on the Learn lesson deck and
+  // the Library preview, which therefore render exactly as before.
+  cardStatus?: "unseen" | "known" | "review";
+  onGotIt?: () => void;
+  onReviewAgain?: () => void;
 }) {
+  const recallMode = Boolean(onGotIt && onReviewAgain);
   const boundedIndex = items.length > 0 ? Math.min(Math.max(activeIndex, 0), items.length - 1) : 0;
   const activeItem = items[boundedIndex] ?? null;
   const nextItem = items[boundedIndex + 1] ?? null;
@@ -649,6 +658,9 @@ function BriefFlashCardDeck({
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={`rounded-full ${themeClasses.badge}`}>{progressLabel}</Badge>
             <Badge className={`rounded-full ${themeClasses.badge}`}>{statusLabel}</Badge>
+            {recallMode && cardStatus && cardStatus !== "unseen" ? (
+              <Badge className={`rounded-full border ${cardStatus === "known" ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100" : "border-amber-300/40 bg-amber-400/15 text-amber-100"}`}>{cardStatus === "known" ? "Got it" : "To review"}</Badge>
+            ) : null}
           </div>
           <div className={`h-2 overflow-hidden rounded-full ${themeClasses.progressTrack}`}>
             <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${themeClasses.progressFill}`} style={{ width: `${progressPercent}%` }} />
@@ -774,6 +786,160 @@ function BriefFlashCardDeck({
           </p>
         </div>
       </div>
+
+      {recallMode ? (
+        <div className={`mt-4 flex flex-wrap items-center gap-2 rounded-[1.15rem] border px-3 py-3 ${themeClasses.inlinePanel}`}>
+          <p className={`mr-auto text-[11px] uppercase tracking-[0.2em] ${themeClasses.subdued}`}>Self-check recall</p>
+          <Button type="button" variant="outline" onClick={onReviewAgain} className="rounded-full border-amber-300/45 bg-amber-400/12 text-amber-100 hover:bg-amber-400/20 hover:text-white">
+            Review again
+          </Button>
+          <Button type="button" onClick={onGotIt} className="rounded-full bg-emerald-500 text-white hover:bg-emerald-400">
+            Got it
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+type RecallStatus = "unseen" | "known" | "review";
+
+// Turn a module's practice-checkpoint + final-quiz questions into recall cards:
+// front = prompt, back = correct option label + rationale, bullets = the rationales.
+// Falls back to practice-slide bullets when a module's Q&A is thin, so every module
+// gets a deck. Pure + exported for unit testing.
+export function buildPracticeRecallCards(
+  questions: TrainingApplicationQuestion[],
+  practiceSlides: { id?: string; title?: string; eyebrow?: string; narrative?: string; bullets?: string[] }[],
+): BriefFlashCardItem[] {
+  const qaCards = (questions ?? [])
+    .filter((question) => (question.options?.length ?? 0) > 0)
+    .map((question, index) => {
+      const correct = question.options?.find((option) => option.id === question.correctOptionId) ?? question.options?.[0];
+      const rationales = (question.options ?? []).map((option) => option.rationale).filter(Boolean);
+      return {
+        id: question.id ?? `practice-recall-${index}`,
+        eyebrow: "Active recall",
+        title: question.prompt,
+        frontSummary: "Recall the best answer in your own words, then flip to check yourself.",
+        backNarrative: correct ? `Answer: ${correct.label}${correct.rationale ? ` — ${correct.rationale}` : ""}` : question.successFeedback,
+        bullets: rationales.slice(0, 3),
+        accentLabel: "Practice",
+        supportLabel: "Recall prompt",
+        supportValue: "Say your answer out loud, then flip.",
+      } satisfies BriefFlashCardItem;
+    });
+
+  // "Thin" = fewer than 2 answerable questions → use the practice slides instead.
+  if (qaCards.length >= 2) return qaCards;
+
+  return (practiceSlides ?? []).map((slide, index) => ({
+    id: slide.id ?? `practice-slide-${index}`,
+    eyebrow: "Active recall",
+    title: slide.title ?? `Practice focus ${index + 1}`,
+    frontSummary: "Recall the key points for this practice focus, then flip.",
+    backNarrative: slide.narrative ?? "Review the supporting detail for this practice focus.",
+    bullets: Array.isArray(slide.bullets) ? slide.bullets.slice(0, 3) : [],
+    accentLabel: "Practice",
+    supportLabel: "Recall prompt",
+    supportValue: "Recall the points, then flip.",
+  } satisfies BriefFlashCardItem));
+}
+
+// Next card whose status isn't "known", cyclically from `from`. This is how a
+// "Review again" card naturally re-queues to the end (known cards are skipped on
+// each pass). Returns `from` when everything is known. Pure + exported for tests.
+export function nextUnknownIndex(statuses: RecallStatus[], from: number): number {
+  if (statuses.length === 0) return from;
+  for (let step = 1; step <= statuses.length; step++) {
+    const position = (from + step) % statuses.length;
+    if (statuses[position] !== "known") return position;
+  }
+  return from;
+}
+
+// Active-recall practice session (FLASH2). Owns the session state (status map +
+// position) and drives the shared BriefFlashCardDeck with the recall props.
+// Ungraded, client-side only — nothing is persisted.
+function PracticeRecallSession({ items, theme = "dark" }: { items: BriefFlashCardItem[]; theme?: "light" | "dark" }) {
+  const itemsKey = items.map((item) => item.id).join("|");
+  const [position, setPosition] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [statusById, setStatusById] = useState<Record<string, RecallStatus>>({});
+
+  // Reset the session when the deck changes (e.g. the learner switches module).
+  useEffect(() => {
+    setPosition(0);
+    setIsFlipped(false);
+    setStatusById({});
+  }, [itemsKey]);
+
+  const knownCount = items.filter((item) => statusById[item.id] === "known").length;
+  const reviewCount = items.filter((item) => statusById[item.id] === "review").length;
+  const allKnown = items.length > 0 && knownCount === items.length;
+  const current = items[Math.min(position, Math.max(items.length - 1, 0))] ?? null;
+
+  const judge = (verdict: RecallStatus) => {
+    if (!current) return;
+    const nextStatus = { ...statusById, [current.id]: verdict };
+    setStatusById(nextStatus);
+    // TODO(FLASH-leaderboard): a future graded variant would record this verdict here
+    // (e.g. feed the learner's quiz/training signal via a secure mutation). Intentionally
+    // ungraded + client-only for now — nothing is persisted.
+    setIsFlipped(false);
+    const statuses = items.map((item) => nextStatus[item.id] ?? "unseen");
+    setPosition(nextUnknownIndex(statuses, position));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-muted-dark">Active recall · practice</p>
+          <p className="mt-1 text-sm font-medium text-white">
+            {knownCount} of {items.length} recalled{reviewCount > 0 ? ` · ${reviewCount} to review` : ""}
+          </p>
+        </div>
+        {allKnown ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/40 bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-100">
+            <Sparkles className="h-3.5 w-3.5" /> Deck cleared
+          </span>
+        ) : (
+          <span className="text-xs text-slate-400">Flip, then mark “Got it” or “Review again”.</span>
+        )}
+      </div>
+
+      {allKnown ? (
+        <div className="rounded-[1.45rem] border border-emerald-300/30 bg-emerald-400/10 px-5 py-6 text-emerald-50">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-200/80">Practice complete</p>
+          <h5 className="mt-2 text-base font-semibold text-white">All {items.length} recall cards marked “Got it”.</h5>
+          <p className="mt-2 text-sm leading-6 text-emerald-50/90">Ungraded practice — nothing was recorded. Move into the checkpoint when you’re ready, or run the deck again.</p>
+          <Button type="button" variant="outline" onClick={() => { setStatusById({}); setPosition(0); setIsFlipped(false); }} className="mt-4 rounded-full border-white/15 bg-white/8 text-white hover:bg-white/14 hover:text-white">
+            Restart practice
+          </Button>
+        </div>
+      ) : (
+        <BriefFlashCardDeck
+          items={items}
+          activeIndex={position}
+          isFlipped={isFlipped}
+          onFlip={() => setIsFlipped((value) => !value)}
+          onPrevious={() => { setIsFlipped(false); setPosition((p) => Math.max(0, p - 1)); }}
+          onNext={() => { setIsFlipped(false); setPosition((p) => Math.min(items.length - 1, p + 1)); }}
+          onJumpToIndex={(index) => { setIsFlipped(false); setPosition(index); }}
+          canGoPrevious={position > 0}
+          canGoNext={position < items.length - 1}
+          progressLabel={`Card ${Math.min(position + 1, items.length)} of ${items.length}`}
+          statusLabel="Active recall practice"
+          completionLabel="All recall cards marked Got it."
+          emptyTitle="Practice recall loading"
+          emptyBody="Recall cards will populate from this module's checkpoint questions once the content is ready."
+          theme={theme}
+          cardStatus={current ? (statusById[current.id] ?? "unseen") : "unseen"}
+          onGotIt={() => judge("known")}
+          onReviewAgain={() => judge("review")}
+        />
+      )}
     </div>
   );
 }
@@ -4448,6 +4614,12 @@ export function TrainingExperienceView() {
   const applicationScore = applicationQuestions.filter((question) => isAssessmentQuestionCorrect(question, applicationAnswers[question.id])).length;
   const applicationPassed = applicationSubmitted && applicationScore >= (presentation?.applicationActivity.passingScore ?? Number.MAX_SAFE_INTEGER);
   const finalQuizQuestions = presentation?.finalQuiz.questions ?? [];
+  // Active-recall practice deck (FLASH2): drive from the practice-checkpoint + final-quiz
+  // questions, falling back to practice-slide bullets when a module's Q&A is thin.
+  const practiceRecallCards = buildPracticeRecallCards(
+    [...practiceQuestions, ...finalQuizQuestions],
+    presentation?.practiceSlides ?? [],
+  );
   const finalQuizAnsweredCount = finalQuizQuestions.filter((question) => hasAssessmentAnswer(question, finalQuizAnswers)).length;
   const finalQuizScore = finalQuizQuestions.filter((question) => isAssessmentQuestionCorrect(question, finalQuizAnswers[question.id])).length;
   const finalQuizPassed = finalQuizSubmitted && finalQuizScore >= (presentation?.finalQuiz.passingScore ?? Number.MAX_SAFE_INTEGER);
@@ -5229,6 +5401,11 @@ export function TrainingExperienceView() {
                               ) : null}
                               <div>
                                 {trainingWorkspacePage === "lesson" ? (
+                                currentStage?.id === "practice" ? (
+                                  // Practice stage surfaces the active-recall session in place of the page
+                                  // narrative; the deck is driven by the module's checkpoint + final-quiz Q&A.
+                                  <PracticeRecallSession items={practiceRecallCards} theme="dark" />
+                                ) : (
                                 <>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                   <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{currentLessonPage.eyebrow}</Badge>
@@ -5271,6 +5448,7 @@ export function TrainingExperienceView() {
                                   ))}
                                 </div>
                                 </>
+                                )
                                 ) : null}
                                 {trainingWorkspacePage === "resources" ? (
                                   <div className="mt-6 space-y-4">

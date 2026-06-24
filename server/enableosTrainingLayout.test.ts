@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   buildLearnerFeedbackPreferencesStorageKey,
+  buildPracticeRecallCards,
+  nextUnknownIndex,
   getBriefBoxPages,
   getBriefCompletionStatus,
   getLearnerFeedbackDescription,
@@ -1003,5 +1005,50 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Mascot moment");
     expect(trainingViewSource).toContain("Celebration ready");
     expect(trainingViewSource).toContain("🎈");
+  });
+
+  it("builds practice recall cards from Q&A — front=prompt, back=answer+rationale, bullets=rationales (FLASH2)", () => {
+    const cards = buildPracticeRecallCards(
+      [
+        { id: "q1", prompt: "Which opening shows strong listening?", correctOptionId: "o2", successFeedback: "Yes", failureFeedback: "No",
+          options: [{ id: "o1", label: "Explain first", rationale: "Too fast." }, { id: "o2", label: "Acknowledge then own", rationale: "Names the concern." }] },
+        { id: "q2", prompt: "What proves transfer?", correctOptionId: "oa", successFeedback: "Yes", failureFeedback: "No",
+          options: [{ id: "oa", label: "Behavior in live work", rationale: "Observable change." }, { id: "ob", label: "A high score", rationale: "Not enough." }] },
+      ],
+      [],
+    );
+    expect(cards).toHaveLength(2);
+    expect(cards[0].title).toBe("Which opening shows strong listening?");
+    expect(cards[0].backNarrative).toBe("Answer: Acknowledge then own — Names the concern.");
+    expect(cards[0].bullets).toEqual(["Too fast.", "Names the concern."]);
+  });
+
+  it("falls back to practice-slide bullets when a module's Q&A is thin (FLASH2)", () => {
+    const cards = buildPracticeRecallCards(
+      [{ id: "q1", prompt: "only one", successFeedback: "", failureFeedback: "", options: [{ id: "a", label: "A", rationale: "r" }] }],
+      [{ id: "s1", title: "Decode the scenario", narrative: "Read the signal.", bullets: ["Emotional signal", "Operational signal"] }],
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0].id).toBe("s1");
+    expect(cards[0].title).toBe("Decode the scenario");
+    expect(cards[0].bullets).toEqual(["Emotional signal", "Operational signal"]);
+  });
+
+  it("nextUnknownIndex skips known cards cyclically so Review-again cards re-queue (FLASH2)", () => {
+    expect(nextUnknownIndex(["known", "review", "known", "unseen"], 0)).toBe(1);
+    expect(nextUnknownIndex(["known", "review", "known", "unseen"], 1)).toBe(3);
+    expect(nextUnknownIndex(["known", "review", "known", "unseen"], 3)).toBe(1); // wrap, skip the known cards
+    expect(nextUnknownIndex(["known", "known"], 0)).toBe(0); // all known → stay (completion)
+  });
+
+  it("surfaces the recall session only on Practice; Learn + Library decks pass no recall props (FLASH2)", () => {
+    // Recall UI is gated on both handlers being present.
+    expect(trainingViewSource).toContain("const recallMode = Boolean(onGotIt && onReviewAgain)");
+    // Only the practice session supplies the recall handlers — the Learn lesson deck and the
+    // Library preview deck are therefore unchanged.
+    expect((trainingViewSource.match(/onGotIt=\{/g) ?? []).length).toBe(1);
+    expect(trainingViewSource).toContain("<PracticeRecallSession items={practiceRecallCards} theme=\"dark\" />");
+    expect(trainingViewSource).toContain("items={lessonBriefFlashCards}");
+    expect(trainingViewSource).toContain("items={selectedAssetBriefCards}");
   });
 });
