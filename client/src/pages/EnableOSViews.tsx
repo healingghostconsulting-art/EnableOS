@@ -2884,6 +2884,8 @@ function InlineAssessmentShell({
               <h3 className="text-center text-[2rem] font-semibold tracking-[-0.02em] text-[#243018] sm:text-[2.35rem]">{title}</h3>
               <p className="mx-auto max-w-2xl text-sm leading-6 text-[#586648]">{assessment.instructions}</p>
             </div>
+            {!submitted ? (
+            <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-[1.2rem] border border-[#c3cfaa] bg-[#f6faec] px-4 py-3 text-left">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-[#71805e]">Assessment type</p>
@@ -2931,13 +2933,15 @@ function InlineAssessmentShell({
                 {successSoundMuted ? "Success sound muted" : "Success sound on"}
               </Button>
             </div>
+            </>
+            ) : null}
             {!submitted ? (
               <div className="mt-8 rounded-[1.6rem] border border-[#1f2b45] bg-[#26324a] px-5 py-5 shadow-[0_16px_35px_rgba(24,35,57,0.2)]">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-[#c5d0ea]">Active prompt</p>
                 <p className="mt-3 text-base font-medium leading-7 text-white">{activeQuestion.prompt}</p>
               </div>
             ) : null}
-            <div className="rounded-b-[1.6rem] border-x border-b border-[#c9d4af] bg-[#f8fbf1] px-5 py-6 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:px-6">
+            <div className={`${submitted ? "mt-6 rounded-[1.6rem] border" : "rounded-b-[1.6rem] border-x border-b"} border-[#c9d4af] bg-[#f8fbf1] px-5 py-6 shadow-[0_18px_36px_rgba(15,23,42,0.08)] sm:px-6`}>
               {!submitted ? (
                 activeQuestion.type === "short_answer" ? (
                 <div className="space-y-4">
