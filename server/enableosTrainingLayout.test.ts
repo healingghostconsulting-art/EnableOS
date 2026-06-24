@@ -893,7 +893,7 @@ describe("learner training layout helpers", () => {
   it("renders the slide ahead of the lesson copy so the canvas is slide-forward (S4b)", () => {
     // The deck slide viewer leads the lesson canvas; the headline/narrative/storyboard follow beneath it.
     expect(trainingViewSource).toContain("Slide-forward: the deck slide leads the lesson canvas");
-    const slideIndex = trainingViewSource.indexOf("{activeInteractiveVisual && trainingWorkspacePage === \"lesson\" ? (");
+    const slideIndex = trainingViewSource.indexOf("{activeInteractiveVisual && trainingWorkspacePage === \"lesson\" && currentStage?.id !== \"practice\" ? (");
     const headlineIndex = trainingViewSource.indexOf("text-xl font-semibold text-white\">{currentLessonPage.title}");
     const storyboardIndex = trainingViewSource.indexOf("Visual storyboard");
     expect(slideIndex).toBeGreaterThan(-1);
@@ -1050,5 +1050,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("<PracticeRecallSession items={practiceRecallCards} theme=\"dark\" />");
     expect(trainingViewSource).toContain("items={lessonBriefFlashCards}");
     expect(trainingViewSource).toContain("items={selectedAssetBriefCards}");
+    // The recall deck stands alone on Practice — the slide-image viewer is suppressed there.
+    expect(trainingViewSource).toContain("trainingWorkspacePage === \"lesson\" && currentStage?.id !== \"practice\"");
   });
 });

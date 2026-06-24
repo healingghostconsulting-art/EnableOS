@@ -5356,7 +5356,9 @@ export function TrainingExperienceView() {
                           <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
                             <div className="space-y-6">
                               {/* Slide-forward: the deck slide leads the lesson canvas; the headline, narrative and storyboard follow beneath it. */}
-                              {activeInteractiveVisual && trainingWorkspacePage === "lesson" ? (
+                              {/* On the Practice stage the recall deck stands alone as its own section — the slide
+                                  image is suppressed both to cut scroll and so it can't give away the recall answer. */}
+                              {activeInteractiveVisual && trainingWorkspacePage === "lesson" && currentStage?.id !== "practice" ? (
                                 <div className="space-y-3">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div className="min-w-0">
