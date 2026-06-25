@@ -428,3 +428,26 @@
     }
   }
 }
+
+/* Reporting Hub print-to-PDF (REPORT2). The print layout is hidden on screen and
+   shown only when printing; everything else is hidden so the one-pager prints clean. */
+.reporting-print {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .reporting-print,
+  .reporting-print * {
+    visibility: visible !important;
+  }
+  .reporting-print {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

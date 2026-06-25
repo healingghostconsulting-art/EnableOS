@@ -2735,6 +2735,11 @@ export function getExecutiveDashboard(tenantId?: string) {
       teamScore: 76,
       uplift: 9,
     },
+    // Sourced from data (was a hardcoded "High" literal in the panel) so the exports are fully data-driven.
+    interventionConfidence: {
+      value: "High",
+      supporting: "Correlation between action volume and readiness movement is positive",
+    },
     roiMetrics: [
       { label: "QA score", before: 81, after: 89, delta: "+8 pts" },
       { label: "AHT", before: 602, after: 548, delta: "-54 sec" },

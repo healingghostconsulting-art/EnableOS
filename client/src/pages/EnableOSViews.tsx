@@ -13,6 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
 import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
+import { ReportingPrintLayout } from "@/components/ReportingPrintLayout";
+import { buildReportingWorkbookBlob, copyReportingEmailSummary, downloadBlob } from "@/lib/reportingExport";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
 import { demoNow } from "../../../shared/demoClock";
 import { useReminderBadge } from "@/lib/reminderBadge";
@@ -61,6 +65,10 @@ import {
   Award,
   Gift,
   Pencil,
+  Download,
+  Printer,
+  FileSpreadsheet,
+  Mail,
   Volume2,
   VolumeX,
   Users2,
@@ -3743,6 +3751,26 @@ export function ReportingWorkspaceView() {
     void access.refetch();
     void query.refetch();
   };
+  // Client-side exporters (REPORT2): PDF = print-optimized view + window.print();
+  // XLSX = exceljs workbook download; email = formatted summary to the clipboard.
+  const handleExportPdf = () => window.print();
+  const handleExportXlsx = async () => {
+    try {
+      const blob = await buildReportingWorkbookBlob(query.data);
+      downloadBlob(blob, "reporting-export.xlsx");
+      toast.success("Reporting workbook downloaded");
+    } catch {
+      toast.error("Could not generate the workbook");
+    }
+  };
+  const handleCopyEmail = async () => {
+    try {
+      await copyReportingEmailSummary(query.data);
+      toast.success("Email summary copied to clipboard");
+    } catch {
+      toast.error("Could not copy the summary");
+    }
+  };
 
   return (
     <Surface>
@@ -3752,9 +3780,25 @@ export function ReportingWorkspaceView() {
         description="Explore ROI movement, question risk, benchmark context, and error-rate trends in a dedicated reporting section."
         actions={
           access.data ? (
-            <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
-              {access.data.tenant.name}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              {canAccessReporting && query.data ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-slate-100 hover:bg-white/12 hover:text-white">
+                      <Download className="mr-2 h-4 w-4" /> Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="border-white/10 bg-slate-950 text-slate-100">
+                    <DropdownMenuItem onClick={handleExportPdf} className="gap-2 focus:bg-white/10 focus:text-white"><Printer className="h-4 w-4" /> PDF exec summary</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportXlsx} className="gap-2 focus:bg-white/10 focus:text-white"><FileSpreadsheet className="h-4 w-4" /> XLSX spreadsheet</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCopyEmail} className="gap-2 focus:bg-white/10 focus:text-white"><Mail className="h-4 w-4" /> Email summary</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+                {access.data.tenant.name}
+              </Badge>
+            </div>
           ) : null
         }
       >
@@ -3777,6 +3821,8 @@ export function ReportingWorkspaceView() {
         ) : null}
         {!query.isLoading && canAccessReporting && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
       </SectionShell>
+      {/* Hidden on screen; shown only when printing (PDF exec summary). */}
+      {canAccessReporting && query.data ? <ReportingPrintLayout data={query.data} /> : null}
     </Surface>
   );
 }
@@ -9101,7 +9147,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard label="Enterprise readiness" value={`${data.readiness.score}`} supporting={`Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`} icon={<Target className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "readiness", targetId: "executive-trends-panel" })} actionLabel="Open readiness trends" />
         <MetricCard label="Team readiness" value={`${data.readiness.teamScore}`} supporting="Role- and intervention-weighted readiness score" icon={<Layers3 className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "qaScore", targetId: "executive-trends-panel" })} actionLabel="Open QA score trends" />
-        <MetricCard label="Intervention confidence" value="High" supporting="Correlation between action volume and readiness movement is positive" icon={<BrainCircuit className="h-4 w-4" />} onClick={() => openExecutiveMode("risk", { targetId: "executive-risk-panel" })} actionLabel="Open risk queue" />
+        <MetricCard label="Intervention confidence" value={data.interventionConfidence.value} supporting={data.interventionConfidence.supporting} icon={<BrainCircuit className="h-4 w-4" />} onClick={() => openExecutiveMode("risk", { targetId: "executive-risk-panel" })} actionLabel="Open risk queue" />
         <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} onClick={() => openExecutiveMode("documentation", { targetId: "executive-documentation-panel" })} actionLabel="Open documentation" />
       </div>
 

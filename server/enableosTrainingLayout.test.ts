@@ -1144,4 +1144,37 @@ describe("learner training layout helpers", () => {
     // Workspace/section eyebrow slate darkened to the AA secondary-on-light token everywhere.
     expect(trainingViewSource).not.toContain("text-[#6B7E8A]");
   });
+
+  it("wires the Reporting Hub export menu + three exporters, print layout renders the key fields (REPORT2)", () => {
+    const reportingPrint = readFileSync(join(process.cwd(), "client/src/components/ReportingPrintLayout.tsx"), "utf8");
+    const reportingExport = readFileSync(join(process.cwd(), "client/src/lib/reportingExport.ts"), "utf8");
+    // Export menu in the SectionShell actions + the three handlers.
+    expect(trainingViewSource).toContain("const handleExportPdf = () => window.print()");
+    expect(trainingViewSource).toContain('downloadBlob(blob, "reporting-export.xlsx")');
+    expect(trainingViewSource).toContain("copyReportingEmailSummary(query.data)");
+    expect(trainingViewSource).toContain("PDF exec summary");
+    expect(trainingViewSource).toContain("XLSX spreadsheet");
+    expect(trainingViewSource).toContain("Email summary");
+    expect(trainingViewSource).toContain("<ReportingPrintLayout data={query.data} />");
+    // Intervention confidence is data-sourced (no hardcoded "High" literal left in the card).
+    expect(trainingViewSource).toContain("data.interventionConfidence.value");
+    expect(trainingViewSource).not.toContain('label="Intervention confidence" value="High"');
+    // XLSX via exceljs, one sheet per table; email via the clipboard.
+    expect(reportingExport).toContain('import ExcelJS from "exceljs"');
+    expect(reportingExport).toContain('workbook.addWorksheet("Summary")');
+    for (const sheet of ["ROI trend", "Correlation", "Team readiness", "Question risk", "Lifecycle", "Peer benchmarks", "Repeat escalations", "Coaching cadence", "Error rate"]) {
+      expect(reportingExport).toContain(`"${sheet}"`);
+    }
+    expect(reportingExport).toContain("navigator.clipboard");
+    // Print layout (hidden on screen) renders the key fields + charts.
+    expect(reportingPrint).toContain("data-reporting-print");
+    expect(reportingPrint).toContain("reportingOverview?.headline");
+    expect(reportingPrint).toContain("proofOfImpact?.headline");
+    expect(reportingPrint).toContain("reportingOverview?.summaryCards");
+    expect(reportingPrint).toContain("data.readiness?.score");
+    expect(reportingPrint).toContain("data.roiMetrics");
+    expect(reportingPrint).toContain("proofOfImpact?.beforeAfter");
+    expect(reportingPrint).toContain("proofOfImpact?.sustainedReadiness");
+    expect(reportingPrint).toContain("data.questionReporting");
+  });
 });
