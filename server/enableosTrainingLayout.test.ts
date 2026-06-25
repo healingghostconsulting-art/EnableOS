@@ -636,6 +636,24 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).not.toContain("Use this shared guide to orient new users");
   });
 
+  it("dark-ifies the EnableOS Guide body to the shared PremiumCard family (COHESION2)", () => {
+    const guideSource = trainingViewSource.slice(trainingViewSource.indexOf("export function GuideView"), trainingViewSource.indexOf("export function LandingView"));
+    // The three content lists no longer use the light bg-white/90 Card chrome (the
+    // #1B303C header action buttons legitimately stay on the light shell header).
+    expect(guideSource).not.toContain("bg-white/90");
+    // They render as the shared dark PremiumCard with white/slate text.
+    expect(guideSource).toContain("<PremiumCard key={step.title}>");
+    expect(guideSource).toContain("<PremiumCard key={workspace.title}>");
+    expect(guideSource).toContain("<PremiumCard key={practice.title}>");
+    // The in-content tab bar is dark chrome (still content tabs, not WorkspaceShell modes).
+    expect(guideSource).toContain('<TabsList className="surface-dark grid w-full grid-cols-3');
+    expect(guideSource).toContain('data-[state=active]:bg-white/12 data-[state=active]:text-white');
+    // The two self-narrating "Current role focus" bullets are rephrased into user-facing guidance.
+    expect(guideSource).not.toContain("Use the Guide to explain the system once");
+    expect(guideSource).not.toContain("leaving the Guide available as a safe shared orientation page");
+    expect(guideSource).toContain("Lead with your role's daily work");
+  });
+
   it("gives Manager Documentation the preview-to-popout treatment and hides the stale override pill for managers (MGR7)", () => {
     // The inline review-log form + inline history are now launcher cards that open in focused popups.
     expect(trainingViewSource).toContain("title=\"Write a coaching log\"");

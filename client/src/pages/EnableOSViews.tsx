@@ -3222,58 +3222,58 @@ export function GuideView() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
         <div className="space-y-5">
           <Tabs defaultValue="quick-start" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3 rounded-[1.2rem] border border-[#1B303C]/10 bg-white/90 p-1.5">
-              <TabsTrigger value="quick-start" className="rounded-[0.95rem]">Quick start</TabsTrigger>
-              <TabsTrigger value="navigation" className="rounded-[0.95rem]">Navigation map</TabsTrigger>
-              <TabsTrigger value="best-practices" className="rounded-[0.95rem]">Best practices</TabsTrigger>
+            <TabsList className="surface-dark grid w-full grid-cols-3 rounded-[1.2rem] border border-white/10 p-1.5">
+              <TabsTrigger value="quick-start" className="rounded-[0.95rem] text-slate-300 hover:text-white data-[state=active]:bg-white/12 data-[state=active]:text-white">Quick start</TabsTrigger>
+              <TabsTrigger value="navigation" className="rounded-[0.95rem] text-slate-300 hover:text-white data-[state=active]:bg-white/12 data-[state=active]:text-white">Navigation map</TabsTrigger>
+              <TabsTrigger value="best-practices" className="rounded-[0.95rem] text-slate-300 hover:text-white data-[state=active]:bg-white/12 data-[state=active]:text-white">Best practices</TabsTrigger>
             </TabsList>
             <TabsContent value="quick-start" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {quickStartSteps.map((step, index) => (
-                  <Card key={step.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                  <PremiumCard key={step.title}>
                     <CardHeader className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1B303C] text-sm font-semibold text-white">0{index + 1}</span>
-                        <CardTitle className="text-lg text-[#1B303C]">{step.title}</CardTitle>
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FCBC34] text-sm font-semibold text-slate-950">0{index + 1}</span>
+                        <CardTitle className="text-lg text-white">{step.title}</CardTitle>
                       </div>
-                      <CardDescription className="text-sm leading-6 text-[#4A6373]">{step.description}</CardDescription>
+                      <CardDescription className="text-sm leading-6 text-slate-300">{step.description}</CardDescription>
                     </CardHeader>
-                  </Card>
+                  </PremiumCard>
                 ))}
               </div>
             </TabsContent>
             <TabsContent value="navigation" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {workspaceMap.map((workspace) => (
-                  <Card key={workspace.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                  <PremiumCard key={workspace.title}>
                     <CardHeader className="space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1.5">
-                          <CardTitle className="text-lg text-[#1B303C]">{workspace.title}</CardTitle>
-                          <CardDescription className="text-sm leading-6 text-[#4A6373]">{workspace.description}</CardDescription>
+                          <CardTitle className="text-lg text-white">{workspace.title}</CardTitle>
+                          <CardDescription className="text-sm leading-6 text-slate-300">{workspace.description}</CardDescription>
                         </div>
-                        <Badge variant="outline" className="rounded-full border-[#1B303C]/12 bg-[#F7F8FA] px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">
+                        <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-slate-300">
                           {workspace.audience}
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-between pt-0 text-sm text-[#4A6373]">
+                    <CardContent className="flex items-center justify-between pt-0 text-sm text-slate-400">
                       <span>{workspace.href}</span>
-                      <ArrowRight className="h-4 w-4 text-[#1B303C]" />
+                      <ArrowRight className="h-4 w-4 text-slate-200" />
                     </CardContent>
-                  </Card>
+                  </PremiumCard>
                 ))}
               </div>
             </TabsContent>
             <TabsContent value="best-practices" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {bestPractices.map((practice) => (
-                  <Card key={practice.title} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                  <PremiumCard key={practice.title}>
                     <CardHeader className="space-y-2.5">
-                      <CardTitle className="text-lg text-[#1B303C]">{practice.title}</CardTitle>
-                      <CardDescription className="text-sm leading-6 text-[#4A6373]">{practice.description}</CardDescription>
+                      <CardTitle className="text-lg text-white">{practice.title}</CardTitle>
+                      <CardDescription className="text-sm leading-6 text-slate-300">{practice.description}</CardDescription>
                     </CardHeader>
-                  </Card>
+                  </PremiumCard>
                 ))}
               </div>
             </TabsContent>
@@ -3296,7 +3296,7 @@ export function GuideView() {
               <div className="space-y-3 rounded-[1.2rem] border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">
                 <div className="flex items-start gap-3">
                   <Target className="mt-0.5 h-4 w-4 text-white" />
-                  <p>Use the Guide to explain the system once, not as a replacement for role-specific daily work.</p>
+                  <p>Lead with your role's daily work; reach for shared pages only when you need orientation or context.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Users2 className="mt-0.5 h-4 w-4 text-white" />
@@ -3304,7 +3304,7 @@ export function GuideView() {
                 </div>
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 h-4 w-4 text-white" />
-                  <p>Route users into the workspaces they are granted while leaving the Guide available as a safe shared orientation page.</p>
+                  <p>Open the workspace your role is granted for the task in front of you, not whichever page is already open.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Search className="mt-0.5 h-4 w-4 text-white" />
