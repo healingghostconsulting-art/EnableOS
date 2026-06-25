@@ -1077,7 +1077,7 @@ function SectionShell({
                     <span className="command-pill px-3 py-1 text-[11px] font-medium text-[#4A6373]">{narrative.focus}</span>
                   </div>
                   <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">{title}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4A6373]">{title}</p>
                     <h1 className="text-[1.35rem] font-semibold leading-tight tracking-tight text-[#1B303C] sm:text-[1.55rem]">{description}</h1>
                     <p className="max-w-3xl text-sm leading-6 text-[#4A6373]">{narrative.next}</p>
                   </div>
@@ -1121,7 +1121,7 @@ function SectionShell({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#1B303C]/12 bg-white/80 text-lg shadow-[0_14px_30px_rgba(15,23,42,0.08)]">🎈</span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Guide cue</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Guide cue</p>
                   <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-[#8AA4B4]">Mascot moment</p>
                 </div>
               </div>
@@ -1130,15 +1130,15 @@ function SectionShell({
             </div>
             <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
               <div className="trophy-card px-4 py-3.5">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Focus</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">Focus</p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.focus}</p>
               </div>
               <div className="trophy-card px-4 py-3.5">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Next action</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">Next action</p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.next}</p>
               </div>
               <div className="trophy-card px-4 py-3.5">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">Reward</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">Reward</p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#1B303C]">{narrative.reward}</p>
                 <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[#8AA4B4]">Celebration ready</p>
               </div>
@@ -1934,15 +1934,17 @@ function ChartFrame({ title, description, children }: { title: string; descripti
 }
 
 function StatusBadge({ value }: { value: string }) {
+  // Opaque semantic pills so the colored label clears AA on ANY surface — the
+  // translucent /12 fills washed out the light text on pale (light-tint) cards.
   const tone = value === "completed"
-    ? "border-emerald-500/30 bg-emerald-500/12 text-emerald-300"
+    ? "border-emerald-600/25 bg-emerald-100 text-emerald-800"
     : value === "overdue"
-      ? "border-rose-500/30 bg-rose-500/12 text-rose-300"
+      ? "border-rose-600/25 bg-rose-100 text-rose-800"
       : value === "in_progress" || value === "follow_up_due"
-        ? "border-amber-500/30 bg-amber-500/12 text-amber-300"
+        ? "border-amber-600/30 bg-amber-100 text-amber-800"
         : value === "assigned" || value === "pending"
-          ? "border-slate-400/20 bg-slate-400/10 text-slate-200"
-          : "border-blue-500/30 bg-blue-500/12 text-blue-300";
+          ? "border-slate-400/40 bg-slate-100 text-slate-700"
+          : "border-blue-600/25 bg-blue-100 text-blue-800";
   const label = value === "assigned"
     ? "Pending"
     : value === "in_progress"
@@ -3379,7 +3381,7 @@ export function LandingView() {
                 <span className="command-pill px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#4A6373]">Workspace-first login</span>
               </div>
               <div className="max-w-4xl space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Front door</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Front door</p>
                 <h1 className="max-w-[14ch] text-[2.05rem] font-semibold tracking-tight text-[#1B303C] md:text-[2.55rem] md:leading-[1.04] xl:text-[2.9rem]">
                   Choose your workspace.
                 </h1>
@@ -3390,14 +3392,14 @@ export function LandingView() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {landingMetricHighlights.slice(0, 3).map((item: any) => (
                   <div key={item.label} className="rounded-[1.15rem] border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[#4A6373]">{item.label}</p>
                     <p className="mt-2 text-[1.4rem] font-semibold tracking-tight text-[#1B303C]">{String(item.value)}</p>
                   </div>
                 ))}
               </div>
             </div>
             <div className="rounded-[1.6rem] border border-[#1B303C]/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.94),rgba(248,250,252,0.92))] p-5 shadow-[0_18px_46px_rgba(15,23,42,0.06)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Entry status</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Entry status</p>
               {viewerAccess.data ? (
                 <div className="mt-4 space-y-4">
                   <div>
@@ -3432,10 +3434,10 @@ export function LandingView() {
           <div className="border-t border-[#1B303C]/8 px-5 py-6 lg:px-7 lg:py-7">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Workspace selector</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Workspace selector</p>
                 <p className="mt-1 text-sm leading-6 text-[#4A6373]">Keep the front page focused on one decision: choose the workspace, then move into login.</p>
               </div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[#6B7E8A]">Four role-based entry points</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#4A6373]">Four role-based entry points</p>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {workspaceEntryOptions.map((item) => {
@@ -3460,7 +3462,7 @@ export function LandingView() {
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1B303C] text-white shadow-[0_16px_30px_rgba(27,48,60,0.16)]">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className="rounded-full border border-[#1B303C]/10 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">
+                      <span className="rounded-full border border-[#1B303C]/10 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">
                         {item.eyebrow}
                       </span>
                     </div>
@@ -3469,7 +3471,7 @@ export function LandingView() {
                       <p className="text-sm leading-6 text-[#4A6373]">{item.subtitle}</p>
                     </div>
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#1B303C]/8 pt-4">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B7E8A]">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4A6373]">
                         {viewer.data ? (canOpenDirectly ? "Open workspace" : "Open assigned workspace") : "Select and sign in"}
                       </span>
                       <ArrowRight className="h-4 w-4 text-[#1B303C] transition-transform duration-200 ease-out group-hover:translate-x-[5px]" />
@@ -5389,7 +5391,7 @@ export function TrainingExperienceView() {
                                   <Badge className="rounded-full border-[#1B303C]/10 bg-white text-[#1B303C]">{currentStage?.label}</Badge>
                                   <Badge className="rounded-full border-cyan-200 bg-cyan-50 text-cyan-700">{moduleFamilyLabel}</Badge>
                                 </div>
-                                <p className="mt-4 text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Section progress</p>
+                                <p className="mt-4 text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Section progress</p>
                                 <p className="mt-2 text-sm font-medium text-[#1B303C]">Page {lessonPageIndex + 1} of {currentStagePages.length} in this course section.</p>
                                 <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200">
                                   <div className="h-full rounded-full bg-[linear-gradient(90deg,rgba(14,165,233,0.95),rgba(16,185,129,0.88))]" style={{ width: `${lessonPageProgress}%` }} />
@@ -5398,12 +5400,12 @@ export function TrainingExperienceView() {
                               </div>
                               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                                 <div className="context-rail-card px-4 py-4">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Review status</p>
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Review status</p>
                                   <p className="mt-2 text-sm font-medium text-[#1B303C]">{briefCompletionStatus.statusLabel}</p>
-                                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#6B7E8A]">{Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} lesson steps remaining</p>
+                                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#4A6373]">{Math.max(currentStagePages.length - (lessonPageIndex + 1), 0)} lesson steps remaining</p>
                                 </div>
                                 <div className="context-rail-card px-4 py-4">
-                                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current runtime</p>
+                                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Current runtime</p>
                                   <p className="mt-2 text-sm font-medium text-[#1B303C]">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Stage runtime calibrating"}</p>
                                   <p className="mt-2 text-xs text-[#4A6373]">{activeQuizTrigger ? `Next checkpoint · ${activeQuizTrigger.label}` : "Advance through the card stack to reach the next checkpoint."}</p>
                                 </div>
@@ -5412,7 +5414,7 @@ export function TrainingExperienceView() {
                             <div className="space-y-3">
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="max-w-2xl">
-                                  <p className="text-xs uppercase tracking-[0.22em] text-[#6B7E8A]">{stageNavigatorLabel}</p>
+                                  <p className="text-xs uppercase tracking-[0.22em] text-[#4A6373]">{stageNavigatorLabel}</p>
                                   <h4 className="mt-2 text-lg font-medium text-[#1B303C]">{currentLessonPage?.title ?? currentStageItemLabel}</h4>
                                   <p className="mt-2 text-sm leading-6 text-[#4A6373]">This stage now keeps progress, context, and flash-card review inside one tighter lesson surface so the learner sees the brief and the next move together.</p>
                                 </div>
@@ -6541,7 +6543,7 @@ export function TrainingExperienceView() {
       <div className="fixed inset-0 z-[45] overflow-y-auto bg-slate-950/95 p-2 text-[#1B303C] backdrop-blur-sm sm:p-3">
         <div className="mission-shell grid-noise relative min-h-full rounded-2xl p-2 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">
               <Maximize2 className="h-3.5 w-3.5 text-[#0E7490]" /> Focused training
             </span>
             <Button
@@ -7023,21 +7025,21 @@ export function ContentLibraryView() {
     <div className="command-band px-4 py-3.5 md:px-5" id="library-filter-bar">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <label className="block space-y-1.5 text-sm text-[#1B303C] xl:col-span-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Search courses</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Search courses</span>
           <div className="flex h-11 items-center gap-3 rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
-            <Search className="h-4 w-4 text-[#6B7E8A]" />
-            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search by title or topic..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#6B7E8A]" />
+            <Search className="h-4 w-4 text-[#4A6373]" />
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search by title or topic..." className="w-full bg-transparent text-sm text-[#1B303C] outline-none placeholder:text-[#4A6373]" />
           </div>
         </label>
         <label className="block space-y-1.5 text-sm text-[#1B303C]">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Track</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Track</span>
           <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
             <option value="all">All tracks</option>
             {(library.data?.tracks ?? []).map((track: any) => <option key={track.id} value={track.id}>{track.title}</option>)}
           </select>
         </label>
         <label className="block space-y-1.5 text-sm text-[#1B303C]">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6B7E8A]">Status</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#4A6373]">Status</span>
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="h-11 w-full rounded-[1.15rem] border border-[#1B303C]/10 bg-white/88 px-3 text-sm text-[#1B303C] outline-none">
             <option value="all">All statuses</option>
             <option value="in_progress">In progress</option>
@@ -8444,7 +8446,7 @@ function CoachLaneActionCard({
 
   return (
     <div className={`rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ${paletteClassName}`}>
-      <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#9A6700]" : "text-slate-200"}`}>{eyebrow}</p>
+      <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#7A5200]" : "text-slate-200"}`}>{eyebrow}</p>
       <h3 className={`mt-1.5 text-[15px] font-semibold leading-5 ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
       <p className={`mt-1 text-[13px] leading-5 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
       <div className="mt-2.5">{action}</div>
@@ -9144,7 +9146,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
             {executiveHeroView === "reporting" ? (
               <>
                 <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Current headline</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Current headline</p>
                   <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{data.reportingOverview.headline}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#334E5E]">{data.reportingOverview.summary}</p>
                 </div>
@@ -9155,7 +9157,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               </>
             ) : (
               <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">Decision queue</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Decision queue</p>
                 <h3 className="mt-2 text-lg font-semibold text-[#10212B]">Four executive approvals are waiting.</h3>
                 <p className="mt-2 text-sm leading-6 text-[#334E5E]">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
               </div>
@@ -11967,13 +11969,13 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <div className="command-band px-4 py-4 md:px-5">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Control cues</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Control cues</p>
               <p className="mt-2 text-sm leading-6 text-[#4A6373]">Use one mode at a time so tenant admins never have to scroll through branding, permissions, coaching, and evidence all at once.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {data.configuration.slice(0, 4).map((item: any) => (
                 <div key={item.key} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#6B7E8A]">{item.label}</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{item.label}</p>
                   <p className="mt-2 text-sm font-semibold text-[#1B303C]">{item.value}</p>
                 </div>
               ))}
@@ -11993,7 +11995,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <div className="command-band px-4 py-4 md:px-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7E8A]">Client control modes</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Client control modes</p>
               <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between overview, branding, role architecture, and governance instead of scrolling through every admin surface sequentially.</p>
             </div>
             <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
