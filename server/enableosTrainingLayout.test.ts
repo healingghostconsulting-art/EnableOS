@@ -1112,12 +1112,14 @@ describe("learner training layout helpers", () => {
   });
 
   it("clears the colored-on-light contrast failures to AA, single-sourced (POLISH1)", () => {
-    // StatusBadge: opaque semantic pills (legible on any surface) replace the translucent /12
-    // fills with light text that washed out on pale cards.
-    expect(trainingViewSource).toContain("border-amber-600/30 bg-amber-100 text-amber-800");
+    // StatusBadge is surface-aware: dark (default) keeps the translucent chips exactly as
+    // shipped; light uses opaque semantic pills. Both tone sets are present.
+    expect(trainingViewSource).toContain('surface = "dark" }: { value: string; surface?: "light" | "dark" }');
+    expect(trainingViewSource).toContain("border-amber-500/30 bg-amber-500/12 text-amber-300"); // dark, unchanged
+    expect(trainingViewSource).toContain("border-amber-600/30 bg-amber-100 text-amber-800"); // light opaque
     expect(trainingViewSource).toContain("border-emerald-600/25 bg-emerald-100 text-emerald-800");
-    expect(trainingViewSource).toContain("border-rose-600/25 bg-rose-100 text-rose-800");
-    expect(trainingViewSource).toContain("border-blue-600/25 bg-blue-100 text-blue-800");
+    // Only the light coach thread list opts into the opaque pills.
+    expect(trainingViewSource).toContain('<StatusBadge value={session.status} surface="light" />');
     // Gold action-card eyebrow darkened within the gold palette.
     expect(trainingViewSource).toContain('accent === "gold" ? "text-[#7A5200]"');
     expect(trainingViewSource).not.toContain('text-[#9A6700]');

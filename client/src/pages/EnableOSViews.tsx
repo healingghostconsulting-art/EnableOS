@@ -1933,18 +1933,29 @@ function ChartFrame({ title, description, children }: { title: string; descripti
   );
 }
 
-function StatusBadge({ value }: { value: string }) {
-  // Opaque semantic pills so the colored label clears AA on ANY surface — the
-  // translucent /12 fills washed out the light text on pale (light-tint) cards.
-  const tone = value === "completed"
-    ? "border-emerald-600/25 bg-emerald-100 text-emerald-800"
-    : value === "overdue"
-      ? "border-rose-600/25 bg-rose-100 text-rose-800"
-      : value === "in_progress" || value === "follow_up_due"
-        ? "border-amber-600/30 bg-amber-100 text-amber-800"
-        : value === "assigned" || value === "pending"
-          ? "border-slate-400/40 bg-slate-100 text-slate-700"
-          : "border-blue-600/25 bg-blue-100 text-blue-800";
+function StatusBadge({ value, surface = "dark" }: { value: string; surface?: "light" | "dark" }) {
+  // Surface-aware (POLISH1): dark keeps the translucent chips exactly as shipped
+  // (already AA, tuned in the contrast pass); light uses opaque semantic pills so
+  // the colored label clears AA on pale cards where the translucent fill washed out.
+  const tone = surface === "light"
+    ? value === "completed"
+      ? "border-emerald-600/25 bg-emerald-100 text-emerald-800"
+      : value === "overdue"
+        ? "border-rose-600/25 bg-rose-100 text-rose-800"
+        : value === "in_progress" || value === "follow_up_due"
+          ? "border-amber-600/30 bg-amber-100 text-amber-800"
+          : value === "assigned" || value === "pending"
+            ? "border-slate-400/40 bg-slate-100 text-slate-700"
+            : "border-blue-600/25 bg-blue-100 text-blue-800"
+    : value === "completed"
+      ? "border-emerald-500/30 bg-emerald-500/12 text-emerald-300"
+      : value === "overdue"
+        ? "border-rose-500/30 bg-rose-500/12 text-rose-300"
+        : value === "in_progress" || value === "follow_up_due"
+          ? "border-amber-500/30 bg-amber-500/12 text-amber-300"
+          : value === "assigned" || value === "pending"
+            ? "border-slate-400/20 bg-slate-400/10 text-slate-200"
+            : "border-blue-500/30 bg-blue-500/12 text-blue-300";
   const label = value === "assigned"
     ? "Pending"
     : value === "in_progress"
@@ -10072,7 +10083,7 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
                       <h3 className={`mt-1.5 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
                       <p className={`mt-1 text-sm leading-5 ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{selectedCoachingSession?.id === session.id ? "Selected thread" : "Select this thread to review the note and next action."}</p>
                     </div>
-                    <StatusBadge value={session.status} />
+                    <StatusBadge value={session.status} surface="light" />
                   </div>
                 </button>
               ))}
