@@ -112,6 +112,237 @@ function trimAssessmentPhrase(value: string) {
     .trim();
 }
 
+// Deterministic, seed-stable shuffle (QFIX2). Generated multiple-choice items
+// used to pin the correct answer to position A; this distributes it across
+// positions while staying identical on every render for a given question id, so
+// id-based scoring, QUIZ3 review highlights, and recall cards keep resolving.
+function hashSeed(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function deterministicOptionOrder(seed: string, count: number): number[] {
+  let state = hashSeed(seed) || 1;
+  const nextRandom = () => {
+    // mulberry32 PRNG — pure and stable for a given seed.
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const indices = Array.from({ length: count }, (_, index) => index);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(nextRandom() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
+
+// Last-resort distractors so a generated item always reaches its target option
+// count even when the supplied near-misses and the module pool are exhausted.
+const GENERIC_DISTRACTOR_POOL = [
+  "Move faster through the step so the interaction feels efficient.",
+  "Sound confident even before the workflow is verified.",
+  "Treat completing the task as the same thing as proving the behavior.",
+  "Keep the wording general so nothing can be checked later.",
+];
+
+// Module-level distractor banks (Manus "Quiz Content Review and Distractor
+// Banks"). Plausible near-misses written around each module's behavior so
+// generated checkpoints draw believable wrong answers instead of duplicating the
+// correct option. Keyed by module id (primary) and skill focus (fallback).
+const MODULE_DISTRACTOR_BANKS: Array<{ id: string; skillFocus: string; pool: string[] }> = [
+  { id: "mod-sf-1", skillFocus: "Listening precision", pool: [
+    "Move quickly into explanation so the customer hears competence immediately.",
+    "Show empathy first and save ownership language for the end of the call.",
+    "Let the customer vent fully before offering any summary or next step.",
+    "Use detailed policy language to prove you understand the issue.",
+    "Once the tone softens, close the call rather than restating the action.",
+  ] },
+  { id: "mod-sf-2", skillFocus: "Language confidence", pool: [
+    "Sound highly confident even when the resolution path is still uncertain.",
+    "Use optimistic wording to keep the customer calm while the facts are still forming.",
+    "Keep the reassurance broad so the agent is not boxed into a specific next step.",
+    "Lead with hope that another team will respond quickly.",
+    "Trade specificity for warmth when the customer seems especially anxious.",
+  ] },
+  { id: "mod-sf-3", skillFocus: "Service recovery", pool: [
+    "Start with policy detail so the customer understands the boundaries first.",
+    "Lower emotion by speaking faster and narrowing the call immediately.",
+    "Promise a likely outcome early so the conversation regains momentum.",
+    "Handle the emotional moment and wait to explain ownership until later.",
+    "Once the customer sounds calmer, skip the recap and move to closing.",
+  ] },
+  { id: "mod-sf-4", skillFocus: "Call closure discipline", pool: [
+    "End warmly and let the documentation carry the rest.",
+    "Give the next step, but leave ownership implicit so the close sounds natural.",
+    "Recap the completed action and assume the customer understands timing.",
+    "Use a longer closing statement to sound thorough, even if the structure gets fuzzy.",
+    "Prioritize courtesy over traceability in the final 20 seconds.",
+  ] },
+  { id: "mod-wp-1", skillFocus: "Process discipline", pool: [
+    "Treat verification as a quick preamble so the real work can start sooner.",
+    "Use generic workflow language instead of naming the exact control point.",
+    "Confirm the likely resolution before confirming the record status.",
+    "Assume the next step is obvious if the documentation looks mostly complete.",
+  ] },
+  { id: "mod-wp-2", skillFocus: "Behavior-based coaching", pool: [
+    "Lead with the score label so the learner understands the seriousness immediately.",
+    "Describe the learner's attitude rather than the observable behavior.",
+    "Give several improvement ideas at once so the learner has options.",
+    "Focus on why the behavior was disappointing before explaining what to repeat next time.",
+  ] },
+  { id: "mod-wp-3", skillFocus: "Evaluation rigor", pool: [
+    "Defend the reviewer's instinct if it matches the overall impression of the call.",
+    "Use one strong example as enough evidence for a disputed score.",
+    "Treat calibration as agreement-building rather than evidence comparison.",
+    "Resolve borderline scoring differences by choosing the stricter interpretation by default.",
+  ] },
+  { id: "mod-rtc-1", skillFocus: "Trust-building and self-discovery", pool: [
+    "Open with the performance gap so the learner knows the point quickly.",
+    "Save reflection questions until after the coach has fully diagnosed the issue.",
+    "Use a polished coaching script rather than one grounded observation.",
+    "Keep the conversation efficient by minimizing learner participation.",
+  ] },
+  { id: "mod-rtc-2", skillFocus: "Action planning and follow-through", pool: [
+    "Set a broad coaching goal so the learner has flexibility.",
+    "Treat improvement effort as the main proof point rather than observable behavior.",
+    "Let the learner choose a review date later once momentum builds.",
+    "Document the coach's expectations clearly but leave success evidence informal.",
+  ] },
+  { id: "mod-rtc-3", skillFocus: "Personalized coaching and ownership", pool: [
+    "Use the same accountability language for every learner to preserve fairness.",
+    "Match the conversation to the coach's style rather than the learner's readiness.",
+    "Increase pressure when follow-through looks weak, even if clarity is low.",
+    "Treat ownership as verbal agreement instead of sustained evidence.",
+  ] },
+  { id: "mod-dl-1", skillFocus: "KPI interpretation", pool: [
+    "React to the score movement before naming what behavior it measures.",
+    "Treat a benchmark miss as self-explanatory evidence of poor execution.",
+    "Use the KPI to support the first plausible story that fits the trend.",
+    "Move straight from the dashboard to intervention without defining the next question.",
+  ] },
+  { id: "mod-dl-2", skillFocus: "Root-cause analysis and action planning", pool: [
+    "Recommend action as soon as the trend looks concerning.",
+    "Translate the trend into urgency language before identifying the workflow pressure behind it.",
+    "Treat a likely root cause as sufficient evidence for intervention.",
+    "Choose the broadest possible action so leadership appears decisive.",
+  ] },
+  { id: "mod-dl-3", skillFocus: "Decision-ready data review", pool: [
+    "Use the clearest narrative if it is directionally supported by the numbers.",
+    "Validate the report internally without pressure-testing it against other sources.",
+    "Favor speed over comparison when leadership needs an answer quickly.",
+    "Treat report polish as a substitute for uncertainty labeling.",
+  ] },
+  { id: "mod-lfs-1", skillFocus: "Composure", pool: [
+    "Sound formal enough that the interaction cannot be challenged later.",
+    "Protect compliance by reducing emotional acknowledgment.",
+    "Move into secure workflow language before clarifying what is known now.",
+    "Keep the tone neutral by minimizing ownership language.",
+  ] },
+  { id: "mod-lfs-2", skillFocus: "Accuracy", pool: [
+    "State the security steps first and explain their purpose only if the customer resists.",
+    "Move briskly through verification to avoid sounding uncertain.",
+    "Treat a compliant handoff as complete even if ownership becomes less visible.",
+    "Use firm language in place of plain-language guidance during secure steps.",
+  ] },
+  { id: "mod-lfs-3", skillFocus: "Trust-building", pool: [
+    "Calm the interaction by sounding more certain than the process allows.",
+    "Use reassurance phrases that feel polished even if they are not auditable.",
+    "Rely on confidence of tone rather than clarity of next step.",
+    "Reduce specificity once the interaction becomes emotionally charged.",
+  ] },
+  { id: "mod-lfd-1", skillFocus: "Bias-aware interpretation", pool: [
+    "Use the first clean explanation if it aligns with prior experience.",
+    "Compare performance to whichever period makes the trend easiest to discuss.",
+    "Treat a persuasive narrative as evidence that the interpretation is balanced.",
+    "Move into planning once the team broadly agrees on the conclusion.",
+  ] },
+  { id: "mod-lfd-2", skillFocus: "Decision quality", pool: [
+    "Validate the conclusion within one team before extending it across groups.",
+    "Assume similar trends across periods mean the same cause is active.",
+    "Use a cross-team comparison to confirm speed, even if definitions differ slightly.",
+    "Prioritize decisiveness over testing whether the conclusion travels well across contexts.",
+  ] },
+  { id: "mod-hcs-1", skillFocus: "Tone control", pool: [
+    "Keep the message ultra-brief even if it sounds transactional.",
+    "Prioritize speed over acknowledgment in digital channels.",
+    "Use friendly phrases in place of clear ownership.",
+    "Treat concise wording as sufficient proof of customer care.",
+  ] },
+  { id: "mod-hcs-2", skillFocus: "Transfer discipline", pool: [
+    "A transfer is successful once the next team accepts the case.",
+    "Give the receiving team the context, but let the customer restate the issue if needed.",
+    "Emphasize speed of handoff over clarity of next step.",
+    "Treat ownership as temporary so the transfer sounds efficient.",
+  ] },
+  { id: "mod-hcs-3", skillFocus: "Issue ownership", pool: [
+    "Close confidently once the message has been sent to the next team.",
+    "Assume the customer feels closure if the tone is upbeat.",
+    "Treat a resolution attempt as equivalent to a closed loop.",
+    "Let the final follow-up responsibility remain implied rather than stated.",
+  ] },
+  { id: "mod-lfp-1", skillFocus: "Performance segmentation", pool: [
+    "Use the bucket label first and sort the behavior details afterward.",
+    "Treat similar scores as evidence that the coaching move should be identical.",
+    "Escalate the bucket when the trend feels concerning, even if the pattern is still mixed.",
+    "Use the bucket mainly to justify intervention intensity.",
+  ] },
+  { id: "mod-lfp-2", skillFocus: "Objective coaching and bias control", pool: [
+    "Protect fairness by standardizing the coaching message across all learners.",
+    "Treat QA evidence as neutral without checking interpretation bias.",
+    "Use calibration primarily to defend the existing coaching plan.",
+    "Choose the strongest corrective action so bias cannot be accused later.",
+  ] },
+  { id: "mod-lfp-3", skillFocus: "Performance planning and follow-through", pool: [
+    "Start with a standard plan and personalize only if the first version fails.",
+    "Use a long improvement plan to show seriousness, even if the ritual is hard to sustain.",
+    "Treat follow-through as a manager habit rather than a learner-visible cadence.",
+    "Measure plan quality by completeness rather than repeatability.",
+  ] },
+  { id: "mod-hce-1", skillFocus: "Recognition and motivation design", pool: [
+    "Launch rewards first and let the target behavior become clear over time.",
+    "Use surprise recognition to keep the program exciting, even if criteria stay fuzzy.",
+    "Treat engagement energy as proof that the system is reinforcing the right thing.",
+    "Rotate recognition methods often so consistency does not become stale.",
+  ] },
+  { id: "mod-hce-2", skillFocus: "Team motivation and reward systems", pool: [
+    "A reward rhythm works best when leaders can flex the criteria case by case.",
+    "Keep the game elements fresh by changing expectations frequently.",
+    "Favor high-visibility wins, even if some team members cannot realistically access them.",
+    "Use recognition intensity to offset weak measurement.",
+  ] },
+  { id: "mod-hce-3", skillFocus: "Continuous improvement", pool: [
+    "If participation remains high, the program does not need deeper measurement.",
+    "Treat leaderboard energy as proof that the system is working fairly.",
+    "Iterate the program only when engagement drops sharply.",
+    "Use anecdotal praise to judge whether rewards are reinforcing the right behaviors.",
+  ] },
+  { id: "mod-hcd-1", skillFocus: "Engagement measurement", pool: [
+    "Treat a positive culture score as self-explanatory evidence of readiness.",
+    "Use engagement metrics to confirm the story leadership already suspects.",
+    "Measure morale broadly rather than tying the signal to a specific operating rhythm.",
+    "React to culture movement before testing what behavior the metric reflects.",
+  ] },
+  { id: "mod-hcd-2", skillFocus: "Leadership cadence", pool: [
+    "A cadence is working if leaders stay visibly busy across the week.",
+    "Use more touchpoints to solve distributed-team alignment problems quickly.",
+    "Treat communication frequency as a substitute for operating clarity.",
+    "Adjust the rhythm often so the team stays attentive.",
+  ] },
+];
+
+const distractorPoolById = new Map(MODULE_DISTRACTOR_BANKS.map((bank) => [bank.id, bank.pool]));
+const distractorPoolBySkillFocus = new Map(MODULE_DISTRACTOR_BANKS.map((bank) => [bank.skillFocus.toLowerCase(), bank.pool]));
+
+function getModuleDistractorPool(module: ModuleLike): string[] {
+  return distractorPoolById.get(module.id) ?? distractorPoolBySkillFocus.get(module.skillFocus.toLowerCase()) ?? GENERIC_DISTRACTOR_POOL;
+}
+
 function createMultipleChoiceQuestion(
   id: string,
   prompt: string,
@@ -119,19 +350,45 @@ function createMultipleChoiceQuestion(
   distractors: string[],
   successFeedback: string,
   failureFeedback: string,
+  config: { pool?: string[]; skillFocus?: string; correctRationale?: string; distractorRationale?: string } = {},
 ): TrainingApplicationQuestion {
-  const options = [correctLabel, ...distractors.slice(0, 2)];
+  const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
+  const used = new Set<string>([normalize(correctLabel)]);
+  const distinctDistractors: string[] = [];
+  // Draw supplied near-misses first, then backfill from the module pool, then the
+  // generic pool — never letting a distractor equal the correct option or repeat.
+  for (const candidate of [...distractors, ...(config.pool ?? []), ...GENERIC_DISTRACTOR_POOL]) {
+    const trimmed = candidate?.trim();
+    if (!trimmed) continue;
+    const key = normalize(trimmed);
+    if (used.has(key)) continue;
+    used.add(key);
+    distinctDistractors.push(trimmed);
+    if (distinctDistractors.length >= 2) break;
+  }
+
+  const skillLabel = config.skillFocus ? config.skillFocus.toLowerCase() : "the lesson behavior";
+  const correctRationale = config.correctRationale
+    ?? `This is correct because it reflects ${skillLabel} as the lesson teaches it and leaves an observable proof point.`;
+  const distractorRationale = config.distractorRationale
+    ?? `This is wrong because it drifts from ${skillLabel}, which weakens the trust, clarity, or auditability the lesson protects.`;
+
+  // Index 0 is the correct label pre-shuffle; the deterministic order then spreads
+  // it across positions while keeping correctOptionId pointed at it.
+  const labels = [correctLabel, ...distinctDistractors];
+  const order = deterministicOptionOrder(id, labels.length);
+  const correctPosition = order.indexOf(0);
 
   return {
     id,
     prompt,
     type: "multiple_choice",
-    options: options.map((label, index) => ({
-      id: `${id}-${String.fromCharCode(97 + index)}`,
-      label,
-      rationale: index === 0 ? "This choice reflects the mapped lesson behavior and instructional emphasis." : "This distractor sounds plausible but misses the intended lesson pattern or evidence standard.",
+    options: order.map((sourceIndex, position) => ({
+      id: `${id}-${String.fromCharCode(97 + position)}`,
+      label: labels[sourceIndex],
+      rationale: sourceIndex === 0 ? correctRationale : distractorRationale,
     })),
-    correctOptionId: `${id}-a`,
+    correctOptionId: `${id}-${String.fromCharCode(97 + correctPosition)}`,
     successFeedback,
     failureFeedback,
   };
@@ -161,6 +418,7 @@ function buildBriefCheckpoint(module: ModuleLike, presentation: Omit<TrainingPre
   const followupSlide = presentation.slides[1] ?? introSlide;
   const primaryBehavior = trimAssessmentPhrase(introSlide?.bullets[0] ?? module.skillFocus);
   const supportingBehavior = trimAssessmentPhrase(introSlide?.bullets[1] ?? followupSlide?.title ?? module.skillFocus);
+  const distractorPool = getModuleDistractorPool(module);
 
   return {
     title: `Checkpoint: ${introSlide?.title ?? "Lesson understanding"}`,
@@ -181,6 +439,7 @@ function buildBriefCheckpoint(module: ModuleLike, presentation: Omit<TrainingPre
         ],
         "Correct. That choice reflects the opening lesson behavior the learner is expected to recognize before moving on.",
         "That is not the strongest answer yet. The correct option directly matches the key behavior emphasized in the brief pages.",
+        { pool: distractorPool, skillFocus: module.skillFocus },
       ),
       createShortAnswerQuestion(
         `${module.id}-brief-q2`,
@@ -198,6 +457,7 @@ function buildPracticeCheckpoint(module: ModuleLike, presentation: Omit<Training
   const practiceSlide = presentation.practiceSlides[0] ?? presentation.slides[0];
   const scenarioSignal = trimAssessmentPhrase(presentation.practiceScenario.successSignals[0] ?? module.skillFocus);
   const scenarioTask = trimAssessmentPhrase(presentation.practiceScenario.learnerTask);
+  const distractorPool = getModuleDistractorPool(module);
 
   return {
     title: `Checkpoint: ${presentation.practiceScenario.title}`,
@@ -218,6 +478,7 @@ function buildPracticeCheckpoint(module: ModuleLike, presentation: Omit<Training
         ],
         "Correct. That response matches the success signal the learner is expected to demonstrate during rehearsal.",
         "Not yet. The strongest answer aligns with the success signals shown in the scenario panel.",
+        { pool: distractorPool, skillFocus: module.skillFocus },
       ),
       createShortAnswerQuestion(
         `${module.id}-practice-q2`,
@@ -241,6 +502,8 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
   const secondApplicationQuestion = presentation.applicationActivity.questions[1] ?? firstApplicationQuestion;
   const firstApplicationCorrectLabel = firstApplicationQuestion?.options?.find((option) => option.id === firstApplicationQuestion.correctOptionId)?.label ?? trimAssessmentPhrase(slideOne?.bullets[0] ?? module.skillFocus);
   const secondApplicationCorrectLabel = secondApplicationQuestion?.options?.find((option) => option.id === secondApplicationQuestion.correctOptionId)?.label ?? trimAssessmentPhrase(slideTwo?.bullets[0] ?? module.skillFocus);
+  const distractorPool = getModuleDistractorPool(module);
+  const mcConfig = { pool: distractorPool, skillFocus: module.skillFocus };
   const questions = [
     createMultipleChoiceQuestion(
       `${module.id}-final-q1`,
@@ -249,6 +512,7 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
       [trimAssessmentPhrase(slideTwo?.bullets[0] ?? `Ignore ${module.skillFocus.toLowerCase()}`), "Advance without making the behavior observable"],
       "Correct. You identified the opening behavior that the module reinforces from the start.",
       "Not quite. Review the first lesson page and choose the behavior the module makes most visible.",
+      mcConfig,
     ),
     createMultipleChoiceQuestion(
       `${module.id}-final-q2`,
@@ -257,6 +521,7 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
       [trimAssessmentPhrase(slideTwo?.bullets[1] ?? "Rely on generic reassurance"), "Skip rehearsal and jump to completion"],
       "Correct. That concept is explicitly carried from the lesson pages into rehearsal.",
       "Not yet. The strongest answer comes directly from the practice sequence and success signals.",
+      mcConfig,
     ),
     createMultipleChoiceQuestion(
       `${module.id}-final-q3`,
@@ -265,6 +530,7 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
       ["Unverified optimism", "Completion without proof"],
       "Correct. That evidence signal appears in the lesson analytics and reinforces what the learner should improve.",
       "That answer does not match the mapped evidence signal shown in the lesson charts.",
+      mcConfig,
     ),
     createMultipleChoiceQuestion(
       `${module.id}-final-q4`,
@@ -276,6 +542,7 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
       ],
       "Correct. You selected the work-ready answer already reinforced in the application checkpoint.",
       "Not yet. Revisit the application activity and choose the answer that makes the behavior visible, coachable, and audit-ready.",
+      mcConfig,
     ),
     createMultipleChoiceQuestion(
       `${module.id}-final-q5`,
@@ -284,6 +551,7 @@ function buildFinalQuiz(module: ModuleLike, presentation: Omit<TrainingPresentat
       [presentation.resourceActions[0]?.detail ?? "Finish the module without evidence", "Mark the lesson complete without showing the behavior"],
       "Correct. That choice reflects the transfer standard the module expects before completion.",
       "Not quite. The correct answer ties the module to an observable next step or recordable proof point.",
+      mcConfig,
     ),
   ];
 
@@ -649,47 +917,57 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           options: [
             {
               id: "listen-q1-a",
-              label: "Explain the policy immediately so the customer hears the rules first.",
-              rationale: "This skips acknowledgement and usually increases friction.",
+              label: "Thank the customer for their patience and begin checking the account silently before speaking further.",
+              rationale: "This is wrong because it troubleshoots silently before acknowledging the concern, which weakens trust — the customer never hears that they were understood.",
             },
             {
               id: "listen-q1-b",
               label: "Acknowledge the frustration, confirm ownership, and define the next verified action.",
-              rationale: "This follows the lesson model of empathy, ownership, and controlled action.",
+              rationale: "This is correct because it acknowledges the emotion, takes ownership, and names a verified next action, leaving the customer with proof they were heard.",
             },
             {
               id: "listen-q1-c",
-              label: "Promise the outcome will be fixed today before checking the workflow.",
-              rationale: "This creates promise risk before the facts are stable.",
+              label: "Apologize warmly and offer a likely solution before confirming what actually happened.",
+              rationale: "This is wrong because it offers a solution before verifying the facts, which weakens trust and creates promise debt the workflow may not support.",
+            },
+            {
+              id: "listen-q1-d",
+              label: "Repeat the issue back accurately but wait to state the next step until after a long explanation.",
+              rationale: "This is wrong because it buries ownership under a long explanation, which weakens clarity — the next step reaches the customer too late.",
             },
           ],
           correctOptionId: "listen-q1-b",
           successFeedback: "Correct. The strongest response validates the concern and keeps the interaction structured.",
-          failureFeedback: "This option misses the lesson pattern. The correct response acknowledges emotion before moving into the next verified step.",
+          failureFeedback: "Not yet. Revisit the opening sequence: acknowledge the emotion and confirm ownership before explaining or troubleshooting.",
         },
         {
           id: "listen-q2",
-          prompt: "What is the clearest sign that the learner is applying the CHCG listening model?",
+          prompt: "Which response most clearly shows the learner has listened accurately and regained control of the interaction?",
           options: [
             {
               id: "listen-q2-a",
-              label: "They stack multiple explanations so the customer hears every detail at once.",
-              rationale: "Overexplaining early is one of the risk patterns the lesson warns against.",
+              label: "They reassure the customer that the team cares, even if they do not yet restate the issue clearly.",
+              rationale: "This is wrong because reassurance without restating the issue does not prove the agent actually heard it, which weakens trust.",
             },
             {
               id: "listen-q2-b",
               label: "They summarize the concern in the customer’s language and redirect to the verified action.",
-              rationale: "This reflects the Hand back move in the model.",
+              rationale: "This is correct because it restates the concern in the customer’s words and turns that understanding into a verified next action — observable proof of accurate listening.",
             },
             {
               id: "listen-q2-c",
-              label: "They close the call quickly once the tone becomes calmer.",
-              rationale: "This ends the interaction before the next-step summary is secure.",
+              label: "They provide every relevant policy detail so the customer knows the agent is informed.",
+              rationale: "This is wrong because stacking policy detail signals knowledge, not listening, which weakens clarity and overwhelms the customer.",
+            },
+            {
+              id: "listen-q2-d",
+              label: "They calm the tone first, then move toward closing without checking whether the customer heard the next action.",
+              rationale: "This is wrong because closing before confirming the next action weakens ownership and leaves the interaction without a verified handoff.",
             },
           ],
           correctOptionId: "listen-q2-b",
           successFeedback: "Correct. The summary-plus-next-action move proves the learner understood and retained control.",
-          failureFeedback: "Not quite. The model requires a clear summary in the customer’s language before redirecting to the verified next step.",
+          failureFeedback: "Not quite. Accurate listening shows up as a summary in the customer’s language followed by a verified next step — not reassurance or policy detail alone.",
         },
       ],
     },
@@ -896,42 +1174,52 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           options: [
             {
               id: "reassure-q1-a",
-              label: "This will definitely be fixed by the end of the day.",
-              rationale: "This promises an outcome that may not be verified.",
+              label: "I know this is stressful, but I’m sure the back office will clear it shortly.",
+              rationale: "This is wrong because it promises another team’s outcome, which weakens trust and creates promise debt the agent cannot control.",
             },
             {
               id: "reassure-q1-b",
               label: "I’m staying with this, and here is the next confirmed step I can walk you through right now.",
-              rationale: "This signals ownership and process clarity without false certainty.",
+              rationale: "This is correct because it pairs ownership with a confirmed next step, reassuring the customer without promising an outcome the workflow cannot guarantee.",
             },
             {
               id: "reassure-q1-c",
-              label: "Hopefully the other team gets back to us soon.",
-              rationale: "This weakens confidence and leaves ownership unclear.",
+              label: "Let me calm your concerns first, and then I’ll see what the system tells us.",
+              rationale: "This is wrong because it soothes without committing to a verified next step, which weakens clarity and leaves nothing to document.",
+            },
+            {
+              id: "reassure-q1-d",
+              label: "I can’t promise the outcome yet, but I think this usually resolves the same day.",
+              rationale: "This is wrong because “usually resolves” is optimism without proof, which weakens trust if this case turns out to be the exception.",
             },
           ],
           correctOptionId: "reassure-q1-b",
           successFeedback: "Correct. The right answer is confident because it is specific about ownership and next action.",
-          failureFeedback: "This does not reflect the lesson. Effective reassurance is anchored to what is verified and what happens next.",
+          failureFeedback: "Not yet. Trust-safe reassurance commits to ownership and a confirmed next step — not to an outcome or another team’s timing.",
         },
         {
           id: "reassure-q2",
-          prompt: "What makes a reassurance response coachable and audit-ready?",
+          prompt: "Which feature makes a reassurance response coachable and audit-ready?",
           options: [
             {
               id: "reassure-q2-a",
               label: "It gives the customer a process-based next step that can be documented later.",
-              rationale: "This is the lesson’s transfer principle.",
+              rationale: "This is correct because a process-based next step leaves a documented trail a coach or reviewer can verify later.",
             },
             {
               id: "reassure-q2-b",
-              label: "It sounds highly optimistic even when the details are unresolved.",
-              rationale: "Optimism without proof creates promise debt.",
+              label: "It sounds highly confident, even if some of the steps are still assumptions.",
+              rationale: "This is wrong because confidence built on assumptions creates promise debt, which weakens trust when a step turns out to be false.",
             },
             {
               id: "reassure-q2-c",
-              label: "It avoids specifics so the learner cannot be held to the language later.",
-              rationale: "Avoiding specifics undermines trust and auditability.",
+              label: "It keeps the wording general so the agent has flexibility later.",
+              rationale: "This is wrong because deliberately general wording cannot be coached or documented, which weakens auditability.",
+            },
+            {
+              id: "reassure-q2-d",
+              label: "It uses warm empathy phrases instead of concrete workflow language.",
+              rationale: "This is wrong because empathy phrases without workflow specifics blur ownership and leave nothing to verify.",
             },
           ],
           correctOptionId: "reassure-q2-a",
@@ -1142,18 +1430,23 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           options: [
             {
               id: "deescalate-q1-a",
-              label: "Jump straight into policy language so the customer hears rules quickly.",
-              rationale: "This usually sounds dismissive and increases friction.",
+              label: "Summarize the policy first so the customer hears the rules before reacting further.",
+              rationale: "This is wrong because leading with policy is emotionally mistimed, which keeps heat high before the customer feels heard.",
             },
             {
               id: "deescalate-q1-b",
               label: "Acknowledge the frustration and use a stabilizing phrase before gathering detail.",
-              rationale: "This is the correct recovery opening from the lesson.",
+              rationale: "This is correct because it lowers emotional heat first, the recovery sequence the lesson opens with, and establishes control.",
             },
             {
               id: "deescalate-q1-c",
-              label: "Promise a resolution before verifying what happened.",
-              rationale: "This creates risk and weakens recovery credibility.",
+              label: "Ask several diagnostic questions immediately so the interaction becomes more efficient.",
+              rationale: "This is wrong because rapid diagnostics before stabilizing the emotion feel interrogating, which weakens trust.",
+            },
+            {
+              id: "deescalate-q1-d",
+              label: "Offer a likely resolution quickly to show confidence before the details are fully checked.",
+              rationale: "This is wrong because promising a resolution before verifying the details weakens recovery credibility.",
             },
           ],
           correctOptionId: "deescalate-q1-b",
@@ -1166,18 +1459,23 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           options: [
             {
               id: "deescalate-q2-a",
-              label: "I need to look into this more, but I don’t have an update yet.",
-              rationale: "This is vague and does not map the recovery path.",
+              label: "I’m reviewing everything now, and I’ll update you once I know more.",
+              rationale: "This is wrong because it is procedurally vague — no map of what is happening or what comes next, which weakens clarity.",
             },
             {
               id: "deescalate-q2-b",
               label: "Here is what has happened, what I’m verifying now, and what you can expect next.",
-              rationale: "This follows the lesson’s middle section exactly.",
+              rationale: "This is correct because it maps the process in an owned past-present-next sequence, which makes recovery legible.",
             },
             {
               id: "deescalate-q2-c",
-              label: "Let’s just wait and see what the system shows later.",
-              rationale: "This removes ownership and clarity.",
+              label: "What matters is that we are already working on it, so let’s give the system time.",
+              rationale: "This is wrong because it asks the customer to wait without a visible path, which is ownership-thin.",
+            },
+            {
+              id: "deescalate-q2-d",
+              label: "I understand the frustration, and the important thing is that we stay calm while I investigate.",
+              rationale: "This is wrong because empathy alone does not make the process legible, which weakens clarity about the next step.",
             },
           ],
           correctOptionId: "deescalate-q2-b",
@@ -1370,18 +1668,23 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
           options: [
             {
               id: "close-q1-a",
-              label: "Thanks for calling. Have a great day.",
-              rationale: "This is polite but incomplete and not audit-ready.",
+              label: "I’ve noted your concern, and someone from the team will take it from here.",
+              rationale: "This is wrong because it hands ownership away, which weakens follow-through — no named person stays accountable.",
             },
             {
               id: "close-q1-b",
               label: "I’ve documented the action we completed, the next update will happen tomorrow, and I’ll remain the owner for follow-up.",
-              rationale: "This includes completed action, next step, and ownership.",
+              rationale: "This is correct because it names the completed action, the next step, and ownership — the full three-part close that leaves a clean record.",
             },
             {
               id: "close-q1-c",
-              label: "We should be fine from here, so let’s go ahead and end the call.",
-              rationale: "This is vague and leaves the next step unclear.",
+              label: "Thanks for your time today; we covered a lot and should be in good shape.",
+              rationale: "This is wrong because it states no completed action or next step, which weakens the record for QA and follow-up.",
+            },
+            {
+              id: "close-q1-d",
+              label: "I resolved what I could on this call, and you can contact us again if anything changes.",
+              rationale: "This is wrong because it leaves the next step to the customer, which weakens clarity and ownership.",
             },
           ],
           correctOptionId: "close-q1-b",
@@ -1390,22 +1693,27 @@ const trainingPresentationByModuleId: Record<string, Omit<TrainingPresentation, 
         },
         {
           id: "close-q2",
-          prompt: "Why does the lesson treat closing as a documentation bridge?",
+          prompt: "Why does the lesson treat the closing recap as a documentation bridge rather than just a polite ending?",
           options: [
             {
               id: "close-q2-a",
               label: "Because the final recap should create a clean record for QA, coaching, and follow-up.",
-              rationale: "This is the lesson’s documentation-transfer principle.",
+              rationale: "This is correct because the recap doubles as the documentation handoff, leaving a clean record for QA, coaching, and follow-up.",
             },
             {
               id: "close-q2-b",
-              label: "Because a long explanation always improves customer trust at the end.",
-              rationale: "Length does not guarantee clarity or trust.",
+              label: "Because a detailed closing always improves customer satisfaction, even if the next step is still unclear.",
+              rationale: "This is wrong because detail does not equal closure — an unclear next step weakens clarity no matter how long the close is.",
             },
             {
               id: "close-q2-c",
-              label: "Because reviewers do not need a clear next step if the tone is friendly.",
-              rationale: "Friendliness cannot replace a usable record.",
+              label: "Because a friendly tone matters more to reviewers than a precise recap does.",
+              rationale: "This is wrong because a friendly tone cannot replace a precise recap, which weakens reviewer traceability.",
+            },
+            {
+              id: "close-q2-d",
+              label: "Because the final seconds are mainly for relationship-building, not for operational clarity.",
+              rationale: "This is wrong because treating the close as relationship-only weakens the operational record the next owner relies on.",
             },
           ],
           correctOptionId: "close-q2-a",
@@ -1623,6 +1931,7 @@ function buildCurriculumMigrationPresentation(
           [config.workflowBullets[0], config.transferBullets[0]],
           "Correct. That move reflects the opening module behavior the learner should recognize immediately.",
           "Not yet. Revisit the first lesson page and choose the behavior the module makes most visible from the start.",
+          { pool: getModuleDistractorPool(module), skillFocus: module.skillFocus },
         ),
         createMultipleChoiceQuestion(
           `${module.id}-apply-q2`,
@@ -1631,6 +1940,7 @@ function buildCurriculumMigrationPresentation(
           [config.successSignals[1], config.transferBullets[1]],
           "Correct. That signal is part of the rehearsal standard the learner should demonstrate before moving on.",
           "Not yet. The strongest answer matches the rehearsal success signals shown beside the scenario.",
+          { pool: getModuleDistractorPool(module), skillFocus: module.skillFocus },
         ),
         createShortAnswerQuestion(
           `${module.id}-apply-q3`,

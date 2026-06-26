@@ -539,4 +539,63 @@ describe("getTrainingPresentation", () => {
     expect(presentation.finalQuiz.passingPercent).toBe(80);
     expect(presentation.coachPrompts[0]).toContain("behavior");
   });
+
+  // QFIX2: generated checkpoints must draw distinct distractors from the module
+  // pool (never duplicating the correct option) and place the correct answer
+  // across positions via a stable, deterministic per-question-id shuffle.
+  const sampleModules = [
+    { id: "mod-sf-1", title: "Active listening", format: "Microlearning", durationMinutes: 8, skillFocus: "Listening precision" },
+    { id: "mod-wp-1", title: "Verification and Workflow Accuracy", format: "Playbook", durationMinutes: 9, skillFocus: "Process discipline" },
+    { id: "mod-dl-1", title: "Reading and Understanding KPIs", format: "Playbook", durationMinutes: 10, skillFocus: "KPI interpretation" },
+  ] as const;
+
+  it("never emits a generated distractor equal to the correct option, and every correctOptionId resolves", () => {
+    for (const module of sampleModules) {
+      const presentation = getTrainingPresentation(module, "Journey", "Competency gap");
+      const activities = [presentation.briefCheckpoint, presentation.practiceCheckpoint, presentation.applicationActivity, presentation.finalQuiz];
+      for (const activity of activities) {
+        for (const question of activity.questions) {
+          if (question.type !== "multiple_choice") continue;
+          const options = question.options ?? [];
+          const correct = options.find((option) => option.id === question.correctOptionId);
+          expect(correct).toBeDefined();
+          const labels = options.map((option) => option.label.trim().toLowerCase());
+          // All option labels distinct → no distractor duplicates the correct answer.
+          expect(new Set(labels).size).toBe(labels.length);
+        }
+      }
+    }
+  });
+
+  it("distributes the correct answer off position A for at least some generated questions, deterministically", () => {
+    const buildIds = (moduleId: string) => {
+      const module = { id: moduleId, title: "M", format: "Playbook", durationMinutes: 9, skillFocus: "Process discipline" };
+      const presentation = getTrainingPresentation(module, "Journey", "Competency gap");
+      return presentation.finalQuiz.questions.map((question) => question.correctOptionId ?? "");
+    };
+    const first = buildIds("mod-wp-1");
+    const second = buildIds("mod-wp-1");
+    // Stable across renders (deterministic seed = question id).
+    expect(first).toEqual(second);
+    // At least one correct answer is not in position A — the shuffle did its job.
+    expect(first.some((id) => id && !id.endsWith("-a"))).toBe(true);
+  });
+
+  it("keeps the eight hand-authored Service Foundations keys and gives each four distinct options", () => {
+    const handAuthored: Array<[string, string, string, number]> = [
+      ["mod-sf-1", "Active listening", "Listening precision", 0],
+      ["mod-sf-2", "Confident reassurance", "Language confidence", 0],
+      ["mod-sf-3", "De-escalation", "Service recovery", 0],
+      ["mod-sf-4", "Closing discipline", "Call closure discipline", 0],
+    ];
+    for (const [id, title, skillFocus] of handAuthored) {
+      const presentation = getTrainingPresentation({ id, title, format: "Microlearning", durationMinutes: 8, skillFocus }, "Service Foundations", "Gap");
+      for (const question of presentation.applicationActivity.questions) {
+        expect(question.options).toHaveLength(4);
+        const labels = (question.options ?? []).map((option) => option.label.trim().toLowerCase());
+        expect(new Set(labels).size).toBe(4);
+        expect((question.options ?? []).some((option) => option.id === question.correctOptionId)).toBe(true);
+      }
+    }
+  });
 });
