@@ -970,12 +970,6 @@ const sectionMissionNarratives: Record<string, {
     reward: "ROI visible",
     guide: "Executives should be able to understand the story of performance quickly, then drill into evidence only when needed.",
   },
-  Reporting: {
-    focus: "Trend analysis",
-    next: "Move from the headline chart to the outlier, then open the detailed proof surface on demand.",
-    reward: "Evidence ready",
-    guide: "This workspace should feel like an analytics studio with a clear narrative, not a long static report.",
-  },
   Manager: {
     focus: "Intervention queue",
     next: "Select the current learner or case, launch the right action, and keep the rest of the page secondary.",
@@ -3774,13 +3768,12 @@ export function ReportingWorkspaceView() {
 
   return (
     <Surface>
-      <SectionShell
-        eyebrow="Reporting"
+      <WorkspaceShell
         title="Client reporting workspace"
-        description="Explore ROI movement, question risk, benchmark context, and error-rate trends in a dedicated reporting section."
+        subtitle="Explore ROI movement, question risk, benchmark context, and error-rate trends."
         actions={
           access.data ? (
-            <div className="flex flex-wrap items-center gap-2">
+            <>
               {canAccessReporting && query.data ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -3798,7 +3791,7 @@ export function ReportingWorkspaceView() {
               <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
                 {access.data.tenant.name}
               </Badge>
-            </div>
+            </>
           ) : null
         }
       >
@@ -3820,7 +3813,7 @@ export function ReportingWorkspaceView() {
           </PremiumCard>
         ) : null}
         {!query.isLoading && canAccessReporting && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-      </SectionShell>
+      </WorkspaceShell>
       {/* Hidden on screen; shown only when printing (PDF exec summary). */}
       {canAccessReporting && query.data ? <ReportingPrintLayout data={query.data} /> : null}
     </Surface>
@@ -9166,8 +9159,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               <>
                 <div className="space-y-2">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Reporting overview</p>
-                  <h2 className="text-[1.65rem] font-semibold tracking-tight text-white xl:text-[1.9rem]">Review the core lift, risk, and proof signals first.</h2>
-                  <p className="max-w-4xl text-sm leading-6 text-slate-200">This workspace now opens like a reporting console: start with the summary cards, then switch into trends, risk, evidence, or documentation only when a deeper decision is required.</p>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {data.reportingOverview.summaryCards.map((entry: any) => (
@@ -9202,21 +9193,21 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           <div className="grid gap-3">
             {executiveHeroView === "reporting" ? (
               <>
-                <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Current headline</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[#10212B]">{data.reportingOverview.headline}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#334E5E]">{data.reportingOverview.summary}</p>
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current headline</p>
+                  <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{data.reportingOverview.summary}</p>
                 </div>
-                <div className="rounded-[1.2rem] border border-emerald-500/20 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(220,252,231,0.96))] px-4 py-4 text-emerald-950">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-800/80">Proof cue</p>
-                  <p className="mt-2 text-sm leading-6 text-emerald-950">{data.proofOfImpact.headline}</p>
+                <div className="rounded-[1.2rem] border border-emerald-400/20 bg-white/6 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Proof cue</p>
+                  <p className="mt-2 text-sm leading-6 text-emerald-200">{data.proofOfImpact.headline}</p>
                 </div>
               </>
             ) : (
-              <div className="guide-card border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 backdrop-blur-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">Decision queue</p>
-                <h3 className="mt-2 text-lg font-semibold text-[#10212B]">Four executive approvals are waiting.</h3>
-                <p className="mt-2 text-sm leading-6 text-[#334E5E]">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
+              <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Decision queue</p>
+                <h3 className="mt-2 text-lg font-semibold text-white">Four executive approvals are waiting.</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
               </div>
             )}
           </div>
@@ -9228,7 +9219,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Reporting modes</p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Switch the workspace focus instead of forcing every reporting stream into one continuous scroll.</p>
             </div>
             <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
               <TabsTrigger value="overview" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Overview</TabsTrigger>
