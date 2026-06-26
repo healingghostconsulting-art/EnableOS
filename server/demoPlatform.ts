@@ -1,5 +1,6 @@
 import { slideDecks } from "../shared/slideManifest";
 import { isoDaysFromNow, dateOnlyDaysFromNow } from "../shared/demoClock";
+import { getTrainingPresentation, type TrainingApplicationQuestion } from "../shared/trainingContent";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -1660,6 +1661,230 @@ const tenantTrainingEntitlements = new Map<string, TenantTrainingEntitlement>([
 ]);
 
 const brandingOverrides = new Map<string, Partial<TenantBranding>>();
+
+// ── ContentStore seam (AUTHOR2 / Wave 1) ────────────────────────────────────
+// Generalizes `brandingOverrides` (a single per-tenant Partial) to keyed
+// collections of identified items. A canonical "core" base layer is computed
+// from shared content; on top of it sit two override layers that can patch,
+// hide, or add items without mutating the base:
+//   • core layer   — authored by platform_admin, applies to every tenant
+//   • tenant layer — authored by client_admin, applies to that tenant only
+// resolveForTenant() is the single read path; putCoreContent / putTenantContent
+// are the writes. Conflict rule: tenant override wins over core.
+//
+// PERSISTENCE TODO: `coreContentOverrides` and `tenantContentOverrides` are the
+// entire durable surface. They reset on server restart today. To make edits
+// durable, back them with two tenant-scoped Drizzle tables keyed identically —
+// content_core_override(type, collection_key, payload) and
+// content_tenant_override(tenant_id, type, collection_key, payload) — and swap
+// the Map reads/writes below for table reads/writes. No caller changes needed.
+export type ContentCollectionType = "quizQuestions";
+
+export type ContentItem = { id: string };
+
+export type ContentOverrideSet<T extends ContentItem> = {
+  /** Field-level edits applied to a base/core item by id. */
+  patches: Record<string, Partial<T>>;
+  /** Base/core item ids tombstoned for this layer. */
+  hidden: string[];
+  /** Items that exist only in this layer. */
+  added: T[];
+  /** Collection-level overrides (e.g. a quiz's passingScore). Opaque to the store. */
+  meta: Record<string, unknown>;
+};
+
+export type ContentOverrideOp<T extends ContentItem> =
+  | { kind: "patch"; id: string; patch: Partial<T> }
+  | { kind: "add"; item: T }
+  | { kind: "hide"; id: string }
+  | { kind: "unhide"; id: string }
+  | { kind: "remove"; id: string }
+  | { kind: "meta"; meta: Record<string, unknown> };
+
+function emptyOverrideSet<T extends ContentItem>(): ContentOverrideSet<T> {
+  return { patches: {}, hidden: [], added: [], meta: {} };
+}
+
+function contentStoreKey(type: ContentCollectionType, collectionKey: string) {
+  return `${type}::${collectionKey}`;
+}
+
+const coreContentOverrides = new Map<string, ContentOverrideSet<ContentItem>>();
+const tenantContentOverrides = new Map<string, Map<string, ContentOverrideSet<ContentItem>>>();
+
+function applyOverrideSet<T extends ContentItem>(base: T[], set: ContentOverrideSet<T>): T[] {
+  const hidden = new Set(set.hidden);
+  const resolved = base
+    .filter((item) => !hidden.has(item.id))
+    .map((item) => (set.patches[item.id] ? { ...item, ...set.patches[item.id] } : item));
+  const present = new Set(resolved.map((item) => item.id));
+  for (const item of set.added) {
+    if (!present.has(item.id)) {
+      resolved.push(item);
+    }
+  }
+  return resolved;
+}
+
+function mutateOverrideSet<T extends ContentItem>(set: ContentOverrideSet<T>, op: ContentOverrideOp<T>) {
+  switch (op.kind) {
+    case "patch": {
+      set.patches[op.id] = { ...set.patches[op.id], ...op.patch };
+      // If the target is a layer-added item, patch it in place too.
+      const added = set.added.find((item) => item.id === op.id);
+      if (added) {
+        Object.assign(added, op.patch);
+      }
+      break;
+    }
+    case "add":
+      if (!set.added.some((item) => item.id === op.item.id)) {
+        set.added.push(op.item);
+      }
+      break;
+    case "hide":
+      if (!set.hidden.includes(op.id)) {
+        set.hidden.push(op.id);
+      }
+      break;
+    case "unhide":
+      set.hidden = set.hidden.filter((id) => id !== op.id);
+      break;
+    case "remove":
+      set.added = set.added.filter((item) => item.id !== op.id);
+      delete set.patches[op.id];
+      break;
+    case "meta":
+      set.meta = { ...set.meta, ...op.meta };
+      break;
+  }
+}
+
+/** THE READ PATH. Apply the core layer to `base`, then the tenant layer (tenant wins). */
+export function resolveForTenant<T extends ContentItem>(
+  type: ContentCollectionType,
+  tenantId: string | null,
+  collectionKey: string,
+  base: T[],
+): { items: T[]; meta: Record<string, unknown> } {
+  const key = contentStoreKey(type, collectionKey);
+  const coreSet = coreContentOverrides.get(key) as ContentOverrideSet<T> | undefined;
+  let items = coreSet ? applyOverrideSet(base, coreSet) : base.slice();
+  let meta = coreSet ? { ...coreSet.meta } : {};
+  if (tenantId) {
+    const tenantSet = tenantContentOverrides.get(tenantId)?.get(key) as ContentOverrideSet<T> | undefined;
+    if (tenantSet) {
+      items = applyOverrideSet(items, tenantSet);
+      meta = { ...meta, ...tenantSet.meta };
+    }
+  }
+  return { items, meta };
+}
+
+/** WRITE — core layer (platform_admin). Affects every tenant that hasn't overridden the item. */
+export function putCoreContent<T extends ContentItem>(
+  type: ContentCollectionType,
+  collectionKey: string,
+  op: ContentOverrideOp<T>,
+) {
+  const key = contentStoreKey(type, collectionKey);
+  const set = (coreContentOverrides.get(key) as ContentOverrideSet<T> | undefined) ?? emptyOverrideSet<T>();
+  mutateOverrideSet(set, op);
+  coreContentOverrides.set(key, set as ContentOverrideSet<ContentItem>);
+}
+
+/** WRITE — tenant layer (client_admin). Scoped to one tenant; never mutates core. */
+export function putTenantContent<T extends ContentItem>(
+  tenantId: string,
+  type: ContentCollectionType,
+  collectionKey: string,
+  op: ContentOverrideOp<T>,
+) {
+  const key = contentStoreKey(type, collectionKey);
+  const byKey = tenantContentOverrides.get(tenantId) ?? new Map<string, ContentOverrideSet<ContentItem>>();
+  const set = (byKey.get(key) as ContentOverrideSet<T> | undefined) ?? emptyOverrideSet<T>();
+  mutateOverrideSet(set, op);
+  byKey.set(key, set as ContentOverrideSet<ContentItem>);
+  tenantContentOverrides.set(tenantId, byKey);
+}
+
+// ── Quiz-question content layer (Wave 1) ────────────────────────────────────
+// The canonical apply-checkpoint questions for a module are deterministic per
+// moduleId (seed literals or module-only generation), so the base is computed
+// from the shared content the same way the player computes it.
+function findModuleContext(moduleId: string): { module: LearningModule; journeyTitle: string; competencyGap: string } | null {
+  for (const journey of journeys) {
+    const module = journey.modules.find((entry) => entry.id === moduleId);
+    if (module) {
+      return { module, journeyTitle: journey.title, competencyGap: journey.competencyGap };
+    }
+  }
+  return null;
+}
+
+function getBaseQuizQuestions(moduleId: string): TrainingApplicationQuestion[] {
+  const context = findModuleContext(moduleId);
+  if (!context) {
+    return [];
+  }
+  return getTrainingPresentation(context.module, context.journeyTitle, context.competencyGap).applicationActivity.questions;
+}
+
+export type ResolvedQuizContent = {
+  moduleId: string;
+  moduleTitle: string;
+  journeyTitle: string;
+  questions: TrainingApplicationQuestion[];
+  passingScore?: number;
+  passingPercent?: number;
+};
+
+function resolveModuleQuiz(moduleId: string, tenantId: string | null): ResolvedQuizContent | null {
+  const context = findModuleContext(moduleId);
+  if (!context) {
+    return null;
+  }
+  const base = getBaseQuizQuestions(moduleId);
+  const { items, meta } = resolveForTenant<TrainingApplicationQuestion>("quizQuestions", tenantId, moduleId, base);
+  return {
+    moduleId,
+    moduleTitle: context.module.title,
+    journeyTitle: context.journeyTitle,
+    questions: items,
+    passingScore: typeof meta.passingScore === "number" ? meta.passingScore : undefined,
+    passingPercent: typeof meta.passingPercent === "number" ? meta.passingPercent : undefined,
+  };
+}
+
+/** Authoring read: resolved quiz content for the scope. `core` → base+core; tenant → base+core+tenant. */
+export function getAuthoringQuizContent(input: { scope: "core" | "tenant"; tenantId?: string; moduleId?: string }): { modules: ResolvedQuizContent[] } {
+  const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
+  const moduleIds = input.moduleId
+    ? [input.moduleId]
+    : Array.from(new Set(journeys.flatMap((journey) => journey.modules.map((module) => module.id))));
+  const modules = moduleIds
+    .map((moduleId) => resolveModuleQuiz(moduleId, tenantId))
+    .filter((entry): entry is ResolvedQuizContent => entry !== null);
+  return { modules };
+}
+
+/** Authoring write: route a quiz override op to the core or tenant layer by scope. */
+export function authorQuizContent(input: {
+  scope: "core" | "tenant";
+  tenantId?: string;
+  moduleId: string;
+  op: ContentOverrideOp<TrainingApplicationQuestion>;
+}): { modules: ResolvedQuizContent[] } {
+  if (input.scope === "core") {
+    putCoreContent<TrainingApplicationQuestion>("quizQuestions", input.moduleId, input.op);
+    return { modules: [resolveModuleQuiz(input.moduleId, null)].filter((entry): entry is ResolvedQuizContent => entry !== null) };
+  }
+  if (!input.tenantId) {
+    throw new Error("authorQuizContent: tenant scope requires a tenantId");
+  }
+  putTenantContent<TrainingApplicationQuestion>(input.tenantId, "quizQuestions", input.moduleId, input.op);
+  return { modules: [resolveModuleQuiz(input.moduleId, input.tenantId)].filter((entry): entry is ResolvedQuizContent => entry !== null) };
+}
 
 const chcgPlatformSettings: ChcgPlatformSettings = {
   provisioningMode: "Guided",

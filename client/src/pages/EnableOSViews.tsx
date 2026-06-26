@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiScorecard, KpiStatusPill } from "@/components/KpiScorecard";
 import { getKpiProfile, getKpiScorecard, rollupKpiProfile, kpiStatusLabel } from "../../../shared/kpiScorecards";
 import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../../../shared/leaderboardConfig";
+import { ContentAuthoringPanel } from "@/components/ContentAuthoringPanel";
 import { ReportingPrintLayout } from "@/components/ReportingPrintLayout";
 import { buildReportingWorkbookBlob, copyReportingEmailSummary, downloadBlob } from "@/lib/reportingExport";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -4268,6 +4269,11 @@ export function TrainingExperienceView() {
   }, [moduleIndex, visibleModuleIndexes]);
 
   const selectedModule = modules[moduleIndex] ?? null;
+  // AUTHOR2: resolved (base + core + tenant) apply-quiz override layer for this module.
+  const quizOverrideQuery = trpc.demo.previewAuthoringQuiz.useQuery(
+    { scope: "tenant", tenantId: tenantId ?? "", moduleId: selectedModule?.id ?? "" },
+    { enabled: Boolean(tenantId && selectedModule?.id) },
+  );
   const selectedModuleTitle = selectedModule?.title ?? requestedModuleId ?? "Training module";
   const selectedModuleFormatLabel = selectedModule?.format ?? "Guided lesson";
   const selectedModuleSkillFocus = selectedModule?.skillFocus ?? "behavior change";
@@ -4288,6 +4294,19 @@ export function TrainingExperienceView() {
   const presentation = selectedModule
     ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)
     : null;
+  // AUTHOR2: surface saved apply-quiz edits (core + this tenant's layer, resolved
+  // server-side via the ContentStore) into the live checkpoint. Splicing into
+  // applicationActivity at the source means display, scoring, and pass logic all
+  // read the edited set without touching the many downstream references.
+  const resolvedQuizModule = quizOverrideQuery.data?.modules[0] ?? null;
+  if (presentation && resolvedQuizModule && resolvedQuizModule.moduleId === selectedModule?.id) {
+    presentation.applicationActivity = {
+      ...presentation.applicationActivity,
+      questions: resolvedQuizModule.questions,
+      passingScore: resolvedQuizModule.passingScore ?? presentation.applicationActivity.passingScore,
+      passingPercent: resolvedQuizModule.passingPercent ?? presentation.applicationActivity.passingPercent,
+    };
+  }
   const guidedPlan = buildGuidedTrainingPlan({
     journeyTitle: effectiveJourneyTitle,
     moduleTitle: selectedModule?.title ?? "Guided module",
@@ -7781,6 +7800,18 @@ export function ChcgAdminView() {
             </div>
           </div>
         </div>
+
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">Author CHCG core quiz content</CardTitle>
+            <CardDescription className="text-slate-300">
+              Edit, add, or hide the canonical apply-checkpoint questions every client inherits. Clients can still override these for their own tenant from Client Control.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ContentAuthoringPanel scope="core" />
+          </CardContent>
+        </PremiumCard>
       </SectionShell>
     </Surface>
   );
@@ -11922,7 +11953,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
   const [customRoleName, setCustomRoleName] = useState("");
   const [customRoleDescription, setCustomRoleDescription] = useState("");
   const [customRoleBase, setCustomRoleBase] = useState<DemoRole>("manager");
-  const [activeAdminMode, setActiveAdminMode] = useState<"overview" | "branding" | "roles" | "governance">("overview");
+  const [activeAdminMode, setActiveAdminMode] = useState<"overview" | "branding" | "roles" | "authoring" | "governance">("overview");
   const [selectedTenantUserId, setSelectedTenantUserId] = useState<string>(data.tenantUsers[0]?.id ?? data.admin.id);
   const updateBranding = trpc.demo.previewUpdateBranding.useMutation({
     onSuccess: () => {
@@ -12038,7 +12069,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
         <MetricCard label="Isolation mode" value="Strict" supporting={data.branding.dataIsolation} icon={<ShieldCheck className="h-4 w-4" />} />
       </div>
 
-      <Tabs value={activeAdminMode} onValueChange={(value) => setActiveAdminMode(value as "overview" | "branding" | "roles" | "governance")} className="space-y-4">
+      <Tabs value={activeAdminMode} onValueChange={(value) => setActiveAdminMode(value as "overview" | "branding" | "roles" | "authoring" | "governance")} className="space-y-4">
         <div className="command-band px-4 py-4 md:px-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
@@ -12049,6 +12080,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
               <TabsTrigger value="branding" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Branding</TabsTrigger>
               <TabsTrigger value="roles" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Roles</TabsTrigger>
+              <TabsTrigger value="authoring" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Authoring</TabsTrigger>
               <TabsTrigger value="governance" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Governance</TabsTrigger>
             </TabsList>
           </div>
@@ -12265,6 +12297,20 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               </CardContent>
             </PremiumCard>
           </div>
+        </TabsContent>
+
+        <TabsContent value="authoring" className="mt-0 space-y-6" id="admin-authoring-section">
+          <PremiumCard>
+            <CardHeader>
+              <CardTitle className="text-white">Customize quiz checkpoints for {data.tenant.name}</CardTitle>
+              <CardDescription className="text-slate-300">
+                Edit, add, or hide apply-checkpoint questions for this client only. CHCG core content stays untouched, and your changes surface live in the training player.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ContentAuthoringPanel scope="tenant" tenantId={data.tenant.id} />
+            </CardContent>
+          </PremiumCard>
         </TabsContent>
 
         <TabsContent value="governance" className="mt-0 space-y-6" id="admin-governance-section">

@@ -5,6 +5,8 @@ import { storagePut } from "../storage";
 import {
   addWeeklyCoachingLogAttachments,
   applyCoachingGuidance,
+  authorQuizContent,
+  getAuthoringQuizContent,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -66,6 +68,43 @@ const brandingInput = z.object({
   logoMark: z.string().min(1).max(3),
   preferredLabel: z.string().min(3).max(80),
   heroStatement: z.string().min(12).max(180),
+});
+
+// ── Content authoring (AUTHOR2 / Wave 1) ────────────────────────────────────
+const quizOptionInput = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1).max(240),
+  rationale: z.string().max(400),
+});
+const quizQuestionInput = z.object({
+  id: z.string().min(1),
+  prompt: z.string().min(1).max(400),
+  type: z.enum(["multiple_choice", "short_answer"]).optional(),
+  options: z.array(quizOptionInput).max(6).optional(),
+  correctOptionId: z.string().optional(),
+  acceptedAnswers: z.array(z.string()).max(12).optional(),
+  placeholder: z.string().max(160).optional(),
+  successFeedback: z.string().min(1).max(400),
+  failureFeedback: z.string().min(1).max(400),
+});
+const quizOverrideOpInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("patch"), id: z.string(), patch: quizQuestionInput.partial() }),
+  z.object({ kind: z.literal("add"), item: quizQuestionInput }),
+  z.object({ kind: z.literal("hide"), id: z.string() }),
+  z.object({ kind: z.literal("unhide"), id: z.string() }),
+  z.object({ kind: z.literal("remove"), id: z.string() }),
+  z.object({ kind: z.literal("meta"), meta: z.object({ passingScore: z.number().int().min(0).max(20).optional(), passingPercent: z.number().min(0).max(100).optional() }) }),
+]);
+const authoringQuizReadInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  moduleId: z.string().optional(),
+});
+const authoringQuizWriteInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+  op: quizOverrideOpInput,
 });
 
 const reviewLogInput = z.object({
@@ -300,6 +339,15 @@ export const demoRouter = router({
     return getAdminDashboard(tenantId);
   }),
   secureChcgAdmin: adminProcedure.input(tenantInput).query(({ input }) => getChcgAdminDashboard(input.tenantId)),
+  // Content authoring reads (AUTHOR2). preview = demo/public; secure = authed.
+  previewAuthoringQuiz: publicProcedure.input(authoringQuizReadInput).query(({ input }) => getAuthoringQuizContent(input)),
+  secureAuthoringQuiz: protectedProcedure.input(authoringQuizReadInput).query(({ ctx, input }) => {
+    if (input.scope === "tenant") {
+      const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+      return getAuthoringQuizContent({ ...input, tenantId });
+    }
+    return getAuthoringQuizContent(input);
+  }),
   secureLibrary: protectedProcedure.input(libraryInput).query(({ ctx, input }) => {
     const grant = getAccessGrant(ctx.user.openId, ctx.user.role);
 
@@ -387,6 +435,21 @@ export const demoRouter = router({
     return updateTenantBranding({ ...input, tenantId });
   }),
   updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
+  // Content authoring writes (AUTHOR2). Tenant layer → client_admin (protected);
+  // core layer → platform_admin (admin). preview = demo/public, mirroring branding.
+  previewAuthorQuizTenant: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
+    authorQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorQuizTenant: protectedProcedure.input(authoringQuizWriteInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return authorQuizContent({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
+  }),
+  previewAuthorQuizCore: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
+    authorQuizContent({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorQuizCore: adminProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
+    authorQuizContent({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),
   secureUpdateChcgPlatformSettings: adminProcedure.input(chcgPlatformSettingsInput).mutation(({ input }) => updateChcgPlatformSettings(input)),

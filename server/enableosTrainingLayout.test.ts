@@ -1177,4 +1177,26 @@ describe("learner training layout helpers", () => {
     expect(reportingPrint).toContain("proofOfImpact?.sustainedReadiness");
     expect(reportingPrint).toContain("data.questionReporting");
   });
+
+  it("wires the shared quiz authoring panel into both admin surfaces and the player (AUTHOR2)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // Client Control: a tenant-scoped Authoring tab.
+    expect(trainingViewSource).toContain('<TabsTrigger value="authoring"');
+    expect(trainingViewSource).toContain('id="admin-authoring-section"');
+    expect(trainingViewSource).toContain('<ContentAuthoringPanel scope="tenant" tenantId={data.tenant.id} />');
+    // CHCG Command: a core-scoped authoring card.
+    expect(trainingViewSource).toContain("Author CHCG core quiz content");
+    expect(trainingViewSource).toContain('<ContentAuthoringPanel scope="core" />');
+    // Player: the resolved apply-quiz override layer is spliced into applicationActivity.
+    expect(trainingViewSource).toContain("previewAuthoringQuiz");
+    expect(trainingViewSource).toContain("resolvedQuizModule");
+    expect(trainingViewSource).toContain("presentation.applicationActivity = {");
+    // The panel routes writes to core vs tenant and edits the full question shape.
+    expect(authoringPanel).toContain("previewAuthorQuizTenant");
+    expect(authoringPanel).toContain("previewAuthorQuizCore");
+    expect(authoringPanel).toContain('scope === "core"');
+    for (const field of ["prompt", "correctOptionId", "acceptedAnswers", "successFeedback", "failureFeedback", "passingScore", "passingPercent"]) {
+      expect(authoringPanel).toContain(field);
+    }
+  });
 });
