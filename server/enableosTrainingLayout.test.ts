@@ -1187,16 +1187,33 @@ describe("learner training layout helpers", () => {
     // CHCG Command: a core-scoped authoring card.
     expect(trainingViewSource).toContain("Author CHCG core quiz content");
     expect(trainingViewSource).toContain('<ContentAuthoringPanel scope="core" />');
-    // Player: the resolved apply-quiz override layer is spliced into applicationActivity.
+    // Player: the resolved override layer is spliced into the checkpoints.
     expect(trainingViewSource).toContain("previewAuthoringQuiz");
     expect(trainingViewSource).toContain("resolvedQuizModule");
-    expect(trainingViewSource).toContain("presentation.applicationActivity = {");
     // The panel routes writes to core vs tenant and edits the full question shape.
     expect(authoringPanel).toContain("previewAuthorQuizTenant");
     expect(authoringPanel).toContain("previewAuthorQuizCore");
     expect(authoringPanel).toContain('scope === "core"');
     for (const field of ["prompt", "correctOptionId", "acceptedAnswers", "successFeedback", "failureFeedback", "passingScore", "passingPercent"]) {
       expect(authoringPanel).toContain(field);
+    }
+  });
+
+  it("authors all four checkpoints per module through the seam and splices each into the player (AUTHOR3)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // Player splices every resolved checkpoint (brief/practice/final/application), not just the apply one.
+    expect(trainingViewSource).toContain("resolvedQuizModule.checkpoints");
+    expect(trainingViewSource).toContain("checkpointFieldByKey");
+    for (const field of ["applicationActivity", "briefCheckpoint", "practiceCheckpoint", "finalQuiz"]) {
+      expect(trainingViewSource).toContain(field);
+    }
+    // Panel exposes a checkpoint picker and threads the checkpoint through writes.
+    expect(authoringPanel).toContain("chosenCheckpoint");
+    expect(authoringPanel).toContain("setChosenCheckpoint");
+    expect(authoringPanel).toContain("checkpoint: chosenCheckpoint");
+    expect(authoringPanel).toContain("activeCheckpoint");
+    for (const key of ["application", "brief", "practice", "final"]) {
+      expect(authoringPanel).toContain(`"${key}"`);
     }
   });
 });

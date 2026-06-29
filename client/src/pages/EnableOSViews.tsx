@@ -4294,18 +4294,31 @@ export function TrainingExperienceView() {
   const presentation = selectedModule
     ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)
     : null;
-  // AUTHOR2: surface saved apply-quiz edits (core + this tenant's layer, resolved
-  // server-side via the ContentStore) into the live checkpoint. Splicing into
-  // applicationActivity at the source means display, scoring, and pass logic all
-  // read the edited set without touching the many downstream references.
+  // AUTHOR2 + AUTHOR3: surface saved quiz edits (core + this tenant's layer,
+  // resolved server-side via the ContentStore) into the live checkpoints. We
+  // splice each checkpoint's resolved questions into the presentation at the
+  // source so display, scoring, the QUIZ3 review, and flash cards all read the
+  // edited set (everything resolves by correctOptionId) without touching the
+  // many downstream references. Un-edited checkpoints fall through unchanged —
+  // still generated and deterministically shuffled.
   const resolvedQuizModule = quizOverrideQuery.data?.modules[0] ?? null;
   if (presentation && resolvedQuizModule && resolvedQuizModule.moduleId === selectedModule?.id) {
-    presentation.applicationActivity = {
-      ...presentation.applicationActivity,
-      questions: resolvedQuizModule.questions,
-      passingScore: resolvedQuizModule.passingScore ?? presentation.applicationActivity.passingScore,
-      passingPercent: resolvedQuizModule.passingPercent ?? presentation.applicationActivity.passingPercent,
-    };
+    const checkpointFieldByKey = {
+      application: "applicationActivity",
+      brief: "briefCheckpoint",
+      practice: "practiceCheckpoint",
+      final: "finalQuiz",
+    } as const;
+    for (const resolvedCheckpoint of resolvedQuizModule.checkpoints) {
+      const field = checkpointFieldByKey[resolvedCheckpoint.checkpoint];
+      const activity = presentation[field];
+      presentation[field] = {
+        ...activity,
+        questions: resolvedCheckpoint.questions,
+        passingScore: resolvedCheckpoint.passingScore ?? activity.passingScore,
+        passingPercent: resolvedCheckpoint.passingPercent ?? activity.passingPercent,
+      };
+    }
   }
   const guidedPlan = buildGuidedTrainingPlan({
     journeyTitle: effectiveJourneyTitle,

@@ -104,6 +104,7 @@ const authoringQuizWriteInput = z.object({
   scope: z.enum(["core", "tenant"]),
   tenantId: z.string().optional(),
   moduleId: z.string().min(1),
+  checkpoint: z.enum(["application", "brief", "practice", "final"]).default("application"),
   op: quizOverrideOpInput,
 });
 
@@ -438,17 +439,17 @@ export const demoRouter = router({
   // Content authoring writes (AUTHOR2). Tenant layer → client_admin (protected);
   // core layer → platform_admin (admin). preview = demo/public, mirroring branding.
   previewAuthorQuizTenant: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
-    authorQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
+    authorQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
   secureAuthorQuizTenant: protectedProcedure.input(authoringQuizWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
-    return authorQuizContent({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
+    return authorQuizContent({ scope: "tenant", tenantId, moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op });
   }),
   previewAuthorQuizCore: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
-    authorQuizContent({ scope: "core", moduleId: input.moduleId, op: input.op }),
+    authorQuizContent({ scope: "core", moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
   secureAuthorQuizCore: adminProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
-    authorQuizContent({ scope: "core", moduleId: input.moduleId, op: input.op }),
+    authorQuizContent({ scope: "core", moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),

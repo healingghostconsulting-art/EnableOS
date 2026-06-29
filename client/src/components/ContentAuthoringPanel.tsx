@@ -37,6 +37,17 @@ type QuestionDraft = {
   failureFeedback: string;
 };
 
+// AUTHOR3 (Wave 1.5): the editor targets any of the four checkpoints per module.
+// The generated questions are the editable baseline — authors edit, not author
+// from scratch — and edits route to the matching ContentStore layer.
+type CheckpointKey = "application" | "brief" | "practice" | "final";
+const CHECKPOINTS: Array<{ key: CheckpointKey; label: string }> = [
+  { key: "application", label: "Application" },
+  { key: "brief", label: "Brief" },
+  { key: "practice", label: "Practice" },
+  { key: "final", label: "Final quiz" },
+];
+
 const inputClass = "border-white/10 bg-slate-950/60 text-slate-100 placeholder:text-slate-500";
 
 function toDraft(question: TrainingApplicationQuestion): QuestionDraft {
@@ -54,8 +65,8 @@ function toDraft(question: TrainingApplicationQuestion): QuestionDraft {
   };
 }
 
-function blankDraft(moduleId: string): QuestionDraft {
-  const seed = `${moduleId}-custom-${Date.now()}`;
+function blankDraft(moduleId: string, checkpoint: CheckpointKey): QuestionDraft {
+  const seed = `${moduleId}-${checkpoint}-custom-${Date.now()}`;
   return {
     id: seed,
     prompt: "",
@@ -105,8 +116,11 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
   const content = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
   const modules = content.data?.modules ?? [];
   const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
+  const [chosenCheckpoint, setChosenCheckpoint] = useState<CheckpointKey>("application");
   const activeModuleId = chosenModuleId ?? modules[0]?.moduleId ?? null;
   const activeModule = modules.find((module) => module.moduleId === activeModuleId) ?? null;
+  const activeCheckpoint =
+    activeModule?.checkpoints.find((entry) => entry.checkpoint === chosenCheckpoint) ?? activeModule?.checkpoints[0] ?? null;
 
   const authorTenant = trpc.demo.previewAuthorQuizTenant.useMutation();
   const authorCore = trpc.demo.previewAuthorQuizCore.useMutation();
@@ -123,9 +137,9 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
     if (!activeModuleId) return;
     try {
       if (scope === "core") {
-        await authorCore.mutateAsync({ scope: "core", moduleId: activeModuleId, op });
+        await authorCore.mutateAsync({ scope: "core", moduleId: activeModuleId, checkpoint: chosenCheckpoint, op });
       } else {
-        await authorTenant.mutateAsync({ scope: "tenant", tenantId, moduleId: activeModuleId, op });
+        await authorTenant.mutateAsync({ scope: "tenant", tenantId, moduleId: activeModuleId, checkpoint: chosenCheckpoint, op });
       }
       await content.refetch();
       toast.success(`Saved to ${scopeLabel}`);
@@ -142,7 +156,7 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
   };
   const openNew = () => {
     if (!activeModuleId) return;
-    setDraft(blankDraft(activeModuleId));
+    setDraft(blankDraft(activeModuleId, chosenCheckpoint));
     setIsNew(true);
   };
 
@@ -181,7 +195,7 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
         <div className="space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Quiz authoring</p>
           <p className="text-sm leading-6 text-slate-300">
-            Editing the apply-checkpoint questions for {scope === "core" ? "all clients" : "this client"}. Saved edits surface live in the training player.
+            Editing checkpoint questions for {scope === "core" ? "all clients" : "this client"}. Generated checkpoints load their questions as the editable baseline; saved edits surface live in the training player.
           </p>
         </div>
         <Badge variant="outline" className={`w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${scope === "core" ? "border-cyan-400/30 text-cyan-100" : "border-emerald-400/30 text-emerald-100"}`}>
@@ -189,7 +203,7 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
         </Badge>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-1.5">
           <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Module</Label>
           <Select value={activeModuleId ?? undefined} onValueChange={setChosenModuleId}>
@@ -205,20 +219,33 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Checkpoint</Label>
+          <Select value={chosenCheckpoint} onValueChange={(value) => setChosenCheckpoint(value as CheckpointKey)}>
+            <SelectTrigger className={inputClass}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CHECKPOINTS.map((entry) => (
+                <SelectItem key={entry.key} value={entry.key}>{entry.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button type="button" onClick={openNew} disabled={!activeModuleId} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
           <Plus className="mr-2 h-4 w-4" /> Add question
         </Button>
       </div>
 
-      {activeModule ? (
+      {activeCheckpoint ? (
         <div className="flex flex-wrap items-end gap-3 rounded-[1.1rem] border border-white/10 bg-slate-950/40 p-3">
           <div className="space-y-1">
             <Label className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Passing score</Label>
-            <Input value={passScore} onChange={(event) => setPassScore(event.target.value)} inputMode="numeric" placeholder={`${activeModule.passingScore ?? "—"}`} className={`h-9 w-28 ${inputClass}`} />
+            <Input value={passScore} onChange={(event) => setPassScore(event.target.value)} inputMode="numeric" placeholder={`${activeCheckpoint.passingScore ?? "—"}`} className={`h-9 w-28 ${inputClass}`} />
           </div>
           <div className="space-y-1">
             <Label className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Passing %</Label>
-            <Input value={passPercent} onChange={(event) => setPassPercent(event.target.value)} inputMode="numeric" placeholder={`${activeModule.passingPercent ?? "—"}`} className={`h-9 w-28 ${inputClass}`} />
+            <Input value={passPercent} onChange={(event) => setPassPercent(event.target.value)} inputMode="numeric" placeholder={`${activeCheckpoint.passingPercent ?? "—"}`} className={`h-9 w-28 ${inputClass}`} />
           </div>
           <Button type="button" variant="outline" onClick={savePassRule} disabled={saving} className="rounded-full border-white/15 bg-white/5 text-slate-100 hover:bg-white/10">
             <Save className="mr-2 h-4 w-4" /> Save pass rule
@@ -228,8 +255,8 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
 
       <div className="space-y-2">
         {content.isLoading ? <p className="text-sm text-slate-400">Loading content…</p> : null}
-        {activeModule?.questions.length === 0 ? <p className="text-sm text-slate-400">No questions in this checkpoint yet — add one above.</p> : null}
-        {(activeModule?.questions ?? []).map((question) => (
+        {activeCheckpoint?.questions.length === 0 ? <p className="text-sm text-slate-400">No questions in this checkpoint yet — add one above.</p> : null}
+        {(activeCheckpoint?.questions ?? []).map((question) => (
           <div key={question.id} className="flex items-start justify-between gap-3 rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">

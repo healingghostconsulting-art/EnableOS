@@ -1678,7 +1678,10 @@ const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 // content_core_override(type, collection_key, payload) and
 // content_tenant_override(tenant_id, type, collection_key, payload) — and swap
 // the Map reads/writes below for table reads/writes. No caller changes needed.
-export type ContentCollectionType = "quizQuestions";
+// AUTHOR3 (Wave 1.5): the three runtime-generated checkpoints join the
+// hand-authored apply checkpoint ("quizQuestions"). Each is a per-module
+// collection keyed by moduleId; an override layer edits/replaces its questions.
+export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz";
 
 export type ContentItem = { id: string };
 
@@ -1822,68 +1825,117 @@ function findModuleContext(moduleId: string): { module: LearningModule; journeyT
   return null;
 }
 
-function getBaseQuizQuestions(moduleId: string): TrainingApplicationQuestion[] {
+// The four checkpoints an author can target, mapped to their ContentStore type
+// and the presentation field that supplies the generated baseline questions.
+export type CheckpointKey = "application" | "brief" | "practice" | "final";
+
+const CHECKPOINT_TO_TYPE: Record<CheckpointKey, ContentCollectionType> = {
+  application: "quizQuestions",
+  brief: "briefCheckpoint",
+  practice: "practiceCheckpoint",
+  final: "finalQuiz",
+};
+
+const CHECKPOINT_ORDER: CheckpointKey[] = ["application", "brief", "practice", "final"];
+
+// The generated activity (questions + passing config) for one checkpoint. This is
+// the canonical baseline the override layers edit or replace. Deterministic per
+// moduleId, so it matches what the player computes from the shared content.
+function getCheckpointActivity(moduleId: string, checkpoint: CheckpointKey) {
   const context = findModuleContext(moduleId);
   if (!context) {
-    return [];
+    return null;
   }
-  return getTrainingPresentation(context.module, context.journeyTitle, context.competencyGap).applicationActivity.questions;
+  const presentation = getTrainingPresentation(context.module, context.journeyTitle, context.competencyGap);
+  switch (checkpoint) {
+    case "application":
+      return presentation.applicationActivity;
+    case "brief":
+      return presentation.briefCheckpoint;
+    case "practice":
+      return presentation.practiceCheckpoint;
+    case "final":
+      return presentation.finalQuiz;
+  }
 }
 
-export type ResolvedQuizContent = {
-  moduleId: string;
-  moduleTitle: string;
-  journeyTitle: string;
+export type ResolvedCheckpoint = {
+  checkpoint: CheckpointKey;
   questions: TrainingApplicationQuestion[];
   passingScore?: number;
   passingPercent?: number;
 };
 
-function resolveModuleQuiz(moduleId: string, tenantId: string | null): ResolvedQuizContent | null {
+export type ResolvedModuleQuiz = {
+  moduleId: string;
+  moduleTitle: string;
+  journeyTitle: string;
+  checkpoints: ResolvedCheckpoint[];
+};
+
+// Resolve one checkpoint through the seam: apply the override layers over the
+// generated baseline. When no override exists, the items fall through unchanged
+// (still generated + deterministically shuffled). Passing config defaults to the
+// generated activity's, with collection-level meta overrides winning.
+function resolveCheckpoint(moduleId: string, checkpoint: CheckpointKey, tenantId: string | null): ResolvedCheckpoint | null {
+  const activity = getCheckpointActivity(moduleId, checkpoint);
+  if (!activity) {
+    return null;
+  }
+  const { items, meta } = resolveForTenant<TrainingApplicationQuestion>(CHECKPOINT_TO_TYPE[checkpoint], tenantId, moduleId, activity.questions);
+  return {
+    checkpoint,
+    questions: items,
+    passingScore: typeof meta.passingScore === "number" ? meta.passingScore : activity.passingScore,
+    passingPercent: typeof meta.passingPercent === "number" ? meta.passingPercent : activity.passingPercent,
+  };
+}
+
+function resolveModuleQuiz(moduleId: string, tenantId: string | null): ResolvedModuleQuiz | null {
   const context = findModuleContext(moduleId);
   if (!context) {
     return null;
   }
-  const base = getBaseQuizQuestions(moduleId);
-  const { items, meta } = resolveForTenant<TrainingApplicationQuestion>("quizQuestions", tenantId, moduleId, base);
   return {
     moduleId,
     moduleTitle: context.module.title,
     journeyTitle: context.journeyTitle,
-    questions: items,
-    passingScore: typeof meta.passingScore === "number" ? meta.passingScore : undefined,
-    passingPercent: typeof meta.passingPercent === "number" ? meta.passingPercent : undefined,
+    checkpoints: CHECKPOINT_ORDER
+      .map((checkpoint) => resolveCheckpoint(moduleId, checkpoint, tenantId))
+      .filter((entry): entry is ResolvedCheckpoint => entry !== null),
   };
 }
 
-/** Authoring read: resolved quiz content for the scope. `core` → base+core; tenant → base+core+tenant. */
-export function getAuthoringQuizContent(input: { scope: "core" | "tenant"; tenantId?: string; moduleId?: string }): { modules: ResolvedQuizContent[] } {
+/** Authoring read: resolved checkpoints per module for the scope. `core` → base+core; tenant → base+core+tenant. */
+export function getAuthoringQuizContent(input: { scope: "core" | "tenant"; tenantId?: string; moduleId?: string }): { modules: ResolvedModuleQuiz[] } {
   const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
   const moduleIds = input.moduleId
     ? [input.moduleId]
     : Array.from(new Set(journeys.flatMap((journey) => journey.modules.map((module) => module.id))));
   const modules = moduleIds
     .map((moduleId) => resolveModuleQuiz(moduleId, tenantId))
-    .filter((entry): entry is ResolvedQuizContent => entry !== null);
+    .filter((entry): entry is ResolvedModuleQuiz => entry !== null);
   return { modules };
 }
 
-/** Authoring write: route a quiz override op to the core or tenant layer by scope. */
+/** Authoring write: route a checkpoint override op to the core or tenant layer by scope. */
 export function authorQuizContent(input: {
   scope: "core" | "tenant";
   tenantId?: string;
   moduleId: string;
+  checkpoint: CheckpointKey;
   op: ContentOverrideOp<TrainingApplicationQuestion>;
-}): { modules: ResolvedQuizContent[] } {
+}): { modules: ResolvedModuleQuiz[] } {
+  const type = CHECKPOINT_TO_TYPE[input.checkpoint];
   if (input.scope === "core") {
-    putCoreContent<TrainingApplicationQuestion>("quizQuestions", input.moduleId, input.op);
-    return { modules: [resolveModuleQuiz(input.moduleId, null)].filter((entry): entry is ResolvedQuizContent => entry !== null) };
+    putCoreContent<TrainingApplicationQuestion>(type, input.moduleId, input.op);
+    return getAuthoringQuizContent({ scope: "core", moduleId: input.moduleId });
   }
   if (!input.tenantId) {
     throw new Error("authorQuizContent: tenant scope requires a tenantId");
   }
-  putTenantContent<TrainingApplicationQuestion>(input.tenantId, "quizQuestions", input.moduleId, input.op);
-  return { modules: [resolveModuleQuiz(input.moduleId, input.tenantId)].filter((entry): entry is ResolvedQuizContent => entry !== null) };
+  putTenantContent<TrainingApplicationQuestion>(input.tenantId, type, input.moduleId, input.op);
+  return getAuthoringQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
 }
 
 const chcgPlatformSettings: ChcgPlatformSettings = {
