@@ -5,6 +5,8 @@ import {
   putTenantContent,
   getAuthoringQuizContent,
   authorQuizContent,
+  getAuthoringLibraryContent,
+  authorLibraryContent,
 } from "./demoPlatform";
 
 type Item = { id: string; label: string };
@@ -97,5 +99,56 @@ describe("ContentStore seam", () => {
 
     // Editing one checkpoint leaves the others (still generated) untouched.
     expect(checkpointQuestions(getAuthoringQuizContent({ scope: "core", moduleId }), "practice")?.[0]?.prompt).toBe(practiceFirstBefore);
+  });
+});
+
+// LIBRARY2 (Wave 2): the library is a single global collection on the same seam.
+describe("ContentStore — libraryAsset layer", () => {
+  const sampleAsset = (id: string) => ({
+    id,
+    title: `Title ${id}`,
+    summary: `Summary for ${id}`,
+    category: "Operations",
+    format: "Playbook" as const,
+    linkedRoles: ["all" as const],
+    tags: ["test"],
+    sourceLabel: "Test",
+    tenantId: "all",
+    sourceKind: "chcg" as const,
+    linkedJourneyIds: [],
+    linkedInterventionRuleIds: [],
+    createdAt: "",
+  });
+  const findAsset = (res: { assets: Array<{ id: string; title: string; sourceKind: string; tenantId: string }> }, id: string) =>
+    res.assets.find((asset) => asset.id === id);
+
+  it("core add/patch reaches every tenant; tenant add is scoped + sourceKind-derived; a tenant can hide a core asset for itself", () => {
+    const coreId = getAuthoringLibraryContent({ scope: "core" }).assets[0]?.id;
+    expect(coreId).toBeTruthy();
+
+    // Core patch reaches a tenant (core layer applies to all).
+    authorLibraryContent({ scope: "core", op: { kind: "patch", id: coreId as string, patch: { title: "Core-edited title" } } });
+    expect(findAsset(getAuthoringLibraryContent({ scope: "core" }), coreId as string)?.title).toBe("Core-edited title");
+    expect(findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t1" }), coreId as string)?.title).toBe("Core-edited title");
+
+    // Core add is chcg / tenantId "all" and visible to every tenant.
+    authorLibraryContent({ scope: "core", op: { kind: "add", item: sampleAsset("lib-core-new") } });
+    const coreNew = findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t1" }), "lib-core-new");
+    expect(coreNew?.sourceKind).toBe("chcg");
+    expect(coreNew?.tenantId).toBe("all");
+
+    // Tenant add is scoped, and sourceKind is forced to client_upload even though we sent chcg.
+    authorLibraryContent({ scope: "tenant", tenantId: "lib-t1", op: { kind: "add", item: sampleAsset("lib-t1-new") } });
+    const t1New = findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t1" }), "lib-t1-new");
+    expect(t1New?.sourceKind).toBe("client_upload");
+    expect(t1New?.tenantId).toBe("lib-t1");
+    expect(findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t2" }), "lib-t1-new")).toBeUndefined();
+    expect(findAsset(getAuthoringLibraryContent({ scope: "core" }), "lib-t1-new")).toBeUndefined();
+
+    // A tenant tombstones a CORE asset for itself only — core + other tenants keep it.
+    authorLibraryContent({ scope: "tenant", tenantId: "lib-t1", op: { kind: "hide", id: coreId as string } });
+    expect(findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t1" }), coreId as string)).toBeUndefined();
+    expect(findAsset(getAuthoringLibraryContent({ scope: "tenant", tenantId: "lib-t2" }), coreId as string)?.title).toBe("Core-edited title");
+    expect(findAsset(getAuthoringLibraryContent({ scope: "core" }), coreId as string)?.title).toBe("Core-edited title");
   });
 });

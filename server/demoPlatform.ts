@@ -1681,7 +1681,9 @@ const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 // AUTHOR3 (Wave 1.5): the three runtime-generated checkpoints join the
 // hand-authored apply checkpoint ("quizQuestions"). Each is a per-module
 // collection keyed by moduleId; an override layer edits/replaces its questions.
-export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz";
+// AUTHOR3 added the three generated checkpoints; LIBRARY2 adds the library as a
+// single global collection ("libraryAsset", keyed by the constant below).
+export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz" | "libraryAsset";
 
 export type ContentItem = { id: string };
 
@@ -1938,6 +1940,82 @@ export function authorQuizContent(input: {
   return getAuthoringQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
 }
 
+// ── Library-asset content layer (LIBRARY2 / Wave 2) ─────────────────────────
+// The library is one global collection (not per-module), so it uses a single
+// constant collection key. The two-tier model already lives in the asset data
+// (tenantId "all" = CHCG core; tenantId <id> = client); the ContentStore adds
+// the edit/hide/add override layers on top, with the same core-vs-tenant routing
+// and tenant-wins rule. Resolution is identity when no override exists, so every
+// existing consumer stays byte-identical until an edit is authored.
+const LIBRARY_COLLECTION_KEY = "library";
+let libraryUploadSequence = 0;
+
+function getCoreLibrarySeed(): ContentLibraryAsset[] {
+  return contentLibraryAssets.filter((asset) => asset.tenantId === "all");
+}
+
+// Core seed + this tenant's seed uploads, in original array order (so the
+// identity case matches the legacy filter byte-for-byte).
+function getTenantLibraryBase(tenantId: string): ContentLibraryAsset[] {
+  return contentLibraryAssets.filter((asset) => asset.tenantId === "all" || asset.tenantId === tenantId);
+}
+
+// THE READ PATH. core scope (tenantId null) → core seed + core layer; tenant
+// scope → core seed + tenant uploads, with core then tenant layers applied.
+function resolveLibraryAssets(tenantId: string | null): ContentLibraryAsset[] {
+  if (tenantId === null) {
+    return resolveForTenant<ContentLibraryAsset>("libraryAsset", null, LIBRARY_COLLECTION_KEY, getCoreLibrarySeed()).items;
+  }
+  return resolveForTenant<ContentLibraryAsset>("libraryAsset", tenantId, LIBRARY_COLLECTION_KEY, getTenantLibraryBase(tenantId)).items;
+}
+
+export type ResolvedLibraryContent = { assets: ContentLibraryAsset[] };
+
+/** Authoring read: resolved library assets for the scope. `core` → core+core layer; tenant → core+tenant. */
+export function getAuthoringLibraryContent(input: { scope: "core" | "tenant"; tenantId?: string }): ResolvedLibraryContent {
+  const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
+  return { assets: resolveLibraryAssets(tenantId) };
+}
+
+// sourceKind + tenantId are scope-derived, never author-set: forced on add and
+// stripped from patches so an edit can't move an asset between layers.
+function normalizeLibraryOp(scope: "core" | "tenant", tenantId: string | undefined, op: ContentOverrideOp<ContentLibraryAsset>): ContentOverrideOp<ContentLibraryAsset> {
+  if (op.kind === "add") {
+    return {
+      kind: "add",
+      item: {
+        ...op.item,
+        tenantId: scope === "core" ? "all" : tenantId ?? op.item.tenantId,
+        sourceKind: scope === "core" ? "chcg" : "client_upload",
+        createdAt: op.item.createdAt || new Date().toISOString(),
+      },
+    };
+  }
+  if (op.kind === "patch") {
+    const { tenantId: _tenantId, sourceKind: _sourceKind, id: _id, ...safe } = op.patch as Partial<ContentLibraryAsset>;
+    return { kind: "patch", id: op.id, patch: safe };
+  }
+  return op;
+}
+
+/** Authoring write: route a library override op to the core or tenant layer by scope. */
+export function authorLibraryContent(input: {
+  scope: "core" | "tenant";
+  tenantId?: string;
+  op: ContentOverrideOp<ContentLibraryAsset>;
+}): ResolvedLibraryContent {
+  const op = normalizeLibraryOp(input.scope, input.tenantId, input.op);
+  if (input.scope === "core") {
+    putCoreContent<ContentLibraryAsset>("libraryAsset", LIBRARY_COLLECTION_KEY, op);
+    return getAuthoringLibraryContent({ scope: "core" });
+  }
+  if (!input.tenantId) {
+    throw new Error("authorLibraryContent: tenant scope requires a tenantId");
+  }
+  putTenantContent<ContentLibraryAsset>(input.tenantId, "libraryAsset", LIBRARY_COLLECTION_KEY, op);
+  return getAuthoringLibraryContent({ scope: "tenant", tenantId: input.tenantId });
+}
+
 const chcgPlatformSettings: ChcgPlatformSettings = {
   provisioningMode: "Guided",
   defaultLibraryPolicy: "CHCG core plus licensed tenant uploads",
@@ -1994,6 +2072,11 @@ function grantTenantTrainingEntitlement(tenantId: string, assetId: string) {
 }
 
 function isAssetLicensedForTenant(asset: ContentLibraryAsset, tenantId: string) {
+  // A tenant always sees its own assets (seed uploads or store-added), so
+  // tenant-layer adds aren't filtered out without a separate entitlement grant.
+  if (asset.tenantId === tenantId) {
+    return true;
+  }
   const entitlement = getTenantTrainingEntitlement(tenantId);
   return entitlement.licensedAssetIds.includes(asset.id)
     || asset.linkedJourneyIds.some((journeyId) => entitlement.licensedJourneyIds.includes(journeyId));
@@ -2072,7 +2155,9 @@ function isLearnerTrainingAsset(asset: ContentLibraryAsset) {
 }
 
 function getTenantLibraryAssets(tenantId: string, role?: DemoRole | "all") {
-  return contentLibraryAssets.filter((asset) => {
+  // Source from the resolved override layers (identity when no edits exist), then
+  // apply the existing role / entitlement / learner filters unchanged.
+  return resolveLibraryAssets(tenantId).filter((asset) => {
     const tenantScoped = asset.tenantId === "all" || asset.tenantId === tenantId;
     const roleScoped = !role
       || role === "all"
@@ -2260,7 +2345,7 @@ export function listContentLibrary(tenantId?: string, role?: DemoRole | "all") {
 
 export function createClientContent(input: CreateClientContentInput) {
   const created: ContentLibraryAsset = {
-    id: `library-upload-${contentLibraryAssets.length + 1}`,
+    id: `library-upload-${++libraryUploadSequence}`,
     tenantId: input.tenantId,
     title: input.title,
     summary: input.summary,
@@ -2282,7 +2367,11 @@ export function createClientContent(input: CreateClientContentInput) {
     createdAt: new Date().toISOString(),
   };
 
-  contentLibraryAssets.unshift(created);
+  // Single source of truth for tenant adds: the asset lives in the ContentStore
+  // tenant layer, not the raw seed array. (The S3 upload + fileUrl are handled by
+  // the caller; this records the asset metadata.) The entitlement grant is kept
+  // for any consumer that reads licensedAssetIds directly.
+  authorLibraryContent({ scope: "tenant", tenantId: input.tenantId, op: { kind: "add", item: created } });
   grantTenantTrainingEntitlement(input.tenantId, created.id);
   notifications.unshift({
     id: `note-library-${notifications.length + 1}`,

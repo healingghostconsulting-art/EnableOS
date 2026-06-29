@@ -1216,4 +1216,23 @@ describe("learner training layout helpers", () => {
       expect(authoringPanel).toContain(`"${key}"`);
     }
   });
+
+  it("extends the shared panel with a Quizzes|Library selector + a library asset form (LIBRARY2)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // Content-type selector + the library sub-panel.
+    expect(authoringPanel).toContain("contentType");
+    expect(authoringPanel).toContain("setContentType");
+    expect(authoringPanel).toContain("function LibraryAuthoring");
+    expect(authoringPanel).toContain('<LibraryAuthoring scope={scope} tenantId={tenantId} />');
+    // Reads/writes go through the library authoring procedures (mirrors the quiz pairs).
+    expect(authoringPanel).toContain("previewAuthoringLibrary");
+    expect(authoringPanel).toContain("previewAuthorLibraryTenant");
+    expect(authoringPanel).toContain("previewAuthorLibraryCore");
+    // Library form fields.
+    for (const field of ["title", "summary", "category", "format", "tags", "linkedRoles", "sourceLabel"]) {
+      expect(authoringPanel).toContain(field);
+    }
+    // A tenant can hide a CHCG core asset for itself.
+    expect(authoringPanel).toContain("Hide this CHCG asset for this client");
+  });
 });

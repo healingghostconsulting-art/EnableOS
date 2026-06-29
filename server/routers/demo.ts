@@ -7,6 +7,8 @@ import {
   applyCoachingGuidance,
   authorQuizContent,
   getAuthoringQuizContent,
+  authorLibraryContent,
+  getAuthoringLibraryContent,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -106,6 +108,44 @@ const authoringQuizWriteInput = z.object({
   moduleId: z.string().min(1),
   checkpoint: z.enum(["application", "brief", "practice", "final"]).default("application"),
   op: quizOverrideOpInput,
+});
+
+// Library authoring (LIBRARY2). tenantId + sourceKind are scope-derived server-side
+// (forced in normalizeLibraryOp), so they're optional/defaulted here; the deferred
+// linkage fields default to empty so a stored add is a complete ContentLibraryAsset.
+const libraryRoleEnum = z.enum(["executive", "manager", "coach", "learner", "client_admin", "all"]);
+const libraryAssetInput = z.object({
+  id: z.string().min(1),
+  title: z.string().min(2).max(120),
+  summary: z.string().min(2).max(500),
+  category: z.string().min(2).max(80),
+  format: z.enum(["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"]),
+  linkedRoles: z.array(libraryRoleEnum).min(1).max(6),
+  tags: z.array(z.string().min(1).max(40)).max(12),
+  sourceLabel: z.string().min(1).max(80),
+  tenantId: z.string().default("all"),
+  sourceKind: z.enum(["chcg", "client_upload"]).default("chcg"),
+  linkedJourneyIds: z.array(z.string()).default([]),
+  linkedInterventionRuleIds: z.array(z.string()).default([]),
+  sourceType: z.enum(["Client SOP", "QA finding", "Compliance update", "Program rollout", "Leadership enablement"]).optional(),
+  curriculumStatus: z.enum(["mapped_ready", "pending_alignment", "review_only"]).optional(),
+  createdAt: z.string().default(""),
+});
+const libraryOverrideOpInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("patch"), id: z.string(), patch: libraryAssetInput.partial() }),
+  z.object({ kind: z.literal("add"), item: libraryAssetInput }),
+  z.object({ kind: z.literal("hide"), id: z.string() }),
+  z.object({ kind: z.literal("unhide"), id: z.string() }),
+  z.object({ kind: z.literal("remove"), id: z.string() }),
+]);
+const authoringLibraryReadInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+});
+const authoringLibraryWriteInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  op: libraryOverrideOpInput,
 });
 
 const reviewLogInput = z.object({
@@ -349,6 +389,14 @@ export const demoRouter = router({
     }
     return getAuthoringQuizContent(input);
   }),
+  previewAuthoringLibrary: publicProcedure.input(authoringLibraryReadInput).query(({ input }) => getAuthoringLibraryContent(input)),
+  secureAuthoringLibrary: protectedProcedure.input(authoringLibraryReadInput).query(({ ctx, input }) => {
+    if (input.scope === "tenant") {
+      const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+      return getAuthoringLibraryContent({ ...input, tenantId });
+    }
+    return getAuthoringLibraryContent(input);
+  }),
   secureLibrary: protectedProcedure.input(libraryInput).query(({ ctx, input }) => {
     const grant = getAccessGrant(ctx.user.openId, ctx.user.role);
 
@@ -450,6 +498,19 @@ export const demoRouter = router({
   ),
   secureAuthorQuizCore: adminProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
     authorQuizContent({ scope: "core", moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
+  ),
+  previewAuthorLibraryTenant: publicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
+    authorLibraryContent({ scope: "tenant", tenantId: input.tenantId, op: input.op }),
+  ),
+  secureAuthorLibraryTenant: protectedProcedure.input(authoringLibraryWriteInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return authorLibraryContent({ scope: "tenant", tenantId, op: input.op });
+  }),
+  previewAuthorLibraryCore: publicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
+    authorLibraryContent({ scope: "core", op: input.op }),
+  ),
+  secureAuthorLibraryCore: adminProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
+    authorLibraryContent({ scope: "core", op: input.op }),
   ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),
