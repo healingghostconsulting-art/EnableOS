@@ -69,6 +69,7 @@ import {
   Download,
   Printer,
   FileSpreadsheet,
+  FileText,
   Mail,
   Volume2,
   VolumeX,
@@ -76,7 +77,6 @@ import {
 } from "lucide-react";
 import type { DemoRole } from "../../../server/demoPlatform";
 import { getTrainingPresentation, type TrainingApplicationQuestion } from "../../../shared/trainingContent";
-import { groupAssetsByTargetDemographic } from "../../../shared/libraryOrganization";
 import { filterTrainingRecords } from "../../../shared/trainingDiscovery";
 import {
   buildLessonNarrationScript,
@@ -6684,6 +6684,53 @@ function LibraryCourseCard({ course, onOpen }: { course: any; onOpen: () => void
   );
 }
 
+// LIBRARY3: format → glyph for the text/badge-forward asset card (assets carry no
+// cover art, so the format glyph + source badge do the visual lifting).
+const ASSET_FORMAT_ICON: Record<string, typeof BookOpen> = {
+  Deck: Layers3,
+  Playbook: BookOpen,
+  Checklist: CheckCircle2,
+  Guide: FileText,
+  Worksheet: FileSpreadsheet,
+  Microlearning: Sparkles,
+  Document: FileText,
+};
+
+function LibraryAssetCard({ asset, onOpen }: { asset: any; onOpen: () => void }) {
+  const Icon = ASSET_FORMAT_ICON[asset.format] ?? BookOpen;
+  const isCore = asset.sourceKind === "chcg";
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex h-full flex-col gap-3 rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-[#FCBC34]/45 hover:bg-white/[0.07]"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.9rem] border border-white/10 bg-white/6 text-slate-200"><Icon className="h-4 w-4" /></span>
+          <Badge variant="outline" className="rounded-full border-white/15 bg-white/6 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] text-slate-300">{asset.format}</Badge>
+        </div>
+        <Badge className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] ${isCore ? "border-cyan-400/30 bg-cyan-400/12 text-cyan-100" : "border-emerald-400/30 bg-emerald-400/12 text-emerald-100"}`}>{isCore ? "CHCG core" : "Client upload"}</Badge>
+      </div>
+      <div className="space-y-1.5">
+        <p className="text-sm font-semibold leading-snug text-white">{asset.title}</p>
+        <p className="line-clamp-2 text-xs leading-5 text-slate-400">{asset.summary}</p>
+      </div>
+      <div className="mt-auto space-y-2">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{asset.category}</p>
+        {(asset.tags ?? []).length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {(asset.tags ?? []).slice(0, 4).map((tag: string) => (
+              <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">{tag}</span>
+            ))}
+          </div>
+        ) : null}
+        <p className="text-[11px] text-slate-500">Roles: {(asset.linkedRoles ?? []).join(", ") || "—"}</p>
+      </div>
+    </button>
+  );
+}
+
 export function ContentLibraryView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
@@ -6692,7 +6739,9 @@ export function ContentLibraryView() {
   const [assetView, setAssetView] = useState<"all" | "chcg" | "imported">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest">("explore");
+  const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest" | "resources">("explore");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [formatFilter, setFormatFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -6783,7 +6832,27 @@ export function ContentLibraryView() {
     });
   }, [assetView, library.data, searchQuery, trackFilter]);
 
-  const groupedAssets = useMemo(() => groupAssetsByTargetDemographic(assets), [assets]);
+  // LIBRARY3: the Resources shelf reads the already-resolved assets (core + tenant,
+  // hidden tombstones removed), then layers the category + format filters on top of
+  // the shared source/track/search filters baked into `assets`.
+  const resourceAssets = useMemo(
+    () =>
+      assets.filter(
+        (asset: any) =>
+          (categoryFilter === "all" || asset.category === categoryFilter) &&
+          (formatFilter === "all" || asset.format === formatFilter),
+      ),
+    [assets, categoryFilter, formatFilter],
+  );
+  const assetCategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([...(library.data?.chcgAssets ?? []), ...(library.data?.importedAssets ?? [])].map((asset: any) => asset.category)),
+      ).sort(),
+    [library.data],
+  );
+  const ASSET_FORMAT_OPTIONS = ["Deck", "Playbook", "Checklist", "Guide", "Worksheet", "Microlearning", "Document"];
+
 
   useEffect(() => {
     if (!assets.length) {
@@ -7073,7 +7142,7 @@ export function ContentLibraryView() {
     await uploadMutation.mutateAsync(payload);
   }
 
-  const jumpToLibraryMode = (mode: "launcher" | "explore" | "ingest", sectionId: string) => {
+  const jumpToLibraryMode = (mode: "launcher" | "explore" | "ingest" | "resources", sectionId: string) => {
     setLibraryMode(mode);
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
@@ -7162,10 +7231,11 @@ export function ContentLibraryView() {
       stats={libraryStats}
       modesLabel="Library modes"
       activeTab={libraryMode}
-      onTabChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest")}
+      onTabChange={(value) => setLibraryMode(value as "launcher" | "explore" | "ingest" | "resources")}
       tabs={[
         { value: "explore", label: "Compact shelves" },
         { value: "launcher", label: "Course detail" },
+        { value: "resources", label: "Resources" },
         { value: "ingest", label: "Ingest" },
       ]}
       betweenStatsAndTabs={libraryFilterBar}
@@ -7317,6 +7387,51 @@ export function ContentLibraryView() {
                     </CardContent>
                   </PremiumCard>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="resources" className="mt-0" id="library-resources-mode">
+                <PremiumCard>
+                  <CardHeader className="gap-3">
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-white">Resource library</CardTitle>
+                        <CardDescription className="text-slate-400">Browse the CHCG core and client-uploaded assets available to this workspace. Source, edits, and removals reflect live authoring.</CardDescription>
+                      </div>
+                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{resourceAssets.length} {resourceAssets.length === 1 ? "asset" : "assets"}</Badge>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 xl:max-w-md">
+                      <label className="block space-y-1.5 text-sm text-slate-200">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Category</span>
+                        <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="h-10 w-full rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-sm text-slate-100 outline-none">
+                          <option value="all">All categories</option>
+                          {assetCategoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+                        </select>
+                      </label>
+                      <label className="block space-y-1.5 text-sm text-slate-200">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Format</span>
+                        <select value={formatFilter} onChange={(event) => setFormatFilter(event.target.value)} className="h-10 w-full rounded-[1rem] border border-white/10 bg-slate-950/55 px-3 text-sm text-slate-100 outline-none">
+                          <option value="all">All formats</option>
+                          {ASSET_FORMAT_OPTIONS.map((format) => <option key={format} value={format}>{format}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {resourceAssets.length === 0 ? (
+                      <p className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/4 px-4 py-6 text-sm text-slate-300">No resources match the current filters. Adjust the source, track, category, or format above.</p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {resourceAssets.map((asset: any) => (
+                          <LibraryAssetCard
+                            key={asset.id}
+                            asset={asset}
+                            onOpen={() => { setSelectedAssetId(asset.id); setLibraryMode("launcher"); }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </PremiumCard>
               </TabsContent>
 
               <TabsContent value="ingest" className="mt-0" id="library-ingest-mode">

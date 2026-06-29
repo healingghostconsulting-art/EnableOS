@@ -771,6 +771,26 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Open compact shelves");
   });
 
+  it("adds a browsable Resources asset shelf that reads the resolved library assets (LIBRARY3)", () => {
+    // New Resources tab on the Library WorkspaceShell.
+    expect(trainingViewSource).toContain('{ value: "resources", label: "Resources" }');
+    expect(trainingViewSource).toContain('value="resources"');
+    // Text/badge-forward asset card (not the cover-art course card).
+    expect(trainingViewSource).toContain("function LibraryAssetCard");
+    expect(trainingViewSource).toContain("ASSET_FORMAT_ICON");
+    expect(trainingViewSource).toContain('isCore ? "CHCG core" : "Client upload"');
+    // Reads the resolved arrays (live edits/adds/hides) + the added category/format filters.
+    expect(trainingViewSource).toContain("const resourceAssets = useMemo");
+    expect(trainingViewSource).toContain("library.data?.chcgAssets");
+    expect(trainingViewSource).toContain("categoryFilter === \"all\" || asset.category === categoryFilter");
+    expect(trainingViewSource).toContain("formatFilter === \"all\" || asset.format === formatFilter");
+    // The card maps to the resolved asset list and opens the course-detail launcher.
+    expect(trainingViewSource).toContain("resourceAssets.map((asset: any) => (");
+    expect(trainingViewSource).toContain("<LibraryAssetCard");
+    // The dormant grouping helper was retired.
+    expect(trainingViewSource).not.toContain("groupAssetsByTargetDemographic");
+  });
+
   it("uses a compact shell when training opens from the library or a direct course launch", () => {
     expect(trainingViewSource).toContain("function SectionShell");
     expect(trainingViewSource).toContain("compact = true");
