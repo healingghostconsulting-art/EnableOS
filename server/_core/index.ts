@@ -1,4 +1,4 @@
-// deploy: library-wave2
+// deploy: library-wave3-asset-shelf
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
