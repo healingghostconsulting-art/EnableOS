@@ -1,6 +1,16 @@
 import { slideDecks } from "../shared/slideManifest";
 import { isoDaysFromNow, dateOnlyDaysFromNow } from "../shared/demoClock";
-import { getTrainingPresentation, type TrainingApplicationQuestion } from "../shared/trainingContent";
+import {
+  getTrainingPresentation,
+  getSeedPresentation,
+  assemblePresentation,
+  type TrainingApplicationQuestion,
+  type TrainingApplicationActivity,
+  type TrainingPresentation,
+  type TrainingPresentationSlide,
+  type SeedPresentation,
+} from "../shared/trainingContent";
+import { clientKpiProfiles, defaultKpiProfile, getKpiScorecard } from "../shared/kpiScorecards";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -1683,7 +1693,9 @@ const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 // collection keyed by moduleId; an override layer edits/replaces its questions.
 // AUTHOR3 added the three generated checkpoints; LIBRARY2 adds the library as a
 // single global collection ("libraryAsset", keyed by the constant below).
-export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz" | "libraryAsset";
+// LESSON2 (Wave 3) adds moduleLesson (per-stage seed slides, keyed moduleId::stage)
+// and moduleBrief (singleton per moduleId).
+export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz" | "libraryAsset" | "moduleLesson" | "moduleBrief";
 
 export type ContentItem = { id: string };
 
@@ -2014,6 +2026,216 @@ export function authorLibraryContent(input: {
   }
   putTenantContent<ContentLibraryAsset>(input.tenantId, "libraryAsset", LIBRARY_COLLECTION_KEY, op);
   return getAuthoringLibraryContent({ scope: "tenant", tenantId: input.tenantId });
+}
+
+// ── Module lesson + brief content layer (LESSON2 / Wave 3) ──────────────────
+// Lessons resolve on the PRE-expansion seed slides (per stage, keyed moduleId::stage),
+// so an edited or added seed slide re-derives its 3 companion slides + still-generated
+// checkpoints when assemblePresentation() runs. Briefs are a flattened singleton per
+// module so the store's shallow {...base,...patch} merge applies cleanly per field.
+export type LessonStage = "brief" | "practice" | "apply";
+
+function lessonCollectionKey(moduleId: string, stage: LessonStage) {
+  return `${moduleId}::${stage}`;
+}
+
+export type ModuleBriefItem = {
+  id: string; // = moduleId
+  heroTitle: string;
+  heroSummary: string;
+  evidenceLabel: string;
+  scenarioTitle: string;
+  scenarioSituation: string;
+  scenarioLearnerTask: string;
+  scenarioSuccessSignals: string[];
+};
+
+function briefItemFromSeed(moduleId: string, seed: SeedPresentation): ModuleBriefItem {
+  return {
+    id: moduleId,
+    heroTitle: seed.heroTitle,
+    heroSummary: seed.heroSummary,
+    evidenceLabel: seed.evidenceLabel,
+    scenarioTitle: seed.practiceScenario.title,
+    scenarioSituation: seed.practiceScenario.situation,
+    scenarioLearnerTask: seed.practiceScenario.learnerTask,
+    scenarioSuccessSignals: seed.practiceScenario.successSignals,
+  };
+}
+
+// Ids a tenant added in its own layer (vs. core/seed slides) — gates which fields a
+// client_admin may edit on a slide.
+function tenantAddedIds(tenantId: string, type: ContentCollectionType, collectionKey: string): Set<string> {
+  const set = tenantContentOverrides.get(tenantId)?.get(contentStoreKey(type, collectionKey));
+  return new Set((set?.added ?? []).map((item) => item.id));
+}
+
+function scorecardIdResolves(scorecardId: string): boolean {
+  return [defaultKpiProfile, ...Object.values(clientKpiProfiles)].some((profile) => getKpiScorecard(profile, scorecardId) !== undefined);
+}
+
+// Defensive: slides carry no scorecardId today (a deck-visual field, out of scope),
+// but if an add/patch ever includes one it must resolve to a real KPI scorecard.
+function assertScorecardValid(value: unknown) {
+  const scorecardId = (value as { scorecardId?: unknown } | null | undefined)?.scorecardId;
+  if (typeof scorecardId === "string" && scorecardId.length > 0 && !scorecardIdResolves(scorecardId)) {
+    throw new Error(`Unknown scorecardId "${scorecardId}"`);
+  }
+}
+
+const TENANT_LOCKED_SLIDE_FIELDS = ["title", "narrative", "eyebrow", "visualTone"] as const;
+
+// Enforce the moduleLesson field table by scope. Always strips id from a patch.
+function normalizeLessonOp(scope: "core" | "tenant", op: ContentOverrideOp<TrainingPresentationSlide>, isTenantAddedSlide: (id: string) => boolean): ContentOverrideOp<TrainingPresentationSlide> {
+  if (op.kind === "add") {
+    assertScorecardValid(op.item);
+    return op; // full field control on a newly added slide (core or tenant-owned)
+  }
+  if (op.kind === "patch") {
+    const { id: _id, ...patch } = op.patch as Partial<TrainingPresentationSlide> & { id?: string };
+    assertScorecardValid(patch);
+    if (scope === "tenant" && !isTenantAddedSlide(op.id)) {
+      // Core slide: a client_admin may only light-patch bullets[] + speakerNotes[].
+      const offending = TENANT_LOCKED_SLIDE_FIELDS.filter((field) => field in patch);
+      if (offending.length > 0) {
+        throw new Error(`client_admin cannot edit locked field(s) on a core slide: ${offending.join(", ")}`);
+      }
+    }
+    return { kind: "patch", id: op.id, patch };
+  }
+  return op; // hide / unhide / remove
+}
+
+const TENANT_LOCKED_BRIEF_FIELDS = ["heroTitle", "evidenceLabel", "scenarioTitle"] as const;
+
+function normalizeBriefOp(scope: "core" | "tenant", op: ContentOverrideOp<ModuleBriefItem>): ContentOverrideOp<ModuleBriefItem> {
+  if (op.kind !== "patch") {
+    throw new Error("moduleBrief is a singleton: only patch is supported");
+  }
+  const { id: _id, ...patch } = op.patch as Partial<ModuleBriefItem> & { id?: string };
+  if (scope === "tenant") {
+    const offending = TENANT_LOCKED_BRIEF_FIELDS.filter((field) => field in patch);
+    if (offending.length > 0) {
+      throw new Error(`client_admin cannot edit locked brief field(s): ${offending.join(", ")}`);
+    }
+  }
+  return { kind: "patch", id: op.id, patch };
+}
+
+// THE RESOLVED CONSUMER PATH. Resolve lesson seed slides + brief PRE-expansion, then
+// assemble (expand companions + regenerate checkpoints), then layer AUTHOR3 checkpoint
+// overrides on top — so a slide edit flows into a still-generated checkpoint, but an
+// already-overridden checkpoint wins.
+export function getResolvedPresentation(moduleId: string, tenantId: string | null): TrainingPresentation | null {
+  const context = findModuleContext(moduleId);
+  if (!context) {
+    return null;
+  }
+  const seed = getSeedPresentation(context.module, context.journeyTitle, context.competencyGap);
+  const briefBase = briefItemFromSeed(moduleId, seed);
+  const brief = resolveForTenant<ModuleBriefItem>("moduleBrief", tenantId, moduleId, [briefBase]).items[0] ?? briefBase;
+
+  const resolvedSeed: SeedPresentation = {
+    ...seed,
+    slides: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(moduleId, "brief"), seed.slides).items,
+    practiceSlides: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(moduleId, "practice"), seed.practiceSlides).items,
+    applySlides: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(moduleId, "apply"), seed.applySlides).items,
+    heroTitle: brief.heroTitle,
+    heroSummary: brief.heroSummary,
+    evidenceLabel: brief.evidenceLabel,
+    practiceScenario: {
+      title: brief.scenarioTitle,
+      situation: brief.scenarioSituation,
+      learnerTask: brief.scenarioLearnerTask,
+      successSignals: brief.scenarioSuccessSignals,
+    },
+  };
+
+  const assembled = assemblePresentation(context.module, resolvedSeed);
+  const applyCheckpoint = (type: ContentCollectionType, activity: TrainingApplicationActivity): TrainingApplicationActivity => {
+    const { items, meta } = resolveForTenant<TrainingApplicationQuestion>(type, tenantId, moduleId, activity.questions);
+    return {
+      ...activity,
+      questions: items,
+      passingScore: typeof meta.passingScore === "number" ? meta.passingScore : activity.passingScore,
+      passingPercent: typeof meta.passingPercent === "number" ? meta.passingPercent : activity.passingPercent,
+    };
+  };
+  return {
+    ...assembled,
+    briefCheckpoint: applyCheckpoint("briefCheckpoint", assembled.briefCheckpoint),
+    practiceCheckpoint: applyCheckpoint("practiceCheckpoint", assembled.practiceCheckpoint),
+    applicationActivity: applyCheckpoint("quizQuestions", assembled.applicationActivity),
+    finalQuiz: applyCheckpoint("finalQuiz", assembled.finalQuiz),
+  };
+}
+
+export type ResolvedLessonContent = {
+  moduleId: string;
+  moduleTitle: string;
+  stages: Record<LessonStage, TrainingPresentationSlide[]>;
+  brief: ModuleBriefItem;
+};
+
+/** Authoring read: resolved seed slides per stage + brief fields for the scope. */
+export function getAuthoringLesson(input: { scope: "core" | "tenant"; tenantId?: string; moduleId: string }): ResolvedLessonContent | null {
+  const context = findModuleContext(input.moduleId);
+  if (!context) {
+    return null;
+  }
+  const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
+  const seed = getSeedPresentation(context.module, context.journeyTitle, context.competencyGap);
+  const briefBase = briefItemFromSeed(input.moduleId, seed);
+  return {
+    moduleId: input.moduleId,
+    moduleTitle: context.module.title,
+    stages: {
+      brief: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "brief"), seed.slides).items,
+      practice: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "practice"), seed.practiceSlides).items,
+      apply: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "apply"), seed.applySlides).items,
+    },
+    brief: resolveForTenant<ModuleBriefItem>("moduleBrief", tenantId, input.moduleId, [briefBase]).items[0] ?? briefBase,
+  };
+}
+
+/** Authoring write: route a lesson-slide op to core/tenant by scope, enforcing the field table. */
+export function authorLessonSlide(input: {
+  scope: "core" | "tenant";
+  tenantId?: string;
+  moduleId: string;
+  stage: LessonStage;
+  op: ContentOverrideOp<TrainingPresentationSlide>;
+}): ResolvedLessonContent | null {
+  const key = lessonCollectionKey(input.moduleId, input.stage);
+  if (input.scope === "core") {
+    putCoreContent<TrainingPresentationSlide>("moduleLesson", key, normalizeLessonOp("core", input.op, () => false));
+    return getAuthoringLesson({ scope: "core", moduleId: input.moduleId });
+  }
+  if (!input.tenantId) {
+    throw new Error("authorLessonSlide: tenant scope requires a tenantId");
+  }
+  const added = tenantAddedIds(input.tenantId, "moduleLesson", key);
+  putTenantContent<TrainingPresentationSlide>(input.tenantId, "moduleLesson", key, normalizeLessonOp("tenant", input.op, (id) => added.has(id)));
+  return getAuthoringLesson({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
+}
+
+/** Authoring write: route a brief patch to core/tenant by scope, enforcing the field table. */
+export function authorModuleBrief(input: {
+  scope: "core" | "tenant";
+  tenantId?: string;
+  moduleId: string;
+  op: ContentOverrideOp<ModuleBriefItem>;
+}): ResolvedLessonContent | null {
+  const op = normalizeBriefOp(input.scope, input.op);
+  if (input.scope === "core") {
+    putCoreContent<ModuleBriefItem>("moduleBrief", input.moduleId, op);
+    return getAuthoringLesson({ scope: "core", moduleId: input.moduleId });
+  }
+  if (!input.tenantId) {
+    throw new Error("authorModuleBrief: tenant scope requires a tenantId");
+  }
+  putTenantContent<ModuleBriefItem>(input.tenantId, "moduleBrief", input.moduleId, op);
+  return getAuthoringLesson({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
 }
 
 const chcgPlatformSettings: ChcgPlatformSettings = {

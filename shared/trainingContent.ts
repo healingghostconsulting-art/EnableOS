@@ -97,6 +97,12 @@ export type TrainingPresentation = {
   resourceActions: TrainingPresentationResource[];
 };
 
+// The pre-expansion presentation: seed slide arrays + hero/brief copy, before
+// enrichPresentation() runs the guided-companion expansion and generates the
+// brief/practice/final checkpoints. LESSON authoring resolves overrides on THIS
+// shape (so an edited seed slide re-derives its companions on assembly).
+export type SeedPresentation = Omit<TrainingPresentation, "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz">;
+
 type ModuleLike = {
   id: string;
   title: string;
@@ -3295,13 +3301,17 @@ function applyRealDeckVisuals<T extends { deckVisuals: TrainingDeckVisual[] }>(p
   return { ...presentation, deckVisuals: realDecks };
 }
 
-export function getTrainingPresentation(module: ModuleLike, journeyTitle: string, competencyGap: string): TrainingPresentation {
+// Build the pre-expansion seed (slides + brief copy + applicationActivity), without
+// running the guided-companion expansion or generating the brief/practice/final
+// checkpoints. Split out of getTrainingPresentation so lesson/brief overrides can be
+// resolved on the seed PRE-expansion, then re-assembled.
+export function getSeedPresentation(module: ModuleLike, journeyTitle: string, competencyGap: string): SeedPresentation {
   const mapped = trainingPresentationByModuleId[module.id] ?? buildExpandedCurriculumMigrationPresentation(module);
   // Prefer the real converted deck for this module over a generated title card.
   const realDecks = realDeckVisualsForModule(module);
 
   if (mapped) {
-    return enrichPresentation(module, applyRealDeckVisuals(mapped, realDecks));
+    return applyRealDeckVisuals(mapped, realDecks);
   }
 
   const moduleKeywords = `${module.title} ${module.skillFocus} ${journeyTitle} ${competencyGap}`.toLowerCase();
@@ -3728,7 +3738,7 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
               { id: `${module.id}-resource-2`, label: "Manager follow-up", detail: "Use the lesson in the next coaching or review checkpoint." },
             ];
 
-  return enrichPresentation(module, {
+  return {
     heroTitle: module.title,
     heroSummary: fallbackHeroSummary,
     evidenceLabel: fallbackEvidenceLabel,
@@ -3952,5 +3962,16 @@ export function getTrainingPresentation(module: ModuleLike, journeyTitle: string
       ],
     },
     resourceActions: fallbackResourceActions,
-  });
+  };
+}
+
+// Run the guided-companion expansion + checkpoint generation on a (possibly
+// override-resolved) seed. Pure: an edited seed slide re-derives its companions
+// and any still-generated checkpoint here.
+export function assemblePresentation(module: ModuleLike, seed: SeedPresentation): TrainingPresentation {
+  return enrichPresentation(module, seed);
+}
+
+export function getTrainingPresentation(module: ModuleLike, journeyTitle: string, competencyGap: string): TrainingPresentation {
+  return assemblePresentation(module, getSeedPresentation(module, journeyTitle, competencyGap));
 }
