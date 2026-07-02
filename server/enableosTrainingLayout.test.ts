@@ -1293,6 +1293,32 @@ describe("learner training layout helpers", () => {
     expect(authoringPanel).toContain('onRestore={(id) => runOp({ kind: "unhide", id })}');
   });
 
+  it("adds a Decks editor with title/caption, secure image replace/revert, and the shared shelf (DECK4)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // Selector gains Decks; sub-panel wired in.
+    expect(authoringPanel).toContain('["decks", "Decks"]');
+    expect(authoringPanel).toContain("function DeckAuthoring");
+    expect(authoringPanel).toContain("<DeckAuthoring scope={scope} tenantId={tenantId} />");
+    // Reads/writes go through the deck authoring procedures + secure image upload.
+    expect(authoringPanel).toContain("previewAuthoringDeck");
+    expect(authoringPanel).toContain("previewAuthorDeckTenant");
+    expect(authoringPanel).toContain("previewAuthorDeckCore");
+    expect(authoringPanel).toContain("previewUploadDeckImage");
+    // Image replace/revert flow (DECK3): upload → pendingImageKey; revert → imageKey:null.
+    expect(authoringPanel).toContain("pendingImageKey");
+    expect(authoringPanel).toContain("const revertImage");
+    expect(authoringPanel).toContain("Replace image");
+    expect(authoringPanel).toContain("Revert to original");
+    // Inline validation error surfacing + cross-module warning + locked scorecard.
+    expect(authoringPanel).toContain("uploadError");
+    expect(authoringPanel).toContain("other modules that share this deck are unaffected");
+    expect(authoringPanel).toContain("Scorecard binding");
+    // Reuses the shared shelf + hide-with-undo (now lesson + library + deck).
+    expect(authoringPanel).toContain('toast("Deck slide hidden"');
+    const shelfUses = authoringPanel.match(/<HiddenItemsShelf/g) ?? [];
+    expect(shelfUses.length).toBeGreaterThanOrEqual(3);
+  });
+
   it("wires the player to the server-resolved presentation with a local fallback (LESSON4)", () => {
     // The player queries the resolved presentation for the current module + tenant.
     expect(trainingViewSource).toContain("resolvedPresentationQuery");

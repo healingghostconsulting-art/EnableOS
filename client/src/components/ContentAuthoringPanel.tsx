@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Plus, EyeOff, Save, Trash2, RotateCcw, Lock } from "lucide-react";
+import { Pencil, Plus, EyeOff, Save, Trash2, RotateCcw, Lock, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { TrainingApplicationQuestion } from "../../../shared/trainingContent";
 
@@ -722,8 +722,209 @@ function BriefAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantI
   );
 }
 
+// ── Deck-visual authoring (DECK4 / Wave 5) ──────────────────────────────────
+// Per-module editing of the converted PowerPoint images: title/caption text, a
+// secure image replace/revert (DECK3), and hide/restore. Deck slides can't be
+// added; scorecard + deck identity are read-only.
+type DeckDraft = {
+  id: string; // slide index (string)
+  title: string;
+  caption: string;
+  file: string;
+  imageUrl: string; // current preview
+  scorecard?: string;
+  imageReplaced: boolean;
+  pendingImageKey?: string | null; // undefined = no change, string = new key, null = revert
+  uploading: boolean;
+  uploadError: string | null;
+};
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1] ?? "");
+    reader.onerror = () => reject(new Error("Could not read the selected file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function DeckAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
+  const moduleList = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
+  const modules = moduleList.data?.modules ?? [];
+  const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
+  const activeModuleId = chosenModuleId ?? modules[0]?.moduleId ?? null;
+
+  const deck = trpc.demo.previewAuthoringDeck.useQuery({ scope, tenantId, moduleId: activeModuleId ?? "" }, { enabled: Boolean(activeModuleId) });
+  const authorTenant = trpc.demo.previewAuthorDeckTenant.useMutation();
+  const authorCore = trpc.demo.previewAuthorDeckCore.useMutation();
+  const uploadImage = trpc.demo.previewUploadDeckImage.useMutation();
+  const saving = authorTenant.isPending || authorCore.isPending;
+  const [draft, setDraft] = useState<DeckDraft | null>(null);
+
+  const slides = deck.data?.slides ?? [];
+  const hidden = deck.data?.hiddenSlides ?? [];
+  const sourceDeck = deck.data?.sourceDeck ?? "this deck";
+  const moduleTitle = deck.data?.moduleTitle ?? "this module";
+
+  const runOp = async (op: unknown): Promise<boolean> => {
+    if (!activeModuleId) return false;
+    try {
+      if (scope === "core") {
+        await authorCore.mutateAsync({ moduleId: activeModuleId, op: op as never });
+      } else {
+        await authorTenant.mutateAsync({ tenantId, moduleId: activeModuleId, op: op as never });
+      }
+      await deck.refetch();
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(/locked|does not belong/i.test(message) ? "That change isn't allowed here." : "Could not save the edit");
+      return false;
+    }
+  };
+
+  const hideSlide = async (id: string) => {
+    if (await runOp({ kind: "hide", id })) {
+      toast("Deck slide hidden", { action: { label: "Undo", onClick: () => runOp({ kind: "unhide", id }) } });
+    }
+  };
+
+  const pickImage = async (file: File) => {
+    setDraft((current) => (current ? { ...current, uploading: true, uploadError: null } : current));
+    try {
+      const dataBase64 = await fileToBase64(file);
+      const result = await uploadImage.mutateAsync({ scope, tenantId, dataBase64 });
+      setDraft((current) => (current ? { ...current, uploading: false, pendingImageKey: result.imageKey, imageUrl: result.imageUrl, imageReplaced: true } : current));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      setDraft((current) => (current ? { ...current, uploading: false, uploadError: message } : current));
+    }
+  };
+
+  const revertImage = () => {
+    setDraft((current) => (current ? { ...current, pendingImageKey: null, imageUrl: `/slides/${current.file}`, imageReplaced: false, uploadError: null } : current));
+  };
+
+  const saveDraft = async () => {
+    if (!draft) return;
+    const patch: Record<string, unknown> = { title: draft.title.trim(), caption: draft.caption.trim() };
+    if (draft.pendingImageKey !== undefined) patch.imageKey = draft.pendingImageKey;
+    if (await runOp({ kind: "patch", id: draft.id, patch })) {
+      setDraft(null);
+      toast.success(`Saved to ${scope === "core" ? "CHCG core content" : "this tenant"}`);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Deck authoring</p>
+          <p className="text-sm leading-6 text-slate-300">
+            Edit the deck slides (titles, captions, images) for {scope === "core" ? "all clients" : "this client"}. Uploaded images are validated server-side (PNG/JPEG/WEBP, ≤5&nbsp;MB).
+          </p>
+        </div>
+        <Badge variant="outline" className={`w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${scope === "core" ? "border-cyan-400/30 text-cyan-100" : "border-emerald-400/30 text-emerald-100"}`}>
+          {scope === "core" ? "Core · all tenants" : "Tenant override"}
+        </Badge>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Module</Label>
+        <Select value={activeModuleId ?? undefined} onValueChange={setChosenModuleId}>
+          <SelectTrigger className={inputClass}><SelectValue placeholder="Select a module" /></SelectTrigger>
+          <SelectContent>
+            {modules.map((module) => (<SelectItem key={module.moduleId} value={module.moduleId}>{module.moduleTitle} · {module.journeyTitle}</SelectItem>))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {deck.data ? (
+        <p className="rounded-[1rem] border border-amber-400/20 bg-amber-400/[0.06] px-3.5 py-2.5 text-xs leading-5 text-amber-100/90">
+          Editing the <span className="font-semibold">{sourceDeck}</span> deck as used by <span className="font-semibold">{moduleTitle}</span> — other modules that share this deck are unaffected.
+        </p>
+      ) : null}
+
+      <div className="space-y-2">
+        {deck.isLoading ? <p className="text-sm text-slate-400">Loading deck…</p> : null}
+        {slides.map((slide: { id: string; index: number; title?: string; caption?: string; imageUrl: string; scorecard?: string; imageReplaced?: boolean }) => (
+          <div key={slide.id} className="flex items-start justify-between gap-3 rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-3">
+            <div className="flex min-w-0 gap-3">
+              <img src={slide.imageUrl} alt={slide.title ?? `Slide ${slide.index + 1}`} loading="lazy" className="h-16 w-24 shrink-0 rounded-[0.7rem] border border-white/10 bg-slate-900 object-cover" />
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="rounded-full border-cyan-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] text-cyan-100">Slide {slide.index + 1}</Badge>
+                  {slide.imageReplaced ? <Badge variant="outline" className="rounded-full border-emerald-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.16em] text-emerald-100">Image replaced</Badge> : null}
+                  {slide.scorecard ? <Badge variant="outline" className="rounded-full border-fuchsia-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">Scorecard · {slide.scorecard}</Badge> : null}
+                </div>
+                <p className="text-sm font-medium leading-5 text-white">{slide.title}</p>
+                <p className="line-clamp-2 text-xs leading-5 text-slate-400">{slide.caption}</p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Button type="button" size="sm" variant="ghost" onClick={() => setDraft({ id: slide.id, title: slide.title ?? "", caption: slide.caption ?? "", file: slide.imageUrl.startsWith("/slides/") ? slide.imageUrl.slice("/slides/".length) : "", imageUrl: slide.imageUrl, scorecard: slide.scorecard, imageReplaced: Boolean(slide.imageReplaced), uploading: false, uploadError: null })} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white"><Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit</Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => hideSlide(slide.id)} className="rounded-full text-slate-400 hover:bg-rose-500/10 hover:text-rose-200" title="Hide this deck slide"><EyeOff className="h-3.5 w-3.5" /></Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <HiddenItemsShelf items={hidden.map((slide: { id: string; index: number; title?: string }) => ({ id: slide.id, label: slide.title ? `Slide ${slide.index + 1} · ${slide.title}` : `Slide ${slide.index + 1}` }))} onRestore={(id) => runOp({ kind: "unhide", id })} noun="deck slide" />
+
+      <Dialog open={draft !== null} onOpenChange={(open) => (!open ? setDraft(null) : undefined)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit deck slide</DialogTitle>
+            <DialogDescription className="text-slate-400">Saving writes to {scope === "core" ? "CHCG core content" : "this tenant"}. The image, title, and caption change for this module only.</DialogDescription>
+          </DialogHeader>
+          {draft ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Image</Label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <img src={draft.imageUrl} alt={draft.title} className="h-24 w-36 rounded-[0.8rem] border border-white/10 bg-slate-900 object-cover" />
+                  <div className="space-y-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs text-slate-100 hover:bg-white/10">
+                      <Upload className="h-3.5 w-3.5" /> {draft.uploading ? "Uploading…" : "Replace image"}
+                      <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={draft.uploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void pickImage(file); event.target.value = ""; }} />
+                    </label>
+                    {draft.imageReplaced ? (
+                      <Button type="button" size="sm" variant="ghost" onClick={revertImage} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white"><RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Revert to original</Button>
+                    ) : null}
+                    <p className="text-[11px] text-slate-500">PNG, JPEG, or WEBP · ≤ 5 MB. Validated server-side.</p>
+                  </div>
+                </div>
+                {draft.uploadError ? <p className="rounded-[0.8rem] border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">{draft.uploadError}</p> : null}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Title</Label>
+                <Input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} className={`h-9 ${inputClass}`} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Caption</Label>
+                <Textarea value={draft.caption} onChange={(event) => setDraft({ ...draft, caption: event.target.value })} className={inputClass} rows={3} />
+              </div>
+              {draft.scorecard ? (
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Scorecard binding <Lock className="h-3 w-3 text-slate-500" /></Label>
+                  <Input value={draft.scorecard} disabled className={`h-9 ${inputClass} disabled:opacity-50`} />
+                  <p className="text-[11px] text-slate-500">The scorecard binding and the source deck are CHCG-owned and can't be changed here.</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setDraft(null)} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white">Cancel</Button>
+            <Button type="button" onClick={saveDraft} disabled={saving || draft?.uploading} className="rounded-full bg-white text-slate-950 hover:bg-slate-100"><Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save slide"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
-  const [contentType, setContentType] = useState<"quizzes" | "library" | "lessons" | "briefs">("quizzes");
+  const [contentType, setContentType] = useState<"quizzes" | "library" | "lessons" | "briefs" | "decks">("quizzes");
   const content = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
   const modules = content.data?.modules ?? [];
   const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
@@ -803,7 +1004,7 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
   return (
     <div className="space-y-4">
       <div className="inline-flex flex-wrap rounded-full border border-white/10 bg-white/[0.03] p-1">
-        {([["quizzes", "Quizzes"], ["library", "Library"], ["lessons", "Lessons"], ["briefs", "Briefs"]] as const).map(([option, label]) => (
+        {([["quizzes", "Quizzes"], ["library", "Library"], ["lessons", "Lessons"], ["briefs", "Briefs"], ["decks", "Decks"]] as const).map(([option, label]) => (
           <button
             key={option}
             type="button"
@@ -820,6 +1021,8 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
         <LessonAuthoring scope={scope} tenantId={tenantId} />
       ) : contentType === "briefs" ? (
         <BriefAuthoring scope={scope} tenantId={tenantId} />
+      ) : contentType === "decks" ? (
+        <DeckAuthoring scope={scope} tenantId={tenantId} />
       ) : (
       <>
       <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">

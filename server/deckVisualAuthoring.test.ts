@@ -90,6 +90,16 @@ describe("DECK2 — deck-visual authoring", () => {
     expect(getAuthoringDeck({ scope: "tenant", tenantId: "deck-t3", moduleId: M })!.hiddenSlides).toHaveLength(0);
   });
 
+  it("surfaces core-scope tombstones in the core authoring hidden list (both scopes have a restore shelf)", () => {
+    const M = "mod-dl-1";
+    authorDeckVisual({ scope: "core", moduleId: M, op: { kind: "hide", id: "1" } });
+    expect(getAuthoringDeck({ scope: "core", moduleId: M })!.hiddenSlides.some((s) => s.index === 1)).toBe(true);
+    // A core hide also drops from the player for everyone.
+    expect(getResolvedPresentation(M, null)!.deckVisuals.some((v, i) => i === 1 && v)).toBeDefined();
+    authorDeckVisual({ scope: "core", moduleId: M, op: { kind: "unhide", id: "1" } });
+    expect(getAuthoringDeck({ scope: "core", moduleId: M })!.hiddenSlides).toHaveLength(0);
+  });
+
   it("rejects locked-field edits (file / scorecard) and add/remove", () => {
     expect(() => authorDeckVisual({ scope: "core", moduleId: M1, op: { kind: "patch", id: "1", patch: { file: "hacked.jpg" } as never } })).toThrow(/locked/i);
     expect(() => authorDeckVisual({ scope: "core", moduleId: M1, op: { kind: "patch", id: "1", patch: { scorecard: "wfm" } as never } })).toThrow(/locked/i);

@@ -2398,7 +2398,6 @@ export function getAuthoringDeck(input: { scope: "core" | "tenant"; tenantId?: s
   const coreSet = (coreContentOverrides.get(key) as ContentOverrideSet<DeckVisualItem> | undefined) ?? emptyOverrideSet<DeckVisualItem>();
   const afterCore = applyOverrideSet<DeckVisualItem>(base, coreSet);
   const tenantSet = tenantId ? (tenantContentOverrides.get(tenantId)?.get(key) as ContentOverrideSet<DeckVisualItem> | undefined) : undefined;
-  const tenantHidden = new Set(tenantSet?.hidden ?? []);
   const finalVisible = tenantSet ? applyOverrideSet<DeckVisualItem>(afterCore, tenantSet) : afterCore;
 
   const toSlide = (item: DeckVisualItem): AuthoringDeckSlide => ({
@@ -2415,10 +2414,15 @@ export function getAuthoringDeck(input: { scope: "core" | "tenant"; tenantId?: s
     deckId: deck?.deckId ?? null,
     sourceDeck: deck?.sourceDeck ?? null,
     slides: finalVisible.map(toSlide),
-    hiddenSlides: afterCore.filter((item) => tenantHidden.has(item.id)).map((item) => {
-      const patch = tenantSet?.patches[item.id];
-      return toSlide(patch ? { ...item, ...patch } : item);
-    }),
+    // Tombstones for the CURRENT scope's own layer (core hides at core scope; this
+    // tenant's hides at tenant scope) — mirrors getHiddenLibraryAssets so the shelf
+    // works for both scopes.
+    hiddenSlides: (() => {
+      const scopeSet = input.scope === "core" ? coreSet : tenantSet ?? emptyOverrideSet<DeckVisualItem>();
+      const preHide = withPatchesAndAdds(input.scope === "core" ? base : afterCore, scopeSet);
+      const scopeHidden = new Set(scopeSet.hidden);
+      return preHide.filter((item) => scopeHidden.has(item.id)).map(toSlide);
+    })(),
   };
 }
 
