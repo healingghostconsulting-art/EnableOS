@@ -1207,9 +1207,9 @@ describe("learner training layout helpers", () => {
     // CHCG Command: a core-scoped authoring card.
     expect(trainingViewSource).toContain("Author CHCG core quiz content");
     expect(trainingViewSource).toContain('<ContentAuthoringPanel scope="core" />');
-    // Player: the resolved override layer is spliced into the checkpoints.
-    expect(trainingViewSource).toContain("previewAuthoringQuiz");
-    expect(trainingViewSource).toContain("resolvedQuizModule");
+    // Player: consumes the server-resolved presentation (LESSON4) — checkpoint
+    // overrides are applied inside getResolvedPresentation, not spliced client-side.
+    expect(trainingViewSource).toContain("previewResolvedPresentation");
     // The panel routes writes to core vs tenant and edits the full question shape.
     expect(authoringPanel).toContain("previewAuthorQuizTenant");
     expect(authoringPanel).toContain("previewAuthorQuizCore");
@@ -1219,11 +1219,10 @@ describe("learner training layout helpers", () => {
     }
   });
 
-  it("authors all four checkpoints per module through the seam and splices each into the player (AUTHOR3)", () => {
+  it("authors all four checkpoints per module through the seam; the player reads them via the resolved presentation (AUTHOR3 + LESSON4)", () => {
     const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
-    // Player splices every resolved checkpoint (brief/practice/final/application), not just the apply one.
-    expect(trainingViewSource).toContain("resolvedQuizModule.checkpoints");
-    expect(trainingViewSource).toContain("checkpointFieldByKey");
+    // The player's checkpoints all come from the resolved presentation.
+    expect(trainingViewSource).toContain("previewResolvedPresentation");
     for (const field of ["applicationActivity", "briefCheckpoint", "practiceCheckpoint", "finalQuiz"]) {
       expect(trainingViewSource).toContain(field);
     }
@@ -1279,5 +1278,16 @@ describe("learner training layout helpers", () => {
     expect(authoringPanel).toContain("function HiddenItemsShelf");
     expect(authoringPanel).toContain("Slide hidden");
     expect(authoringPanel).toContain('label: "Undo"');
+  });
+
+  it("wires the player to the server-resolved presentation with a local fallback (LESSON4)", () => {
+    // The player queries the resolved presentation for the current module + tenant.
+    expect(trainingViewSource).toContain("resolvedPresentationQuery");
+    expect(trainingViewSource).toContain("trpc.demo.previewResolvedPresentation.useQuery");
+    // Falls back to the local computation while loading / for non-catalog preview modules.
+    expect(trainingViewSource).toContain("resolvedPresentationQuery.data as ReturnType<typeof getTrainingPresentation>");
+    expect(trainingViewSource).toContain("getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)");
+    // The old client-side quiz splice is gone (checkpoints now resolve server-side).
+    expect(trainingViewSource).not.toContain("resolvedQuizModule");
   });
 });

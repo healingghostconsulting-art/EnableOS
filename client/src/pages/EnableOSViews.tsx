@@ -4269,9 +4269,12 @@ export function TrainingExperienceView() {
   }, [moduleIndex, visibleModuleIndexes]);
 
   const selectedModule = modules[moduleIndex] ?? null;
-  // AUTHOR2: resolved (base + core + tenant) apply-quiz override layer for this module.
-  const quizOverrideQuery = trpc.demo.previewAuthoringQuiz.useQuery(
-    { scope: "tenant", tenantId: tenantId ?? "", moduleId: selectedModule?.id ?? "" },
+  // LESSON4: the player consumes the server-resolved presentation for the current
+  // module + tenant — seed slide + brief overrides applied PRE-expansion, then
+  // AUTHOR3 checkpoint overrides on top. Non-catalog preview modules (switch-lane)
+  // resolve to null and fall back to the local computation below.
+  const resolvedPresentationQuery = trpc.demo.previewResolvedPresentation.useQuery(
+    { moduleId: selectedModule?.id ?? "", tenantId: tenantId ?? undefined },
     { enabled: Boolean(tenantId && selectedModule?.id) },
   );
   const selectedModuleTitle = selectedModule?.title ?? requestedModuleId ?? "Training module";
@@ -4291,35 +4294,11 @@ export function TrainingExperienceView() {
   const supportingAssets = [launchedAsset, ...(matchedResources.length > 0 ? matchedResources : journeyResources)]
     .filter((asset, index, collection): asset is NonNullable<typeof asset> => Boolean(asset) && collection.findIndex((candidate) => candidate?.id === asset?.id) === index)
     .slice(0, 3);
-  const presentation = selectedModule
-    ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap)
-    : null;
-  // AUTHOR2 + AUTHOR3: surface saved quiz edits (core + this tenant's layer,
-  // resolved server-side via the ContentStore) into the live checkpoints. We
-  // splice each checkpoint's resolved questions into the presentation at the
-  // source so display, scoring, the QUIZ3 review, and flash cards all read the
-  // edited set (everything resolves by correctOptionId) without touching the
-  // many downstream references. Un-edited checkpoints fall through unchanged —
-  // still generated and deterministically shuffled.
-  const resolvedQuizModule = quizOverrideQuery.data?.modules[0] ?? null;
-  if (presentation && resolvedQuizModule && resolvedQuizModule.moduleId === selectedModule?.id) {
-    const checkpointFieldByKey = {
-      application: "applicationActivity",
-      brief: "briefCheckpoint",
-      practice: "practiceCheckpoint",
-      final: "finalQuiz",
-    } as const;
-    for (const resolvedCheckpoint of resolvedQuizModule.checkpoints) {
-      const field = checkpointFieldByKey[resolvedCheckpoint.checkpoint];
-      const activity = presentation[field];
-      presentation[field] = {
-        ...activity,
-        questions: resolvedCheckpoint.questions,
-        passingScore: resolvedCheckpoint.passingScore ?? activity.passingScore,
-        passingPercent: resolvedCheckpoint.passingPercent ?? activity.passingPercent,
-      };
-    }
-  }
+  // Prefer the server-resolved presentation (lesson/brief/checkpoint overrides all
+  // applied). While it loads, or for non-catalog preview modules that resolve to
+  // null, fall back to the identical local computation so nothing regresses.
+  const presentation = (resolvedPresentationQuery.data as ReturnType<typeof getTrainingPresentation> | null | undefined)
+    ?? (selectedModule ? getTrainingPresentation(selectedModule, effectiveJourneyTitle, effectiveCompetencyGap) : null);
   const guidedPlan = buildGuidedTrainingPlan({
     journeyTitle: effectiveJourneyTitle,
     moduleTitle: selectedModule?.title ?? "Guided module",

@@ -12,6 +12,7 @@ import {
   authorLessonSlide,
   authorModuleBrief,
   getAuthoringLesson,
+  getResolvedPresentation,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -194,6 +195,7 @@ const authoringBriefWriteInput = z.object({
   moduleId: z.string().min(1),
   op: z.object({ kind: z.literal("patch"), id: z.string(), patch: briefPatchInput }),
 });
+const resolvedPresentationInput = z.object({ moduleId: z.string().min(1), tenantId: z.string().optional() });
 
 const reviewLogInput = z.object({
   tenantId: z.string(),
@@ -559,6 +561,13 @@ export const demoRouter = router({
   secureAuthorLibraryCore: adminProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
     authorLibraryContent({ scope: "core", op: input.op }),
   ),
+  // LESSON4: the player's resolved-presentation read. preview takes an explicit
+  // tenantId; secure derives it from the authed viewer's grant (null → core view).
+  previewResolvedPresentation: publicProcedure.input(resolvedPresentationInput).query(({ input }) => getResolvedPresentation(input.moduleId, input.tenantId ?? null)),
+  secureResolvedPresentation: protectedProcedure.input(z.object({ moduleId: z.string().min(1), tenantId: z.string().optional() })).query(({ ctx, input }) => {
+    const { tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    return getResolvedPresentation(input.moduleId, tenantId);
+  }),
   previewAuthoringLesson: publicProcedure.input(authoringLessonReadInput).query(({ input }) => getAuthoringLesson(input)),
   secureAuthoringLesson: protectedProcedure.input(authoringLessonReadInput).query(({ ctx, input }) => {
     if (input.scope === "tenant") {
