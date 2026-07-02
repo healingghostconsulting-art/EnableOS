@@ -14,6 +14,8 @@ import {
   authorModuleBrief,
   getAuthoringLesson,
   getResolvedPresentation,
+  authorDeckVisual,
+  getAuthoringDeck,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -197,6 +199,29 @@ const authoringBriefWriteInput = z.object({
   op: z.object({ kind: z.literal("patch"), id: z.string(), patch: briefPatchInput }),
 });
 const resolvedPresentationInput = z.object({ moduleId: z.string().min(1), tenantId: z.string().optional() });
+
+// Deck-visual authoring (DECK2). Only title/caption are patchable; the schema
+// admits no file/scorecard fields, and the server (normalizeDeckVisualOp) rejects
+// them too. add/remove aren't offered.
+const deckVisualPatchInput = z.object({
+  title: z.string().max(300).optional(),
+  caption: z.string().max(1000).optional(),
+});
+const deckOverrideOpInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("patch"), id: z.string(), patch: deckVisualPatchInput }),
+  z.object({ kind: z.literal("hide"), id: z.string() }),
+  z.object({ kind: z.literal("unhide"), id: z.string() }),
+]);
+const authoringDeckReadInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+});
+const authoringDeckWriteInput = z.object({
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+  op: deckOverrideOpInput,
+});
 
 const reviewLogInput = z.object({
   tenantId: z.string(),
@@ -612,6 +637,28 @@ export const demoRouter = router({
   ),
   secureAuthorBriefCore: adminProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
     authorModuleBrief({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
+  // DECK2: deck-visual authoring reads/writes (title/caption + hide/unhide).
+  previewAuthoringDeck: publicProcedure.input(authoringDeckReadInput).query(({ input }) => getAuthoringDeck(input)),
+  secureAuthoringDeck: protectedProcedure.input(authoringDeckReadInput).query(({ ctx, input }) => {
+    if (input.scope === "tenant") {
+      const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+      return getAuthoringDeck({ ...input, tenantId });
+    }
+    return getAuthoringDeck(input);
+  }),
+  previewAuthorDeckTenant: publicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
+    authorDeckVisual({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorDeckTenant: protectedProcedure.input(authoringDeckWriteInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return authorDeckVisual({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
+  }),
+  previewAuthorDeckCore: publicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
+    authorDeckVisual({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorDeckCore: adminProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
+    authorDeckVisual({ scope: "core", moduleId: input.moduleId, op: input.op }),
   ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),

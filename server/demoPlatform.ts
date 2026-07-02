@@ -8,6 +8,7 @@ import {
   type TrainingApplicationActivity,
   type TrainingPresentation,
   type TrainingPresentationSlide,
+  type TrainingDeckVisual,
   type SeedPresentation,
 } from "../shared/trainingContent";
 import { clientKpiProfiles, defaultKpiProfile, getKpiScorecard } from "../shared/kpiScorecards";
@@ -1695,7 +1696,9 @@ const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 // single global collection ("libraryAsset", keyed by the constant below).
 // LESSON2 (Wave 3) adds moduleLesson (per-stage seed slides, keyed moduleId::stage)
 // and moduleBrief (singleton per moduleId).
-export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz" | "libraryAsset" | "moduleLesson" | "moduleBrief";
+// DECK2 (Wave 5) adds deckVisual (per-module deck slides, keyed by moduleId, item
+// id = slide index within that module's assembled deckVisuals).
+export type ContentCollectionType = "quizQuestions" | "briefCheckpoint" | "practiceCheckpoint" | "finalQuiz" | "libraryAsset" | "moduleLesson" | "moduleBrief" | "deckVisual";
 
 export type ContentItem = { id: string };
 
@@ -2195,6 +2198,10 @@ export function getResolvedPresentation(moduleId: string, tenantId: string | nul
   };
   return {
     ...assembled,
+    // DECK2: deck-visual overrides (title/caption patch, hide) applied over the
+    // assembled deckVisuals by index. Keyed per-module, so a shared deck's edit
+    // stays scoped to this module. imageUrl/sourceDeck/scorecard are preserved.
+    deckVisuals: resolveDeckVisuals(moduleId, tenantId, assembled.deckVisuals),
     briefCheckpoint: applyCheckpoint("briefCheckpoint", assembled.briefCheckpoint),
     practiceCheckpoint: applyCheckpoint("practiceCheckpoint", assembled.practiceCheckpoint),
     applicationActivity: applyCheckpoint("quizQuestions", assembled.applicationActivity),
@@ -2302,6 +2309,142 @@ export function authorModuleBrief(input: {
   }
   putTenantContent<ModuleBriefItem>(input.tenantId, "moduleBrief", input.moduleId, op);
   return getAuthoringLesson({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
+}
+
+// ── Deck-visual content layer (DECK2 / Wave 5) ──────────────────────────────
+// Deck visuals are the converted PowerPoint images. They resolve per-module (key =
+// moduleId) even though decks are shared across modules — so a core edit stays
+// scoped to the module the author is on, never leaking to sibling modules on the
+// same deck. Item id = slide index within that module's assembled deckVisuals. Only
+// title + caption are editable; the image (file), scorecard binding, and deck
+// identity are locked. resolveLibraryAssets/realDeckVisualsForModule stay untouched.
+export type DeckVisualItem = { id: string; title: string; caption: string; file: string; scorecard?: string };
+
+function fileFromImageUrl(imageUrl: string): string {
+  return imageUrl.startsWith("/slides/") ? imageUrl.slice("/slides/".length) : imageUrl;
+}
+
+// Map a module's assembled deckVisuals into override items keyed by slide index.
+function deckItemsFromVisuals(visuals: TrainingDeckVisual[]): DeckVisualItem[] {
+  return visuals.map((visual, index) => ({
+    id: String(index),
+    title: visual.title,
+    caption: visual.caption,
+    file: fileFromImageUrl(visual.imageUrl),
+    ...(visual.scorecardId ? { scorecard: visual.scorecardId } : {}),
+  }));
+}
+
+// Layer overrides over the module's assembled deckVisuals by index. Patches touch
+// only title/caption; hidden indices drop from the viewer; everything else (image,
+// scorecard, sourceDeck, pageLabel) is carried straight from the base visual.
+function resolveDeckVisuals(moduleId: string, tenantId: string | null, baseVisuals: TrainingDeckVisual[]): TrainingDeckVisual[] {
+  const baseItems = deckItemsFromVisuals(baseVisuals);
+  const resolved = resolveForTenant<DeckVisualItem>("deckVisual", tenantId, moduleId, baseItems).items;
+  return resolved.map((item) => {
+    const original = baseVisuals[Number(item.id)];
+    return original ? { ...original, title: item.title, caption: item.caption } : original;
+  }).filter((visual): visual is TrainingDeckVisual => Boolean(visual));
+}
+
+function deckForModule(moduleId: string): { deckId: string; sourceDeck: string } | null {
+  const deck = slideDecks.find((entry) => entry.modulePrefixes.some((prefix) => moduleId.startsWith(prefix)));
+  return deck ? { deckId: deck.id, sourceDeck: deck.sourceDeck } : null;
+}
+
+export type AuthoringDeckSlide = DeckVisualItem & { index: number; imageUrl: string; origin: "core" | "tenant" };
+export type ResolvedDeckContent = {
+  moduleId: string;
+  moduleTitle: string;
+  deckId: string | null;
+  sourceDeck: string | null;
+  slides: AuthoringDeckSlide[];
+  hiddenSlides: AuthoringDeckSlide[];
+};
+
+// Split visible vs. tenant-tombstoned deck slides for the current scope's own
+// layer — mirrors detailedLessonStage / getHiddenLibraryAssets.
+function moduleDeckBaseVisuals(moduleId: string): { context: ReturnType<typeof findModuleContext>; visuals: TrainingDeckVisual[] } {
+  const context = findModuleContext(moduleId);
+  if (!context) {
+    return { context: null, visuals: [] };
+  }
+  const seed = getSeedPresentation(context.module, context.journeyTitle, context.competencyGap);
+  return { context, visuals: seed.deckVisuals };
+}
+
+/** Authoring read: a module's deck slides (index/title/caption/image/scorecard/origin) + hidden list for the scope. */
+export function getAuthoringDeck(input: { scope: "core" | "tenant"; tenantId?: string; moduleId: string }): ResolvedDeckContent | null {
+  const { context, visuals } = moduleDeckBaseVisuals(input.moduleId);
+  if (!context) {
+    return null;
+  }
+  const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
+  const base = deckItemsFromVisuals(visuals);
+  const key = contentStoreKey("deckVisual", input.moduleId);
+  const coreSet = (coreContentOverrides.get(key) as ContentOverrideSet<DeckVisualItem> | undefined) ?? emptyOverrideSet<DeckVisualItem>();
+  const afterCore = applyOverrideSet<DeckVisualItem>(base, coreSet);
+  const tenantSet = tenantId ? (tenantContentOverrides.get(tenantId)?.get(key) as ContentOverrideSet<DeckVisualItem> | undefined) : undefined;
+  const tenantHidden = new Set(tenantSet?.hidden ?? []);
+  const finalVisible = tenantSet ? applyOverrideSet<DeckVisualItem>(afterCore, tenantSet) : afterCore;
+
+  const toSlide = (item: DeckVisualItem): AuthoringDeckSlide => ({ ...item, index: Number(item.id), imageUrl: `/slides/${item.file}`, origin: "core" });
+  const deck = deckForModule(input.moduleId);
+  return {
+    moduleId: input.moduleId,
+    moduleTitle: context.module.title,
+    deckId: deck?.deckId ?? null,
+    sourceDeck: deck?.sourceDeck ?? null,
+    slides: finalVisible.map(toSlide),
+    hiddenSlides: afterCore.filter((item) => tenantHidden.has(item.id)).map((item) => {
+      const patch = tenantSet?.patches[item.id];
+      return toSlide(patch ? { ...item, ...patch } : item);
+    }),
+  };
+}
+
+const DECK_LOCKED_FIELDS = ["id", "file", "scorecard", "deckId", "sourceDeck", "modulePrefixes", "imageUrl", "index"] as const;
+
+// Deck visuals accept only title/caption patch + hide/unhide. add/remove and any
+// locked-field (esp. file/scorecard) edit are rejected.
+function normalizeDeckVisualOp(op: ContentOverrideOp<DeckVisualItem>): ContentOverrideOp<DeckVisualItem> {
+  if (op.kind === "add") {
+    throw new Error("deck visuals cannot be added (image is fixed to the source deck)");
+  }
+  if (op.kind === "remove") {
+    throw new Error("deck visuals cannot be removed; hide instead");
+  }
+  if (op.kind === "patch") {
+    const patch = op.patch as Partial<DeckVisualItem> & Record<string, unknown>;
+    const offending = DECK_LOCKED_FIELDS.filter((field) => field in patch);
+    if (offending.length > 0) {
+      throw new Error(`Cannot edit locked deck-visual field(s): ${offending.join(", ")}`);
+    }
+    const safe: Partial<DeckVisualItem> = {};
+    if ("title" in patch) safe.title = patch.title as string;
+    if ("caption" in patch) safe.caption = patch.caption as string;
+    return { kind: "patch", id: op.id, patch: safe };
+  }
+  return op; // hide / unhide
+}
+
+/** Authoring write: route a deck-visual op to core/tenant by scope, enforcing the locked-field table. */
+export function authorDeckVisual(input: {
+  scope: "core" | "tenant";
+  tenantId?: string;
+  moduleId: string;
+  op: ContentOverrideOp<DeckVisualItem>;
+}): ResolvedDeckContent | null {
+  const op = normalizeDeckVisualOp(input.op);
+  if (input.scope === "core") {
+    putCoreContent<DeckVisualItem>("deckVisual", input.moduleId, op);
+    return getAuthoringDeck({ scope: "core", moduleId: input.moduleId });
+  }
+  if (!input.tenantId) {
+    throw new Error("authorDeckVisual: tenant scope requires a tenantId");
+  }
+  putTenantContent<DeckVisualItem>(input.tenantId, "deckVisual", input.moduleId, op);
+  return getAuthoringDeck({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId });
 }
 
 const chcgPlatformSettings: ChcgPlatformSettings = {
