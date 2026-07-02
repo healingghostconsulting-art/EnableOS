@@ -16,6 +16,7 @@ import {
   getResolvedPresentation,
   authorDeckVisual,
   getAuthoringDeck,
+  uploadDeckImage,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -206,6 +207,14 @@ const resolvedPresentationInput = z.object({ moduleId: z.string().min(1), tenant
 const deckVisualPatchInput = z.object({
   title: z.string().max(300).optional(),
   caption: z.string().max(1000).optional(),
+  // imageKey: a just-uploaded asset key (string) or null to revert. The server
+  // validates the key belongs to the caller's scope (normalizeDeckVisualOp).
+  imageKey: z.union([z.string().max(300), z.null()]).optional(),
+});
+const deckImageUploadInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  dataBase64: z.string().min(1),
 });
 const deckOverrideOpInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("patch"), id: z.string(), patch: deckVisualPatchInput }),
@@ -659,6 +668,19 @@ export const demoRouter = router({
   ),
   secureAuthorDeckCore: adminProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
     authorDeckVisual({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
+  // DECK3: image upload. All validation is server-side (magic bytes, size, dims).
+  // The secure path derives scope/tenant from the authed grant, NOT client input —
+  // tenant → client_admin's own tenant; core → platform_admin only.
+  previewUploadDeckImage: publicProcedure.input(deckImageUploadInput).mutation(({ input }) =>
+    uploadDeckImage({ scope: input.scope, tenantId: input.tenantId, dataBase64: input.dataBase64 }),
+  ),
+  secureUploadDeckImageTenant: protectedProcedure.input(deckImageUploadInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return uploadDeckImage({ scope: "tenant", tenantId, dataBase64: input.dataBase64 });
+  }),
+  secureUploadDeckImageCore: adminProcedure.input(deckImageUploadInput).mutation(({ input }) =>
+    uploadDeckImage({ scope: "core", dataBase64: input.dataBase64 }),
   ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),

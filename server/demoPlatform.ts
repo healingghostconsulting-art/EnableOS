@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { slideDecks } from "../shared/slideManifest";
+import { storagePut } from "./storage";
 import { isoDaysFromNow, dateOnlyDaysFromNow } from "../shared/demoClock";
 import {
   getTrainingPresentation,
@@ -2318,10 +2320,18 @@ export function authorModuleBrief(input: {
 // same deck. Item id = slide index within that module's assembled deckVisuals. Only
 // title + caption are editable; the image (file), scorecard binding, and deck
 // identity are locked. resolveLibraryAssets/realDeckVisualsForModule stay untouched.
-export type DeckVisualItem = { id: string; title: string; caption: string; file: string; scorecard?: string };
+// `file` is the immutable manifest image (locked). `imageKey` (DECK3) is an
+// optional uploaded-image storage key that REPLACES it for this scope; null/absent
+// falls back to the manifest image.
+export type DeckVisualItem = { id: string; title: string; caption: string; file: string; scorecard?: string; imageKey?: string | null };
 
 function fileFromImageUrl(imageUrl: string): string {
   return imageUrl.startsWith("/slides/") ? imageUrl.slice("/slides/".length) : imageUrl;
+}
+
+// A stored upload key resolves to the storage-served URL (same shape storagePut returns).
+function deckImageUrl(imageKey: string): string {
+  return `/manus-storage/${imageKey}`;
 }
 
 // Map a module's assembled deckVisuals into override items keyed by slide index.
@@ -2343,7 +2353,10 @@ function resolveDeckVisuals(moduleId: string, tenantId: string | null, baseVisua
   const resolved = resolveForTenant<DeckVisualItem>("deckVisual", tenantId, moduleId, baseItems).items;
   return resolved.map((item) => {
     const original = baseVisuals[Number(item.id)];
-    return original ? { ...original, title: item.title, caption: item.caption } : original;
+    if (!original) return original;
+    // A validated imageKey override replaces the manifest image for this scope.
+    const imageUrl = item.imageKey ? deckImageUrl(item.imageKey) : original.imageUrl;
+    return { ...original, title: item.title, caption: item.caption, imageUrl };
   }).filter((visual): visual is TrainingDeckVisual => Boolean(visual));
 }
 
@@ -2352,7 +2365,7 @@ function deckForModule(moduleId: string): { deckId: string; sourceDeck: string }
   return deck ? { deckId: deck.id, sourceDeck: deck.sourceDeck } : null;
 }
 
-export type AuthoringDeckSlide = DeckVisualItem & { index: number; imageUrl: string; origin: "core" | "tenant" };
+export type AuthoringDeckSlide = DeckVisualItem & { index: number; imageUrl: string; imageReplaced: boolean; origin: "core" | "tenant" };
 export type ResolvedDeckContent = {
   moduleId: string;
   moduleTitle: string;
@@ -2388,7 +2401,13 @@ export function getAuthoringDeck(input: { scope: "core" | "tenant"; tenantId?: s
   const tenantHidden = new Set(tenantSet?.hidden ?? []);
   const finalVisible = tenantSet ? applyOverrideSet<DeckVisualItem>(afterCore, tenantSet) : afterCore;
 
-  const toSlide = (item: DeckVisualItem): AuthoringDeckSlide => ({ ...item, index: Number(item.id), imageUrl: `/slides/${item.file}`, origin: "core" });
+  const toSlide = (item: DeckVisualItem): AuthoringDeckSlide => ({
+    ...item,
+    index: Number(item.id),
+    imageUrl: item.imageKey ? deckImageUrl(item.imageKey) : `/slides/${item.file}`,
+    imageReplaced: Boolean(item.imageKey),
+    origin: "core",
+  });
   const deck = deckForModule(input.moduleId);
   return {
     moduleId: input.moduleId,
@@ -2403,11 +2422,95 @@ export function getAuthoringDeck(input: { scope: "core" | "tenant"; tenantId?: s
   };
 }
 
+// ── Deck-image upload subsystem (DECK3) — security-critical ─────────────────
+// All validation is server-side and rejects on any failure. The image type is
+// verified by MAGIC BYTES (file signature), never the client-provided
+// Content-Type; size is capped; SVG/HTML/script payloads fail the image-signature
+// check; the stored key is generated server-side and scope-prefixed from the
+// authed grant, never from client input.
+const MAX_DECK_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_DECK_IMAGE_DIMENSION = 20000;
+
+export type DeckImageInfo = { type: "png" | "jpeg" | "webp"; width: number; height: number };
+
+// Detect the real image type + dimensions from the byte signature. Returns null
+// for anything that isn't a genuine PNG/JPEG/WEBP (SVG, HTML, scripts, spoofed
+// headers all fail here).
+function detectImage(buffer: Buffer): DeckImageInfo | null {
+  if (buffer.length < 12) return null;
+  // PNG — 89 50 4E 47 0D 0A 1A 0A
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47 && buffer[4] === 0x0d && buffer[5] === 0x0a && buffer[6] === 0x1a && buffer[7] === 0x0a) {
+    if (buffer.length < 24) return null;
+    return { type: "png", width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+  }
+  // JPEG — FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    let offset = 2;
+    while (offset + 9 < buffer.length) {
+      if (buffer[offset] !== 0xff) { offset++; continue; }
+      const marker = buffer[offset + 1]!;
+      if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+        return { type: "jpeg", height: buffer.readUInt16BE(offset + 5), width: buffer.readUInt16BE(offset + 7) };
+      }
+      offset += 2 + buffer.readUInt16BE(offset + 2);
+    }
+    return { type: "jpeg", width: 0, height: 0 };
+  }
+  // WEBP — RIFF....WEBP
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+    const fourcc = buffer.toString("ascii", 12, 16);
+    if (fourcc === "VP8X" && buffer.length >= 30) {
+      return { type: "webp", width: 1 + (buffer[24]! | (buffer[25]! << 8) | (buffer[26]! << 16)), height: 1 + (buffer[27]! | (buffer[28]! << 8) | (buffer[29]! << 16)) };
+    }
+    if (fourcc === "VP8 " && buffer.length >= 30) {
+      return { type: "webp", width: buffer.readUInt16LE(26) & 0x3fff, height: buffer.readUInt16LE(28) & 0x3fff };
+    }
+    if (fourcc === "VP8L" && buffer.length >= 25) {
+      const b0 = buffer[21]!, b1 = buffer[22]!, b2 = buffer[23]!, b3 = buffer[24]!;
+      return { type: "webp", width: 1 + (((b1 & 0x3f) << 8) | b0), height: 1 + (((b3 & 0x0f) << 10) | (b2 << 2) | ((b1 & 0xc0) >> 6)) };
+    }
+    return { type: "webp", width: 0, height: 0 };
+  }
+  return null;
+}
+
+/** Validate an uploaded image buffer; throws on empty/oversized/wrong-type/absurd-dimensions. */
+export function validateDeckImage(buffer: Buffer): DeckImageInfo {
+  if (buffer.length === 0) throw new Error("Empty image upload");
+  if (buffer.length > MAX_DECK_IMAGE_BYTES) throw new Error("Image exceeds the 5 MB limit");
+  const info = detectImage(buffer);
+  if (!info) throw new Error("Unsupported image type — only PNG, JPEG, and WEBP are allowed");
+  if (info.width > MAX_DECK_IMAGE_DIMENSION || info.height > MAX_DECK_IMAGE_DIMENSION) {
+    throw new Error("Image dimensions are out of range");
+  }
+  return info;
+}
+
+// Scope-derived key prefix — the ONLY source of the tenant segment (never client input).
+function deckImageKeyPrefix(scope: "core" | "tenant", tenantId?: string): string {
+  if (scope === "core") return "deck-visual-images/core/";
+  if (!tenantId) throw new Error("tenant scope requires a tenantId");
+  return `deck-visual-images/tenant/${tenantId}/`;
+}
+
+/** Validate + store an uploaded deck image under a server-generated, scope-prefixed key. */
+export async function uploadDeckImage(input: { scope: "core" | "tenant"; tenantId?: string; dataBase64: string }): Promise<{ imageKey: string; imageUrl: string }> {
+  const buffer = Buffer.from(input.dataBase64, "base64");
+  const info = validateDeckImage(buffer);
+  const ext = info.type === "jpeg" ? "jpg" : info.type;
+  const mime = info.type === "png" ? "image/png" : info.type === "webp" ? "image/webp" : "image/jpeg";
+  // Key is generated server-side: scope prefix + random UUID + detected extension.
+  const upload = await storagePut(`${deckImageKeyPrefix(input.scope, input.tenantId)}${randomUUID()}.${ext}`, buffer, mime);
+  return { imageKey: upload.key, imageUrl: upload.url };
+}
+
 const DECK_LOCKED_FIELDS = ["id", "file", "scorecard", "deckId", "sourceDeck", "modulePrefixes", "imageUrl", "index"] as const;
 
-// Deck visuals accept only title/caption patch + hide/unhide. add/remove and any
-// locked-field (esp. file/scorecard) edit are rejected.
-function normalizeDeckVisualOp(op: ContentOverrideOp<DeckVisualItem>): ContentOverrideOp<DeckVisualItem> {
+// Deck visuals accept only title/caption + a scope-validated imageKey patch, plus
+// hide/unhide. add/remove and any other locked-field edit are rejected. An imageKey
+// must belong to the caller's own scope prefix (a tenant cannot reference another
+// tenant's or a core/arbitrary key); imageKey:null reverts to the manifest image.
+function normalizeDeckVisualOp(scope: "core" | "tenant", tenantId: string | undefined, op: ContentOverrideOp<DeckVisualItem>): ContentOverrideOp<DeckVisualItem> {
   if (op.kind === "add") {
     throw new Error("deck visuals cannot be added (image is fixed to the source deck)");
   }
@@ -2423,6 +2526,18 @@ function normalizeDeckVisualOp(op: ContentOverrideOp<DeckVisualItem>): ContentOv
     const safe: Partial<DeckVisualItem> = {};
     if ("title" in patch) safe.title = patch.title as string;
     if ("caption" in patch) safe.caption = patch.caption as string;
+    if ("imageKey" in patch) {
+      const key = patch.imageKey;
+      if (key === null) {
+        safe.imageKey = null; // revert to the manifest image
+      } else {
+        const prefix = deckImageKeyPrefix(scope, tenantId);
+        if (typeof key !== "string" || !key.startsWith(prefix)) {
+          throw new Error("imageKey does not belong to this scope");
+        }
+        safe.imageKey = key;
+      }
+    }
     return { kind: "patch", id: op.id, patch: safe };
   }
   return op; // hide / unhide
@@ -2435,7 +2550,7 @@ export function authorDeckVisual(input: {
   moduleId: string;
   op: ContentOverrideOp<DeckVisualItem>;
 }): ResolvedDeckContent | null {
-  const op = normalizeDeckVisualOp(input.op);
+  const op = normalizeDeckVisualOp(input.scope, input.tenantId, input.op);
   if (input.scope === "core") {
     putCoreContent<DeckVisualItem>("deckVisual", input.moduleId, op);
     return getAuthoringDeck({ scope: "core", moduleId: input.moduleId });
