@@ -2170,14 +2170,48 @@ export function getResolvedPresentation(moduleId: string, tenantId: string | nul
   };
 }
 
+// A resolved slide tagged with its origin so the editor can gate fields:
+// "core" = seed or core-layer slide (tenant may only light-patch); "tenant" =
+// added in this tenant's layer (tenant has full control).
+export type AuthoringSlide = TrainingPresentationSlide & { origin: "core" | "tenant" };
+
 export type ResolvedLessonContent = {
   moduleId: string;
   moduleTitle: string;
-  stages: Record<LessonStage, TrainingPresentationSlide[]>;
+  stages: Record<LessonStage, AuthoringSlide[]>;
+  /** Core slides this tenant tombstoned (for the restore affordance). Empty at core scope. */
+  hiddenSlides: Record<LessonStage, AuthoringSlide[]>;
   brief: ModuleBriefItem;
 };
 
-/** Authoring read: resolved seed slides per stage + brief fields for the scope. */
+const SEED_STAGE_FIELD: Record<LessonStage, "slides" | "practiceSlides" | "applySlides"> = {
+  brief: "slides",
+  practice: "practiceSlides",
+  apply: "applySlides",
+};
+
+// Resolve one stage with visible slides (origin-tagged) + the tenant-tombstoned
+// core slides split out, by inspecting the override layers directly.
+function detailedLessonStage(seed: SeedPresentation, moduleId: string, stage: LessonStage, tenantId: string | null): { slides: AuthoringSlide[]; hidden: AuthoringSlide[] } {
+  const base = seed[SEED_STAGE_FIELD[stage]];
+  const key = contentStoreKey("moduleLesson", lessonCollectionKey(moduleId, stage));
+  const coreSet = (coreContentOverrides.get(key) as ContentOverrideSet<TrainingPresentationSlide> | undefined) ?? emptyOverrideSet<TrainingPresentationSlide>();
+  const afterCore = applyOverrideSet<TrainingPresentationSlide>(base, coreSet);
+  const tenantSet = tenantId ? (tenantContentOverrides.get(tenantId)?.get(key) as ContentOverrideSet<TrainingPresentationSlide> | undefined) : undefined;
+  const tenantAddedIds = new Set(tenantSet?.added.map((slide) => slide.id) ?? []);
+  const tenantHidden = new Set(tenantSet?.hidden ?? []);
+  const finalVisible = tenantSet ? applyOverrideSet<TrainingPresentationSlide>(afterCore, tenantSet) : afterCore;
+  const slides: AuthoringSlide[] = finalVisible.map((slide) => ({ ...slide, origin: tenantAddedIds.has(slide.id) ? "tenant" : "core" }));
+  const hidden: AuthoringSlide[] = afterCore
+    .filter((slide) => tenantHidden.has(slide.id))
+    .map((slide) => {
+      const patch = tenantSet?.patches[slide.id];
+      return { ...(patch ? { ...slide, ...patch } : slide), origin: "core" as const };
+    });
+  return { slides, hidden };
+}
+
+/** Authoring read: resolved seed slides per stage (origin-tagged) + hidden list + brief for the scope. */
 export function getAuthoringLesson(input: { scope: "core" | "tenant"; tenantId?: string; moduleId: string }): ResolvedLessonContent | null {
   const context = findModuleContext(input.moduleId);
   if (!context) {
@@ -2186,14 +2220,14 @@ export function getAuthoringLesson(input: { scope: "core" | "tenant"; tenantId?:
   const tenantId = input.scope === "tenant" ? input.tenantId ?? null : null;
   const seed = getSeedPresentation(context.module, context.journeyTitle, context.competencyGap);
   const briefBase = briefItemFromSeed(input.moduleId, seed);
+  const detailed = Object.fromEntries(
+    (["brief", "practice", "apply"] as LessonStage[]).map((stage) => [stage, detailedLessonStage(seed, input.moduleId, stage, tenantId)]),
+  ) as Record<LessonStage, { slides: AuthoringSlide[]; hidden: AuthoringSlide[] }>;
   return {
     moduleId: input.moduleId,
     moduleTitle: context.module.title,
-    stages: {
-      brief: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "brief"), seed.slides).items,
-      practice: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "practice"), seed.practiceSlides).items,
-      apply: resolveForTenant<TrainingPresentationSlide>("moduleLesson", tenantId, lessonCollectionKey(input.moduleId, "apply"), seed.applySlides).items,
-    },
+    stages: { brief: detailed.brief.slides, practice: detailed.practice.slides, apply: detailed.apply.slides },
+    hiddenSlides: { brief: detailed.brief.hidden, practice: detailed.practice.hidden, apply: detailed.apply.hidden },
     brief: resolveForTenant<ModuleBriefItem>("moduleBrief", tenantId, input.moduleId, [briefBase]).items[0] ?? briefBase,
   };
 }

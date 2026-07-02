@@ -1255,4 +1255,29 @@ describe("learner training layout helpers", () => {
     // A tenant can hide a CHCG core asset for itself.
     expect(authoringPanel).toContain("Hide this CHCG asset for this client");
   });
+
+  it("adds Lessons + Briefs editors with scope-aware locking + a shared restore shelf (LESSON3)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // Selector gains Lessons + Briefs; both sub-panels are wired in.
+    expect(authoringPanel).toContain('["briefs", "Briefs"]');
+    expect(authoringPanel).toContain("function LessonAuthoring");
+    expect(authoringPanel).toContain("function BriefAuthoring");
+    expect(authoringPanel).toContain("<LessonAuthoring scope={scope} tenantId={tenantId} />");
+    expect(authoringPanel).toContain("<BriefAuthoring scope={scope} tenantId={tenantId} />");
+    // Reads/writes go through the lesson + brief authoring procedures.
+    expect(authoringPanel).toContain("previewAuthoringLesson");
+    expect(authoringPanel).toContain("previewAuthorLessonTenant");
+    expect(authoringPanel).toContain("previewAuthorLessonCore");
+    expect(authoringPanel).toContain("previewAuthorBriefTenant");
+    expect(authoringPanel).toContain("previewAuthorBriefCore");
+    // Scope-aware locking: tenant may only light-patch bullets/coach notes on a core slide.
+    expect(authoringPanel).toContain('scope === "tenant" && draft.origin === "core"');
+    expect(authoringPanel).toContain("CHCG-owned");
+    // Slide→checkpoint hint.
+    expect(authoringPanel).toContain("Feeds {hint}");
+    // Shared restore affordance (reused by LIBRARY4) + hide-with-undo.
+    expect(authoringPanel).toContain("function HiddenItemsShelf");
+    expect(authoringPanel).toContain("Slide hidden");
+    expect(authoringPanel).toContain('label: "Undo"');
+  });
 });

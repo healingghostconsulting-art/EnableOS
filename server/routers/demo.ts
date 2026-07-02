@@ -9,6 +9,9 @@ import {
   getAuthoringQuizContent,
   authorLibraryContent,
   getAuthoringLibraryContent,
+  authorLessonSlide,
+  authorModuleBrief,
+  getAuthoringLesson,
   createChcgTenant,
   createClientContent,
   createReviewLog,
@@ -146,6 +149,50 @@ const authoringLibraryWriteInput = z.object({
   scope: z.enum(["core", "tenant"]),
   tenantId: z.string().optional(),
   op: libraryOverrideOpInput,
+});
+
+// Lesson + brief authoring (LESSON3). The server (normalizeLessonOp/normalizeBriefOp)
+// enforces the field table by scope; these schemas only shape the payloads.
+const lessonSlideInput = z.object({
+  id: z.string().min(1),
+  eyebrow: z.string().max(120),
+  title: z.string().min(1).max(200),
+  narrative: z.string().min(1).max(2000),
+  bullets: z.array(z.string().max(400)).max(12),
+  speakerNotes: z.array(z.string().max(400)).max(12).optional(),
+  visualTone: z.string().max(120),
+});
+const lessonOverrideOpInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("patch"), id: z.string(), patch: lessonSlideInput.partial() }),
+  z.object({ kind: z.literal("add"), item: lessonSlideInput }),
+  z.object({ kind: z.literal("hide"), id: z.string() }),
+  z.object({ kind: z.literal("unhide"), id: z.string() }),
+  z.object({ kind: z.literal("remove"), id: z.string() }),
+]);
+const authoringLessonReadInput = z.object({
+  scope: z.enum(["core", "tenant"]),
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+});
+const authoringLessonWriteInput = z.object({
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+  stage: z.enum(["brief", "practice", "apply"]),
+  op: lessonOverrideOpInput,
+});
+const briefPatchInput = z.object({
+  heroTitle: z.string().max(200).optional(),
+  heroSummary: z.string().max(2000).optional(),
+  evidenceLabel: z.string().max(400).optional(),
+  scenarioTitle: z.string().max(200).optional(),
+  scenarioSituation: z.string().max(2000).optional(),
+  scenarioLearnerTask: z.string().max(2000).optional(),
+  scenarioSuccessSignals: z.array(z.string().max(400)).max(12).optional(),
+});
+const authoringBriefWriteInput = z.object({
+  tenantId: z.string().optional(),
+  moduleId: z.string().min(1),
+  op: z.object({ kind: z.literal("patch"), id: z.string(), patch: briefPatchInput }),
 });
 
 const reviewLogInput = z.object({
@@ -511,6 +558,40 @@ export const demoRouter = router({
   ),
   secureAuthorLibraryCore: adminProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
     authorLibraryContent({ scope: "core", op: input.op }),
+  ),
+  previewAuthoringLesson: publicProcedure.input(authoringLessonReadInput).query(({ input }) => getAuthoringLesson(input)),
+  secureAuthoringLesson: protectedProcedure.input(authoringLessonReadInput).query(({ ctx, input }) => {
+    if (input.scope === "tenant") {
+      const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+      return getAuthoringLesson({ ...input, tenantId });
+    }
+    return getAuthoringLesson(input);
+  }),
+  previewAuthorLessonTenant: publicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
+    authorLessonSlide({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, stage: input.stage, op: input.op }),
+  ),
+  secureAuthorLessonTenant: protectedProcedure.input(authoringLessonWriteInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return authorLessonSlide({ scope: "tenant", tenantId, moduleId: input.moduleId, stage: input.stage, op: input.op });
+  }),
+  previewAuthorLessonCore: publicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
+    authorLessonSlide({ scope: "core", moduleId: input.moduleId, stage: input.stage, op: input.op }),
+  ),
+  secureAuthorLessonCore: adminProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
+    authorLessonSlide({ scope: "core", moduleId: input.moduleId, stage: input.stage, op: input.op }),
+  ),
+  previewAuthorBriefTenant: publicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
+    authorModuleBrief({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorBriefTenant: protectedProcedure.input(authoringBriefWriteInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    return authorModuleBrief({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
+  }),
+  previewAuthorBriefCore: publicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
+    authorModuleBrief({ scope: "core", moduleId: input.moduleId, op: input.op }),
+  ),
+  secureAuthorBriefCore: adminProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
+    authorModuleBrief({ scope: "core", moduleId: input.moduleId, op: input.op }),
   ),
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),

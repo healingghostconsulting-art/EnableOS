@@ -14,9 +14,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Plus, EyeOff, Save, Trash2 } from "lucide-react";
+import { Pencil, Plus, EyeOff, Save, Trash2, RotateCcw, Lock } from "lucide-react";
 import { toast } from "sonner";
 import type { TrainingApplicationQuestion } from "../../../shared/trainingContent";
+
+// Shared restore affordance (LESSON3; reused by LIBRARY4). A compact shelf listing
+// tombstoned items with a per-item Restore. Hides itself when nothing is hidden.
+function HiddenItemsShelf({ items, onRestore, noun = "item" }: { items: Array<{ id: string; label: string }>; onRestore: (id: string) => void; noun?: string }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-[1.1rem] border border-white/10 bg-slate-950/40 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Hidden {noun}s ({items.length})</p>
+      <div className="mt-2 space-y-1.5">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center justify-between gap-3 rounded-[0.9rem] border border-white/8 bg-white/[0.02] px-3 py-2">
+            <p className="min-w-0 flex-1 truncate text-xs text-slate-500 line-through">{item.label}</p>
+            <Button type="button" size="sm" variant="ghost" onClick={() => onRestore(item.id)} className="shrink-0 rounded-full text-slate-300 hover:bg-white/10 hover:text-white">
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Restore
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ContentAuthoringPanel (AUTHOR2 / Wave 1) — the shared quiz editor. The same
 // component serves both admin surfaces; only the layer it writes differs:
@@ -326,8 +347,359 @@ function LibraryAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenan
   );
 }
 
+// ── Lesson authoring (LESSON3 / Wave 3) ─────────────────────────────────────
+// Edits resolve on the pre-expansion seed slides. Field access is scope-aware:
+// client_admin may only light-patch bullets[]/speakerNotes[] on CHCG-owned slides
+// (other fields shown read-only) but has full control of tenant-added slides.
+const LESSON_STAGES: Array<{ key: "brief" | "practice" | "apply"; label: string }> = [
+  { key: "brief", label: "Learn" },
+  { key: "practice", label: "Practice" },
+  { key: "apply", label: "Apply" },
+];
+
+type SlideDraft = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  narrative: string;
+  bullets: string; // newline-separated in the form
+  speakerNotes: string; // newline-separated in the form
+  visualTone: string;
+  isNew: boolean;
+  origin: "core" | "tenant";
+};
+
+function slideToDraft(slide: { id: string; eyebrow?: string; title?: string; narrative?: string; bullets?: string[]; speakerNotes?: string[]; visualTone?: string; origin?: "core" | "tenant" }): SlideDraft {
+  return {
+    id: slide.id,
+    eyebrow: slide.eyebrow ?? "",
+    title: slide.title ?? "",
+    narrative: slide.narrative ?? "",
+    bullets: (slide.bullets ?? []).join("\n"),
+    speakerNotes: (slide.speakerNotes ?? []).join("\n"),
+    visualTone: slide.visualTone ?? "",
+    isNew: false,
+    origin: slide.origin ?? "core",
+  };
+}
+
+function LessonAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
+  const moduleList = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
+  const modules = moduleList.data?.modules ?? [];
+  const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
+  const [stage, setStage] = useState<"brief" | "practice" | "apply">("brief");
+  const activeModuleId = chosenModuleId ?? modules[0]?.moduleId ?? null;
+
+  const lesson = trpc.demo.previewAuthoringLesson.useQuery({ scope, tenantId, moduleId: activeModuleId ?? "" }, { enabled: Boolean(activeModuleId) });
+  const authorTenant = trpc.demo.previewAuthorLessonTenant.useMutation();
+  const authorCore = trpc.demo.previewAuthorLessonCore.useMutation();
+  const saving = authorTenant.isPending || authorCore.isPending;
+  const [draft, setDraft] = useState<SlideDraft | null>(null);
+
+  const slides = lesson.data?.stages[stage] ?? [];
+  const hidden = lesson.data?.hiddenSlides[stage] ?? [];
+
+  const runOp = async (op: unknown): Promise<boolean> => {
+    if (!activeModuleId) return false;
+    try {
+      if (scope === "core") {
+        await authorCore.mutateAsync({ moduleId: activeModuleId, stage, op: op as never });
+      } else {
+        await authorTenant.mutateAsync({ tenantId, moduleId: activeModuleId, stage, op: op as never });
+      }
+      await lesson.refetch();
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(/locked/i.test(message) ? "That field is CHCG-owned and can't be edited here." : "Could not save the edit");
+      return false;
+    }
+  };
+
+  const hideSlide = async (id: string) => {
+    if (await runOp({ kind: "hide", id })) {
+      toast("Slide hidden", { action: { label: "Undo", onClick: () => runOp({ kind: "unhide", id }) } });
+    }
+  };
+
+  const openNew = () => {
+    if (!activeModuleId) return;
+    setDraft({ id: `${activeModuleId}-${stage}-custom-${Date.now()}`, eyebrow: "", title: "", narrative: "", bullets: "", speakerNotes: "", visualTone: "", isNew: true, origin: "tenant" });
+  };
+
+  const saveDraft = async () => {
+    if (!draft) return;
+    const item = {
+      id: draft.id,
+      eyebrow: draft.eyebrow.trim(),
+      title: draft.title.trim(),
+      narrative: draft.narrative.trim(),
+      bullets: draft.bullets.split("\n").map((line) => line.trim()).filter(Boolean),
+      speakerNotes: draft.speakerNotes.split("\n").map((line) => line.trim()).filter(Boolean),
+      visualTone: draft.visualTone.trim(),
+    };
+    if (!item.title) {
+      toast.error("Add a slide title before saving");
+      return;
+    }
+    const locked = scope === "tenant" && draft.origin === "core" && !draft.isNew;
+    const op = draft.isNew
+      ? { kind: "add", item }
+      : { kind: "patch", id: draft.id, patch: locked ? { bullets: item.bullets, speakerNotes: item.speakerNotes } : item };
+    if (await runOp(op)) {
+      setDraft(null);
+      toast.success(`Saved to ${scope === "core" ? "CHCG core content" : "this tenant"}`);
+    }
+  };
+
+  const draftLocked = draft ? scope === "tenant" && draft.origin === "core" && !draft.isNew : false;
+  const feedsCheckpoint = (index: number): string | null =>
+    stage === "brief" && index === 0 ? "Brief checkpoint" : stage === "practice" && index === 0 ? "Practice checkpoint" : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Lesson authoring</p>
+          <p className="text-sm leading-6 text-slate-300">
+            Edit the lesson seed slides for {scope === "core" ? "all clients" : "this client"}. {scope === "tenant" ? "On CHCG-owned slides you can refine bullets and coach notes; add your own slides for full control." : "Edits reach every client unless they override them."} An edited slide re-derives its companion slides live.
+          </p>
+        </div>
+        <Badge variant="outline" className={`w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${scope === "core" ? "border-cyan-400/30 text-cyan-100" : "border-emerald-400/30 text-emerald-100"}`}>
+          {scope === "core" ? "Core · all tenants" : "Tenant override"}
+        </Badge>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Module</Label>
+          <Select value={activeModuleId ?? undefined} onValueChange={setChosenModuleId}>
+            <SelectTrigger className={inputClass}><SelectValue placeholder="Select a module" /></SelectTrigger>
+            <SelectContent>
+              {modules.map((module) => (<SelectItem key={module.moduleId} value={module.moduleId}>{module.moduleTitle} · {module.journeyTitle}</SelectItem>))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="button" onClick={openNew} disabled={!activeModuleId} className="rounded-full bg-white text-slate-950 hover:bg-slate-100"><Plus className="mr-2 h-4 w-4" /> Add slide</Button>
+      </div>
+
+      <div className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1">
+        {LESSON_STAGES.map((entry) => (
+          <button key={entry.key} type="button" onClick={() => setStage(entry.key)} className={`rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${stage === entry.key ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"}`}>{entry.label}</button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {lesson.isLoading ? <p className="text-sm text-slate-400">Loading lesson…</p> : null}
+        {slides.length === 0 && !lesson.isLoading ? <p className="text-sm text-slate-400">No slides in this stage yet — add one above.</p> : null}
+        {slides.map((slide: { id: string; eyebrow?: string; title?: string; narrative?: string; bullets?: string[]; origin?: "core" | "tenant" }, index: number) => {
+          const isTenantSlide = slide.origin === "tenant";
+          const hint = feedsCheckpoint(index);
+          return (
+            <div key={slide.id} className="flex items-start justify-between gap-3 rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-4">
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={`rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] ${isTenantSlide ? "border-emerald-400/30 text-emerald-100" : "border-cyan-400/30 text-cyan-100"}`}>{isTenantSlide ? "Tenant slide" : "CHCG core"}</Badge>
+                  {slide.eyebrow ? <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{slide.eyebrow}</span> : null}
+                  {hint ? <Badge variant="outline" className="rounded-full border-amber-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.16em] text-amber-100">Feeds {hint}</Badge> : null}
+                </div>
+                <p className="text-sm font-medium leading-6 text-white">{slide.title}</p>
+                <p className="line-clamp-2 text-xs leading-5 text-slate-400">{slide.narrative}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Button type="button" size="sm" variant="ghost" onClick={() => setDraft(slideToDraft(slide))} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white"><Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => hideSlide(slide.id)} className="rounded-full text-slate-400 hover:bg-rose-500/10 hover:text-rose-200" title="Hide this slide"><EyeOff className="h-3.5 w-3.5" /></Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <HiddenItemsShelf items={hidden.map((slide: { id: string; title?: string }) => ({ id: slide.id, label: slide.title ?? slide.id }))} onRestore={(id) => runOp({ kind: "unhide", id })} noun="slide" />
+
+      <Dialog open={draft !== null} onOpenChange={(open) => (!open ? setDraft(null) : undefined)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{draft?.isNew ? "Add slide" : "Edit slide"}</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {draftLocked ? "This is a CHCG-owned slide — you can refine the bullets and coach notes; the rest is locked." : `Saving writes to ${scope === "core" ? "CHCG core content" : "this tenant"}. Editing a slide re-derives its companion slides.`}
+            </DialogDescription>
+          </DialogHeader>
+          {draft ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Title {draftLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                  <Input value={draft.title} disabled={draftLocked} onChange={(event) => setDraft({ ...draft, title: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Eyebrow {draftLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                  <Input value={draft.eyebrow} disabled={draftLocked} onChange={(event) => setDraft({ ...draft, eyebrow: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Narrative {draftLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                <Textarea value={draft.narrative} disabled={draftLocked} onChange={(event) => setDraft({ ...draft, narrative: event.target.value })} className={`${inputClass} disabled:opacity-50`} rows={3} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Bullets (one per line)</Label>
+                <Textarea value={draft.bullets} onChange={(event) => setDraft({ ...draft, bullets: event.target.value })} className={inputClass} rows={3} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Coach notes (one per line)</Label>
+                <Textarea value={draft.speakerNotes} onChange={(event) => setDraft({ ...draft, speakerNotes: event.target.value })} className={inputClass} rows={2} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Visual tone {draftLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                <Input value={draft.visualTone} disabled={draftLocked} onChange={(event) => setDraft({ ...draft, visualTone: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+              </div>
+              {draftLocked ? <p className="rounded-[0.9rem] border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] text-slate-400">Locked fields are CHCG-owned. To change them for this client, add a tenant slide instead.</p> : null}
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setDraft(null)} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white">Cancel</Button>
+            <Button type="button" onClick={saveDraft} disabled={saving} className="rounded-full bg-white text-slate-950 hover:bg-slate-100"><Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save slide"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ── Brief authoring (LESSON3 / Wave 3) ──────────────────────────────────────
+type BriefDraft = { heroTitle: string; heroSummary: string; evidenceLabel: string; scenarioTitle: string; scenarioSituation: string; scenarioLearnerTask: string; scenarioSuccessSignals: string };
+
+function BriefAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
+  const moduleList = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
+  const modules = moduleList.data?.modules ?? [];
+  const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
+  const activeModuleId = chosenModuleId ?? modules[0]?.moduleId ?? null;
+
+  const lesson = trpc.demo.previewAuthoringLesson.useQuery({ scope, tenantId, moduleId: activeModuleId ?? "" }, { enabled: Boolean(activeModuleId) });
+  const brief = lesson.data?.brief;
+  const authorTenant = trpc.demo.previewAuthorBriefTenant.useMutation();
+  const authorCore = trpc.demo.previewAuthorBriefCore.useMutation();
+  const saving = authorTenant.isPending || authorCore.isPending;
+  const [draft, setDraft] = useState<BriefDraft | null>(null);
+  const tenantLocked = scope === "tenant";
+
+  const openEdit = () => {
+    if (!brief) return;
+    setDraft({
+      heroTitle: brief.heroTitle, heroSummary: brief.heroSummary, evidenceLabel: brief.evidenceLabel,
+      scenarioTitle: brief.scenarioTitle, scenarioSituation: brief.scenarioSituation, scenarioLearnerTask: brief.scenarioLearnerTask,
+      scenarioSuccessSignals: (brief.scenarioSuccessSignals ?? []).join("\n"),
+    });
+  };
+
+  const save = async () => {
+    if (!draft || !activeModuleId) return;
+    const full = {
+      heroTitle: draft.heroTitle.trim(), heroSummary: draft.heroSummary.trim(), evidenceLabel: draft.evidenceLabel.trim(),
+      scenarioTitle: draft.scenarioTitle.trim(), scenarioSituation: draft.scenarioSituation.trim(), scenarioLearnerTask: draft.scenarioLearnerTask.trim(),
+      scenarioSuccessSignals: draft.scenarioSuccessSignals.split("\n").map((line) => line.trim()).filter(Boolean),
+    };
+    const patch = tenantLocked
+      ? { heroSummary: full.heroSummary, scenarioSituation: full.scenarioSituation, scenarioLearnerTask: full.scenarioLearnerTask, scenarioSuccessSignals: full.scenarioSuccessSignals }
+      : full;
+    try {
+      const payload = { moduleId: activeModuleId, op: { kind: "patch" as const, id: activeModuleId, patch } };
+      if (scope === "core") await authorCore.mutateAsync(payload);
+      else await authorTenant.mutateAsync({ ...payload, tenantId });
+      await lesson.refetch();
+      setDraft(null);
+      toast.success(`Brief saved to ${scope === "core" ? "CHCG core content" : "this tenant"}`);
+    } catch {
+      toast.error("Could not save the brief");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Brief authoring</p>
+          <p className="text-sm leading-6 text-slate-300">Edit the module intro + practice brief for {scope === "core" ? "all clients" : "this client"}. {scope === "tenant" ? "You can tailor the summary and practice scenario; the headline and evidence label are CHCG-owned." : ""}</p>
+        </div>
+        <Badge variant="outline" className={`w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${scope === "core" ? "border-cyan-400/30 text-cyan-100" : "border-emerald-400/30 text-emerald-100"}`}>{scope === "core" ? "Core · all tenants" : "Tenant override"}</Badge>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Module</Label>
+          <Select value={activeModuleId ?? undefined} onValueChange={setChosenModuleId}>
+            <SelectTrigger className={inputClass}><SelectValue placeholder="Select a module" /></SelectTrigger>
+            <SelectContent>{modules.map((module) => (<SelectItem key={module.moduleId} value={module.moduleId}>{module.moduleTitle} · {module.journeyTitle}</SelectItem>))}</SelectContent>
+          </Select>
+        </div>
+        <Button type="button" onClick={openEdit} disabled={!brief} className="rounded-full bg-white text-slate-950 hover:bg-slate-100"><Pencil className="mr-2 h-4 w-4" /> Edit brief</Button>
+      </div>
+
+      {lesson.isLoading ? <p className="text-sm text-slate-400">Loading brief…</p> : null}
+      {brief ? (
+        <div className="space-y-3 rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-4">
+          <div className="space-y-1">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Headline</p>
+            <p className="text-sm font-semibold text-white">{brief.heroTitle}</p>
+          </div>
+          <div className="space-y-1"><p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Summary</p><p className="text-xs leading-5 text-slate-300">{brief.heroSummary}</p></div>
+          <div className="space-y-1"><p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Evidence label</p><p className="text-xs leading-5 text-slate-400">{brief.evidenceLabel}</p></div>
+          <div className="space-y-1"><p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Practice scenario · {brief.scenarioTitle}</p><p className="text-xs leading-5 text-slate-300">{brief.scenarioSituation}</p></div>
+        </div>
+      ) : null}
+
+      <Dialog open={draft !== null} onOpenChange={(open) => (!open ? setDraft(null) : undefined)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit module brief</DialogTitle>
+            <DialogDescription className="text-slate-400">{tenantLocked ? "Headline, evidence label, and scenario title are CHCG-owned (locked)." : `Saving writes to ${scope === "core" ? "CHCG core content" : "this tenant"}.`}</DialogDescription>
+          </DialogHeader>
+          {draft ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Headline {tenantLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                <Input value={draft.heroTitle} disabled={tenantLocked} onChange={(event) => setDraft({ ...draft, heroTitle: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Summary</Label>
+                <Textarea value={draft.heroSummary} onChange={(event) => setDraft({ ...draft, heroSummary: event.target.value })} className={inputClass} rows={3} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Evidence label {tenantLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                <Input value={draft.evidenceLabel} disabled={tenantLocked} onChange={(event) => setDraft({ ...draft, evidenceLabel: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-slate-400">Scenario title {tenantLocked ? <Lock className="h-3 w-3 text-slate-500" /> : null}</Label>
+                  <Input value={draft.scenarioTitle} disabled={tenantLocked} onChange={(event) => setDraft({ ...draft, scenarioTitle: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Learner task</Label>
+                  <Input value={draft.scenarioLearnerTask} onChange={(event) => setDraft({ ...draft, scenarioLearnerTask: event.target.value })} className={`h-9 ${inputClass}`} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Scenario situation</Label>
+                <Textarea value={draft.scenarioSituation} onChange={(event) => setDraft({ ...draft, scenarioSituation: event.target.value })} className={inputClass} rows={2} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Success signals (one per line)</Label>
+                <Textarea value={draft.scenarioSuccessSignals} onChange={(event) => setDraft({ ...draft, scenarioSuccessSignals: event.target.value })} className={inputClass} rows={3} />
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setDraft(null)} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white">Cancel</Button>
+            <Button type="button" onClick={save} disabled={saving} className="rounded-full bg-white text-slate-950 hover:bg-slate-100"><Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save brief"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
-  const [contentType, setContentType] = useState<"quizzes" | "library">("quizzes");
+  const [contentType, setContentType] = useState<"quizzes" | "library" | "lessons" | "briefs">("quizzes");
   const content = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
   const modules = content.data?.modules ?? [];
   const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
@@ -406,20 +778,24 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1">
-        {(["quizzes", "library"] as const).map((option) => (
+      <div className="inline-flex flex-wrap rounded-full border border-white/10 bg-white/[0.03] p-1">
+        {([["quizzes", "Quizzes"], ["library", "Library"], ["lessons", "Lessons"], ["briefs", "Briefs"]] as const).map(([option, label]) => (
           <button
             key={option}
             type="button"
             onClick={() => setContentType(option)}
             className={`rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${contentType === option ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"}`}
           >
-            {option === "quizzes" ? "Quizzes" : "Library"}
+            {label}
           </button>
         ))}
       </div>
       {contentType === "library" ? (
         <LibraryAuthoring scope={scope} tenantId={tenantId} />
+      ) : contentType === "lessons" ? (
+        <LessonAuthoring scope={scope} tenantId={tenantId} />
+      ) : contentType === "briefs" ? (
+        <BriefAuthoring scope={scope} tenantId={tenantId} />
       ) : (
       <>
       <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">
