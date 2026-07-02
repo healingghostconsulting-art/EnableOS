@@ -1319,6 +1319,18 @@ describe("learner training layout helpers", () => {
     expect(shelfUses.length).toBeGreaterThanOrEqual(3);
   });
 
+  it("renders the deck viewer/lightbox from the RESOLVED presentation — no stale client deck path (DECK5)", () => {
+    // The visual gallery is built from the resolved presentation (LESSON4 path).
+    expect(trainingViewSource).toContain("buildTrainingVisualGallery(presentation)");
+    // The viewer + lightbox read the gallery-derived active visual's resolved fields.
+    expect(trainingViewSource).toContain("activeInteractiveVisual.title");
+    expect(trainingViewSource).toContain("activeInteractiveVisual.caption");
+    expect(trainingViewSource).toContain("activeInteractiveVisual?.scorecardId");
+    // No separate/stale client deck source — the manifest resolvers stay server-side.
+    expect(trainingViewSource).not.toContain("realDeckVisualsForModule");
+    expect(trainingViewSource).not.toContain("slideDeckForModuleId");
+  });
+
   it("wires the player to the server-resolved presentation with a local fallback (LESSON4)", () => {
     // The player queries the resolved presentation for the current module + tenant.
     expect(trainingViewSource).toContain("resolvedPresentationQuery");
