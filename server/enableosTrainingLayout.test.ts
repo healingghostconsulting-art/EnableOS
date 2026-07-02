@@ -1280,6 +1280,19 @@ describe("learner training layout helpers", () => {
     expect(authoringPanel).toContain('label: "Undo"');
   });
 
+  it("reuses the restore shelf + hide-with-undo for library assets (LIBRARY4)", () => {
+    const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
+    // The Library sub-panel reads its tombstones and renders the SAME shared shelf.
+    expect(authoringPanel).toContain("previewHiddenLibrary");
+    expect(authoringPanel).toContain("const hideAsset");
+    expect(authoringPanel).toContain('toast("Asset hidden"');
+    // Reuses the shared HiddenItemsShelf (not a forked component) with unhide restore.
+    const shelfUses = authoringPanel.match(/<HiddenItemsShelf/g) ?? [];
+    expect(shelfUses.length).toBeGreaterThanOrEqual(2); // lesson + library
+    expect(authoringPanel).toContain('noun="asset"');
+    expect(authoringPanel).toContain('onRestore={(id) => runOp({ kind: "unhide", id })}');
+  });
+
   it("wires the player to the server-resolved presentation with a local fallback (LESSON4)", () => {
     // The player queries the resolved presentation for the current module + tenant.
     expect(trainingViewSource).toContain("resolvedPresentationQuery");

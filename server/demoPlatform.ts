@@ -1989,6 +1989,38 @@ export function getAuthoringLibraryContent(input: { scope: "core" | "tenant"; te
   return { assets: resolveLibraryAssets(tenantId) };
 }
 
+// Apply a layer's patches + adds WITHOUT its hides — so a tombstoned item can still
+// be listed (with its resolved content) for the restore shelf.
+function withPatchesAndAdds<T extends ContentItem>(items: T[], set: ContentOverrideSet<T>): T[] {
+  const patched = items.map((item) => (set.patches[item.id] ? { ...item, ...set.patches[item.id] } : item));
+  const present = new Set(patched.map((item) => item.id));
+  return [...patched, ...set.added.filter((added) => !present.has(added.id))];
+}
+
+export type HiddenLibraryAsset = { id: string; title: string; sourceKind: "chcg" | "client_upload"; category: string };
+
+// LIBRARY4: tombstoned assets for the current scope's own layer (core hides at core
+// scope; this tenant's hides at tenant scope) — the restore shelf's source. Mirrors
+// getAuthoringLesson's hiddenSlides. resolveLibraryAssets is left untouched.
+export function getHiddenLibraryAssets(input: { scope: "core" | "tenant"; tenantId?: string }): { assets: HiddenLibraryAsset[] } {
+  const key = contentStoreKey("libraryAsset", LIBRARY_COLLECTION_KEY);
+  const coreSet = (coreContentOverrides.get(key) as ContentOverrideSet<ContentLibraryAsset> | undefined) ?? emptyOverrideSet<ContentLibraryAsset>();
+  const toHidden = (asset: ContentLibraryAsset): HiddenLibraryAsset => ({ id: asset.id, title: asset.title, sourceKind: asset.sourceKind, category: asset.category });
+
+  if (input.scope === "core") {
+    const prehide = withPatchesAndAdds(getCoreLibrarySeed(), coreSet);
+    const hidden = new Set(coreSet.hidden);
+    return { assets: prehide.filter((asset) => hidden.has(asset.id)).map(toHidden) };
+  }
+  const tenantId = input.tenantId ?? null;
+  const base = tenantId ? getTenantLibraryBase(tenantId) : getCoreLibrarySeed();
+  const afterCore = applyOverrideSet<ContentLibraryAsset>(base, coreSet); // core hides drop globally (not tenant-restorable)
+  const tenantSet = tenantId ? (tenantContentOverrides.get(tenantId)?.get(key) as ContentOverrideSet<ContentLibraryAsset> | undefined) : undefined;
+  const prehide = tenantSet ? withPatchesAndAdds(afterCore, tenantSet) : afterCore;
+  const hidden = new Set(tenantSet?.hidden ?? []);
+  return { assets: prehide.filter((asset) => hidden.has(asset.id)).map(toHidden) };
+}
+
 // sourceKind + tenantId are scope-derived, never author-set: forced on add and
 // stripped from patches so an edit can't move an asset between layers.
 function normalizeLibraryOp(scope: "core" | "tenant", tenantId: string | undefined, op: ContentOverrideOp<ContentLibraryAsset>): ContentOverrideOp<ContentLibraryAsset> {

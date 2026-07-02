@@ -9,6 +9,7 @@ import {
   getAuthoringQuizContent,
   authorLibraryContent,
   getAuthoringLibraryContent,
+  getHiddenLibraryAssets,
   authorLessonSlide,
   authorModuleBrief,
   getAuthoringLesson,
@@ -554,6 +555,16 @@ export const demoRouter = router({
   secureAuthorLibraryTenant: protectedProcedure.input(authoringLibraryWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return authorLibraryContent({ scope: "tenant", tenantId, op: input.op });
+  }),
+  // LIBRARY4: tombstoned-asset read for the restore shelf (unhide reuses the
+  // previewAuthorLibrary{Tenant,Core} mutations with a generic unhide op).
+  previewHiddenLibrary: publicProcedure.input(authoringLibraryReadInput).query(({ input }) => getHiddenLibraryAssets(input)),
+  secureHiddenLibrary: protectedProcedure.input(authoringLibraryReadInput).query(({ ctx, input }) => {
+    if (input.scope === "tenant") {
+      const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+      return getHiddenLibraryAssets({ ...input, tenantId });
+    }
+    return getHiddenLibraryAssets(input);
   }),
   previewAuthorLibraryCore: publicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
     authorLibraryContent({ scope: "core", op: input.op }),

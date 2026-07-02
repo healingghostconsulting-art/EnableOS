@@ -185,6 +185,8 @@ function libraryDraftToItem(draft: LibraryDraft) {
 function LibraryAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
   const content = trpc.demo.previewAuthoringLibrary.useQuery({ scope, tenantId });
   const assets = content.data?.assets ?? [];
+  const hiddenQuery = trpc.demo.previewHiddenLibrary.useQuery({ scope, tenantId });
+  const hidden = hiddenQuery.data?.assets ?? [];
   const authorTenant = trpc.demo.previewAuthorLibraryTenant.useMutation();
   const authorCore = trpc.demo.previewAuthorLibraryCore.useMutation();
   const saving = authorTenant.isPending || authorCore.isPending;
@@ -199,12 +201,28 @@ function LibraryAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenan
       } else {
         await authorTenant.mutateAsync({ scope: "tenant", tenantId, op });
       }
-      await content.refetch();
+      await Promise.all([content.refetch(), hiddenQuery.refetch()]);
       toast.success(`Saved to ${scopeLabel}`);
       return true;
     } catch {
       toast.error("Could not save the edit");
       return false;
+    }
+  };
+
+  // Reversible hide: reuse the generic hide op + the shared Undo toast (mirrors
+  // the lesson slide hide). Restore also lives in the HiddenItemsShelf below.
+  const hideAsset = async (id: string) => {
+    try {
+      if (scope === "core") {
+        await authorCore.mutateAsync({ scope: "core", op: { kind: "hide", id } });
+      } else {
+        await authorTenant.mutateAsync({ scope: "tenant", tenantId, op: { kind: "hide", id } });
+      }
+      await Promise.all([content.refetch(), hiddenQuery.refetch()]);
+      toast("Asset hidden", { action: { label: "Undo", onClick: () => runOp({ kind: "unhide", id }) } });
+    } catch {
+      toast.error("Could not hide the asset");
     }
   };
 
@@ -262,13 +280,19 @@ function LibraryAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenan
               <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft(assetToLibraryDraft(asset)); setIsNew(false); }} className="rounded-full text-slate-300 hover:bg-white/10 hover:text-white">
                 <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
               </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => runOp({ kind: "hide", id: asset.id })} className="rounded-full text-slate-400 hover:bg-rose-500/10 hover:text-rose-200" title={scope === "tenant" && asset.sourceKind === "chcg" ? "Hide this CHCG asset for this client" : "Hide from the library"}>
+              <Button type="button" size="sm" variant="ghost" onClick={() => hideAsset(asset.id)} className="rounded-full text-slate-400 hover:bg-rose-500/10 hover:text-rose-200" title={scope === "tenant" && asset.sourceKind === "chcg" ? "Hide this CHCG asset for this client" : "Hide from the library"}>
                 <EyeOff className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
         ))}
       </div>
+
+      <HiddenItemsShelf
+        items={hidden.map((asset: { id: string; title: string; sourceKind: "chcg" | "client_upload"; category: string }) => ({ id: asset.id, label: `${asset.title} · ${asset.sourceKind === "chcg" ? "CHCG core" : "Client upload"} · ${asset.category}` }))}
+        onRestore={(id) => runOp({ kind: "unhide", id })}
+        noun="asset"
+      />
 
       <Dialog open={draft !== null} onOpenChange={(open) => (!open ? setDraft(null) : undefined)}>
         <DialogContent className="max-h-[88vh] overflow-y-auto border-white/10 bg-slate-950 text-slate-100 sm:max-w-2xl">
