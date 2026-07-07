@@ -32,6 +32,8 @@ export interface ContentOverrideRepository {
   deleteRow(key: OverrideRowKey): void;
   /** Delete all rows for one item within a collection (e.g. remove → drop add + patch). */
   deleteItem(scopeKey: OverrideScopeKey, itemId: string): void;
+  /** Await any in-flight fire-and-forget writes (tests / graceful shutdown). */
+  flush(): Promise<void>;
 }
 
 function sameScope(row: OverrideRow, key: OverrideScopeKey): boolean {
@@ -62,6 +64,9 @@ export class InMemoryContentOverrideRepository implements ContentOverrideReposit
   deleteItem(scopeKey: OverrideScopeKey, itemId: string): void {
     this.rows = this.rows.filter((row) => !(sameScope(row, scopeKey) && row.itemId === itemId));
   }
+  async flush(): Promise<void> {
+    // Writes are synchronous; nothing to await.
+  }
 }
 
 /** Drizzle/MySQL repository. Guarded by getDb() and try/catch — a no-op when the DB is unavailable. */
@@ -87,8 +92,10 @@ export class DrizzleContentOverrideRepository implements ContentOverrideReposito
     }
   }
 
+  private pending = new Set<Promise<void>>();
+
   private run(work: (db: NonNullable<Awaited<ReturnType<typeof getDb>>>) => Promise<void>): void {
-    void (async () => {
+    const task = (async () => {
       const db = await getDb();
       if (!db) return;
       try {
@@ -97,6 +104,12 @@ export class DrizzleContentOverrideRepository implements ContentOverrideReposito
         console.warn("[ContentStore] persist failed (in-memory state is ahead of DB):", error);
       }
     })();
+    this.pending.add(task);
+    void task.finally(() => this.pending.delete(task));
+  }
+
+  async flush(): Promise<void> {
+    await Promise.all(Array.from(this.pending));
   }
 
   upsertRow(row: OverrideRow): void {
