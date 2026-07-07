@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -77,3 +77,29 @@ export type DocumentationEntry = typeof documentationEntries.$inferSelect;
 export type InsertDocumentationEntry = typeof documentationEntries.$inferInsert;
 export type ReviewLog = typeof reviewLogs.$inferSelect;
 export type InsertReviewLog = typeof reviewLogs.$inferInsert;
+
+/**
+ * Authoring ContentStore override layer (PERSIST2). Per-item rows: one row per
+ * (scope, tenant, content_type, collection_key, item_id, op). tenant_id '' = core;
+ * item_id '' = set-level meta. payload is JSON.stringify of the op's data (NULL for
+ * a hide row). Base/canonical content is code-seeded and never stored here.
+ */
+export const contentOverrides = mysqlTable("content_overrides", {
+  id: int("id").autoincrement().primaryKey(),
+  scope: mysqlEnum("scope", ["core", "tenant"]).notNull(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull().default(""),
+  contentType: varchar("content_type", { length: 48 }).notNull(),
+  collectionKey: varchar("collection_key", { length: 191 }).notNull(),
+  itemId: varchar("item_id", { length: 191 }).notNull().default(""),
+  op: mysqlEnum("op", ["patch", "hide", "add", "meta"]).notNull(),
+  payload: text("payload"),
+  position: int("position").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  naturalKey: unique("content_overrides_natural").on(table.scope, table.tenantId, table.contentType, table.collectionKey, table.itemId, table.op),
+  lookup: index("content_overrides_lookup").on(table.scope, table.tenantId, table.contentType, table.collectionKey),
+}));
+
+export type ContentOverride = typeof contentOverrides.$inferSelect;
+export type InsertContentOverride = typeof contentOverrides.$inferInsert;

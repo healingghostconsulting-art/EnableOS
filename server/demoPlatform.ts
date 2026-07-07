@@ -14,6 +14,11 @@ import {
   type SeedPresentation,
 } from "../shared/trainingContent";
 import { clientKpiProfiles, defaultKpiProfile, getKpiScorecard } from "../shared/kpiScorecards";
+import {
+  DrizzleContentOverrideRepository,
+  type ContentOverrideRepository,
+  type OverrideRow,
+} from "./contentOverrideRepository";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -1734,6 +1739,102 @@ function contentStoreKey(type: ContentCollectionType, collectionKey: string) {
 const coreContentOverrides = new Map<string, ContentOverrideSet<ContentItem>>();
 const tenantContentOverrides = new Map<string, Map<string, ContentOverrideSet<ContentItem>>>();
 
+// PERSIST2: the Maps above are the running read cache; this repository durably
+// backs them. Default = Drizzle (no-op without a DB); tests swap in the in-memory
+// impl. Writes are fire-and-forget; hydrateContentStore() reloads at boot.
+let contentOverrideRepo: ContentOverrideRepository = new DrizzleContentOverrideRepository();
+
+/** Test seam: swap the persistence repository (e.g. the in-memory impl). */
+export function __setContentOverrideRepository(repo: ContentOverrideRepository): void {
+  contentOverrideRepo = repo;
+}
+
+// Translate an applied op into its persisted row delta (the in-memory set has
+// already been mutated; we read the resulting merged state from it).
+function persistContentDelta(scope: "core" | "tenant", tenantId: string, type: ContentCollectionType, collectionKey: string, set: ContentOverrideSet<ContentItem>, op: ContentOverrideOp<ContentItem>): void {
+  const scopeKey = { scope, tenantId, contentType: type, collectionKey };
+  switch (op.kind) {
+    case "patch":
+      contentOverrideRepo.upsertRow({ ...scopeKey, itemId: op.id, op: "patch", payload: JSON.stringify(set.patches[op.id]), position: 0 });
+      break;
+    case "hide":
+      contentOverrideRepo.upsertRow({ ...scopeKey, itemId: op.id, op: "hide", payload: null, position: 0 });
+      break;
+    case "unhide":
+      contentOverrideRepo.deleteRow({ ...scopeKey, itemId: op.id, op: "hide" });
+      break;
+    case "add": {
+      const position = set.added.findIndex((item) => item.id === op.item.id);
+      contentOverrideRepo.upsertRow({ ...scopeKey, itemId: op.item.id, op: "add", payload: JSON.stringify(op.item), position: position < 0 ? set.added.length : position });
+      break;
+    }
+    case "remove":
+      contentOverrideRepo.deleteItem(scopeKey, op.id);
+      break;
+    case "meta":
+      contentOverrideRepo.upsertRow({ ...scopeKey, itemId: "", op: "meta", payload: JSON.stringify(set.meta), position: 0 });
+      break;
+  }
+}
+
+// Rebuild one ContentOverrideSet from its rows EXACTLY as mutateOverrideSet would
+// have left it: patches by id, hidden in insertion order, added in position order,
+// meta from the item_id='' row, then patches re-applied in place to added items.
+function rebuildOverrideSet(rows: OverrideRow[]): ContentOverrideSet<ContentItem> {
+  const set = emptyOverrideSet<ContentItem>();
+  const ordered = rows.slice().sort((a, b) => a.position - b.position); // stable → insertion order within equal positions
+  for (const row of ordered) {
+    if (row.op === "patch") set.patches[row.itemId] = JSON.parse(row.payload as string);
+    else if (row.op === "hide") set.hidden.push(row.itemId);
+    else if (row.op === "add") set.added.push(JSON.parse(row.payload as string) as ContentItem);
+    else if (row.op === "meta") set.meta = JSON.parse(row.payload as string);
+  }
+  for (const item of set.added) {
+    if (set.patches[item.id]) Object.assign(item, set.patches[item.id]);
+  }
+  return set;
+}
+
+/** Boot hydration: load persisted overrides into the Maps. No-op when the DB is unavailable. */
+export async function hydrateContentStore(): Promise<void> {
+  const rows = await contentOverrideRepo.loadAll();
+  coreContentOverrides.clear();
+  tenantContentOverrides.clear();
+  const groups = new Map<string, OverrideRow[]>();
+  for (const row of rows) {
+    const groupKey = `${row.scope} ${row.tenantId} ${row.contentType} ${row.collectionKey}`;
+    const bucket = groups.get(groupKey);
+    if (bucket) bucket.push(row);
+    else groups.set(groupKey, [row]);
+  }
+  for (const groupRows of Array.from(groups.values())) {
+    const first = groupRows[0]!;
+    const set = rebuildOverrideSet(groupRows);
+    const key = contentStoreKey(first.contentType as ContentCollectionType, first.collectionKey);
+    if (first.scope === "core") {
+      coreContentOverrides.set(key, set);
+    } else {
+      const byKey = tenantContentOverrides.get(first.tenantId) ?? new Map<string, ContentOverrideSet<ContentItem>>();
+      byKey.set(key, set);
+      tenantContentOverrides.set(first.tenantId, byKey);
+    }
+  }
+}
+
+/** Test helper: clear the in-memory override Maps. */
+export function __resetContentStore(): void {
+  coreContentOverrides.clear();
+  tenantContentOverrides.clear();
+}
+
+/** Test helper: a deep-cloned plain-object snapshot of the override Maps (for equality checks). */
+export function __snapshotContentStore(): { core: Record<string, unknown>; tenant: Record<string, Record<string, unknown>> } {
+  return {
+    core: Object.fromEntries(Array.from(coreContentOverrides.entries()).map(([key, value]) => [key, structuredClone(value)])),
+    tenant: Object.fromEntries(Array.from(tenantContentOverrides.entries()).map(([tenant, byKey]) => [tenant, Object.fromEntries(Array.from(byKey.entries()).map(([key, value]) => [key, structuredClone(value)]))])),
+  };
+}
+
 function applyOverrideSet<T extends ContentItem>(base: T[], set: ContentOverrideSet<T>): T[] {
   const hidden = new Set(set.hidden);
   const resolved = base
@@ -1813,6 +1914,7 @@ export function putCoreContent<T extends ContentItem>(
   const set = (coreContentOverrides.get(key) as ContentOverrideSet<T> | undefined) ?? emptyOverrideSet<T>();
   mutateOverrideSet(set, op);
   coreContentOverrides.set(key, set as ContentOverrideSet<ContentItem>);
+  persistContentDelta("core", "", type, collectionKey, set as ContentOverrideSet<ContentItem>, op as ContentOverrideOp<ContentItem>);
 }
 
 /** WRITE — tenant layer (client_admin). Scoped to one tenant; never mutates core. */
@@ -1828,6 +1930,7 @@ export function putTenantContent<T extends ContentItem>(
   mutateOverrideSet(set, op);
   byKey.set(key, set as ContentOverrideSet<ContentItem>);
   tenantContentOverrides.set(tenantId, byKey);
+  persistContentDelta("tenant", tenantId, type, collectionKey, set as ContentOverrideSet<ContentItem>, op as ContentOverrideOp<ContentItem>);
 }
 
 // ── Quiz-question content layer (Wave 1) ────────────────────────────────────
