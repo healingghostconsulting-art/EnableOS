@@ -3081,7 +3081,15 @@ function InlineAssessmentShell({
 
 export function GuideView() {
   const access = trpc.demo.viewerAccess.useQuery();
-  const currentRole = access.data?.grant.role ?? "learner";
+  const [location] = useLocation();
+  // The Guide is a shared page; "Current role focus" tracks the ACTIVE workspace role
+  // (the ?role= scope the sidebar is showing), falling back to the account's grant role.
+  const activeRole = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const role = new URLSearchParams(window.location.search).get("role");
+    return (["executive", "manager", "coach", "learner", "client_admin", "platform_admin"] as string[]).includes(role ?? "") ? role : null;
+  }, [location]);
+  const currentRole = activeRole ?? access.data?.grant.role ?? "learner";
   const currentRoleLabel = currentRole === "platform_admin"
     ? "Platform admin"
     : currentRole === "client_admin"
@@ -3419,7 +3427,7 @@ export function LandingView() {
                   <div>
                     <p className="text-sm font-semibold text-[#1B303C]">Signed in to {viewerAccess.data.tenant.name}</p>
                     <p className="mt-2 text-sm leading-6 text-[#4A6373]">
-                      This account will only open workspaces granted to {viewerAccess.data.permittedRoles.join(", ")}. Use the selector below to continue, or jump directly to your assigned home.
+                      This account will only open workspaces granted to {viewerAccess.data.permittedRoles.filter((role) => workspaceEntryOptions.some((option) => option.role === role)).join(", ")}. Use the selector below to continue, or jump directly to your assigned home.
                     </p>
                   </div>
                   <Link href={viewerHomeHref}>
@@ -3770,7 +3778,7 @@ export function ReportingWorkspaceView() {
   return (
     <Surface>
       <WorkspaceShell
-        title="Client reporting workspace"
+        title="Reporting Hub"
         subtitle="Explore ROI movement, question risk, benchmark context, and error-rate trends."
         actions={
           access.data ? (
@@ -7699,7 +7707,7 @@ export function ChcgAdminView() {
       <SectionShell
         eyebrow="CHCG Admin"
         title="Organization control plane"
-        description="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy from one admin surface."
+        description="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy."
       >
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
@@ -9328,27 +9336,15 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
               </div>
             )}
           </div>
-          <div className="grid gap-3">
-            {executiveHeroView === "reporting" ? (
-              <>
-                <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Current headline</p>
-                  <h3 className="mt-2 text-lg font-semibold text-white">{data.reportingOverview.headline}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{data.reportingOverview.summary}</p>
-                </div>
-                <div className="rounded-[1.2rem] border border-emerald-400/20 bg-white/6 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Proof cue</p>
-                  <p className="mt-2 text-sm leading-6 text-emerald-200">{data.proofOfImpact.headline}</p>
-                </div>
-              </>
-            ) : (
+          {executiveHeroView === "decisionQueue" ? (
+            <div className="grid gap-3">
               <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Decision queue</p>
                 <h3 className="mt-2 text-lg font-semibold text-white">Four executive approvals are waiting.</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-300">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
               </div>
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -11471,7 +11467,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
   const learnerStats: WorkspaceStat[] = [
     { label: "Readiness score", value: data.learner.readinessScore, sub: data.learner.title, icon: <Gauge className="h-4 w-4" /> },
     { label: "Journey progress", value: `${data.activeJourney.progress}%`, sub: data.activeJourney.title, icon: <BookOpen className="h-4 w-4" /> },
-    { label: "Modules complete", value: `${completedLearnerModules}/${learnerModules.length}`, sub: "Over 80% complete", icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: "Modules complete", value: `${completedLearnerModules}/${learnerModules.length}`, sub: `${learnerModules.length ? Math.round((completedLearnerModules / learnerModules.length) * 100) : 0}% of your journey`, icon: <CheckCircle2 className="h-4 w-4" /> },
     { label: learnerWorkspaceCopy.assignedReengagementsMetricLabel, value: data.assignedInterventions.length, sub: learnerWorkspaceCopy.assignedReengagementsMetricSupporting, icon: <Target className="h-4 w-4" />, onClick: () => setActiveTab("reengagements") },
     { label: "Next coaching", value: new Date(data.nextCoachingSession.dueDate).toLocaleDateString(), sub: data.nextCoachingSession.title, icon: <Bell className="h-4 w-4" />, onClick: () => setActiveTab("coaching") },
   ];
@@ -12109,7 +12105,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <div className="mt-4 max-w-4xl space-y-3">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-300">Tenant operating queue</p>
                 <h3 className="text-[1.9rem] font-semibold tracking-tight text-white">{data.branding.preferredLabel}</h3>
-                <p className="text-sm leading-7 text-slate-100">Use one control plane for branding, role setup, governance review, and documentation follow-up so the admin team can finish setup without jumping between showcase panels.</p>
+                <p className="text-sm leading-7 text-slate-100">One control plane for branding, role setup, governance review, and documentation follow-up.</p>
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -12155,7 +12151,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <div className="flex flex-col gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Control cues</p>
-              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Use one mode at a time so tenant admins never have to scroll through branding, permissions, coaching, and evidence all at once.</p>
+              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Manage branding, permissions, coaching, and evidence one mode at a time.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {data.configuration.slice(0, 4).map((item: any) => (
@@ -12181,7 +12177,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Client control modes</p>
-              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between overview, branding, role architecture, and governance instead of scrolling through every admin surface sequentially.</p>
+              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between overview, branding, role architecture, and governance.</p>
             </div>
             <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
               <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
@@ -12197,7 +12193,7 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
           <PremiumCard id="admin-overview-section">
             <CardHeader>
               <CardTitle className="text-white">Tenant operating snapshot</CardTitle>
-              <CardDescription className="text-slate-400">Force-fed information for the three admin decisions that matter most right now.</CardDescription>
+              <CardDescription className="text-slate-400">The three admin decisions that need attention now.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="guide-card p-4">

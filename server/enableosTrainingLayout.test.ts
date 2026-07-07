@@ -424,7 +424,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps executive question reporting visible with peer comparison, high-alert language, and exact-target drill-down actions", () => {
-    expect(trainingViewSource).toContain("Client reporting workspace");
+    expect(trainingViewSource).toContain("Reporting Hub");
     expect(trainingViewSource).toContain("Assessment question reporting");
     expect(trainingViewSource).toContain("Miss rate");
     expect(trainingViewSource).toContain("Peer readiness");
@@ -466,7 +466,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("keeps reporting available as a dedicated workspace with interactive trend charts", () => {
-    expect(trainingViewSource).toContain("Client reporting workspace");
+    expect(trainingViewSource).toContain("Reporting Hub");
     expect(trainingViewSource).toContain("Interactive ROI trend explorer");
     expect(trainingViewSource).toContain("Interactive error-rate trend explorer");
     expect(trainingViewSource).toContain("ROI trend over time");
@@ -652,6 +652,16 @@ describe("learner training layout helpers", () => {
     expect(guideSource).not.toContain("Use the Guide to explain the system once");
     expect(guideSource).not.toContain("leaving the Guide available as a safe shared orientation page");
     expect(guideSource).toContain("Lead with your role's daily work");
+  });
+
+  it("Guide 'Current role focus' tracks the active workspace role, not the account grant role (M3)", () => {
+    const guideSource = trainingViewSource.slice(trainingViewSource.indexOf("export function GuideView"), trainingViewSource.indexOf("export function LandingView"));
+    // currentRole derives from the active ?role= param, falling back to the grant role.
+    expect(guideSource).toContain("const activeRole = useMemo");
+    expect(guideSource).toContain('new URLSearchParams(window.location.search).get("role")');
+    expect(guideSource).toContain("const currentRole = activeRole ?? access.data?.grant.role ?? \"learner\"");
+    // The role focus card + label read that derived role (so learner→Learner, manager→Manager…).
+    expect(guideSource).toContain("<CardTitle className=\"text-2xl\">{currentRoleLabel}</CardTitle>");
   });
 
   it("gives Manager Documentation the preview-to-popout treatment and hides the stale override pill for managers (MGR7)", () => {
