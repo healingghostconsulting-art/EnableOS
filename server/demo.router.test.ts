@@ -10,6 +10,7 @@ vi.mock("./storage", () => ({
 
 const { storagePut } = await import("./storage");
 import { appRouter } from "./routers";
+import { demoNow } from "../shared/demoClock";
 import type { TrpcContext } from "./_core/context";
 
 function createContext(overrides?: Partial<NonNullable<TrpcContext["user"]>>): TrpcContext {
@@ -276,6 +277,8 @@ describe("demo router", () => {
       expect.arrayContaining([expect.objectContaining({ title: "Service Foundations Playbook" })]),
     );
     expect(learner.nextCoachingSession).toEqual(expect.objectContaining({ title: expect.any(String) }));
+    // M4: the learner's next coaching session is forward-looking (never in the past).
+    expect(new Date(learner.nextCoachingSession.dueDate).getTime()).toBeGreaterThanOrEqual(demoNow().getTime());
     expect(learner.weeklyCoachingLogs[0]).toEqual(expect.objectContaining({ coachEmail: expect.stringContaining('@') }));
     expect(learner.workflowLibraryMix.journeyResources).toEqual(
       expect.arrayContaining([

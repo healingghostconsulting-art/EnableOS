@@ -40,4 +40,19 @@ describe("catalog courses (CAT3 data layer)", () => {
     for (const course of courses) expect(trackIds.has(course.track)).toBe(true);
     expect((lib as { courses: unknown[] }).courses.length).toBe(courses.length);
   });
+
+  // M1: the Soft Skills title must be canonical + identical across the catalog course,
+  // the library Resources asset, and the deck sourceDeck (no "…Customer Service Foundations" drift).
+  it("uses one canonical Soft Skills title across catalog course, library asset, and deck", () => {
+    const CANONICAL = "Soft Skills & Customer/Patient Service Foundation";
+    const lib = listContentLibrary();
+    const catalogCourse = courses.find((c) => c.deckId === "softskills");
+    const libraryAsset = lib.chcgAssets.find((a: { id: string; title: string }) => a.id === "library-service-foundations-core");
+    const deck = slideDecks.find((d) => d.id === "softskills");
+
+    expect(catalogCourse?.title).toBe(CANONICAL);
+    expect(libraryAsset?.title).toBe(CANONICAL);
+    expect(deck?.sourceDeck).toBe(CANONICAL);
+    expect(catalogCourse?.title).not.toContain("Customer Service Foundations");
+  });
 });

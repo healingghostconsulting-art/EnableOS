@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { slideDecks } from "../shared/slideManifest";
 import { storagePut } from "./storage";
-import { isoDaysFromNow, dateOnlyDaysFromNow } from "../shared/demoClock";
+import { isoDaysFromNow, dateOnlyDaysFromNow, demoNow } from "../shared/demoClock";
 import {
   getTrainingPresentation,
   getSeedPresentation,
@@ -2702,6 +2702,18 @@ function getTenantCoachingSessions(tenantId: string) {
   return coachingSessions.filter((session) => session.tenantId === tenantId);
 }
 
+// M4: the learner's "Next coaching" must be forward-looking. Prefer the soonest
+// upcoming scheduled session (dueDate >= demoNow), so it's never in the past;
+// fall back to any scheduled, then the first learner session.
+function getNextCoachingSession(tenantId: string, learnerUserId: string): CoachingSession {
+  const sessions = getTenantCoachingSessions(tenantId).filter((session) => session.learnerUserId === learnerUserId);
+  const now = demoNow().getTime();
+  const upcoming = sessions
+    .filter((session) => session.status === "scheduled" && new Date(session.dueDate).getTime() >= now)
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  return upcoming[0] ?? sessions.find((session) => session.status === "scheduled") ?? sessions[0] ?? coachingSessions[0]!;
+}
+
 function getTenantTrainingEntitlement(tenantId: string): TenantTrainingEntitlement {
   const seeded = tenantTrainingEntitlements.get(tenantId);
   if (seeded) {
@@ -2895,7 +2907,7 @@ export type CatalogCourse = {
 };
 
 const CATALOG_COURSE_SEED: Array<Omit<CatalogCourse, "description" | "coverImage" | "slideCount" | "durationMinutes" | "source" | "launchPath"> & { journeyId: string; moduleId: string }> = [
-  { id: "course-softskills", title: "Soft Skills & Customer Service Foundations", track: "track-service-foundations", deckId: "softskills", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", tags: ["communication", "empathy", "service recovery"], status: "completed", percentComplete: 100, recommended: false },
+  { id: "course-softskills", title: "Soft Skills & Customer/Patient Service Foundation", track: "track-service-foundations", deckId: "softskills", journeyId: "journey-service-foundations", moduleId: "mod-sf-1", tags: ["communication", "empathy", "service recovery"], status: "completed", percentComplete: 100, recommended: false },
   { id: "course-qa", title: "Quality Assurance Essentials", track: "track-workflow-precision", deckId: "qa", journeyId: "journey-workflow-precision", moduleId: "mod-wp-1", tags: ["qa", "verification", "calibration"], status: "in_progress", percentComplete: 62, lastSlideIndex: 23, recommended: false },
   { id: "course-coaching", title: "Real-time Coaching", track: "track-real-time-coaching", deckId: "coaching", journeyId: "journey-coach-practice-atlas", moduleId: "mod-rtc-1", tags: ["coaching", "feedback", "accountability"], status: "in_progress", percentComplete: 34, lastSlideIndex: 10, recommended: false },
   { id: "course-wfm-kpi", title: "Workforce Management & KPIs", track: "track-workforce-management", deckId: "wfm-kpi", journeyId: "journey-wfm-kpi", moduleId: "mod-wfm-1", tags: ["wfm", "kpi", "adherence"], status: "recommended", percentComplete: 0, recommended: true },
@@ -4366,7 +4378,7 @@ export function getLearnerDashboard(tenantId?: string, options?: LearnerDashboar
     reviewLogs: learnerVisibleReviewLogs,
     weeklyCoachingLogs: learnerVisibleWeeklyCoachingLogs,
     notifications: notifications.filter((item) => item.tenantId === tenant.id && (item.audience === "learner" || item.audience === "all")),
-    nextCoachingSession: getTenantCoachingSessions(tenant.id).find((session) => session.learnerUserId === learner.id) ?? coachingSessions[0],
+    nextCoachingSession: getNextCoachingSession(tenant.id, learner.id),
     workflowLibraryMix,
   };
 }
