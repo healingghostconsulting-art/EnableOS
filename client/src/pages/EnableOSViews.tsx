@@ -3512,7 +3512,15 @@ export function LandingView() {
 
 export function MissionHubView() {
   const viewerAccess = trpc.demo.viewerAccess.useQuery();
-  const role = viewerAccess.data?.grant.role ?? "learner";
+  const [location] = useLocation();
+  // Mission Hub is a shared page; its role context tracks the ACTIVE workspace role
+  // (the ?role= scope the sidebar is showing), falling back to the account's grant role.
+  const activeRole = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const role = new URLSearchParams(window.location.search).get("role");
+    return (["executive", "manager", "coach", "learner", "client_admin", "platform_admin"] as string[]).includes(role ?? "") ? role : null;
+  }, [location]);
+  const role = activeRole ?? viewerAccess.data?.grant.role ?? "learner";
   const tenantName = viewerAccess.data?.tenant.name ?? "your program";
   const missionHubContentByRole: Record<string, {
     title: string;
@@ -7138,7 +7146,7 @@ export function ContentLibraryView() {
     { label: "Library assets", value: library.data.stats.totalAssets, sub: "Visible in this workspace", icon: <BookOpen className="h-4 w-4" /> },
     { label: "CHCG core", value: library.data.stats.chcgAssets, sub: "Built-in tracks", icon: <Sparkles className="h-4 w-4" /> },
     { label: "Client imports", value: library.data.stats.importedAssets, sub: "Tenant-provided", icon: <Layers3 className="h-4 w-4" /> },
-    { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Linked to training", icon: <Target className="h-4 w-4" /> },
+    { label: "Mapped journeys", value: library.data.stats.mappedJourneys, sub: "Journeys these assets feed", icon: <Target className="h-4 w-4" /> },
   ] : [];
 
   // CAT4/CAT5: curated rows + filtered shelves from the seeded CatalogCourse values.

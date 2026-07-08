@@ -664,6 +664,16 @@ describe("learner training layout helpers", () => {
     expect(guideSource).toContain("<CardTitle className=\"text-2xl\">{currentRoleLabel}</CardTitle>");
   });
 
+  it("Mission Hub role context tracks the active workspace role, not the account grant role (L5)", () => {
+    const missionHubSource = trainingViewSource.slice(trainingViewSource.indexOf("export function MissionHubView"), trainingViewSource.indexOf("export function RoleWorkspace"));
+    // Like the Guide, Mission Hub's role derives from the active ?role= param, grant role as fallback.
+    expect(missionHubSource).toContain("const activeRole = useMemo");
+    expect(missionHubSource).toContain('new URLSearchParams(window.location.search).get("role")');
+    expect(missionHubSource).toContain("const role = activeRole ?? viewerAccess.data?.grant.role ?? \"learner\"");
+    // The role drives which persona's Mission Hub content renders (with a learner fallback).
+    expect(missionHubSource).toContain("missionHubContentByRole[role] ?? missionHubContentByRole.learner");
+  });
+
   it("gives Manager Documentation the preview-to-popout treatment and hides the stale override pill for managers (MGR7)", () => {
     // The inline review-log form + inline history are now launcher cards that open in focused popups.
     expect(trainingViewSource).toContain("title=\"Write a coaching log\"");
