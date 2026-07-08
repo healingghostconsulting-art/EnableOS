@@ -1635,10 +1635,9 @@ const tenantTrainingEntitlements = new Map<string, TenantTrainingEntitlement>([
       licensedAssetIds: [
         "library-service-foundations-core",
         "library-qa-essentials",
-        "library-workflow-field-kit",
-        "library-data-led-leadership",
+        "library-workflow-precision-kit",
+        "library-data-leadership-studio",
         "library-performance-governance",
-        "library-engagement-recognition",
         "library-atlas-launch-readiness",
       ],
     },
@@ -1671,12 +1670,28 @@ const tenantTrainingEntitlements = new Map<string, TenantTrainingEntitlement>([
       ],
       licensedAssetIds: [
         "library-service-foundations-core",
-        "library-workflow-field-kit",
-        "library-engagement-recognition",
+        "library-gamified-engagement",
       ],
     },
   ],
 ]);
+
+/**
+ * Integrity guard: every id a tenant licenses must resolve to a real ContentLibraryAsset.
+ * Returns any (tenantId, assetId) pairs that reference a non-existent asset — a dead
+ * licensed reference (the "7 licensed but 6 render" gap). Used by tests to fail fast on
+ * future drift; an empty array means the entitlement map and the asset catalog agree.
+ */
+export function findUnresolvedLicensedAssetIds(): Array<{ tenantId: string; assetId: string }> {
+  const assetIds = new Set(contentLibraryAssets.map((asset) => asset.id));
+  const dangling: Array<{ tenantId: string; assetId: string }> = [];
+  tenantTrainingEntitlements.forEach((entitlement, tenantId) => {
+    for (const assetId of entitlement.licensedAssetIds) {
+      if (!assetIds.has(assetId)) dangling.push({ tenantId, assetId });
+    }
+  });
+  return dangling;
+}
 
 const brandingOverrides = new Map<string, Partial<TenantBranding>>();
 

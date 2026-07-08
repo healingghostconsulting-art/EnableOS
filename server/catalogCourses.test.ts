@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogCourses, listContentLibrary } from "./demoPlatform";
+import { buildCatalogCourses, listContentLibrary, findUnresolvedLicensedAssetIds } from "./demoPlatform";
 import { slideDecks } from "../shared/slideManifest";
 
 describe("catalog courses (CAT3 data layer)", () => {
@@ -54,5 +54,12 @@ describe("catalog courses (CAT3 data layer)", () => {
     expect(libraryAsset?.title).toBe(CANONICAL);
     expect(deck?.sourceDeck).toBe(CANONICAL);
     expect(catalogCourse?.title).not.toContain("Customer Service Foundations");
+  });
+
+  // L3a: every licensed asset id must resolve to a real ContentLibraryAsset, so the
+  // library stat row reconciles (no "licensed but missing" gap like the removed
+  // "library-engagement-recognition"). Guards against future dead references.
+  it("every tenant's licensed asset ids resolve to a real library asset", () => {
+    expect(findUnresolvedLicensedAssetIds()).toEqual([]);
   });
 });
