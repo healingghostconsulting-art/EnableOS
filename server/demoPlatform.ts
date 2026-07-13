@@ -2705,6 +2705,16 @@ function getUserById(userId: string, tenantId?: string) {
   return users.find((user) => user.tenantId === tenant.id && user.id === userId) ?? null;
 }
 
+// Public accessors for the notification recipient resolver (DELIVER2). Both return
+// null when unmatched (never a fallback user) so callers can honestly skip.
+export function findDemoUserById(userId: string, tenantId?: string): DemoUser | null {
+  return getUserById(userId, tenantId);
+}
+export function findDemoUserByRole(role: DemoRole, tenantId?: string): DemoUser | null {
+  const tenant = getTenant(tenantId);
+  return users.find((user) => user.tenantId === tenant.id && user.role === role) ?? null;
+}
+
 function getTenantSignals(tenantId: string) {
   return signals.filter((signal) => signal.tenantId === tenantId);
 }
