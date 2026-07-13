@@ -15,6 +15,8 @@ import type { DemoAccessGrant, DemoRole } from "./demoPlatform";
 import { findDemoUserById, findDemoUserByRole } from "./demoPlatform";
 
 export interface Recipient {
+  /** Stable user id — used to key notification preferences. */
+  userId: string;
   email: string;
   name: string;
 }
@@ -29,8 +31,8 @@ export interface ResolverTenant {
   id: string;
 }
 
-const toRecipient = (user: { email: string; name: string } | null): Recipient | null =>
-  user && user.email ? { email: user.email, name: user.name } : null;
+const toRecipient = (user: { id: string; email: string; name: string } | null): Recipient | null =>
+  user && user.email ? { userId: user.id, email: user.email, name: user.name } : null;
 
 /** Default directory — resolves against the demo seed (safe *.demo addresses). */
 export const demoRecipientDirectory: RecipientDirectory = {

@@ -19,6 +19,10 @@ import {
   type ContentOverrideRepository,
   type OverrideRow,
 } from "./contentOverrideRepository";
+// DELIVER3 event hooks. Imported for call-time use only (the demoPlatform ⇄
+// notificationService cycle is resolved lazily — neither touches the other at
+// module-eval time).
+import { notifyRetrainingAssigned, notifyRetrainingCompleted, notifyCoachingLogged } from "./notificationService";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -3451,6 +3455,9 @@ export function createWeeklyCoachingLog(input: CreateWeeklyCoachingLogInput) {
     });
   }
 
+  // DELIVER3: event-triggered dated coaching follow-up invite to the learner.
+  notifyCoachingLogged({ tenantId: input.tenantId, logId: weeklyCoachingLogId, learnerUserId: learner.id, coachName: coach.name });
+
   return created;
 }
 
@@ -3661,6 +3668,9 @@ export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
     },
   );
 
+  // DELIVER3: event-triggered email to the learner (idempotent; stubbed by default).
+  notifyRetrainingAssigned(assignment);
+
   documentationEntries.unshift({
     id: `doc-guidance-${documentationEntries.length + 1}`,
     tenantId: input.tenantId,
@@ -3739,6 +3749,9 @@ export function updateRetrainingAssignmentStatus(input: UpdateRetrainingAssignme
         createdAt: changedAt,
       },
     );
+
+    // DELIVER3: event-triggered completion notice to the manager (idempotent).
+    notifyRetrainingCompleted(assignment, learner.name);
 
     documentationEntries.unshift({
       id: `doc-retraining-complete-${documentationEntries.length + 1}`,

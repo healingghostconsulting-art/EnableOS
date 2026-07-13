@@ -117,13 +117,13 @@ describe("recipient resolver (DELIVER2)", () => {
   it("learner audience → the subject's email", () => {
     const reminder = makeReminder("training_due", { audience: "learner", subjectUserId: "u-learn-1" });
     const recipient = resolveRecipient(reminder, learnerGrant, atlas);
-    expect(recipient).toEqual({ email: "nina.patel@enterpriseworkspace.demo", name: "Nina Patel" });
+    expect(recipient).toEqual({ userId: "u-learn-1", email: "nina.patel@enterpriseworkspace.demo", name: "Nina Patel" });
   });
 
   it("coach/manager audience → the viewer's email (not the subject)", () => {
     const reminder = makeReminder("coaching_cadence_gap", { audience: "coach", subjectUserId: "u-learn-1" });
     const recipient = resolveRecipient(reminder, coachGrant, atlas);
-    expect(recipient).toEqual({ email: "renee.lawson@enterpriseworkspace.demo", name: "Renee Lawson" });
+    expect(recipient).toEqual({ userId: "u-coach-1", email: "renee.lawson@enterpriseworkspace.demo", name: "Renee Lawson" });
   });
 
   it("returns null when the recipient can't be resolved (never guesses)", () => {
