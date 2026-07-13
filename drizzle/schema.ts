@@ -1,4 +1,4 @@
-import { index, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
+import { boolean, index, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -103,3 +103,47 @@ export const contentOverrides = mysqlTable("content_overrides", {
 
 export type ContentOverride = typeof contentOverrides.$inferSelect;
 export type InsertContentOverride = typeof contentOverrides.$inferInsert;
+
+/**
+ * Notification delivery preferences (DELIVER2). Opt-out model: absence of a row
+ * means "enabled". A row can disable a specific (reminderType, channel) pair —
+ * use reminderType '' / channel '' as an "all" wildcard — or set unsubscribedAt
+ * to globally suppress all delivery for that user/tenant (CAN-SPAM unsubscribe).
+ */
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 64 }).notNull(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull(),
+  reminderType: varchar("reminder_type", { length: 48 }).notNull().default(""),
+  channel: varchar("channel", { length: 16 }).notNull().default(""),
+  enabled: boolean("enabled").notNull().default(true),
+  unsubscribedAt: timestamp("unsubscribed_at"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  naturalKey: unique("notification_preferences_natural").on(table.userId, table.tenantId, table.reminderType, table.channel),
+  lookup: index("notification_preferences_lookup").on(table.userId, table.tenantId),
+}));
+
+/**
+ * Notification delivery outbox / idempotency log (DELIVER2). One row per unique
+ * (source.refId + recipient + period) delivery attempt; the unique idempotencyKey
+ * dedups repeat sends of the same reminder to the same recipient in the same
+ * window. status records the outcome for audit.
+ */
+export const notificationOutbox = mysqlTable("notification_outbox", {
+  id: int("id").autoincrement().primaryKey(),
+  idempotencyKey: varchar("idempotency_key", { length: 255 }).notNull(),
+  reminderType: varchar("reminder_type", { length: 48 }).notNull(),
+  recipient: varchar("recipient", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["stubbed", "sent", "failed", "skipped"]).notNull(),
+  renderedSubject: varchar("rendered_subject", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  idemKey: unique("notification_outbox_idem").on(table.idempotencyKey),
+}));
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+export type NotificationOutboxEntry = typeof notificationOutbox.$inferSelect;
+export type InsertNotificationOutboxEntry = typeof notificationOutbox.$inferInsert;
