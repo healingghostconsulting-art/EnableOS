@@ -1231,6 +1231,31 @@ describe("learner training layout helpers", () => {
     expect(reportingPrint).toContain("data.questionReporting");
   });
 
+  it("routes Reporting through WorkspaceShell to the Coach Studio standard (REPORT3)", () => {
+    const reportingSource = trainingViewSource.slice(
+      trainingViewSource.indexOf("function ExecutivePanel"),
+      trainingViewSource.indexOf("// Shared reminder chrome (NOTIF1)"),
+    );
+    // The four metrics ride the shared dark stat bar; the five modes ride the shell.
+    expect(reportingSource).toContain("const executiveStats: WorkspaceStat[]");
+    expect(reportingSource).toContain("<WorkspaceShell");
+    expect(reportingSource).toContain('title="Reporting Hub"');
+    expect(reportingSource).toContain("stats={executiveStats}");
+    expect(reportingSource).toContain('modesLabel="Reporting modes"');
+    expect(reportingSource).toContain("activeTab={activeExecutiveMode}");
+    // The three competing treatments are gone: MetricCard grid, the bespoke
+    // command-band <Tabs> modes strip, and the bg-white/6 hero-tile stat set + toggle.
+    expect(reportingSource).not.toContain("<MetricCard");
+    expect(reportingSource).not.toContain("executiveHeroView");
+    expect(reportingSource).not.toContain("data.reportingOverview.summaryCards");
+    expect(reportingSource).not.toContain("command-band");
+    // Content cards (pending decisions) use the shared ActionCard family.
+    expect(reportingSource).toContain("<ActionCard");
+    expect(reportingSource).toContain('accent={decision.urgency === "High" ? "gold" : "dark"}');
+    // Decision-queue section label single-sourced on the gold-ink token (AA on light).
+    expect(reportingSource).toContain("text-accent-gold-ink");
+  });
+
   it("wires the shared quiz authoring panel into both admin surfaces and the player (AUTHOR2)", () => {
     const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
     // Client Control: a tenant-scoped Authoring tab.

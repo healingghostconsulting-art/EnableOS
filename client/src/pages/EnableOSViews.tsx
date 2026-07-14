@@ -3784,54 +3784,51 @@ export function ReportingWorkspaceView() {
     }
   };
 
+  // Header actions (Export menu + tenant badge) handed to the panel's WorkspaceShell.
+  const reportingActions = access.data ? (
+    <>
+      {canAccessReporting && query.data ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-slate-100 hover:bg-white/12 hover:text-white">
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="border-white/10 bg-slate-950 text-slate-100">
+            <DropdownMenuItem onClick={handleExportPdf} className="gap-2 focus:bg-white/10 focus:text-white"><Printer className="h-4 w-4" /> PDF exec summary</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportXlsx} className="gap-2 focus:bg-white/10 focus:text-white"><FileSpreadsheet className="h-4 w-4" /> XLSX spreadsheet</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCopyEmail} className="gap-2 focus:bg-white/10 focus:text-white"><Mail className="h-4 w-4" /> Email summary</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
+      <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
+        {access.data.tenant.name}
+      </Badge>
+    </>
+  ) : null;
+
   return (
     <Surface>
-      <WorkspaceShell
-        title="Reporting Hub"
-        subtitle="Explore ROI movement, question risk, benchmark context, and error-rate trends."
-        actions={
-          access.data ? (
-            <>
-              {canAccessReporting && query.data ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="outline" className="rounded-full border-white/12 bg-white/6 text-slate-100 hover:bg-white/12 hover:text-white">
-                      <Download className="mr-2 h-4 w-4" /> Export
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="border-white/10 bg-slate-950 text-slate-100">
-                    <DropdownMenuItem onClick={handleExportPdf} className="gap-2 focus:bg-white/10 focus:text-white"><Printer className="h-4 w-4" /> PDF exec summary</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleExportXlsx} className="gap-2 focus:bg-white/10 focus:text-white"><FileSpreadsheet className="h-4 w-4" /> XLSX spreadsheet</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleCopyEmail} className="gap-2 focus:bg-white/10 focus:text-white"><Mail className="h-4 w-4" /> Email summary</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
-                {access.data.tenant.name}
-              </Badge>
-            </>
-          ) : null
-        }
-      >
-        {access.isLoading || query.isLoading ? <LoadingState /> : null}
-        {!access.isLoading && !access.data ? (
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
-              <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific reporting workspaces.</CardDescription>
-            </CardHeader>
-          </PremiumCard>
-        ) : null}
-        {!access.isLoading && access.data && !canAccessReporting ? (
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">This reporting workspace is outside your current entitlement.</CardTitle>
-              <CardDescription className="text-slate-300">Use a client role with executive reporting access to open this workspace for {access.data.tenant.name}.</CardDescription>
-            </CardHeader>
-          </PremiumCard>
-        ) : null}
-        {!query.isLoading && canAccessReporting && query.data ? <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} /> : null}
-      </WorkspaceShell>
+      {access.isLoading || query.isLoading ? <LoadingState /> : null}
+      {!access.isLoading && !access.data ? (
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">No client access has been assigned yet.</CardTitle>
+            <CardDescription className="text-slate-300">Sign in with a client-mapped account to load tenant-specific reporting workspaces.</CardDescription>
+          </CardHeader>
+        </PremiumCard>
+      ) : null}
+      {!access.isLoading && access.data && !canAccessReporting ? (
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">This reporting workspace is outside your current entitlement.</CardTitle>
+            <CardDescription className="text-slate-300">Use a client role with executive reporting access to open this workspace for {access.data.tenant.name}.</CardDescription>
+          </CardHeader>
+        </PremiumCard>
+      ) : null}
+      {!query.isLoading && canAccessReporting && query.data ? (
+        <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} headerActions={reportingActions} />
+      ) : null}
       {/* Hidden on screen; shown only when printing (PDF exec summary). */}
       {canAccessReporting && query.data ? <ReportingPrintLayout data={query.data} /> : null}
     </Surface>
@@ -9183,11 +9180,10 @@ function WorkflowLibraryPanel({
   );
 }
 
-function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdated?: () => void; headerActions?: ReactNode }) {
   const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
   const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
   const [activeExecutiveMode, setActiveExecutiveMode] = useState<"overview" | "trends" | "risk" | "evidence" | "documentation">("overview");
-  const [executiveHeroView, setExecutiveHeroView] = useState<"reporting" | "decisionQueue">("reporting");
   const roiTrendConfig = {
     readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
     qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
@@ -9229,7 +9225,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
       description: `Enterprise readiness is ${data.readiness.score} against a target of ${data.readiness.target}. Confirm whether the next intervention wave should expand this week.`,
       urgency: "High" as const,
       action: () => {
-        setExecutiveHeroView("reporting");
         setSelectedRoiTrendMetric("readiness");
         setActiveExecutiveMode("trends");
         window.requestAnimationFrame(() => {
@@ -9243,7 +9238,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
       description: "Team readiness now needs a quality-specific read. Open the trend explorer with QA score selected before approving more coaching hours.",
       urgency: "Medium" as const,
       action: () => {
-        setExecutiveHeroView("reporting");
         setSelectedRoiTrendMetric("qaScore");
         setActiveExecutiveMode("trends");
         window.requestAnimationFrame(() => {
@@ -9257,7 +9251,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
       description: "Intervention confidence stays positive overall, but the question-level risk queue still needs an executive decision on where to focus remediation first.",
       urgency: "High" as const,
       action: () => {
-        setExecutiveHeroView("reporting");
         setActiveExecutiveMode("risk");
         window.requestAnimationFrame(() => {
           document.getElementById("executive-risk-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -9270,7 +9263,6 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
       description: `Documentation for ${data.tenant.name} is ready for review. Confirm the tenant-facing proof package before distribution.`,
       urgency: "Medium" as const,
       action: () => {
-        setExecutiveHeroView("reporting");
         setActiveExecutiveMode("documentation");
         window.requestAnimationFrame(() => {
           document.getElementById("executive-documentation-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -9282,97 +9274,68 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
     if (options?.metric) {
       setSelectedRoiTrendMetric(options.metric);
     }
-    setExecutiveHeroView("reporting");
     setActiveExecutiveMode(mode);
     window.requestAnimationFrame(() => {
       document.getElementById(options?.targetId ?? `executive-${mode}-panel`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
 
+  // The four executive metrics now ride the shell's shared dark stat bar (was a
+  // 4× MetricCard grid). Deep-links preserved on click.
+  const executiveStats: WorkspaceStat[] = [
+    { label: "Enterprise readiness", value: `${data.readiness.score}`, sub: `Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`, icon: <Target className="h-4 w-4" />, onClick: () => openExecutiveMode("trends", { metric: "readiness", targetId: "executive-trends-panel" }) },
+    { label: "Team readiness", value: `${data.readiness.teamScore}`, sub: "Role- and intervention-weighted readiness score", icon: <Layers3 className="h-4 w-4" />, onClick: () => openExecutiveMode("trends", { metric: "qaScore", targetId: "executive-trends-panel" }) },
+    { label: "Intervention confidence", value: data.interventionConfidence.value, sub: data.interventionConfidence.supporting, icon: <BrainCircuit className="h-4 w-4" />, onClick: () => openExecutiveMode("risk", { targetId: "executive-risk-panel" }) },
+    { label: "White-label tenant", value: data.tenant.name, sub: data.tenant.industry, icon: <Building2 className="h-4 w-4" />, onClick: () => openExecutiveMode("documentation", { targetId: "executive-documentation-panel" }) },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Enterprise readiness" value={`${data.readiness.score}`} supporting={`Target ${data.readiness.target} · uplift ${data.readiness.uplift} pts`} icon={<Target className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "readiness", targetId: "executive-trends-panel" })} actionLabel="Open readiness trends" />
-        <MetricCard label="Team readiness" value={`${data.readiness.teamScore}`} supporting="Role- and intervention-weighted readiness score" icon={<Layers3 className="h-4 w-4" />} onClick={() => openExecutiveMode("trends", { metric: "qaScore", targetId: "executive-trends-panel" })} actionLabel="Open QA score trends" />
-        <MetricCard label="Intervention confidence" value={data.interventionConfidence.value} supporting={data.interventionConfidence.supporting} icon={<BrainCircuit className="h-4 w-4" />} onClick={() => openExecutiveMode("risk", { targetId: "executive-risk-panel" })} actionLabel="Open risk queue" />
-        <MetricCard label="White-label tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} onClick={() => openExecutiveMode("documentation", { targetId: "executive-documentation-panel" })} actionLabel="Open documentation" />
-      </div>
-
-      <div className="mission-hero-card overflow-hidden rounded-[1.8rem] border border-cyan-500/14 bg-[linear-gradient(180deg,rgba(8,15,30,0.98),rgba(15,23,42,0.96))] px-5 py-5 shadow-[0_22px_60px_rgba(8,15,35,0.18)]">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <button type="button" onClick={() => setExecutiveHeroView("reporting")} className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${executiveHeroView === "reporting" ? "border border-cyan-300/20 bg-cyan-300/12 text-cyan-50" : "border border-white/10 bg-white/6 text-cyan-50/80 hover:bg-white/10"}`}>
-                Executive reporting
-              </button>
-              <button type="button" onClick={() => setExecutiveHeroView("decisionQueue")} className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${executiveHeroView === "decisionQueue" ? "border border-cyan-300/20 bg-cyan-300/12 text-cyan-50" : "border border-white/10 bg-white/6 text-cyan-50/80 hover:bg-white/10"}`}>
-                Decision queue
-              </button>
-            </div>
-            {executiveHeroView === "reporting" ? (
-              <>
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Reporting overview</p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {data.reportingOverview.summaryCards.map((entry: any) => (
-                    <div key={entry.label} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm transition hover:bg-white/10">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{entry.label}</p>
-                      <p className="mt-2 text-2xl font-semibold text-white">{entry.value}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {pendingDecisions.map((decision) => (
-                  <div key={decision.id} className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Pending decision</p>
-                        <h3 className="mt-2 text-base font-semibold text-white">{decision.title}</h3>
-                      </div>
-                      <Badge className={`rounded-full ${decision.urgency === "High" ? "border-rose-400/30 bg-rose-500/14 text-rose-100" : "border-amber-400/30 bg-amber-500/14 text-amber-100"}`}>{decision.urgency}</Badge>
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-200">{decision.description}</p>
-                    <Button type="button" variant="outline" onClick={decision.action} className="mt-4 rounded-full border-white/10 bg-white/8 text-white hover:bg-white/14 hover:text-white">
-                      Take action
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {executiveHeroView === "decisionQueue" ? (
-            <div className="grid gap-3">
-              <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Decision queue</p>
-                <h3 className="mt-2 text-lg font-semibold text-white">Four executive approvals are waiting.</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">Review the pending decisions, confirm urgency, and use each action button to jump directly into the correct reporting surface.</p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <Tabs value={activeExecutiveMode} onValueChange={(value) => setActiveExecutiveMode(value as "overview" | "trends" | "risk" | "evidence" | "documentation")} className="space-y-4">
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Reporting modes</p>
-            </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.3rem] border border-white/10 bg-white/6 p-2 xl:w-auto">
-              <TabsTrigger value="overview" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Overview</TabsTrigger>
-              <TabsTrigger value="trends" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Trends</TabsTrigger>
-              <TabsTrigger value="risk" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Risk</TabsTrigger>
-              <TabsTrigger value="evidence" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Evidence</TabsTrigger>
-              <TabsTrigger value="documentation" className="rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-950">Documentation</TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
+    <WorkspaceShell
+      title="Reporting Hub"
+      subtitle="Explore ROI movement, question risk, benchmark context, and error-rate trends."
+      actions={headerActions}
+      stats={executiveStats}
+      subTruncate
+      modesLabel="Reporting modes"
+      activeTab={activeExecutiveMode}
+      onTabChange={(value) => setActiveExecutiveMode(value as "overview" | "trends" | "risk" | "evidence" | "documentation")}
+      tabs={[
+        { value: "overview", label: "Overview" },
+        { value: "trends", label: "Trends" },
+        { value: "risk", label: "Risk" },
+        { value: "evidence", label: "Evidence" },
+        { value: "documentation", label: "Documentation" },
+      ]}
+    >
         <TabsContent value="overview" className="mt-0 space-y-6">
+          {/* Decision queue — the pending executive approvals, on the shared ActionCard
+              family (gold = high urgency, dark = standard). Was a bespoke hero toggle. */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent-gold-ink">Decision queue</p>
+              <span className="text-[11px] uppercase tracking-[0.2em] text-slate-600">{pendingDecisions.length} awaiting</span>
+            </div>
+            <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
+              {pendingDecisions.map((decision) => (
+                <ActionCard
+                  key={decision.id}
+                  accent={decision.urgency === "High" ? "gold" : "dark"}
+                  eyebrow={`${decision.urgency} · pending decision`}
+                  title={decision.title}
+                  body={decision.description}
+                  action={
+                    <Button
+                      type="button"
+                      onClick={decision.action}
+                      className={`w-full justify-between rounded-full ${decision.urgency === "High" ? "bg-slate-950 text-white hover:bg-slate-800" : "border border-white/15 bg-white/10 text-white hover:bg-white/16 hover:text-white"}`}
+                    >
+                      Take action <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  }
+                />
+              ))}
+            </div>
+          </div>
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <ChartFrame title="Intervention correlation" description="Readiness movement compared with intervention volume over four weeks.">
               <ResponsiveContainer width="100%" height="100%">
@@ -9865,8 +9828,7 @@ function ExecutivePanel({ data, onUpdated }: { data: any; onUpdated?: () => void
             </div>
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
+    </WorkspaceShell>
   );
 }
 
