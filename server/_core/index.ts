@@ -10,6 +10,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { hydrateContentStore } from "../demoPlatform";
+import { digestHandler } from "../scheduledDigest";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -49,6 +50,10 @@ async function startServer() {
       createContext,
     })
   );
+  // Scheduled callbacks (DELIVER4) — managed Heartbeat cron POSTs here. Must be
+  // registered explicitly before the Vite/static fallthrough; /api/scheduled/* is
+  // not auto-mounted.
+  app.post("/api/scheduled/digest", digestHandler);
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

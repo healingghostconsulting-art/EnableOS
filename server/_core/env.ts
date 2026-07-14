@@ -17,4 +17,9 @@ export const ENV = {
   allowRealSend: process.env.ALLOW_REAL_SEND === "true",
   /** Public origin used to build deep links in notification emails. */
   appPublicUrl: process.env.APP_PUBLIC_URL ?? "",
+  // ── Digest (DELIVER4) ───────────────────────────────────────────────────────
+  // Opens the guarded manual-trigger path on /api/scheduled/digest for dev/admin
+  // verification without waiting for the managed cron. Default false — production
+  // digests only fire from the authenticated Heartbeat cron.
+  allowManualDigest: process.env.ALLOW_MANUAL_DIGEST === "true",
 };

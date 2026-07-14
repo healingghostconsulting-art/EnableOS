@@ -68,7 +68,7 @@ function periodOf(reminder: Reminder, now: Date): string {
   return basis.slice(0, 10); // YYYY-MM-DD → daily idempotency window
 }
 
-function buildUnsubscribeUrl(userId: string, tenantId: string): string {
+export function buildUnsubscribeUrl(userId: string, tenantId: string): string {
   const base = (ENV.appPublicUrl || "").replace(/\/+$/, "");
   const query = `?user=${encodeURIComponent(userId)}&tenant=${encodeURIComponent(tenantId)}`;
   return `${base}/notifications/unsubscribe${query}`;

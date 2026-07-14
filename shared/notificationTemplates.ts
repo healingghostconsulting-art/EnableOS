@@ -145,5 +145,79 @@ export function renderReminderEmail(ctx: TemplateContext): RenderedEmail {
   return { subject, text, html };
 }
 
+export interface DigestContext {
+  recipientName: string;
+  /** The pending/unread reminders being rolled up (already preference-filtered). */
+  reminders: Reminder[];
+  branding: TemplateBranding;
+  appPublicUrl: string;
+  unsubscribeUrl: string;
+  physicalAddress: string;
+  period: "daily" | "weekly";
+}
+
+/**
+ * Render a single combined digest email from several reminders (DELIVER4). Text is
+ * authoritative; HTML mirrors it. Same CAN-SPAM footer as the per-reminder template.
+ */
+export function renderDigestEmail(ctx: DigestContext): RenderedEmail {
+  const { reminders, branding, recipientName, unsubscribeUrl, physicalAddress, period } = ctx;
+  const count = reminders.length;
+  const periodLabel = period === "weekly" ? "weekly" : "daily";
+  const subject = `Your ${periodLabel} EnableOS digest — ${count} update${count === 1 ? "" : "s"}`;
+
+  const itemLines = reminders.map((reminder) => {
+    const template = TEMPLATES[reminder.type];
+    const url = buildDeepLinkUrl(ctx.appPublicUrl, reminder);
+    const due = reminder.dueAt ? ` (due ${new Date(reminder.dueAt).toUTCString()})` : "";
+    return `• ${template.subject(reminder)}${due}\n  ${reminder.reason}\n  ${template.cta}: ${url}`;
+  });
+
+  const text = [
+    branding.preferredLabel,
+    ``,
+    `Hi ${recipientName},`,
+    ``,
+    `Here ${count === 1 ? "is" : "are"} ${count} item${count === 1 ? "" : "s"} that need your attention:`,
+    ``,
+    ...itemLines,
+    ``,
+    `— ${branding.preferredLabel}`,
+    ``,
+    `You are receiving this ${periodLabel} digest because you have an active EnableOS workspace role.`,
+    `Unsubscribe: ${unsubscribeUrl}`,
+    physicalAddress,
+  ]
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
+
+  const accent = branding.accent || "#0f172a";
+  const itemsHtml = reminders
+    .map((reminder) => {
+      const template = TEMPLATES[reminder.type];
+      const url = buildDeepLinkUrl(ctx.appPublicUrl, reminder);
+      const due = reminder.dueAt ? `<span style="color:#475569;"> · due ${escapeHtml(new Date(reminder.dueAt).toUTCString())}</span>` : "";
+      return `<li style="margin:0 0 12px;"><strong>${escapeHtml(template.subject(reminder))}</strong>${due}<br/><span style="color:#475569;font-size:14px;">${escapeHtml(reminder.reason)}</span><br/><a href="${escapeHtml(url)}" style="color:${escapeHtml(accent)};font-size:14px;">${escapeHtml(template.cta)}</a></li>`;
+    })
+    .join("");
+
+  const html = [
+    `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#0f172a;">`,
+    `<div style="border-top:4px solid ${escapeHtml(accent)};padding:16px 0;">`,
+    `<p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin:0 0 4px;">${escapeHtml(branding.preferredLabel)}</p>`,
+    `<h1 style="font-size:18px;margin:0 0 12px;">${escapeHtml(subject)}</h1>`,
+    `</div>`,
+    `<p style="font-size:15px;line-height:1.5;margin:0 0 12px;">Hi ${escapeHtml(recipientName)},</p>`,
+    `<ul style="padding-left:18px;margin:0 0 24px;">${itemsHtml}</ul>`,
+    `<hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;" />`,
+    `<p style="font-size:12px;color:#94a3b8;line-height:1.5;margin:0;">You are receiving this ${escapeHtml(periodLabel)} digest because you have an active EnableOS workspace role.<br/>`,
+    `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#94a3b8;">Unsubscribe</a><br/>`,
+    `${escapeHtml(physicalAddress)}</p>`,
+    `</div>`,
+  ].join("");
+
+  return { subject, text, html };
+}
+
 /** All reminder types that have a template (i.e. all of them) — for iteration/tests. */
 export const TEMPLATED_REMINDER_TYPES: ReminderType[] = Object.keys(TEMPLATES) as ReminderType[];
