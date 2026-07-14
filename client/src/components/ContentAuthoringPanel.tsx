@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Plus, EyeOff, Save, Trash2, RotateCcw, Lock, Upload } from "lucide-react";
+import { Pencil, Plus, EyeOff, Save, Trash2, RotateCcw, Lock, Upload, Bell, Mail, CalendarClock, MailX } from "lucide-react";
 import { toast } from "sonner";
 import type { TrainingApplicationQuestion } from "../../../shared/trainingContent";
 
@@ -923,8 +923,181 @@ function DeckAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantId
   );
 }
 
+// ── Notification delivery surface (DELIVER3) ────────────────────────────────
+// Read-only outbox + per-type rendered-email previews, plus a preferences/opt-out
+// editor for a sample learner. All reads/writes go through the demo router's
+// notification* procedures; StubProvider means nothing actually sends.
+const REMINDER_TYPES = [
+  "training_due",
+  "coaching_follow_up",
+  "one_on_one_scheduled",
+  "knowledge_check_failed",
+  "coaching_cadence_gap",
+  "announcement",
+] as const;
+type NotifReminderType = (typeof REMINDER_TYPES)[number];
+const REMINDER_TYPE_LABELS: Record<NotifReminderType, string> = {
+  training_due: "Training due",
+  coaching_follow_up: "Coaching follow-up",
+  one_on_one_scheduled: "One-on-one scheduled",
+  knowledge_check_failed: "Knowledge check failed",
+  coaching_cadence_gap: "Coaching cadence gap",
+  announcement: "Announcement",
+};
+const OUTBOX_STATUS_CLASS: Record<string, string> = {
+  stubbed: "border-amber-400/30 text-amber-100",
+  sent: "border-emerald-400/30 text-emerald-100",
+  failed: "border-rose-400/30 text-rose-100",
+  skipped: "border-slate-400/30 text-slate-300",
+};
+// Sample learner whose preferences the admin edits in this demo surface.
+const SAMPLE_PREF_USER = { id: "u-learn-1", name: "Nina Patel (sample learner)" };
+
+function NotificationsSurface({ tenantId }: { tenantId?: string }) {
+  const prefTenantId = tenantId ?? "atlas-operations";
+  const outbox = trpc.demo.notificationOutbox.useQuery();
+  const previews = trpc.demo.notificationPreviews.useQuery({ tenantId });
+  const preferences = trpc.demo.notificationPreferences.useQuery({ userId: SAMPLE_PREF_USER.id, tenantId: prefTenantId });
+  const setPreference = trpc.demo.setNotificationPreference.useMutation();
+  const setUnsub = trpc.demo.setNotificationUnsubscribe.useMutation();
+  const [openPreview, setOpenPreview] = useState<NotifReminderType | null>("training_due");
+
+  const rows = outbox.data ?? [];
+  const prefRows = preferences.data ?? [];
+  const unsubscribed = prefRows.some((row) => row.unsubscribedAt);
+  const isTypeEnabled = (type: NotifReminderType): boolean => {
+    if (unsubscribed) return false;
+    const match = prefRows.filter((row) => (row.reminderType === type || row.reminderType === "") && (row.channel === "email" || row.channel === ""));
+    if (match.length === 0) return true;
+    const best = match.reduce((top, row) => ((row.reminderType !== "" ? 2 : 0) + (row.channel !== "" ? 1 : 0) > (top.reminderType !== "" ? 2 : 0) + (top.channel !== "" ? 1 : 0) ? row : top), match[0]!);
+    return best.enabled;
+  };
+
+  const toggleType = async (type: NotifReminderType, enabled: boolean) => {
+    try {
+      await setPreference.mutateAsync({ userId: SAMPLE_PREF_USER.id, tenantId: prefTenantId, reminderType: type, channel: "email", enabled });
+      await preferences.refetch();
+    } catch {
+      toast.error("Could not update the preference");
+    }
+  };
+  const toggleUnsub = async (next: boolean) => {
+    try {
+      await setUnsub.mutateAsync({ userId: SAMPLE_PREF_USER.id, tenantId: prefTenantId, unsubscribe: next });
+      await preferences.refetch();
+      toast.success(next ? "Unsubscribed from all notifications" : "Re-subscribed to notifications");
+    } catch {
+      toast.error("Could not update the subscription");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Notification delivery</p>
+          <p className="text-sm leading-6 text-slate-300">
+            Event-triggered emails render here and record to the delivery outbox. Sending is stubbed by default — nothing leaves the platform until a verified sending domain and provider credentials are configured.
+          </p>
+        </div>
+        <Badge variant="outline" className="w-fit rounded-full border-amber-400/30 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-amber-100">Stub provider · no real send</Badge>
+      </div>
+
+      {/* Outbox */}
+      <div className="space-y-2 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center gap-2">
+          <Bell className="h-4 w-4 text-slate-300" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Delivery outbox ({rows.length})</p>
+        </div>
+        {outbox.isLoading ? <p className="text-sm text-slate-400">Loading outbox…</p> : null}
+        {rows.length === 0 && !outbox.isLoading ? (
+          <p className="text-sm text-slate-400">No delivery attempts yet. Assign retraining or log a coaching session to trigger one.</p>
+        ) : null}
+        {rows.map((row) => (
+          <div key={row.idempotencyKey} className="flex flex-wrap items-center justify-between gap-2 rounded-[1rem] border border-white/8 bg-white/[0.02] px-3 py-2.5">
+            <div className="min-w-0 space-y-0.5">
+              <p className="truncate text-sm font-medium text-white">{row.renderedSubject}</p>
+              <p className="text-[11px] text-slate-500">{REMINDER_TYPE_LABELS[row.reminderType as NotifReminderType] ?? row.reminderType} · {row.recipient}</p>
+            </div>
+            <Badge variant="outline" className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-[0.18em] ${OUTBOX_STATUS_CLASS[row.status] ?? "border-white/15 text-slate-300"}`}>{row.status}</Badge>
+          </div>
+        ))}
+      </div>
+
+      {/* Template previews */}
+      <div className="space-y-2 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-slate-300" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Rendered email previews</p>
+        </div>
+        {(previews.data ?? []).map((preview) => {
+          const isOpen = openPreview === preview.reminderType;
+          return (
+            <div key={preview.reminderType} className="rounded-[1rem] border border-white/8 bg-white/[0.02]">
+              <button type="button" onClick={() => setOpenPreview(isOpen ? null : (preview.reminderType as NotifReminderType))} className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">{REMINDER_TYPE_LABELS[preview.reminderType as NotifReminderType] ?? preview.reminderType}</p>
+                  <p className="truncate text-sm font-medium text-white">{preview.subject}</p>
+                </div>
+                {preview.ics ? <Badge variant="outline" className="shrink-0 rounded-full border-cyan-400/30 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.16em] text-cyan-100"><CalendarClock className="mr-1 h-3 w-3" /> .ics</Badge> : null}
+              </button>
+              {isOpen ? (
+                <div className="space-y-2 border-t border-white/8 px-3 py-3">
+                  <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-[0.8rem] bg-slate-950/60 p-3 text-[11px] leading-5 text-slate-300">{preview.text}</pre>
+                  {preview.ics ? (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-cyan-200/80">Calendar invite (.ics)</p>
+                      <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-[0.8rem] bg-slate-950/60 p-3 text-[11px] leading-5 text-cyan-100/80">{preview.ics}</pre>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Preferences / opt-out */}
+      <div className="space-y-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <MailX className="h-4 w-4 text-slate-300" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Preferences · {SAMPLE_PREF_USER.name}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => toggleUnsub(!unsubscribed)}
+            className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.16em] transition ${unsubscribed ? "border-rose-400/40 bg-rose-400/15 text-rose-100" : "border-white/15 bg-white/5 text-slate-300 hover:bg-white/10"}`}
+          >
+            {unsubscribed ? "Unsubscribed — click to resubscribe" : "Unsubscribe from all"}
+          </button>
+        </div>
+        <div className="space-y-1.5">
+          {REMINDER_TYPES.map((type) => {
+            const enabled = isTypeEnabled(type);
+            return (
+              <div key={type} className="flex items-center justify-between gap-3 rounded-[1rem] border border-white/8 bg-white/[0.02] px-3 py-2">
+                <p className="text-sm text-slate-200">{REMINDER_TYPE_LABELS[type]}</p>
+                <button
+                  type="button"
+                  disabled={unsubscribed}
+                  onClick={() => toggleType(type, !enabled)}
+                  className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition disabled:opacity-40 ${enabled ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-100" : "border-white/15 bg-white/5 text-slate-400 hover:bg-white/10"}`}
+                >
+                  {enabled ? "Email on" : "Email off"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-slate-500">Toggling writes a per-user/tenant row to notification_preferences; an unsubscribe sets a global opt-out that suppresses every type.</p>
+      </div>
+    </div>
+  );
+}
+
 export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "tenant"; tenantId?: string }) {
-  const [contentType, setContentType] = useState<"quizzes" | "library" | "lessons" | "briefs" | "decks">("quizzes");
+  const [contentType, setContentType] = useState<"quizzes" | "library" | "lessons" | "briefs" | "decks" | "notifications">("quizzes");
   const content = trpc.demo.previewAuthoringQuiz.useQuery({ scope, tenantId });
   const modules = content.data?.modules ?? [];
   const [chosenModuleId, setChosenModuleId] = useState<string | null>(null);
@@ -1004,7 +1177,7 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
   return (
     <div className="space-y-4">
       <div className="inline-flex flex-wrap rounded-full border border-white/10 bg-white/[0.03] p-1">
-        {([["quizzes", "Quizzes"], ["library", "Library"], ["lessons", "Lessons"], ["briefs", "Briefs"], ["decks", "Decks"]] as const).map(([option, label]) => (
+        {([["quizzes", "Quizzes"], ["library", "Library"], ["lessons", "Lessons"], ["briefs", "Briefs"], ["decks", "Decks"], ["notifications", "Notifications"]] as const).map(([option, label]) => (
           <button
             key={option}
             type="button"
@@ -1023,6 +1196,8 @@ export function ContentAuthoringPanel({ scope, tenantId }: { scope: "core" | "te
         <BriefAuthoring scope={scope} tenantId={tenantId} />
       ) : contentType === "decks" ? (
         <DeckAuthoring scope={scope} tenantId={tenantId} />
+      ) : contentType === "notifications" ? (
+        <NotificationsSurface tenantId={tenantId} />
       ) : (
       <>
       <div className="flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4 xl:flex-row xl:items-center xl:justify-between">

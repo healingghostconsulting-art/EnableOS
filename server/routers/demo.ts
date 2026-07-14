@@ -44,6 +44,40 @@ import {
   updateWeeklyCoachingLogTakeaways,
   type DemoRole,
 } from "../demoPlatform";
+import { renderAllReminderPreviews } from "../notificationService";
+import {
+  getNotificationOutboxRepository,
+  getNotificationPreferencesRepository,
+} from "../notificationRepositories";
+import { demoNow } from "../../shared/demoClock";
+
+const REMINDER_TYPE_VALUES = [
+  "training_due",
+  "coaching_follow_up",
+  "one_on_one_scheduled",
+  "knowledge_check_failed",
+  "coaching_cadence_gap",
+  "announcement",
+] as const;
+
+const notificationPreferenceInput = z.object({
+  userId: z.string().min(1).max(64),
+  tenantId: z.string().min(1).max(64),
+  reminderType: z.enum(REMINDER_TYPE_VALUES).or(z.literal("")),
+  channel: z.enum(["email", "calendar"]).or(z.literal("")),
+  enabled: z.boolean(),
+});
+
+const notificationUnsubscribeInput = z.object({
+  userId: z.string().min(1).max(64),
+  tenantId: z.string().min(1).max(64),
+  unsubscribe: z.boolean(),
+});
+
+const notificationPreferencesReadInput = z.object({
+  userId: z.string().min(1).max(64),
+  tenantId: z.string().min(1).max(64),
+});
 
 const tenantInput = z.object({
   tenantId: z.string().optional(),
@@ -781,6 +815,42 @@ export const demoRouter = router({
       assignmentId: input.assignmentId,
       status: input.status,
     });
+  }),
+
+  // ── DELIVER3: notification delivery surfaces (read-only outbox + previews, prefs) ──
+  notificationOutbox: publicProcedure.query(async () => {
+    const rows = await getNotificationOutboxRepository().loadAll();
+    return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }),
+  notificationPreviews: publicProcedure.input(tenantInput).query(({ input }) =>
+    renderAllReminderPreviews(input.tenantId),
+  ),
+  notificationPreferences: publicProcedure.input(notificationPreferencesReadInput).query(({ input }) =>
+    getNotificationPreferencesRepository().list(input.userId, input.tenantId),
+  ),
+  setNotificationPreference: publicProcedure.input(notificationPreferenceInput).mutation(({ input }) => {
+    const repo = getNotificationPreferencesRepository();
+    repo.upsert({
+      userId: input.userId,
+      tenantId: input.tenantId,
+      reminderType: input.reminderType,
+      channel: input.channel,
+      enabled: input.enabled,
+      unsubscribedAt: null,
+    });
+    return repo.list(input.userId, input.tenantId);
+  }),
+  setNotificationUnsubscribe: publicProcedure.input(notificationUnsubscribeInput).mutation(({ input }) => {
+    const repo = getNotificationPreferencesRepository();
+    repo.upsert({
+      userId: input.userId,
+      tenantId: input.tenantId,
+      reminderType: "",
+      channel: "",
+      enabled: !input.unsubscribe,
+      unsubscribedAt: input.unsubscribe ? demoNow().toISOString() : null,
+    });
+    return repo.list(input.userId, input.tenantId);
   }),
 
 });

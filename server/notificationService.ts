@@ -12,7 +12,7 @@
 // (demoPlatform → events → service → demoPlatform) is call-time, never top-level.
 // ──────────────────────────────────────────────────────────────────────────────
 
-import type { Reminder, ReminderAudience } from "../shared/reminders";
+import type { Reminder, ReminderAudience, ReminderType } from "../shared/reminders";
 import { demoNow, isoDaysFromNow } from "../shared/demoClock";
 import { renderReminderEmail, type TemplateBranding } from "../shared/notificationTemplates";
 import { icsForReminder, DATED_REMINDER_TYPES } from "../shared/ics";
@@ -187,6 +187,80 @@ export function notifyRetrainingCompleted(
     read: false,
   };
   void track(deliverReminder(reminder, { id: assignment.tenantId }, { now }));
+}
+
+// ── Read-only preview (admin surface) ──────────────────────────────────────────
+
+export interface ReminderPreview {
+  reminderType: ReminderType;
+  subject: string;
+  text: string;
+  html: string;
+  ics: string | null;
+}
+
+const PREVIEW_TYPES: ReminderType[] = [
+  "training_due",
+  "coaching_follow_up",
+  "one_on_one_scheduled",
+  "knowledge_check_failed",
+  "coaching_cadence_gap",
+  "announcement",
+];
+
+/** A representative reminder for each type — used only to render previews. */
+function sampleReminder(type: ReminderType, now: Date): Reminder {
+  const dueAt = isoDaysFromNow(2);
+  const base = {
+    id: `preview-${type}`,
+    type,
+    audience: "learner" as ReminderAudience,
+    severity: "warning" as const,
+    subject: "Sample",
+    subjectUserId: "u-learn-1",
+    overdue: false,
+    source: { kind: type, refId: `preview-${type}` },
+    createdAt: now.toISOString(),
+    read: false,
+  };
+  switch (type) {
+    case "training_due":
+      return { ...base, subject: "QA Essentials", reason: "Your QA Essentials retraining is due in 2 days.", dueAt, deepLink: { route: "/learner", tab: "reengagements" } };
+    case "coaching_follow_up":
+      return { ...base, subject: "Coaching follow-up", reason: "Your coaching follow-up is scheduled — review the takeaways beforehand.", dueAt, deepLink: { route: "/learner", tab: "coaching" } };
+    case "one_on_one_scheduled":
+      return { ...base, subject: "One-on-one", reason: "Your one-on-one with your coach is coming up.", dueAt, deepLink: { route: "/learner", tab: "coaching" } };
+    case "knowledge_check_failed":
+      return { ...base, reason: "Your first-pass knowledge-check rate is 45% (below the 60% bar).", deepLink: { route: "/learner", tab: "journey" } };
+    case "coaching_cadence_gap":
+      return { ...base, audience: "coach", subject: "A learner", reason: "A learner's last coaching log was 9 days ago — past the 7-day cadence.", overdue: true, deepLink: { route: "/coach", tab: "coaching" } };
+    case "announcement":
+    default:
+      return { ...base, type: "announcement", subject: "Platform announcement", reason: "A new client content pack is available in the library.", source: { kind: "announcement", refId: `preview-announcement` } };
+  }
+}
+
+/** Render one reminder type's email (subject/text/html + .ics for dated types). */
+export function renderReminderPreview(reminderType: ReminderType, tenantId = "atlas-operations", now: Date = demoNow()): ReminderPreview {
+  const reminder = sampleReminder(reminderType, now);
+  const branding = getTenantBranding(tenantId);
+  const rendered = renderReminderEmail({
+    reminder,
+    recipientName: "Sample Recipient",
+    branding: { preferredLabel: branding.preferredLabel, accent: branding.accent },
+    appPublicUrl: ENV.appPublicUrl,
+    unsubscribeUrl: buildUnsubscribeUrl("sample-user", tenantId),
+    physicalAddress: CHCG_PHYSICAL_ADDRESS,
+  });
+  const ics = DATED_REMINDER_TYPES.has(reminderType)
+    ? icsForReminder(reminder, { attendeeEmail: "sample.recipient@enterpriseworkspace.demo", attendeeName: "Sample Recipient" })
+    : null;
+  return { reminderType, subject: rendered.subject, text: rendered.text, html: rendered.html, ics };
+}
+
+/** Render every reminder type — the admin preview gallery. */
+export function renderAllReminderPreviews(tenantId = "atlas-operations", now: Date = demoNow()): ReminderPreview[] {
+  return PREVIEW_TYPES.map((type) => renderReminderPreview(type, tenantId, now));
 }
 
 /** Weekly coaching log recorded → dated coaching follow-up invite to the learner. */
