@@ -22,6 +22,7 @@ import { buildReminders, type Reminder, type ReminderType } from "../../../share
 import { demoNow } from "../../../shared/demoClock";
 import { useReminderBadge } from "@/lib/reminderBadge";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
+import { ActionCard } from "@/components/ActionCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1206,7 +1207,7 @@ function MetricCard({
     <PremiumCard className={`h-full min-h-[12.6rem] ${onClick ? "cursor-pointer transition duration-200 hover:-translate-y-1 hover:border-cyan-300/22 hover:bg-white/[0.07]" : ""}`}>
       <CardHeader className="space-y-3 pb-1">
         <div className="flex items-start justify-between gap-3">
-          <CardDescription className="max-w-[17ch] text-[10px] font-semibold uppercase leading-[1.5] tracking-[0.16em] text-slate-300/82 xl:max-w-[19ch] xl:text-[10.5px]">{label}</CardDescription>
+          <CardDescription className="max-w-[17ch] text-[10px] font-semibold uppercase leading-[1.5] tracking-[0.16em] text-accent-gold xl:max-w-[19ch] xl:text-[10.5px]">{label}</CardDescription>
           <div className="reward-ring mt-0.5 shrink-0 rounded-lg border border-cyan-300/16 bg-gradient-to-br from-cyan-300/18 via-sky-400/8 to-violet-400/12 p-1.5 text-slate-100 [&_svg]:h-3 [&_svg]:w-3">{icon}</div>
         </div>
         <CardTitle className="max-w-[9ch] text-[2rem] font-semibold leading-[1.02] text-white xl:text-[2.15rem]">{value}</CardTitle>
@@ -3645,7 +3646,7 @@ export function MissionHubView() {
         title="Mission Hub"
         subtitle={missionHubContent.title}
         actions={
-          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+          <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
             {tenantName}
           </Badge>
         }
@@ -3712,7 +3713,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         hideHeader={role === "coach" || role === "learner" || role === "manager"}
         actions={
           access.data ? (
-            <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+            <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
               {access.data.tenant.name}
             </Badge>
           ) : null
@@ -3741,9 +3742,9 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           ) : role === "manager" ? (
             <ManagerPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
           ) : role === "coach" ? (
-            <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">{access.data.tenant.name}</Badge> : null} />
+            <CoachPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">{access.data.tenant.name}</Badge> : null} />
           ) : role === "learner" ? (
-            <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">{access.data.tenant.name}</Badge> : null} />
+            <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">{access.data.tenant.name}</Badge> : null} />
           ) : (
             <AdminPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
           )
@@ -3805,7 +3806,7 @@ export function ReportingWorkspaceView() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : null}
-              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-300">
+              <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
                 {access.data.tenant.name}
               </Badge>
             </>
@@ -8629,6 +8630,10 @@ function WeeklyCoachingLogPopupBox({
   );
 }
 
+// Coach Studio's card chrome now lives in the shared <ActionCard> (DESIGN2). This
+// thin adapter keeps Coach's existing call sites (description=, accent="default")
+// working unchanged while routing them through the promoted primitive. The only
+// deliberate visual change is the dark-secondary eyebrow → gold token.
 function CoachLaneActionCard({
   eyebrow,
   title,
@@ -8642,19 +8647,14 @@ function CoachLaneActionCard({
   action: ReactNode;
   accent?: "default" | "emerald" | "gold";
 }) {
-  const paletteClassName = accent === "emerald"
-    ? "border-emerald-200/80 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))]"
-    : accent === "gold"
-      ? "border-[#E6BE5A]/70 bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))] text-slate-950"
-      : "border-slate-700/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92))] text-slate-50";
-
   return (
-    <div className={`rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ${paletteClassName}`}>
-      <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${accent === "emerald" ? "text-emerald-700" : accent === "gold" ? "text-[#7A5200]" : "text-slate-200"}`}>{eyebrow}</p>
-      <h3 className={`mt-1.5 text-[15px] font-semibold leading-5 ${accent === "emerald" || accent === "gold" ? "text-slate-950" : "text-white"}`}>{title}</h3>
-      <p className={`mt-1 text-[13px] leading-5 ${accent === "emerald" ? "text-emerald-900/80" : accent === "gold" ? "text-slate-700" : "text-slate-200"}`}>{description}</p>
-      <div className="mt-2.5">{action}</div>
-    </div>
+    <ActionCard
+      eyebrow={eyebrow}
+      title={title}
+      body={description}
+      action={action}
+      accent={accent === "default" ? "dark" : accent}
+    />
   );
 }
 

@@ -512,6 +512,13 @@ describe("learner training layout helpers", () => {
     expect(shellSource).toContain("bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))]"); // dark stat band
     expect(shellSource).toContain("command-band"); // gated mode tabs
     expect(shellSource).toContain("data-[state=active]:bg-white data-[state=active]:text-slate-950"); // tab treatment
+    // DESIGN2: stat-bar label + modes-row label are single-sourced on the gold token
+    // (accent-gold on the dark stat band, accent-gold-ink for AA on the light modes band).
+    expect(shellSource).toContain("text-accent-gold");
+    expect(shellSource).toContain("text-accent-gold-ink");
+    const css = readFileSync(join(process.cwd(), "client/src/index.css"), "utf8");
+    expect(css).toContain("--accent-gold: #FCBC34");
+    expect(css).toContain("--color-accent-gold: var(--accent-gold)");
     // /coach renders through the shell (non-visual refactor), and the shared header is suppressed
     // so it isn't drawn twice.
     expect(trainingViewSource).toContain("<WorkspaceShell");
@@ -699,9 +706,12 @@ describe("learner training layout helpers", () => {
   });
 
   it("maps Journey + Coaching onto the shared action-card pattern, dark surfaces (ALIGN3)", () => {
-    // The shared CoachLaneActionCard gold chrome is still the row primitive.
-    expect(trainingViewSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
-    expect(trainingViewSource).toContain("bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))]");
+    // The gold chrome now lives in the promoted shared <ActionCard> (DESIGN2); Coach's
+    // CoachLaneActionCard is a thin adapter that routes into it.
+    const actionCardSource = readFileSync(join(process.cwd(), "client/src/components/ActionCard.tsx"), "utf8");
+    expect(actionCardSource).toContain("rounded-[1.25rem] border px-3 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.12)]");
+    expect(actionCardSource).toContain("bg-[linear-gradient(180deg,rgba(255,247,216,0.98),rgba(252,228,150,0.94))]");
+    expect(trainingViewSource).toContain("<ActionCard");
     // Journey: action row (gold + dark launchers) → selectable path → "Selected module" detail.
     expect(trainingViewSource).toContain('title="Browse the learning path"');
     expect(trainingViewSource).toContain("setSelectedModuleId(module.id)");
@@ -1178,8 +1188,11 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("border-emerald-600/25 bg-emerald-100 text-emerald-800");
     // Only the light coach thread list opts into the opaque pills.
     expect(trainingViewSource).toContain('<StatusBadge value={session.status} surface="light" />');
-    // Gold action-card eyebrow darkened within the gold palette.
-    expect(trainingViewSource).toContain('accent === "gold" ? "text-[#7A5200]"');
+    // Gold action-card eyebrow is single-sourced on the gold token (DESIGN2):
+    // accent-gold-ink (AA on the light gold card), accent-gold on the dark card.
+    const actionCardSource = readFileSync(join(process.cwd(), "client/src/components/ActionCard.tsx"), "utf8");
+    expect(actionCardSource).toContain('accent === "gold" ? "text-accent-gold-ink"');
+    expect(actionCardSource).toContain('"text-accent-gold"'); // dark-secondary eyebrow → gold
     expect(trainingViewSource).not.toContain('text-[#9A6700]');
     // Workspace/section eyebrow slate darkened to the AA secondary-on-light token everywhere.
     expect(trainingViewSource).not.toContain("text-[#6B7E8A]");

@@ -93,7 +93,7 @@ export function WorkspaceShell({
                 {stats.map((stat, index) => {
                   const inner = (
                     <>
-                      <div className="flex items-center gap-2 text-slate-300">{stat.icon}<span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{stat.label}</span></div>
+                      <div className="flex items-center gap-2 text-accent-gold">{stat.icon}<span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{stat.label}</span></div>
                       <p className="mt-1.5 text-base font-semibold text-white">{stat.value}</p>
                       {stat.sub ? <p className={subTruncate ? "truncate text-[11px] leading-4 text-slate-400" : "text-[11px] leading-4 text-slate-400"}>{stat.sub}</p> : null}
                     </>
@@ -118,7 +118,7 @@ export function WorkspaceShell({
               <div className="command-band px-4 py-2.5 md:px-4.5">
                 <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">{modesLabel}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent-gold-ink">{modesLabel}</p>
                     {modesSubtitle ? <p className="mt-1 text-sm leading-5 text-slate-700">{modesSubtitle}</p> : null}
                   </div>
                   <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 rounded-[1.1rem] border border-slate-200 bg-white/85 p-1.5 shadow-[0_10px_20px_rgba(15,23,42,0.05)] xl:w-auto">
