@@ -3710,7 +3710,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
         eyebrow={roleDescriptor?.eyebrow ?? "Workspace"}
         title={roleDescriptor?.title ?? "Workspace"}
         description={roleDescriptor?.subtitle ?? "Open a role-specific workspace with the correct tenant-scoped data."}
-        hideHeader={role === "coach" || role === "learner" || role === "manager"}
+        hideHeader={role === "coach" || role === "learner" || role === "manager" || role === "client_admin"}
         actions={
           access.data ? (
             <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">
@@ -3746,7 +3746,7 @@ export function RoleWorkspace({ role }: { role: DemoRole }) {
           ) : role === "learner" ? (
             <LearnerPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">{access.data.tenant.name}</Badge> : null} />
           ) : (
-            <AdminPanel data={activeQuery.data} onUpdated={refreshWorkspace} />
+            <AdminPanel data={activeQuery.data} onUpdated={refreshWorkspace} headerActions={access.data ? <Badge variant="outline" className="rounded-full border-white/12 bg-white/6 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-slate-600">{access.data.tenant.name}</Badge> : null} />
           )
         ) : null}
       </SectionShell>
@@ -12015,7 +12015,7 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
   );
 }
 
-function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) {
+function AdminPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?: () => void; headerActions?: ReactNode }) {
   const [preferredLabel, setPreferredLabel] = useState(data.branding.preferredLabel);
   const learnerUser = data.tenantUsers.find((user: any) => user.role === "learner") ?? data.admin;
   const managerUser = data.tenantUsers.find((user: any) => user.role === "manager") ?? data.admin;
@@ -12061,104 +12061,33 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
     window.setTimeout(() => revealWorkspaceSection(sectionId), 20);
   };
 
+  // Two stat systems (the nested bg-slate-950/50 tiles + the 4× MetricCard grid)
+  // collapse into ONE shared dark stat bar (gold labels via the shell).
+  const adminStats: WorkspaceStat[] = [
+    { label: "Tenant roster", value: `${data.tenantUsers.length}`, sub: "Role-scoped identities in this tenant", icon: <Users2 className="h-4 w-4" />, onClick: () => openAdminMode("roles", "admin-roles-section") },
+    { label: "Custom roles", value: `${(data.customRoles ?? []).length}`, sub: "Tenant-specific permission overlays", icon: <ShieldCheck className="h-4 w-4" />, onClick: () => openAdminMode("roles", "admin-roles-section") },
+    { label: "Governance signals", value: `${data.documentationEntries.length}`, sub: "Documentation events ready for audit", icon: <Building2 className="h-4 w-4" />, onClick: () => openAdminMode("governance", "admin-governance-section") },
+    { label: "Isolation mode", value: "Strict", sub: data.branding.dataIsolation, icon: <Sparkles className="h-4 w-4" />, onClick: () => openAdminMode("branding", "admin-branding-section") },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(310px,0.92fr)]">
-        <PremiumCard className="overflow-hidden">
-          <CardContent className="space-y-4 p-5">
-            <div className="rounded-[1.6rem] border border-white/12 bg-white/6 p-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge className="rounded-full border-cyan-200/25 bg-cyan-300/16 text-cyan-50">Client control</Badge>
-                <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.tenant.industry}</Badge>
-                <Badge variant="outline" className="rounded-full border-white/14 bg-slate-950/30 text-slate-50">{data.branding.dataIsolation}</Badge>
-              </div>
-              <div className="mt-4 max-w-4xl space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-300">Tenant operating queue</p>
-                <h3 className="text-[1.9rem] font-semibold tracking-tight text-white">{data.branding.preferredLabel}</h3>
-                <p className="text-sm leading-7 text-slate-100">One control plane for branding, role setup, governance review, and documentation follow-up.</p>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Tenant roster</p>
-                <p className="mt-2 text-xl font-semibold text-white">{data.tenantUsers.length}</p>
-                <p className="mt-1 text-xs text-slate-300">Role-scoped identities in the active tenant</p>
-              </div>
-              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Custom roles</p>
-                <p className="mt-2 text-xl font-semibold text-white">{(data.customRoles ?? []).length}</p>
-                <p className="mt-1 text-xs text-slate-300">Tenant-specific permission overlays</p>
-              </div>
-              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Governance signals</p>
-                <p className="mt-2 text-xl font-semibold text-white">{data.documentationEntries.length}</p>
-                <p className="mt-1 text-xs text-slate-300">Documentation events ready for audit</p>
-              </div>
-            </div>
-            <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <div className="rounded-[1.45rem] border border-white/12 bg-white/8 p-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-300">Admin priority</p>
-                <h4 className="mt-2 text-lg font-semibold text-white">Keep tenant branding, permissions, and governance aligned.</h4>
-                <p className="mt-2 text-sm leading-6 text-slate-200">The highest-value work is setup clarity: confirm the tenant label, role architecture, and audit evidence before expanding into longer history views.</p>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <button type="button" onClick={() => openAdminMode("branding", "admin-branding-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Recommended next</p>
-                  <p className="mt-2 text-base font-semibold text-white">Refresh white-label controls</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Adjust the tenant label, accent, logo mark, and entry statement without leaving this control plane.</p>
-                </button>
-                <button type="button" onClick={() => openAdminMode("governance", "admin-governance-section")} className="guide-card min-w-0 p-4 text-left transition hover:-translate-y-0.5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Audit lane</p>
-                  <p className="mt-2 text-base font-semibold text-white">Review coaching and documentation evidence</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">Open the proof trail and weekly governance artifacts before you drill into the full timeline.</p>
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </PremiumCard>
-
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Control cues</p>
-              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Manage branding, permissions, coaching, and evidence one mode at a time.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {data.configuration.slice(0, 4).map((item: any) => (
-                <div key={item.key} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-white/70 px-4 py-4 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#4A6373]">{item.label}</p>
-                  <p className="mt-2 text-sm font-semibold text-[#1B303C]">{item.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Tenant" value={data.tenant.name} supporting={data.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
-        <MetricCard label="Role users" value={`${data.tenantUsers.length}`} supporting="Strictly tenant-scoped account inventory" icon={<Users2 className="h-4 w-4" />} />
-        <MetricCard label="Brand accent" value={data.branding.accent} supporting={data.branding.preferredLabel} icon={<Sparkles className="h-4 w-4" />} />
-        <MetricCard label="Isolation mode" value="Strict" supporting={data.branding.dataIsolation} icon={<ShieldCheck className="h-4 w-4" />} />
-      </div>
-
-      <Tabs value={activeAdminMode} onValueChange={(value) => setActiveAdminMode(value as "overview" | "branding" | "roles" | "authoring" | "governance")} className="space-y-4">
-        <div className="command-band px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#4A6373]">Client control modes</p>
-              <p className="mt-2 text-sm leading-6 text-[#4A6373]">Switch between overview, branding, role architecture, and governance.</p>
-            </div>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-[1.4rem] border border-[#1B303C]/10 bg-white/70 p-2 xl:w-auto">
-              <TabsTrigger value="overview" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Overview</TabsTrigger>
-              <TabsTrigger value="branding" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Branding</TabsTrigger>
-              <TabsTrigger value="roles" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Roles</TabsTrigger>
-              <TabsTrigger value="authoring" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Authoring</TabsTrigger>
-              <TabsTrigger value="governance" className="rounded-full px-4 py-2 text-sm data-[state=active]:bg-[#1B303C] data-[state=active]:text-white">Governance</TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
+    <WorkspaceShell
+      title="Client Control"
+      subtitle="Manage white-label branding, tenant boundaries, and role-scoped configuration from one control plane."
+      actions={headerActions}
+      stats={adminStats}
+      subTruncate
+      modesLabel="Client control modes"
+      activeTab={activeAdminMode}
+      onTabChange={(value) => setActiveAdminMode(value as "overview" | "branding" | "roles" | "authoring" | "governance")}
+      tabs={[
+        { value: "overview", label: "Overview" },
+        { value: "branding", label: "Branding" },
+        { value: "roles", label: "Roles" },
+        { value: "authoring", label: "Authoring" },
+        { value: "governance", label: "Governance" },
+      ]}
+    >
         <TabsContent value="overview" className="mt-0 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
           <PremiumCard id="admin-overview-section">
             <CardHeader>
@@ -12166,23 +12095,23 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CardDescription className="text-slate-400">The three admin decisions that need attention now.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="guide-card p-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Identity status</p>
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Identity status</p>
                 <p className="mt-2 text-lg font-semibold text-white">{data.branding.preferredLabel}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">Accent {data.branding.accent} and logo mark {data.branding.logoMark} are active across the tenant preview.</p>
               </div>
-              <div className="guide-card p-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Role architecture</p>
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Role architecture</p>
                 <p className="mt-2 text-lg font-semibold text-white">{(data.customRoles ?? []).length > 0 ? `${(data.customRoles ?? []).length} custom lane${(data.customRoles ?? []).length === 1 ? "" : "s"}` : "Core permission lanes only"}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">Every tenant role still maps to a predictable CHCG permission lane.</p>
               </div>
-              <div className="guide-card p-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Governance proof</p>
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Governance proof</p>
                 <p className="mt-2 text-lg font-semibold text-white">{data.weeklyCoachingLogs.length} coaching records</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">Tenant admins can audit learner take-aways, recipient routing, and follow-up completeness from one mode.</p>
               </div>
-              <div className="guide-card p-4">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Library blend</p>
+              <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Library blend</p>
                 <p className="mt-2 text-lg font-semibold text-white">{blendedGovernanceAssets.length} curated governance assets</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">CHCG assets and tenant uploads stay visibly distinct while feeding the same workflows.</p>
               </div>
@@ -12193,19 +12122,28 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
               <CardTitle className="text-white">Action launcher</CardTitle>
               <CardDescription className="text-slate-400">Jump directly into the next admin flow without navigating a long page.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="grid gap-3">
               {[
-                { title: "Update white-label identity", description: "Refine brand tone, logo mark, and accent colors.", mode: "branding", sectionId: "admin-branding-section" },
-                { title: "Add or review custom roles", description: "Keep permission lanes clear while supporting tenant-specific job families.", mode: "roles", sectionId: "admin-roles-section" },
-                { title: "Audit governance evidence", description: "Review coaching logs, review records, and documentation feed side by side.", mode: "governance", sectionId: "admin-governance-section" },
+                { eyebrow: "White-label", title: "Update white-label identity", description: "Refine brand tone, logo mark, and accent colors.", mode: "branding", sectionId: "admin-branding-section", accent: "gold" as const },
+                { eyebrow: "Role architecture", title: "Add or review custom roles", description: "Keep permission lanes clear while supporting tenant-specific job families.", mode: "roles", sectionId: "admin-roles-section", accent: "dark" as const },
+                { eyebrow: "Governance", title: "Audit governance evidence", description: "Review coaching logs, review records, and documentation feed side by side.", mode: "governance", sectionId: "admin-governance-section", accent: "dark" as const },
               ].map((item) => (
-                <button key={item.title} type="button" onClick={() => openAdminMode(item.mode as any, item.sectionId)} className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10">
-                  <div>
-                    <p className="text-sm font-medium text-white">{item.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">{item.description}</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-slate-400" />
-                </button>
+                <ActionCard
+                  key={item.title}
+                  accent={item.accent}
+                  eyebrow={item.eyebrow}
+                  title={item.title}
+                  body={item.description}
+                  action={
+                    <Button
+                      type="button"
+                      onClick={() => openAdminMode(item.mode as any, item.sectionId)}
+                      className={`w-full justify-between rounded-full ${item.accent === "gold" ? "bg-slate-950 text-white hover:bg-slate-800" : "border border-white/15 bg-white/10 text-white hover:bg-white/16 hover:text-white"}`}
+                    >
+                      Open <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  }
+                />
               ))}
             </CardContent>
           </PremiumCard>
@@ -12302,17 +12240,17 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
                 <CardDescription className="text-slate-400">Show the user’s current lane, team context, and the next governance action at a glance.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="guide-card p-4 md:col-span-2">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected user</p>
+                <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4 md:col-span-2">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Selected user</p>
                   <p className="mt-2 text-lg font-semibold text-white">{selectedTenantUser.name}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{selectedTenantUser.title} on {selectedTenantUser.team}</p>
                 </div>
-                <div className="guide-card p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Permission lane</p>
+                <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Permission lane</p>
                   <p className="mt-2 text-lg font-semibold text-white">{getRoleLabel(selectedTenantUser.role)}</p>
                 </div>
-                <div className="guide-card p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Admin cue</p>
+                <div className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-accent-gold">Admin cue</p>
                   <p className="mt-2 text-lg font-semibold text-white">Verify role fit before routing new content or governance actions.</p>
                 </div>
               </CardContent>
@@ -12446,7 +12384,6 @@ function AdminPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }) 
             </div>
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
+    </WorkspaceShell>
   );
 }

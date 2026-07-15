@@ -1256,10 +1256,36 @@ describe("learner training layout helpers", () => {
     expect(reportingSource).toContain("text-accent-gold-ink");
   });
 
+  it("routes Client Control through WorkspaceShell to the Coach Studio standard (CLIENT3)", () => {
+    // client_admin suppresses SectionShell's sentence header (renders its own shell).
+    expect(trainingViewSource).toContain('role === "client_admin"');
+    expect(trainingViewSource).toContain('hideHeader={role === "coach" || role === "learner" || role === "manager" || role === "client_admin"}');
+    // AdminPanel is the last function in the file.
+    const adminSource = trainingViewSource.slice(trainingViewSource.indexOf("function AdminPanel"));
+    // Short header + one shared dark stat bar + shell modes.
+    expect(adminSource).toContain("const adminStats: WorkspaceStat[]");
+    expect(adminSource).toContain("<WorkspaceShell");
+    expect(adminSource).toContain('title="Client Control"');
+    expect(adminSource).toContain("stats={adminStats}");
+    expect(adminSource).toContain('modesLabel="Client control modes"');
+    expect(adminSource).toContain("activeTab={activeAdminMode}");
+    // The two parallel stat systems + the 2-col dark/light split are gone.
+    expect(adminSource).not.toContain("<MetricCard");
+    expect(adminSource).not.toContain("command-band");
+    expect(adminSource).not.toContain("guide-card");
+    expect(adminSource).not.toContain("Control cues");
+    expect(adminSource).not.toContain("Tenant operating queue");
+    // Content cards unified onto the shared ActionCard; labels on the gold token.
+    expect(adminSource).toContain("<ActionCard");
+    expect(adminSource).toContain("text-accent-gold");
+    // Per-context AA: no light-surface text-[11px] slate-500 micro-labels remain.
+    expect(adminSource).not.toContain("text-[11px] uppercase tracking-[0.22em] text-slate-500");
+  });
+
   it("wires the shared quiz authoring panel into both admin surfaces and the player (AUTHOR2)", () => {
     const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
-    // Client Control: a tenant-scoped Authoring tab.
-    expect(trainingViewSource).toContain('<TabsTrigger value="authoring"');
+    // Client Control: a tenant-scoped Authoring tab (now a WorkspaceShell mode).
+    expect(trainingViewSource).toContain('{ value: "authoring", label: "Authoring" }');
     expect(trainingViewSource).toContain('id="admin-authoring-section"');
     expect(trainingViewSource).toContain('<ContentAuthoringPanel scope="tenant" tenantId={data.tenant.id} />');
     // CHCG Command: a core-scoped authoring card.
