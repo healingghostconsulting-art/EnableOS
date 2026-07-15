@@ -1282,6 +1282,26 @@ describe("learner training layout helpers", () => {
     expect(adminSource).not.toContain("text-[11px] uppercase tracking-[0.22em] text-slate-500");
   });
 
+  it("routes CHCG Command through WorkspaceShell to the Coach Studio standard (CHCG3)", () => {
+    const chcgSource = trainingViewSource.slice(
+      trainingViewSource.indexOf("export function ChcgAdminView"),
+      trainingViewSource.indexOf("function ReviewLogComposer"),
+    );
+    // Short header + the top MetricCard grid folded into the shell's gold stat bar.
+    expect(chcgSource).toContain("const chcgStats: WorkspaceStat[]");
+    expect(chcgSource).toContain("<WorkspaceShell");
+    expect(chcgSource).toContain('title="CHCG Command"');
+    expect(chcgSource).toContain("stats={chcgStats}");
+    // The sentence-style SectionShell header for the main view is gone (the
+    // no-access fallback still uses SectionShell, which is fine).
+    expect(chcgSource).not.toContain('title="Organization control plane"');
+    // The second (per-client portfolio) grid is dark gold-label tiles, not a
+    // second MetricCard stat bar. Only the no-access branch may keep SectionShell.
+    expect(chcgSource).toContain("text-accent-gold");
+    // App-wide AA sweep: no faint uppercase text-slate-500 eyebrow labels remain.
+    expect(chcgSource).not.toContain("uppercase tracking-[0.22em] text-slate-500");
+  });
+
   it("wires the shared quiz authoring panel into both admin surfaces and the player (AUTHOR2)", () => {
     const authoringPanel = readFileSync(join(process.cwd(), "client/src/components/ContentAuthoringPanel.tsx"), "utf8");
     // Client Control: a tenant-scoped Authoring tab (now a WorkspaceShell mode).

@@ -1480,7 +1480,7 @@ function DocumentationFeed({ entries, weeklyCoachingLogs = [] }: { entries: any[
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-white">{entry.title ?? entry.label ?? `Documentation item ${index + 1}`}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-subtle-dark">{entry.owner ?? entry.status ?? "Documentation stream"}</p>
                 </div>
                 <Badge className={`rounded-full ${
                   supportsCoachingPopup
@@ -1986,7 +1986,7 @@ function RetrainingHistorySection({
     <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{title}</p>
+          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{title}</p>
           <p className="mt-2 text-sm text-slate-300">{description}</p>
         </div>
         <Badge className="rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/18 text-white">{assignments.length} tracked</Badge>
@@ -2001,7 +2001,7 @@ function RetrainingHistorySection({
               </div>
               <StatusBadge value={assignment.status} />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+            <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-subtle-dark">
               <span>{assignment.completedAt ? `Completed ${new Date(assignment.completedAt).toLocaleString()}` : `Due ${new Date(assignment.dueAt).toLocaleString()}`}</span>
               <span>·</span>
               <span>Assigned by {assignment.requestedByRole}</span>
@@ -2136,7 +2136,7 @@ function GuidanceActionPanel({
           <p className="mt-3 text-[15px] leading-7 text-slate-100/92">{suggestion.recommendation}</p>
         </div>
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Why this was suggested</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-subtle-dark">Why this was suggested</p>
           {suggestion.rationale.map((reason: string) => (
             <div key={reason} className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4 text-[15px] leading-7 text-slate-200">
               {reason}
@@ -2620,7 +2620,7 @@ function AssessmentPanel({
     <div className={compact ? "space-y-3" : "space-y-4"}>
       {!reviewMode ? (
         <div className={`rounded-[1.6rem] border border-white/10 bg-white/5 ${compact ? "p-4" : "p-5"}`}>
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
+          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{eyebrow}</p>
           <h4 className="mt-2 text-lg font-medium text-white">{assessment.title}</h4>
           <p className="mt-3 text-sm leading-6 text-slate-300">{assessment.objective}</p>
           <div className={`mt-4 rounded-2xl border p-4 ${accentFrameClass}`}>
@@ -2642,7 +2642,7 @@ function AssessmentPanel({
             <div key={question.id} className={`relative min-w-0 overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/60 ${compact ? "p-4" : "p-5"}`}>
               <CorrectAnswerCelebration active={submitted && questionCorrect} compact={compact} />
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+                <p className="text-sm uppercase tracking-[0.22em] text-subtle-dark">
                   {assessment.style === "kahoot" ? `Quiz question ${questionIndex + 1}` : `Checkpoint question ${questionIndex + 1}`}
                 </p>
                 {submitted ? (
@@ -5370,11 +5370,11 @@ export function TrainingExperienceView() {
                       aria-label={railCollapsed ? "Expand navigation rail" : "Collapse navigation rail"}
                       className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-slate-300 transition hover:bg-white/5"
                     >
-                      {!railCollapsed ? <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Navigation</span> : null}
+                      {!railCollapsed ? <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-subtle-dark">Navigation</span> : null}
                       <ChevronLeft className={`h-4 w-4 shrink-0 transition-transform ${railCollapsed ? "rotate-180" : ""}`} />
                     </button>
                     <div className="space-y-1.5">
-                      {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Stages</p> : null}
+                      {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Stages</p> : null}
                       {stages.map((stage, index) => {
                         const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
                         const isActiveStage = index === stageIndex;
@@ -5402,7 +5402,7 @@ export function TrainingExperienceView() {
                     </div>
                     {currentStagePages.length > 0 ? (
                       <div className="space-y-1.5 border-t border-white/10 pt-3">
-                        {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">Pages</p> : null}
+                        {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Pages</p> : null}
                         {([
                           { key: "brief", label: "Overview" },
                           { key: "lesson", label: "Lesson" },
@@ -5434,7 +5434,7 @@ export function TrainingExperienceView() {
                             {!railCollapsed ? (
                               <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
                                 <span className="truncate">Curriculum</span>
-                                <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-slate-500">{curriculumDeck.length}</span>
+                                <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-subtle-dark">{curriculumDeck.length}</span>
                               </span>
                             ) : null}
                           </button>
@@ -5611,7 +5611,7 @@ export function TrainingExperienceView() {
                                         <div key={item.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/65 p-4 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                                           <div className="flex items-center justify-between gap-3">
                                             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-400/15 text-sm font-semibold text-cyan-100">{index + 1}</span>
-                                            <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{item.stepLabel}</span>
+                                            <span className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">{item.stepLabel}</span>
                                           </div>
                                           <p className="mt-4 text-sm font-medium text-white">{item.title}</p>
                                           <p className="mt-3 text-sm leading-6 text-slate-300">{item.detail}</p>
@@ -5639,7 +5639,7 @@ export function TrainingExperienceView() {
                                     <details className="group rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
                                       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                                         <div>
-                                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transcript</p>
+                                          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Transcript</p>
                                           <p className="mt-1 text-sm text-white">Open narration controls and the page transcript only when needed.</p>
                                         </div>
                                         <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Reveal</Badge>
@@ -5716,15 +5716,15 @@ export function TrainingExperienceView() {
                                       </div>
                                       <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
                                         <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Passing threshold</p>
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Passing threshold</p>
                                           <p className="mt-2 text-sm font-medium text-white">Pass at {currentSlideInteraction.passingPercent}%</p>
                                         </div>
                                         <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Progress</p>
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Progress</p>
                                           <p className="mt-2 text-sm font-medium text-white">{slideInteractionProgress}% complete</p>
                                         </div>
                                         <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Interaction style</p>
+                                          <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Interaction style</p>
                                           <p className="mt-2 text-sm font-medium text-white">{currentSlideInteraction.kind.replaceAll("_", " ")}</p>
                                         </div>
                                       </div>
@@ -5748,7 +5748,7 @@ export function TrainingExperienceView() {
                                               }}
                                               className={`flex h-full min-h-[12rem] flex-col justify-between rounded-[1.4rem] border p-4 text-left transition ${isRevealed ? "border-emerald-400/30 bg-emerald-400/12" : "border-white/10 bg-slate-950/65 hover:bg-white/8"}`}
                                             >
-                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{card.title}</p>
+                                              <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">{card.title}</p>
                                               <p className="mt-3 break-words text-sm font-medium text-white">{isRevealed ? card.detail : "Tap to reveal this cue"}</p>
                                               <p className="mt-2 text-xs text-slate-400">{isRevealed ? "Unlocked" : "Hidden until you open it"}</p>
                                             </button>
@@ -5812,7 +5812,7 @@ export function TrainingExperienceView() {
                                             { key: "timing", label: "Timing cue" },
                                           ].map((matchField) => (
                                             <div key={matchField.key} className="rounded-[1.35rem] border border-white/10 bg-slate-950/65 p-4">
-                                              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{matchField.label}</p>
+                                              <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">{matchField.label}</p>
                                               <Select
                                                 value={slideInteractionAttempt.matchedPairs?.[matchField.key] ?? "unselected"}
                                                 onValueChange={(value) => setSlideInteractionAttempt((current) => ({
@@ -5857,7 +5857,7 @@ export function TrainingExperienceView() {
                                           >
                                             <div className="flex flex-wrap items-center justify-between gap-3">
                                               <div>
-                                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sequence step {index + 1}</p>
+                                                <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Sequence step {index + 1}</p>
                                                 <p className="mt-2 text-sm font-medium text-white">{step}</p>
                                               </div>
                                               <div className="flex gap-2">
@@ -5973,7 +5973,7 @@ export function TrainingExperienceView() {
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                             <button type="button" onClick={() => setEvidenceOpen((current) => !current)} aria-expanded={evidenceOpen} className="flex w-full cursor-pointer items-center justify-between gap-3 text-left">
                               <div className="max-w-2xl">
-                                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Evidence graphics</p>
+                                <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Evidence graphics</p>
                                 <p className="mt-2 text-base font-medium text-white">View evidence</p>
                                 <p className="mt-1 text-sm leading-6 text-slate-300">Open the measurable-behavior and benchmark charts when you want the supporting detail.</p>
                               </div>
@@ -5988,7 +5988,7 @@ export function TrainingExperienceView() {
                                   <div key={chart.id} className="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.78))] p-5 shadow-[0_22px_60px_rgba(8,15,35,0.24)]">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div className="max-w-lg">
-                                        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Lesson graph</p>
+                                        <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Lesson graph</p>
                                         <h4 className="mt-2 text-lg font-medium text-white">{chart.title}</h4>
                                         <p className="mt-2 text-sm leading-6 text-slate-300">{chart.description}</p>
                                       </div>
@@ -5997,7 +5997,7 @@ export function TrainingExperienceView() {
                                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
 
                                       <div className="rounded-[1.15rem] border border-white/10 bg-slate-950/60 px-4 py-3">
-                                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Latest mapped point</p>
+                                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Latest mapped point</p>
                                         <p className="mt-2 text-lg font-semibold text-white">{latestPoint?.value ?? "—"}</p>
                                         <p className="mt-1 text-sm text-slate-400">{latestPoint?.label ?? "Current lesson cue"}</p>
                                       </div>
@@ -6095,7 +6095,7 @@ export function TrainingExperienceView() {
                     {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "practice" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Practice scenario</p>
+                          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Practice scenario</p>
                           <h4 className="mt-2 text-lg font-medium text-white">{presentation?.practiceScenario.title}</h4>
                           <p className="mt-3 text-sm leading-6 text-slate-300">{presentation?.practiceScenario.situation}</p>
                           <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
@@ -6147,7 +6147,7 @@ export function TrainingExperienceView() {
                           {!onLastLessonPage ? <p className="mt-3 text-sm text-amber-200">Finish the current guided page to unlock the application checkpoint.</p> : null}
                         </div>
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Live-work transfer</p>
+                          <p className="text-sm uppercase tracking-[0.22em] text-subtle-dark">Live-work transfer</p>
                           <p className="mt-3 text-base leading-7 text-slate-200">Apply this module to <span className="font-medium text-white">{learner.data.assignedInterventions[0]?.title ?? "your active intervention plan"}</span>{launchedAsset ? <> while grounding the rehearsal in <span className="font-medium text-white">{launchedAsset.title}</span></> : null} and use the mapped resources below to reinforce the behavior in context.</p>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
@@ -6170,7 +6170,7 @@ export function TrainingExperienceView() {
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach prompts</p>
+                            <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Coach prompts</p>
                             <div className="mt-4 space-y-3">
                               {presentation?.coachPrompts.map((prompt) => (
                                 <div key={prompt} className="flex items-start gap-3 text-sm leading-6 text-slate-300">
@@ -6181,7 +6181,7 @@ export function TrainingExperienceView() {
                             </div>
                           </div>
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Reflection prompts</p>
+                            <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Reflection prompts</p>
                             <div className="mt-4 space-y-3">
                               {presentation?.reflectionPrompts.map((prompt) => (
                                 <div key={prompt} className="flex items-start gap-3 text-sm leading-6 text-slate-300">
@@ -6207,17 +6207,17 @@ export function TrainingExperienceView() {
                             />
                             <div className="grid gap-3 md:grid-cols-3">
                               <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
-                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Commitment depth</p>
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Commitment depth</p>
                                 <p className="mt-2 text-lg font-semibold text-white">{reflectionWordCount}</p>
                                 <p className="mt-1 text-xs leading-5 text-slate-400">Words currently captured in the behavior pledge.</p>
                               </div>
                               <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
-                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Coach visibility</p>
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Coach visibility</p>
                                 <p className="mt-2 font-medium text-white">{reflectionReady ? "Observable next behavior is named." : "Add a visible behavior and proof point."}</p>
                                 <p className="mt-1 text-xs leading-5 text-slate-400">A strong reflection should describe what a coach can hear, see, or verify next.</p>
                               </div>
                               <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-slate-300">
-                                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Module close state</p>
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Module close state</p>
                                 <p className="mt-2 font-medium text-white">{finalQuizPassed ? "Final quiz complete." : "Final quiz still pending."}</p>
                                 <p className="mt-1 text-xs leading-5 text-slate-400">Both the reflection pledge and the final quiz are required before the lesson closes.</p>
                               </div>
@@ -6236,7 +6236,7 @@ export function TrainingExperienceView() {
                               </div>
                             </div>
                             <div className={`rounded-[1.6rem] border p-5 ${recentUnlockMoment ? "border-emerald-400/20 bg-emerald-500/10" : "border-white/10 bg-white/5"}`}>
-                              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Progression cue</p>
+                              <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Progression cue</p>
                               <p className="mt-3 text-sm font-medium text-white">{recentUnlockMoment?.title ?? "Clear the active inline quiz to surface the next achievement cue here."}</p>
                               <p className={`mt-3 text-sm leading-6 ${recentUnlockMoment ? "text-emerald-100" : "text-slate-300"}`}>{recentUnlockMoment?.detail ?? "This gives the reflection stage a visible sense of accomplishment instead of ending only with a static pass/fail state."}</p>
                             </div>
@@ -6349,7 +6349,7 @@ export function TrainingExperienceView() {
                       {presentation?.resourceActions.map((resource, index) => (
                         <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(15,23,42,0.62))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
                           <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Transfer action</p>
+                            <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Transfer action</p>
                             <div className="flex items-center gap-2">
                               <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Outcome pack</Badge>
                               <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{String(index + 1).padStart(2, "0")}</Badge>
@@ -6375,7 +6375,7 @@ export function TrainingExperienceView() {
                     <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10">
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-subtle-dark">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
                   </CardContent>
                 ) : (
                   <>
@@ -6392,19 +6392,19 @@ export function TrainingExperienceView() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Next</p>
                         <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
                       </div>
                       <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Time left</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Time left</p>
                         <p className="mt-2 text-sm font-medium text-white">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
                       </div>
                       <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Score</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Score</p>
                         <p className="mt-2 text-sm font-medium text-white">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
                       </div>
                       <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Reward</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Reward</p>
                         <p className="mt-2 text-sm font-medium text-white">{currentStageItemCountLabel}</p>
                       </div>
                       <div className="space-y-2 pt-2">
@@ -6435,7 +6435,7 @@ export function TrainingExperienceView() {
                     <PremiumCard>
                       <CardContent className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Library launch context</p>
+                          <p className="text-xs uppercase tracking-[0.24em] text-subtle-dark">Library launch context</p>
                           <h2 className="mt-2 text-2xl font-semibold text-white">Training launched from {launchedAsset.title}</h2>
                           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The simulator is prioritizing this library asset as live-work context so the learner can see how imported or CHCG content carries into the lesson, practice language, and reflection evidence.</p>
                         </div>
@@ -6557,7 +6557,7 @@ export function TrainingExperienceView() {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Curriculum slide</p>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Curriculum slide</p>
                     <p className="mt-2 text-sm font-medium text-white">{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</p>
                     <p className="mt-1 text-xs leading-5 text-slate-400">{activeCurriculumSlide?.stageLabel ?? "Lesson curriculum"} · Slide {Math.min(selectedCurriculumSlideIndex + 1, Math.max(curriculumDeck.length, 1))} of {curriculumDeck.length || 1}</p>
                   </div>
@@ -6590,7 +6590,7 @@ export function TrainingExperienceView() {
                   <p className="mt-3 text-sm leading-7 text-slate-300">{activeCurriculumSlide?.slide.narrative ?? presentation?.heroSummary ?? "Open the matching curriculum for this module and return to the lesson when ready."}</p>
                 </div>
                 <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Slide takeaways</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Slide takeaways</p>
                   <div className="mt-4 space-y-3">
                     {(activeCurriculumSlide?.slide.bullets ?? []).map((bullet: string) => (
                       <div key={bullet} className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-200">{bullet}</div>
@@ -6670,7 +6670,7 @@ function LibraryCourseCard({ course, onOpen }: { course: any; onOpen: () => void
             <Badge variant="outline" className="shrink-0 rounded-full border-white/15 bg-white/6 text-slate-300">New</Badge>
           )}
         </div>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{course.slideCount} slides · {course.durationMinutes} min</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-subtle-dark">{course.slideCount} slides · {course.durationMinutes} min</p>
         {course.status === "in_progress" ? <Progress value={course.percentComplete} className="h-1.5 bg-white/8" /> : null}
       </div>
     </button>
@@ -6710,7 +6710,7 @@ function LibraryAssetCard({ asset, onOpen }: { asset: any; onOpen: () => void })
         <p className="line-clamp-2 text-xs leading-5 text-slate-400">{asset.summary}</p>
       </div>
       <div className="mt-auto space-y-2">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{asset.category}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-subtle-dark">{asset.category}</p>
         {(asset.tags ?? []).length ? (
           <div className="flex flex-wrap gap-1.5">
             {(asset.tags ?? []).slice(0, 4).map((tag: string) => (
@@ -7312,9 +7312,9 @@ export function ContentLibraryView() {
                             <p className="mt-2 text-sm leading-7 text-slate-100">{selectedAsset.summary}</p>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-3">
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Lane</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p></div>
-                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetCurriculumStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Status</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetStatusLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Lane</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowLabel}</p></div>
+                            <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Next action</p><p className="mt-2 text-sm font-medium text-white">{selectedAssetTrainingTarget?.moduleTitle ?? selectedAssetPlannedTrainingTarget?.moduleTitle ?? "Mapped module pending"}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selectedAssetCurriculumStatusLabel}</p></div>
                           </div>
                           <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -7343,7 +7343,7 @@ export function ContentLibraryView() {
                       {selectedAsset ? (
                         <>
                           <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/55 px-4 py-4">
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch brief owner</p>
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Launch brief owner</p>
                             <p className="mt-2 text-sm font-medium text-white">{selectedAssetWorkflowBrief.title}</p>
                             <p className="mt-2 text-sm leading-6 text-slate-300">Set the receiving role, review the compact briefing cards, and launch only when the next handoff is clear.</p>
                           </div>
@@ -7436,9 +7436,9 @@ export function ContentLibraryView() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">CHCG core assets</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.chcgAssets}</p></div>
-                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Client imports</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.importedAssets}</p></div>
-                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Mapped journeys</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.mappedJourneys}</p></div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">CHCG core assets</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.chcgAssets}</p></div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Client imports</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.importedAssets}</p></div>
+                        <div className="rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Mapped journeys</p><p className="mt-2 text-sm font-medium text-white">{library.data.stats.mappedJourneys}</p></div>
                       </div>
                       <div className="rounded-[1.2rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -7447,13 +7447,13 @@ export function ContentLibraryView() {
                         </div>
                         <p className="mt-3 text-sm leading-6 text-slate-100">{selectedCurriculumStatusOption.detail}</p>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Source type</p><p className="mt-2 text-sm font-medium text-white">{ingestionSourceType}</p></div>
-                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Receiving lane</p><p className="mt-2 text-sm font-medium text-white">{linkedRole === "all" ? "All roles" : getRoleLabel(linkedRole)}</p></div>
-                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Target journey</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.journeyTitle ?? "Shelf review only"}</p></div>
-                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Target module</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.moduleTitle ?? "No direct launch target yet"}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Source type</p><p className="mt-2 text-sm font-medium text-white">{ingestionSourceType}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Receiving lane</p><p className="mt-2 text-sm font-medium text-white">{linkedRole === "all" ? "All roles" : getRoleLabel(linkedRole)}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Target journey</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.journeyTitle ?? "Shelf review only"}</p></div>
+                          <div className="rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Target module</p><p className="mt-2 text-sm font-medium text-white">{selectedIngestionTarget?.moduleTitle ?? "No direct launch target yet"}</p></div>
                         </div>
                         <div className="mt-4 rounded-[1rem] border border-white/10 bg-slate-950/45 px-4 py-4">
-                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Launch-readiness note</p>
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Launch-readiness note</p>
                           <p className="mt-2 text-sm leading-6 text-slate-100">{launchReadinessNote}</p>
                         </div>
                       </div>
@@ -7570,9 +7570,9 @@ export function ContentLibraryView() {
                         <DialogDescription className="text-sm leading-6 text-slate-300">{selectedCourse.description}</DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">What's inside</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.slideCount} slides</p></div>
-                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Runtime</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.durationMinutes} min</p></div>
-                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Status</p><p className="mt-1 text-sm font-semibold capitalize text-white">{selectedCourse.status.replace("_", " ")}</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-subtle-dark">What's inside</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.slideCount} slides</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-subtle-dark">Runtime</p><p className="mt-1 text-sm font-semibold text-white">{selectedCourse.durationMinutes} min</p></div>
+                        <div className="rounded-[1rem] border border-white/10 bg-white/5 px-3 py-2.5"><p className="text-[10px] uppercase tracking-[0.2em] text-subtle-dark">Status</p><p className="mt-1 text-sm font-semibold capitalize text-white">{selectedCourse.status.replace("_", " ")}</p></div>
                       </div>
                       {selectedCourse.tags?.length ? (
                         <div className="flex flex-wrap gap-1.5">
@@ -7707,20 +7707,23 @@ export function ChcgAdminView() {
   }
 
   const selectedTenant = dashboard.data.selectedTenant;
+  // The top 4-up MetricCard grid becomes the shell's single dark gold-label stat bar.
+  const chcgStats: WorkspaceStat[] = dashboard.data.metrics.map((metric: any) => ({
+    label: metric.label,
+    value: metric.value,
+    sub: metric.supporting,
+    icon: <ShieldCheck className="h-4 w-4" />,
+  }));
 
   return (
     <Surface>
-      <SectionShell
-        eyebrow="CHCG Admin"
-        title="Organization control plane"
-        description="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy."
+      <WorkspaceShell
+        title="CHCG Command"
+        subtitle="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy."
+        stats={chcgStats}
+        subTruncate
       >
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-            {dashboard.data.metrics.map((metric: any) => (
-              <MetricCard key={metric.label} label={metric.label} value={metric.value} supporting={metric.supporting} icon={<ShieldCheck className="h-4 w-4" />} />
-            ))}
-          </div>
 
           <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
             <div className="space-y-6">
@@ -7838,11 +7841,19 @@ export function ChcgAdminView() {
                     <TenantPicker tenants={dashboard.data.tenants} tenantId={selectedTenant.tenant.id} setTenantId={setSelectedTenantId} />
                     <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{selectedTenant.users.length} users provisioned</Badge>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-                    <MetricCard label="Selected client" value={selectedTenant.tenant.name} supporting={selectedTenant.tenant.industry} icon={<Building2 className="h-4 w-4" />} />
-                    <MetricCard label="Licensed journeys" value={`${licensedJourneyIds.length}`} supporting="Journeys currently unlocked for this client." icon={<BookOpen className="h-4 w-4" />} />
-                    <MetricCard label="Licensed assets" value={`${licensedAssetIds.length}`} supporting="Library assets available to this client." icon={<Layers3 className="h-4 w-4" />} />
-                    <MetricCard label="Brand label" value={selectedTenant.branding.preferredLabel} supporting={selectedTenant.branding.accent} icon={<Sparkles className="h-4 w-4" />} />
+                  <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+                    {[
+                      { label: "Selected client", value: selectedTenant.tenant.name, sub: selectedTenant.tenant.industry },
+                      { label: "Licensed journeys", value: `${licensedJourneyIds.length}`, sub: "Journeys currently unlocked for this client." },
+                      { label: "Licensed assets", value: `${licensedAssetIds.length}`, sub: "Library assets available to this client." },
+                      { label: "Brand label", value: selectedTenant.branding.preferredLabel, sub: selectedTenant.branding.accent },
+                    ].map((tile) => (
+                      <div key={tile.label} className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-gold">{tile.label}</p>
+                        <p className="mt-2 text-xl font-semibold text-white">{tile.value}</p>
+                        <p className="mt-1 text-xs leading-4 text-slate-300">{tile.sub}</p>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </PremiumCard>
@@ -7933,7 +7944,7 @@ export function ChcgAdminView() {
             <ContentAuthoringPanel scope="core" />
           </CardContent>
         </PremiumCard>
-      </SectionShell>
+      </WorkspaceShell>
     </Surface>
   );
 }
@@ -8406,7 +8417,7 @@ function WeeklyCoachingLogComposer({
   return (
     <div className="rounded-[2rem] border border-white/10 bg-slate-950/60 p-5 shadow-[0_18px_50px_rgba(2,8,23,0.24)]">
       <div className="mb-4 space-y-2">
-        <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Weekly coaching log</p>
+        <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Weekly coaching log</p>
         <h3 className="text-xl font-semibold text-white">{title}</h3>
         <p className="text-sm leading-6 text-slate-400">Capture the exact weekly coaching fields, show who receives the simulated copy, and preserve the learner's own take-aways in the same record.</p>
       </div>
@@ -9392,7 +9403,7 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {data.peerBenchmarking.map((entry: any) => (
                 <div key={entry.id} className="trophy-card h-full p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.cohort}</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{entry.cohort}</p>
                   <h3 className="mt-2 text-base font-medium text-white">{entry.metric}</h3>
                   <p className="mt-3 text-3xl font-semibold text-white">{entry.score}</p>
                   <p className="mt-3 text-sm font-medium text-cyan-100">{entry.comparison}</p>
@@ -9426,7 +9437,7 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected ROI proof metric</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Selected ROI proof metric</p>
                   <p className="mt-2 text-xl font-semibold text-white">{selectedRoiTrendConfig.label}</p>
                   <p className="mt-3 text-sm leading-6 text-slate-300">Use the selector to compare movement in readiness, QA score, or CSAT against the peer benchmark across the current reporting window.</p>
                 </div>
@@ -9468,7 +9479,7 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Selected error signal</p>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Selected error signal</p>
                   <p className="mt-2 text-xl font-semibold text-white">{selectedErrorTrendConfig.label}</p>
                   <p className="mt-3 text-sm leading-6 text-slate-300">Compare the current slope of {selectedErrorTrendConfig.label.toLowerCase()} across the reporting window so leaders can decide whether coaching, process fixes, or retraining should intensify next.</p>
                 </div>
@@ -9504,16 +9515,16 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                 <div key={entry.id} className="guide-card p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.tenureRange}</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{entry.tenureRange}</p>
                       <h3 className="mt-2 text-base font-medium text-white">{entry.stage}</h3>
                     </div>
                     <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.population} specialists</Badge>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Readiness</p><p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">QA score</p><p className="mt-2 text-lg font-semibold text-white">{entry.qaScore}</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Close rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Readiness</p><p className="mt-2 text-lg font-semibold text-white">{entry.readiness}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">QA score</p><p className="mt-2 text-lg font-semibold text-white">{entry.qaScore}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Close rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.interventionCloseRate}%</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-slate-300">{entry.trend}</p>
                 </div>
@@ -9541,16 +9552,16 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                     <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.module}</p>
+                          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{entry.module}</p>
                           <h3 className="mt-2 text-base font-medium text-white">{entry.question}</h3>
                           <p className="mt-2 text-sm text-slate-300">Skill domain: <span className="font-medium text-white">{entry.skillDomain}</span></p>
                         </div>
                         <Badge className={`rounded-full border ${alertStyles}`}>{alertLabel}</Badge>
                       </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Miss rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Retry dependency</p><p className="mt-2 text-lg font-semibold text-white">{entry.retryDependency}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Miss rate</p><p className="mt-2 text-lg font-semibold text-white">{entry.missRate}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Peer percentile</p><p className="mt-2 text-lg font-semibold text-white">{entry.peerPercentile}th</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Retry dependency</p><p className="mt-2 text-lg font-semibold text-white">{entry.retryDependency}%</p></div>
                       </div>
                       <p className="mt-4 text-sm leading-6 text-slate-300">{entry.trend}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Recommended coaching action:</span> {entry.coachingAction}</p>
@@ -9578,14 +9589,14 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                     <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{entry.learner}</p>
+                          <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{entry.learner}</p>
                           <h3 className="mt-2 text-base font-medium text-white">{entry.module}</h3>
                         </div>
                         <Badge className="rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-100">Sent {entry.assignmentCount} times</Badge>
                       </div>
                       <p className="mt-4 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Observed change:</span> {entry.behaviorChange}</p>
                       <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-medium text-white">Escalation path:</span> {entry.recommendedEscalation}</p>
-                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.2em] text-subtle-dark">
                         <span>Completion rate {entry.completionRate}</span>
                         <span>·</span>
                         <span>Exact-target tracking enabled</span>
@@ -9609,9 +9620,9 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Current</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.currentErrorRate}</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Baseline</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.baselineErrorRate}</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Movement</p><p className="mt-2 text-3xl font-semibold text-emerald-300">{data.errorRateReporting.delta}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Current</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.currentErrorRate}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Baseline</p><p className="mt-2 text-3xl font-semibold text-white">{data.errorRateReporting.baselineErrorRate}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Movement</p><p className="mt-2 text-3xl font-semibold text-emerald-300">{data.errorRateReporting.delta}</p></div>
                   </div>
                   <div className="space-y-3">
                     {data.errorRateReporting.severityMix.map((entry: any) => (
@@ -9637,10 +9648,10 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Cadence adherence</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.cadenceAdherence}</p></div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.missedIntervals}</p></div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.followUpCompletion}</p></div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.documentationCompleteness}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Cadence adherence</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.cadenceAdherence}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Missed intervals</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.missedIntervals}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Follow-up completion</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.followUpCompletion}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Documentation completeness</p><p className="mt-2 text-3xl font-semibold text-white">{data.coachingConsistency.documentationCompleteness}</p></div>
                 </div>
                 <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">{data.coachingConsistency.outcomeAlignment}</p>
                 <div className="space-y-3">
@@ -9651,9 +9662,9 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                         <Badge className="rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-100">{entry.cadenceAdherence}% cadence hit</Badge>
                       </div>
                       <div className="mt-4 grid gap-3 md:grid-cols-3">
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Missed intervals</p><p className="mt-2 text-lg font-semibold text-white">{entry.missedIntervals}</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Follow-up completion</p><p className="mt-2 text-lg font-semibold text-white">{entry.followUpCompletion}%</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Documentation completeness</p><p className="mt-2 text-lg font-semibold text-white">{entry.documentationCompleteness}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Missed intervals</p><p className="mt-2 text-lg font-semibold text-white">{entry.missedIntervals}</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Follow-up completion</p><p className="mt-2 text-lg font-semibold text-white">{entry.followUpCompletion}%</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Documentation completeness</p><p className="mt-2 text-lg font-semibold text-white">{entry.documentationCompleteness}%</p></div>
                       </div>
                     </div>
                   ))}
@@ -9706,21 +9717,21 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
                         <Badge className="rounded-full border border-emerald-500/20 bg-emerald-500/12 text-emerald-300">{entry.delta}</Badge>
                       </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Before</p><p className="mt-2 text-lg font-semibold text-white">{entry.before}</p></div>
-                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">After</p><p className="mt-2 text-lg font-semibold text-white">{entry.after}</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Before</p><p className="mt-2 text-lg font-semibold text-white">{entry.before}</p></div>
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-3"><p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">After</p><p className="mt-2 text-lg font-semibold text-white">{entry.after}</p></div>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Intervention correlation</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Intervention correlation</p>
                     <p className="mt-3 text-3xl font-semibold text-white">{data.proofOfImpact.interventionCorrelation.value}</p>
                     <p className="mt-2 text-sm font-medium text-white">{data.proofOfImpact.interventionCorrelation.label}</p>
                     <p className="mt-3 text-sm leading-6 text-slate-300">{data.proofOfImpact.interventionCorrelation.detail}</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Sustained readiness evidence</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Sustained readiness evidence</p>
                     <div className="mt-3 space-y-3">
                       {data.proofOfImpact.sustainedReadiness.map((entry: any) => (
                         <div key={entry.label} className="rounded-2xl border border-white/10 bg-slate-950/45 p-3">
@@ -9748,7 +9759,7 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
             <CardContent className="grid gap-4 md:grid-cols-2">
               {data.methodologyAssets.map((asset: any) => (
                 <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{asset.category}</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">{asset.category}</p>
                   <h3 className="mt-2 text-lg font-medium text-white">{asset.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{asset.summary}</p>
                 </div>
@@ -10212,14 +10223,14 @@ function CoachPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
           <div className="grid gap-3 xl:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-2.5">
               <div className="rounded-[1.1rem] border border-slate-200 bg-white/88 p-2.5 shadow-[0_10px_22px_rgba(15,23,42,0.05)]">
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coaching threads</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-slate-600">Coaching threads</p>
                 <p className="mt-1 text-sm leading-5 text-slate-600">Select a thread, review the next action, and open the full thread here when you need detail.</p>
               </div>
               {selectedCoachingSessions.map((session: any) => (
                 <button key={session.id} type="button" onClick={() => setSelectedCoachingSessionId(session.id)} className={`w-full rounded-[1.15rem] border p-3 text-left transition ${selectedCoachingSession?.id === session.id ? "border-cyan-300/80 bg-[linear-gradient(180deg,rgba(236,254,255,0.98),rgba(224,242,254,0.94))] shadow-[0_14px_28px_rgba(8,145,178,0.11)]" : "border-slate-200 bg-white/88 shadow-[0_10px_22px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:bg-white"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-500"}`}>Coaching thread</p>
+                      <p className={`text-xs uppercase tracking-[0.22em] ${selectedCoachingSession?.id === session.id ? "text-cyan-700" : "text-slate-600"}`}>Coaching thread</p>
                       <h3 className={`mt-1.5 text-base font-medium ${selectedCoachingSession?.id === session.id ? "text-slate-950" : "text-slate-900"}`}>{session.title}</h3>
                       <p className={`mt-1 text-sm leading-5 ${selectedCoachingSession?.id === session.id ? "text-slate-700" : "text-slate-600"}`}>{selectedCoachingSession?.id === session.id ? "Selected thread" : "Select this thread to review the note and next action."}</p>
                     </div>
@@ -10890,21 +10901,21 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                             <div key={coverage.coach.id} className="rounded-[1.6rem] border border-white/10 bg-white/5 p-4">
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Coach lane partner</p>
+                                  <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Coach lane partner</p>
                                   <h4 className="mt-2 text-lg font-medium text-white">{coverage.coach.name} · {coverage.directReport.name}</h4>
                                   <p className="mt-2 text-sm leading-6 text-slate-300">{coverage.directReport.title} · {coverage.weeklyCoachingLogs.length} shared coaching logs · {coverage.coachingSessions.length} active follow-ups</p>
                                 </div>
                                 <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Remote review ready</Badge>
                               </div>
                               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Coach escalation path</p><p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p><p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p></div>
-                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-slate-500">Most recent direct-report log</p><p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p><p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p></div>
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-subtle-dark">Coach escalation path</p><p className="mt-2 text-sm text-white">{coverage.coach.name} · {coverage.coach.email}</p><p className="mt-1 text-sm text-slate-300">Escalates into {data.manager.name}'s manager review lane for remote follow-through.</p></div>
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4"><p className="text-xs uppercase tracking-[0.2em] text-subtle-dark">Most recent direct-report log</p><p className="mt-2 text-sm text-white">{coverage.latestLog ? new Date(coverage.latestLog.sessionDate).toLocaleDateString() : "No coach-authored log yet"}</p><p className="mt-1 text-sm text-slate-300">{coverage.latestLog ? coverage.latestLog.coachingComments : "The manager lane will surface direct-report coaching history here as soon as a weekly log is recorded."}</p></div>
                               </div>
                               <div className="mt-4 space-y-3">
                                 <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
                                   <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">History window</p>
+                                      <p className="text-xs uppercase tracking-[0.2em] text-subtle-dark">History window</p>
                                       <p className="mt-2 text-sm text-slate-300">Showing completions from the last {historyWindow === "week" ? "7 days" : "31 days"} so managers can review recent retraining by week or month.</p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
@@ -10970,7 +10981,7 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Action plan</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Action plan</p>
                       <div className="mt-2 grid gap-3 md:grid-cols-2">
                         {selectedCoachingSession.actionPlan.map((step: any) => (
                           <div key={step} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" /><span>{step}</span></div></div>
@@ -10978,11 +10989,11 @@ function ManagerPanel({ data, onUpdated }: { data: any; onUpdated?: () => void }
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Audit trail</p>
+                      <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Audit trail</p>
                       <div className="mt-2 space-y-2">
                         {selectedCoachingSession.auditTrail.map((entry: any) => (
                           <div key={entry.at + entry.detail} className="rounded-2xl border border-white/8 bg-white/5 p-3 text-sm text-slate-300">
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{new Date(entry.at).toLocaleString()}</p>
+                            <p className="text-xs uppercase tracking-[0.2em] text-subtle-dark">{new Date(entry.at).toLocaleString()}</p>
                             <p className="mt-1">{entry.detail}</p>
                           </div>
                         ))}
@@ -12162,7 +12173,7 @@ function AdminPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
                     {logoMark}
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Live preview</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Live preview</p>
                     <h3 className="mt-1 text-xl font-semibold text-white">{preferredLabel}</h3>
                     <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{heroStatement}</p>
                   </div>
