@@ -45,6 +45,9 @@
      The -ink variant is the same gold darkened for AA contrast on LIGHT surfaces. */
   --color-accent-gold: var(--accent-gold);
   --color-accent-gold-ink: var(--accent-gold-ink);
+  /* Brand typography: Montserrat (loaded via <link> in client/index.html, weights
+     400/500/600/700/800). Sets the default `font-sans` utility + body inheritance. */
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -177,7 +180,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Montserrat", sans-serif;
+    font-family: var(--font-sans);
     background-image:
       radial-gradient(circle at top left, rgba(252, 188, 52, 0.18), transparent 22%),
       radial-gradient(circle at top right, rgba(74, 99, 115, 0.14), transparent 24%),
