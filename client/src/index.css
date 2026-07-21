@@ -45,6 +45,12 @@
      The -ink variant is the same gold darkened for AA contrast on LIGHT surfaces. */
   --color-accent-gold: var(--accent-gold);
   --color-accent-gold-ink: var(--accent-gold-ink);
+  /* CHCG brand palette (exact brand-guide values). Navy + lighter-blue were only
+     inline literals (text-[#1B303C] / text-[#4A6373]); tokenized here so index.css
+     is the single palette source of truth. Generates text-brand-navy / bg-brand-*.
+     Existing inline usages are unchanged — rewiring them is a v3 follow-up. */
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
   /* Brand typography: Montserrat (loaded via <link> in client/index.html, weights
      400/500/600/700/800). Sets the default `font-sans` utility + body inheritance. */
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
@@ -53,6 +59,8 @@
 :root {
   --accent-gold: #FCBC34;
   --accent-gold-ink: #7A5200;
+  --brand-navy: #1B303C;
+  --brand-blue: #4A6373;
   --primary: oklch(0.32 0.04 243);
   --primary-foreground: oklch(0.98 0.01 95);
   --sidebar-primary: oklch(0.77 0.16 82);
