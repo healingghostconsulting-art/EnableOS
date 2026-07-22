@@ -7,12 +7,12 @@ Official CH Consulting Group (CHCG) logo assets, served statically from
 
 | File | Use on | Status |
 | --- | --- | --- |
-| `CHCG-Logo-Navy.svg` | **Light** surfaces (white / cream / light-gray backgrounds) | ⛔ **not yet in repo — drop the official file here** |
-| `CHCG-Logo-White.svg` | **Dark** surfaces (navy / slate / photographic backgrounds) | ⛔ **not yet in repo — drop the official file here** |
+| `CHCG-Logo-Navy.svg` | **Light** surfaces (white / cream / light-gray backgrounds) | ✅ **in repo** |
+| `CHCG-Logo-White.svg` | **Dark** surfaces (navy / slate / photographic backgrounds) | ✅ **in repo** |
 
-> These two SVGs are the **official** marks and must be supplied by the brand owner.
-> Do not generate, trace, or approximate them — this folder only documents the slot
-> and usage rules until the real files are added. Once present, remove the ⛔ notes.
+> These two SVGs are the **official** marks, supplied by the brand owner and now in
+> place. Do not generate, trace, approximate, or restyle them — replace them only with
+> new official files issued by CHCG.
 
 ## Usage rules
 
