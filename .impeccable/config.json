@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "client/src/pages/EnableOSViews.tsx",
+      "client/src/components/ContentAuthoringPanel.tsx",
+      ".claude/**",
+      ".manus-temp/**",
+      "references/**"
+    ],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "montserrat",
+        "createdAt": "2026-07-27T19:15:45.897Z",
+        "reason": "CHCG brand font"
+      }
+    ]
+  }
+}
