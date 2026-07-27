@@ -18,9 +18,9 @@ const paths = (menu: { path: string }[]) => menu.map((item) => item.path);
 
 describe("workspace navigation resolution (matrix-driven)", () => {
   it("derives every role menu from the one WORKSPACE_ACCESS matrix", () => {
-    expect(paths(learnerWorkspaceMenu)).toEqual(["/guide", "/learner", "/training", "/library"]);
-    expect(paths(coachWorkspaceMenu)).toEqual(["/guide", "/reporting", "/coach", "/learner", "/training", "/library"]);
-    expect(paths(managerWorkspaceMenu)).toEqual(["/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
+    expect(paths(learnerWorkspaceMenu)).toEqual(["/guide", "/calendar", "/learner", "/training", "/library"]);
+    expect(paths(coachWorkspaceMenu)).toEqual(["/guide", "/calendar", "/reporting", "/coach", "/learner", "/training", "/library"]);
+    expect(paths(managerWorkspaceMenu)).toEqual(["/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
     expect(paths(executiveWorkspaceMenu)).toEqual(["/mission-hub", "/guide", "/reporting", "/training", "/library"]);
     // platform admin sees everything incl. CHCG Command; client admin sees all but CHCG Command.
     expect(paths(adminWorkspaceMenu)).toContain("/chcg-admin");

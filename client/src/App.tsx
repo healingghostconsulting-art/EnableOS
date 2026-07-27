@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BarChart3, BookOpen, BookText, Building2, Compass, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
+import { BarChart3, BookOpen, BookText, Building2, CalendarDays, Compass, LayoutDashboard, ShieldCheck, Users2 } from "lucide-react";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import NotFound from "@/pages/NotFound";
@@ -10,6 +10,7 @@ import { ReminderBadgeProvider } from "./lib/reminderBadge";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
   canGrantAccessWorkspace,
@@ -29,6 +30,7 @@ const ACTIVE_WORKSPACE_ROLE_KEY = "chcg-enableos-active-workspace-role";
 const WORKSPACE_MENU_ITEMS: Record<WorkspacePath, DashboardMenuItem> = {
   "/mission-hub": { icon: LayoutDashboard, label: "Mission Hub", path: "/mission-hub" },
   "/guide": { icon: Compass, label: "EnableOS Guide", path: "/guide" },
+  "/calendar": { icon: CalendarDays, label: "Calendar", path: "/calendar" },
   "/reporting": { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   "/manager": { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   "/coach": { icon: Users2, label: "Coach Studio", path: "/coach" },
@@ -182,6 +184,13 @@ function Router() {
           {() => (
             <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide">
               <GuideView />
+            </GuardedWorkspaceShell>
+          )}
+        </Route>
+        <Route path="/calendar">
+          {() => (
+            <GuardedWorkspaceShell path="/calendar" roleLabel="Calendar">
+              <CalendarView />
             </GuardedWorkspaceShell>
           )}
         </Route>

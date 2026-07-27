@@ -2244,7 +2244,7 @@ function LoadingState() {
   );
 }
 
-function Surface({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
+export function Surface({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="min-h-screen text-[#1B303C]">
       <div className={`${wide ? "w-full" : "container"} py-6 sm:py-8 xl:py-10`}>

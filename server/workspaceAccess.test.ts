@@ -13,9 +13,9 @@ import {
 
 describe("WORKSPACE_ACCESS matrix", () => {
   it("matches the locked access matrix exactly", () => {
-    expect(WORKSPACE_ACCESS.learner).toEqual(["/guide", "/learner", "/training", "/library"]);
-    expect(WORKSPACE_ACCESS.coach).toEqual(["/guide", "/reporting", "/coach", "/learner", "/training", "/library"]);
-    expect(WORKSPACE_ACCESS.manager).toEqual(["/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
+    expect(WORKSPACE_ACCESS.learner).toEqual(["/guide", "/calendar", "/learner", "/training", "/library"]);
+    expect(WORKSPACE_ACCESS.coach).toEqual(["/guide", "/calendar", "/reporting", "/coach", "/learner", "/training", "/library"]);
+    expect(WORKSPACE_ACCESS.manager).toEqual(["/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
     expect(WORKSPACE_ACCESS.executive).toEqual(["/mission-hub", "/guide", "/reporting", "/training", "/library"]);
     expect(WORKSPACE_ACCESS.client_admin).not.toContain("/chcg-admin");
     expect(WORKSPACE_ACCESS.client_admin).toContain("/admin");
@@ -26,7 +26,7 @@ describe("WORKSPACE_ACCESS matrix", () => {
   });
 
   it("permittedWorkspaces returns the matrix set in display order", () => {
-    expect(permittedWorkspaces("manager")).toEqual(["/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
+    expect(permittedWorkspaces("manager")).toEqual(["/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"]);
     expect(permittedWorkspaces(null)).toEqual([]);
   });
 
