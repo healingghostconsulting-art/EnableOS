@@ -32,6 +32,7 @@ import {
   getExecutiveDashboard,
   getLearnerDashboard,
   getManagerDashboard,
+  getTenantCalendar,
   getViewerAccess,
   listContentLibrary,
   listMethodologyMappings,
@@ -492,6 +493,12 @@ export const demoRouter = router({
       viewerName: ctx.user.name,
       viewerOpenId: ctx.user.openId,
     });
+  }),
+  // CAL2: the derived calendar feed. Tenant-guarded like secureCoach/secureLearner;
+  // role comes from the grant, so learner sees only their own, coach/manager the team.
+  secureCalendar: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    return getTenantCalendar(tenantId, grant.role);
   }),
   secureAdmin: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");

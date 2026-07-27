@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { slideDecks } from "../shared/slideManifest";
 import { storagePut } from "./storage";
 import { isoDaysFromNow, dateOnlyDaysFromNow, demoNow } from "../shared/demoClock";
+import { buildCalendarEvents, type CalendarEvent, type CalendarViewerRole } from "../shared/calendar";
 import {
   getTrainingPresentation,
   getSeedPresentation,
@@ -2741,6 +2742,24 @@ function getNextCoachingSession(tenantId: string, learnerUserId: string): Coachi
     .filter((session) => session.status === "scheduled" && new Date(session.dueDate).getTime() >= now)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   return upcoming[0] ?? sessions.find((session) => session.status === "scheduled") ?? sessions[0] ?? coachingSessions[0]!;
+}
+
+// CAL2: the derived calendar feed. A pure projection of the tenant's coaching
+// sessions + retraining assignments — no persistence. Role scoping: learner sees
+// only their own events; coach / manager (and other oversight roles) see the team.
+export function getTenantCalendar(tenantId: string | undefined, role: DemoRole | "platform_admin"): CalendarEvent[] {
+  const tenant = getTenant(tenantId);
+  const coachingSessionsForTenant = getTenantCoachingSessions(tenant.id);
+  const retrainingForTenant = retrainingAssignments.filter((assignment) => assignment.tenantId === tenant.id);
+  const learnerUserId = getUser("learner", tenant.id).id;
+  const viewerRole: CalendarViewerRole =
+    role === "learner" ? "learner" : role === "coach" ? "coach" : role === "manager" ? "manager" : "team";
+  return buildCalendarEvents({
+    coachingSessions: coachingSessionsForTenant,
+    retrainingAssignments: retrainingForTenant,
+    role: viewerRole,
+    learnerUserId,
+  });
 }
 
 function getTenantTrainingEntitlement(tenantId: string): TenantTrainingEntitlement {

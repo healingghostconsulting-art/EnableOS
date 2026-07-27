@@ -340,6 +340,25 @@ describe("demo router", () => {
     });
   });
 
+  it("exposes secureCalendar: tenant-guarded, role-scoped (learner own vs coach team) (CAL2)", async () => {
+    const coachCaller = appRouter.createCaller(createContext({ openId: "atlas-coach", role: "user", name: "Coach" }));
+    const learnerCaller = appRouter.createCaller(createContext({ openId: "atlas-learner", role: "user", name: "Learner" }));
+
+    const teamFeed = await coachCaller.demo.secureCalendar({ tenantId: "atlas-operations" });
+    const ownFeed = await learnerCaller.demo.secureCalendar({ tenantId: "atlas-operations" });
+
+    expect(teamFeed.length).toBeGreaterThan(0);
+    expect(teamFeed.every((e) => e.tenantId === "atlas-operations")).toBe(true);
+    // Learner sees a subset (their own) of what the coach sees.
+    const teamIds = new Set(teamFeed.map((e) => e.id));
+    expect(ownFeed.every((e) => teamIds.has(e.id))).toBe(true);
+    expect(ownFeed.length).toBeLessThanOrEqual(teamFeed.length);
+    // Cross-tenant is denied, like the other secure procedures.
+    await expect(coachCaller.demo.secureCalendar({ tenantId: "lighthouse-finance" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
   it("allows secure role access inside the assigned tenant", async () => {
     const caller = appRouter.createCaller(
       createContext({
