@@ -13,6 +13,7 @@ import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubVi
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
 import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
+import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -226,9 +227,12 @@ function Router() {
         </Route>
         <Route path="/manager">
           {() => (
-            <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace">
-              <RoleWorkspace role="manager" />
-            </GuardedWorkspaceShell>
+            // v3 Manager Workspace (Pilot 4). Revert to v2 by swapping back to the
+            // GuardedWorkspaceShell + <RoleWorkspace role="manager" /> block below.
+            <GuardedV3Route path="/manager">
+              <ManagerWorkspaceView />
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/manager" roleLabel="Manager Workspace"><RoleWorkspace role="manager" /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/coach">
