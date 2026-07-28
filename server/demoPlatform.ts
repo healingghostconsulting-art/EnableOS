@@ -23,7 +23,11 @@ import {
 // DELIVER3 event hooks. Imported for call-time use only (the demoPlatform ⇄
 // notificationService cycle is resolved lazily — neither touches the other at
 // module-eval time).
-import { notifyRetrainingAssigned, notifyRetrainingCompleted, notifyCoachingLogged } from "./notificationService";
+import { notifyRetrainingAssigned, notifyRetrainingCompleted, notifyCoachingLogged, notifyCoachingSessionEvent } from "./notificationService";
+import {
+  initCoachingSessionRepository,
+  getCoachingSessionRepository,
+} from "./coachingSessionRepository";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -122,7 +126,7 @@ export type CoachingSession = {
   managerUserId: string;
   learnerUserId: string;
   title: string;
-  status: "scheduled" | "follow_up_due" | "completed";
+  status: "scheduled" | "follow_up_due" | "completed" | "cancelled";
   dueDate: string;
   notes: string;
   auditTrail: Array<{
@@ -130,6 +134,17 @@ export type CoachingSession = {
     detail: string;
   }>;
   actionPlan: string[];
+  // CAL5 — schedulable/persisted fields. Optional so the 4 seed literals + the
+  // fresh-learner spread stay untouched; the repository derives defaults on seed.
+  // `dueDate` stays the canonical calendar date (the feed reads it); `start` mirrors
+  // it as the persisted ISO. `sequence` bumps per reschedule/cancel for the .ics UID.
+  coachUserId?: string;
+  type?: "coaching" | "follow_up";
+  start?: string;
+  durationMins?: number;
+  sequence?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NotificationItem = {
@@ -911,6 +926,10 @@ const coachingSessions: CoachingSession[] = [
     ],
   },
 ];
+
+// CAL5: the coaching-session store is the repository, seeded by reference from the
+// array above (so existing reads see the same sessions and created ones surface).
+initCoachingSessionRepository(coachingSessions);
 
 const notifications: NotificationItem[] = [
   {
@@ -2729,7 +2748,8 @@ function getTenantInterventions(tenantId: string) {
 }
 
 function getTenantCoachingSessions(tenantId: string) {
-  return coachingSessions.filter((session) => session.tenantId === tenantId);
+  // CAL5: read from the repository (seed + any created/rescheduled sessions).
+  return getCoachingSessionRepository().list(tenantId);
 }
 
 // M4: the learner's "Next coaching" must be forward-looking. Prefer the soonest
@@ -2744,12 +2764,163 @@ function getNextCoachingSession(tenantId: string, learnerUserId: string): Coachi
   return upcoming[0] ?? sessions.find((session) => session.status === "scheduled") ?? sessions[0] ?? coachingSessions[0]!;
 }
 
+// ── CAL5: coaching-session scheduling (persisted create / reschedule / cancel) ──
+
+/** Learner ids a coach covers = learners on the coach's team (getCoachDashboard rule). */
+export function getCoachCoverageLearnerIds(tenantId: string, coachUserId: string): string[] {
+  const coach = users.find((user) => user.id === coachUserId && user.tenantId === tenantId);
+  if (!coach) return [];
+  return users
+    .filter((user) => user.tenantId === tenantId && user.role === "learner" && user.team === coach.team)
+    .map((user) => user.id);
+}
+
+/** Who may create/reschedule/cancel a coaching session for a learner: manager /
+ *  client_admin / platform_admin → whole team; coach → only their coachees;
+ *  learner / executive → view-only (never). */
+export function canManageCoachingSession(
+  actorRole: DemoRole | "platform_admin",
+  tenantId: string,
+  actorUserId: string,
+  learnerUserId: string,
+): boolean {
+  if (actorRole === "manager" || actorRole === "client_admin" || actorRole === "platform_admin") return true;
+  if (actorRole === "coach") return getCoachCoverageLearnerIds(tenantId, actorUserId).includes(learnerUserId);
+  return false;
+}
+
+/** The acting user id for a scheduling actor (the tenant's coach / manager / admin). */
+export function getSchedulingActorUserId(role: DemoRole | "platform_admin", tenantId: string): string {
+  const mappedRole = role === "coach" ? "coach" : role === "manager" ? "manager" : role === "client_admin" ? "client_admin" : null;
+  if (mappedRole) {
+    const user = users.find((entry) => entry.tenantId === tenantId && entry.role === mappedRole);
+    if (user) return user.id;
+  }
+  return `system-${role}`;
+}
+
+/** Tenant-scoped lookup of a single coaching session (for the secure layer's coverage check). */
+export function getCoachingSessionById(tenantId: string, sessionId: string): CoachingSession | null {
+  const session = getCoachingSessionRepository().find(sessionId);
+  return session && session.tenantId === tenantId ? session : null;
+}
+
+export interface CreateCoachingSessionInput {
+  tenantId: string;
+  coachUserId: string;
+  learnerUserId: string;
+  title: string;
+  start: string; // ISO 8601
+  durationMins?: number;
+  type?: "coaching" | "follow_up";
+  notes?: string;
+}
+
+export function createCoachingSession(input: CreateCoachingSessionInput): CoachingSession {
+  const repo = getCoachingSessionRepository();
+  const nowIso = demoNow().toISOString();
+  const manager = users.find((entry) => entry.tenantId === input.tenantId && entry.role === "manager");
+  const session: CoachingSession = {
+    // id flows straight into the calendar refId (`coaching_session:${id}`) + .ics UID.
+    id: `session-${repo.list().length + 1}`,
+    tenantId: input.tenantId,
+    managerUserId: manager?.id ?? input.coachUserId,
+    coachUserId: input.coachUserId,
+    learnerUserId: input.learnerUserId,
+    type: input.type ?? "coaching",
+    title: input.title,
+    status: "scheduled",
+    dueDate: input.start, // canonical calendar date
+    start: input.start,
+    durationMins: input.durationMins ?? 30,
+    sequence: 0,
+    notes: input.notes ?? "",
+    auditTrail: [{ at: nowIso, detail: "Session scheduled." }],
+    actionPlan: [],
+    createdAt: nowIso,
+    updatedAt: nowIso,
+  };
+  repo.create(session);
+  notifyCoachingSessionEvent(session, "created");
+  return session;
+}
+
+export interface RescheduleCoachingSessionInput {
+  tenantId: string;
+  sessionId: string;
+  start: string;
+  durationMins?: number;
+}
+
+export function rescheduleCoachingSession(input: RescheduleCoachingSessionInput): CoachingSession {
+  const repo = getCoachingSessionRepository();
+  const existing = repo.find(input.sessionId);
+  if (!existing || existing.tenantId !== input.tenantId) {
+    throw new Error(`Coaching session not found for ${input.sessionId}`);
+  }
+  if (existing.status === "cancelled") throw new Error("A cancelled session cannot be rescheduled.");
+  const nowIso = demoNow().toISOString();
+  const sequence = (existing.sequence ?? 0) + 1; // bumps the .ics SEQUENCE (same UID)
+  const updated = repo.update(input.sessionId, {
+    start: input.start,
+    dueDate: input.start,
+    durationMins: input.durationMins ?? existing.durationMins ?? 30,
+    sequence,
+    updatedAt: nowIso,
+    auditTrail: [...existing.auditTrail, { at: nowIso, detail: `Rescheduled to ${input.start}.` }],
+  })!;
+  notifyCoachingSessionEvent(updated, "rescheduled");
+  return updated;
+}
+
+export interface CancelCoachingSessionInput {
+  tenantId: string;
+  sessionId: string;
+}
+
+export function cancelCoachingSession(input: CancelCoachingSessionInput): CoachingSession {
+  const repo = getCoachingSessionRepository();
+  const existing = repo.find(input.sessionId);
+  if (!existing || existing.tenantId !== input.tenantId) {
+    throw new Error(`Coaching session not found for ${input.sessionId}`);
+  }
+  const nowIso = demoNow().toISOString();
+  const sequence = (existing.sequence ?? 0) + 1; // cancel emits .ics METHOD:CANCEL at this SEQUENCE
+  const updated = repo.update(input.sessionId, {
+    status: "cancelled",
+    sequence,
+    updatedAt: nowIso,
+    auditTrail: [...existing.auditTrail, { at: nowIso, detail: "Session cancelled." }],
+  })!;
+  notifyCoachingSessionEvent(updated, "cancelled");
+  return updated;
+}
+
+export interface RescheduleTrainingDueInput {
+  tenantId: string;
+  assignmentId: string;
+  dueAt: string;
+}
+
+/** Light add: move a retraining due date via the existing retraining write path. */
+export function rescheduleTrainingDue(input: RescheduleTrainingDueInput): RetrainingAssignment {
+  const assignment = retrainingAssignments.find((entry) => entry.tenantId === input.tenantId && entry.id === input.assignmentId);
+  if (!assignment) throw new Error(`Retraining assignment not found for ${input.assignmentId}`);
+  assignment.dueAt = input.dueAt;
+  notifyRetrainingAssigned(assignment);
+  return assignment;
+}
+
 // CAL2: the derived calendar feed. A pure projection of the tenant's coaching
 // sessions + retraining assignments — no persistence. Role scoping: learner sees
 // only their own events; coach / manager (and other oversight roles) see the team.
 export function getTenantCalendar(tenantId: string | undefined, role: DemoRole | "platform_admin"): CalendarEvent[] {
   const tenant = getTenant(tenantId);
-  const coachingSessionsForTenant = getTenantCoachingSessions(tenant.id);
+  // Cancelled sessions leave the calendar (a cancel emits an .ics METHOD:CANCEL);
+  // the narrow CalendarCoachingInput status is satisfied once they're filtered out.
+  const coachingSessionsForTenant = getTenantCoachingSessions(tenant.id)
+    .filter((session) => session.status !== "cancelled")
+    .map((session) => ({ ...session, status: session.status as "scheduled" | "follow_up_due" | "completed" }));
   const retrainingForTenant = retrainingAssignments.filter((assignment) => assignment.tenantId === tenant.id);
   const learnerUserId = getUser("learner", tenant.id).id;
   const viewerRole: CalendarViewerRole =
@@ -3616,8 +3787,10 @@ export function applyCoachingGuidance(input: ApplyCoachingGuidanceInput) {
     throw new Error("No valid training target is available for this coaching suggestion.");
   }
 
-  const createdAt = new Date().toISOString();
-  const dueAt = new Date(Date.now() + (48 * 60 * 60 * 1000)).toISOString();
+  // CAL5 clock fix: anchor to demoNow() (was new Date()/Date.now()), so the due
+  // window and the calendar/reminder feeds all agree on the demo clock.
+  const createdAt = demoNow().toISOString();
+  const dueAt = new Date(demoNow().getTime() + (48 * 60 * 60 * 1000)).toISOString();
   const existingAssignment = retrainingAssignments.find((assignment) => assignment.tenantId === input.tenantId && assignment.sourceSuggestionId === suggestion.id && assignment.learnerUserId === learner.id && assignment.status !== "completed");
   const guidanceMode = input.journeyId && input.moduleId ? "manual_override" : "ai_approved";
   const guidanceNote = guidanceMode === "manual_override"

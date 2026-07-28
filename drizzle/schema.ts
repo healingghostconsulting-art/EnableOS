@@ -147,3 +147,33 @@ export type NotificationPreference = typeof notificationPreferences.$inferSelect
 export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
 export type NotificationOutboxEntry = typeof notificationOutbox.$inferSelect;
 export type InsertNotificationOutboxEntry = typeof notificationOutbox.$inferInsert;
+
+/**
+ * Scheduled coaching sessions / follow-ups (CAL5) — the first user-created,
+ * persisted calendar records. `id` is the stable key that flows straight into the
+ * calendar `refId` and the `.ics` UID. `start` is an ISO-8601 string the app owns;
+ * `sequence` bumps on each reschedule/cancel so a re-sent invite updates (not
+ * duplicates) the same UID. auditTrail/actionPlan are demo-narrative only and stay
+ * in memory — the durable surface is exactly these columns.
+ */
+export const coachingSessionsTable = mysqlTable("coaching_sessions", {
+  id: varchar("id", { length: 64 }).notNull().primaryKey(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull(),
+  coachUserId: varchar("coach_user_id", { length: 64 }).notNull(),
+  managerUserId: varchar("manager_user_id", { length: 64 }).notNull(),
+  learnerUserId: varchar("learner_user_id", { length: 64 }).notNull(),
+  type: mysqlEnum("type", ["coaching", "follow_up"]).notNull().default("coaching"),
+  title: varchar("title", { length: 200 }).notNull(),
+  start: varchar("start", { length: 40 }).notNull(), // ISO 8601, UTC
+  durationMins: int("duration_mins").notNull().default(30),
+  status: mysqlEnum("session_status", ["scheduled", "follow_up_due", "completed", "cancelled"]).notNull().default("scheduled"),
+  sequence: int("sequence").notNull().default(0),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantLookup: index("coaching_sessions_tenant").on(table.tenantId),
+}));
+
+export type CoachingSessionRow = typeof coachingSessionsTable.$inferSelect;
+export type InsertCoachingSessionRow = typeof coachingSessionsTable.$inferInsert;

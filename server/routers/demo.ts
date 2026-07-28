@@ -43,6 +43,13 @@ import {
   updateTenantTrainingAccess,
   updateWeeklyCoachingLog,
   updateWeeklyCoachingLogTakeaways,
+  createCoachingSession,
+  rescheduleCoachingSession,
+  cancelCoachingSession,
+  rescheduleTrainingDue,
+  getCoachingSessionById,
+  getSchedulingActorUserId,
+  canManageCoachingSession,
   type DemoRole,
 } from "../demoPlatform";
 import { renderAllReminderPreviews } from "../notificationService";
@@ -350,6 +357,35 @@ const coachingGuidanceInput = z.object({
   approverRole: z.enum(["manager", "coach"]),
   journeyId: z.string().optional(),
   moduleId: z.string().optional(),
+});
+
+// CAL5 — coaching-session scheduling inputs. `start` is an ISO-8601 datetime.
+const createCoachingSessionInput = z.object({
+  tenantId: z.string(),
+  learnerUserId: z.string().min(1),
+  title: z.string().min(1).max(200),
+  start: z.string().datetime(),
+  durationMins: z.number().int().min(5).max(480).optional(),
+  type: z.enum(["coaching", "follow_up"]).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+const rescheduleCoachingSessionInput = z.object({
+  tenantId: z.string(),
+  sessionId: z.string().min(1),
+  start: z.string().datetime(),
+  durationMins: z.number().int().min(5).max(480).optional(),
+});
+
+const cancelCoachingSessionInput = z.object({
+  tenantId: z.string(),
+  sessionId: z.string().min(1),
+});
+
+const rescheduleTrainingDueInput = z.object({
+  tenantId: z.string(),
+  assignmentId: z.string().min(1),
+  dueAt: z.string().datetime(),
 });
 
 const retrainingAssignmentStatusInput = z.object({
@@ -858,6 +894,54 @@ export const demoRouter = router({
       unsubscribedAt: input.unsubscribe ? demoNow().toISOString() : null,
     });
     return repo.list(input.userId, input.tenantId);
+  }),
+
+  // ── CAL5: coaching-session scheduling (create / reschedule / cancel) ──────────
+  // Agents (learner) are view-only; coach → only their coachees; manager/admin → team.
+  secureCreateCoachingSession: protectedProcedure.input(createCoachingSessionInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    const actorUserId = getSchedulingActorUserId(grant.role, tenantId);
+    if (!canManageCoachingSession(grant.role, tenantId, actorUserId, input.learnerUserId)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot schedule coaching for the requested learner." });
+    }
+    const coachUserId = grant.role === "coach" ? actorUserId : getSchedulingActorUserId("coach", tenantId);
+    return createCoachingSession({
+      tenantId,
+      coachUserId,
+      learnerUserId: input.learnerUserId,
+      title: input.title,
+      start: input.start,
+      durationMins: input.durationMins,
+      type: input.type,
+      notes: input.notes,
+    });
+  }),
+  secureRescheduleCoachingSession: protectedProcedure.input(rescheduleCoachingSessionInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    const session = getCoachingSessionById(tenantId, input.sessionId);
+    if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Coaching session not found." });
+    const actorUserId = getSchedulingActorUserId(grant.role, tenantId);
+    if (!canManageCoachingSession(grant.role, tenantId, actorUserId, session.learnerUserId)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot reschedule this coaching session." });
+    }
+    return rescheduleCoachingSession({ tenantId, sessionId: input.sessionId, start: input.start, durationMins: input.durationMins });
+  }),
+  secureCancelCoachingSession: protectedProcedure.input(cancelCoachingSessionInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    const session = getCoachingSessionById(tenantId, input.sessionId);
+    if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Coaching session not found." });
+    const actorUserId = getSchedulingActorUserId(grant.role, tenantId);
+    if (!canManageCoachingSession(grant.role, tenantId, actorUserId, session.learnerUserId)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot cancel this coaching session." });
+    }
+    return cancelCoachingSession({ tenantId, sessionId: input.sessionId });
+  }),
+  secureRescheduleTrainingDue: protectedProcedure.input(rescheduleTrainingDueInput).mutation(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    if (!["manager", "coach", "client_admin", "platform_admin"].includes(grant.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This role cannot reschedule training due dates." });
+    }
+    return rescheduleTrainingDue({ tenantId, assignmentId: input.assignmentId, dueAt: input.dueAt });
   }),
 
 });
