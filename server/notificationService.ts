@@ -15,7 +15,7 @@
 import type { Reminder, ReminderAudience, ReminderType } from "../shared/reminders";
 import { demoNow, isoDaysFromNow } from "../shared/demoClock";
 import { renderReminderEmail, type TemplateBranding } from "../shared/notificationTemplates";
-import { icsForReminder, DATED_REMINDER_TYPES } from "../shared/ics";
+import { icsForReminder, DATED_REMINDER_TYPES, buildIcs } from "../shared/ics";
 import { resolveRecipient } from "./notificationRecipients";
 import { getNotificationDelivery, type EmailMessage } from "./notificationDelivery";
 import {
@@ -284,4 +284,111 @@ export function notifyCoachingLogged(
     read: false,
   };
   void track(deliverReminder(reminder, { id: input.tenantId }, { now }));
+}
+
+// ── CAL5: coaching-session invites (create / reschedule / cancel) ──────────────
+// Reuses resolveRecipient + templates + outbox dedup, but drives the .ics directly
+// via buildIcs so a reschedule bumps SEQUENCE (same UID) and a cancel emits
+// METHOD:CANCEL. Recipient is the learner (the 1:1's subject). Stub by default.
+export type CoachingEventAction = "created" | "rescheduled" | "cancelled";
+
+interface CoachingSessionLike {
+  id: string;
+  tenantId: string;
+  learnerUserId: string;
+  title: string;
+  start?: string;
+  dueDate: string;
+  durationMins?: number;
+  sequence?: number;
+}
+
+const COACHING_ACTION_VERB: Record<CoachingEventAction, string> = {
+  created: "scheduled",
+  rescheduled: "rescheduled",
+  cancelled: "cancelled",
+};
+
+export async function deliverCoachingSessionEvent(
+  session: CoachingSessionLike,
+  action: CoachingEventAction,
+  now: Date = demoNow(),
+): Promise<DeliveryOutcome> {
+  const startIso = session.start ?? session.dueDate;
+  const tenant = { id: session.tenantId };
+  const grant = synthGrant("learner", session.tenantId);
+  const sequence = session.sequence ?? 0;
+
+  const reminder: Reminder = {
+    id: `rem-coaching-${action}-${session.id}`,
+    type: "one_on_one_scheduled",
+    audience: "learner",
+    severity: action === "cancelled" ? "info" : "warning",
+    subject: session.title,
+    subjectUserId: session.learnerUserId,
+    reason:
+      action === "cancelled"
+        ? `Your coaching session "${session.title}" has been cancelled.`
+        : `Your coaching session "${session.title}" has been ${COACHING_ACTION_VERB[action]} for ${new Date(startIso).toUTCString()}.`,
+    dueAt: startIso,
+    overdue: false,
+    deepLink: { route: "/learner", tab: "coaching" },
+    source: { kind: "one_on_one_scheduled", refId: session.id },
+    createdAt: now.toISOString(),
+    read: false,
+  };
+
+  const recipient = resolveRecipient(reminder, grant, tenant);
+  if (!recipient) return { status: "skipped", reason: "unresolved-recipient" };
+
+  const prefs = getNotificationPreferencesRepository().list(recipient.userId, session.tenantId);
+  if (!isDeliveryAllowed(prefs, reminder.type, "email")) {
+    return { status: "skipped", reason: "opted-out", recipient: recipient.email };
+  }
+
+  const outbox = getNotificationOutboxRepository();
+  // Key on action + session + sequence so a re-run dedups but each new
+  // reschedule/cancel (higher SEQUENCE) is a distinct send.
+  const key = buildOutboxKey(`coaching-${action}`, recipient.email, `${session.id}:seq${sequence}`);
+  if (outbox.find(key)) return { status: "deduped", recipient: recipient.email, outboxKey: key };
+
+  const branding = getTenantBranding(session.tenantId);
+  const rendered = renderReminderEmail({
+    reminder,
+    recipientName: recipient.name,
+    branding: { preferredLabel: branding.preferredLabel, accent: branding.accent },
+    appPublicUrl: ENV.appPublicUrl,
+    unsubscribeUrl: buildUnsubscribeUrl(recipient.userId, session.tenantId),
+    physicalAddress: CHCG_PHYSICAL_ADDRESS,
+  });
+  const msg: EmailMessage = { to: recipient.email, toName: recipient.name, subject: rendered.subject, text: rendered.text, html: rendered.html };
+
+  const ics = buildIcs({
+    uid: session.id, // == calendar refId
+    title: session.title,
+    description: reminder.reason,
+    start: new Date(startIso),
+    durationMinutes: session.durationMins ?? 30,
+    sequence,
+    attendeeEmail: recipient.email,
+    attendeeName: recipient.name,
+    method: action === "cancelled" ? "CANCEL" : "REQUEST",
+    stamp: now,
+  });
+
+  const result = await getNotificationDelivery().sendCalendarInvite(msg, ics);
+  outbox.record({
+    idempotencyKey: key,
+    reminderType: reminder.type,
+    recipient: recipient.email,
+    status: result.status,
+    renderedSubject: rendered.subject,
+    createdAt: now.toISOString(),
+  });
+  return { status: result.status, recipient: recipient.email, outboxKey: key };
+}
+
+/** Fire-and-forget wrapper the coaching mutations call. */
+export function notifyCoachingSessionEvent(session: CoachingSessionLike, action: CoachingEventAction, now: Date = demoNow()): void {
+  void track(deliverCoachingSessionEvent(session, action, now));
 }

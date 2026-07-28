@@ -11,6 +11,7 @@ export type GrantRole = "learner" | "coach" | "manager" | "executive" | "client_
 export type WorkspacePath =
   | "/mission-hub"
   | "/guide"
+  | "/calendar"
   | "/reporting"
   | "/manager"
   | "/coach"
@@ -24,6 +25,7 @@ export type WorkspacePath =
 export const WORKSPACE_ORDER: readonly WorkspacePath[] = [
   "/mission-hub",
   "/guide",
+  "/calendar",
   "/reporting",
   "/manager",
   "/coach",
@@ -34,21 +36,26 @@ export const WORKSPACE_ORDER: readonly WorkspacePath[] = [
   "/chcg-admin",
 ];
 
-/** The locked access matrix. Client Admin = all but CHCG Command; CHCG (platform) admin = all. */
+/**
+ * The locked access matrix. Client Admin = all but CHCG Command; CHCG (platform) admin = all.
+ * Calendar (CAL3) is a shared surface for the roles that own coaching/training events
+ * (learner, coach, manager) and, per the see-all invariant, the two admin roles;
+ * executive keeps its curated reporting-only set and does not receive it.
+ */
 export const WORKSPACE_ACCESS: Record<GrantRole, readonly WorkspacePath[]> = {
-  learner: ["/guide", "/learner", "/training", "/library"],
-  coach: ["/guide", "/reporting", "/coach", "/learner", "/training", "/library"],
-  manager: ["/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"],
+  learner: ["/guide", "/calendar", "/learner", "/training", "/library"],
+  coach: ["/guide", "/calendar", "/reporting", "/coach", "/learner", "/training", "/library"],
+  manager: ["/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library"],
   executive: ["/mission-hub", "/guide", "/reporting", "/training", "/library"],
-  client_admin: ["/mission-hub", "/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library", "/admin"],
-  platform_admin: ["/mission-hub", "/guide", "/reporting", "/manager", "/coach", "/learner", "/training", "/library", "/admin", "/chcg-admin"],
+  client_admin: ["/mission-hub", "/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library", "/admin"],
+  platform_admin: ["/mission-hub", "/guide", "/calendar", "/reporting", "/manager", "/coach", "/learner", "/training", "/library", "/admin", "/chcg-admin"],
 };
 
 /**
  * Shared workspaces — reachable from several personas. Navigating to these must NEVER
  * change the active workspace role (that was the bug: Training Zone reset the nav).
  */
-export const SHARED_WORKSPACES: readonly WorkspacePath[] = ["/mission-hub", "/guide", "/training", "/library"];
+export const SHARED_WORKSPACES: readonly WorkspacePath[] = ["/mission-hub", "/guide", "/calendar", "/training", "/library"];
 
 /** Dedicated role-home routes → the persona they represent. */
 export const DEDICATED_ROUTE_ROLE: Partial<Record<WorkspacePath, GrantRole>> = {

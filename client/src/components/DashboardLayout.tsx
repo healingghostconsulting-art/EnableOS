@@ -96,6 +96,13 @@ const workspaceMissionSignals: Record<string, {
     next: "Start with the role home, then use shared workspaces only when the next action needs them.",
     reward: "Guidance ready",
   },
+  "/calendar": {
+    eyebrow: "Calendar",
+    headline: "See what's due before it slips.",
+    focus: "Upcoming agenda",
+    next: "Work the overdue and today items first, then look ahead to the week.",
+    reward: "Schedule clear",
+  },
   "/admin": {
     eyebrow: "Client control",
     headline: "Finish setup in clear operating steps.",
