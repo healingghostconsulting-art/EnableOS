@@ -12,6 +12,7 @@ import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
+import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -232,9 +233,12 @@ function Router() {
         </Route>
         <Route path="/coach">
           {() => (
-            <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace">
-              <RoleWorkspace role="coach" />
-            </GuardedWorkspaceShell>
+            // v3 Coach Workspace (Pilot 3). Revert to v2 by swapping back to the
+            // GuardedWorkspaceShell + <RoleWorkspace role="coach" /> block below.
+            <GuardedV3Route path="/coach">
+              <CoachWorkspaceView />
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace"><RoleWorkspace role="coach" /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/learner">
