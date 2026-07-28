@@ -14,6 +14,7 @@ import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
 import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
 import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
+import { ClientAdminWorkspaceView } from "./pages/ClientAdminWorkspaceView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -257,9 +258,12 @@ function Router() {
         </Route>
         <Route path="/admin">
           {() => (
-            <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console">
-              <RoleWorkspace role="client_admin" />
-            </GuardedWorkspaceShell>
+            // v3 Client Admin Workspace (Pilot 5). Revert to v2 by swapping back to the
+            // GuardedWorkspaceShell + <RoleWorkspace role="client_admin" /> block below.
+            <GuardedV3Route path="/admin">
+              <ClientAdminWorkspaceView />
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console"><RoleWorkspace role="client_admin" /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/chcg-admin">
