@@ -29,6 +29,7 @@ import {
   getCoachDashboard,
   getDemoBundle,
   getDemoLanding,
+  getEntrySummary,
   getExecutiveDashboard,
   getLearnerDashboard,
   getManagerDashboard,
@@ -493,6 +494,7 @@ async function uploadWeeklyCoachingAttachments(
 
 export const demoRouter = router({
   landing: publicProcedure.query(() => getDemoLanding()),
+  entrySummary: publicProcedure.input(tenantInput).query(({ input }) => getEntrySummary(input.tenantId)),
   tenants: publicProcedure.query(() => listTenants()),
   methodologyMappings: publicProcedure.query(() => listMethodologyMappings()),
   viewerAccess: protectedProcedure.query(({ ctx }) => getViewerAccess(ctx.user.openId, ctx.user.role)),

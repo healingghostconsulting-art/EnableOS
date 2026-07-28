@@ -12,7 +12,7 @@ describe("sitewide page transition", () => {
     expect(appSource).toContain("function Router() {");
     expect(appSource).toContain("const [location] = useLocation();");
     expect(appSource).toContain("<div key={location} className=\"route-fade-in\">");
-    expect(appSource).toContain("<Route path=\"/\" component={LandingView} />");
+    expect(appSource).toContain("<Route path=\"/\" component={WorkspaceEntryView} />");
     expect(appSource).toContain("<Route path=\"/mission-hub\">");
     expect(appSource).toContain("<Route path=\"/guide\">");
     expect(appSource).toContain("<Route path=\"/training\">");
