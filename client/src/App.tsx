@@ -11,6 +11,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
+import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -157,6 +158,24 @@ function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.
   );
 }
 
+// v3 surfaces bring their own chrome (AppShell), so they use an access guard WITHOUT
+// the v2 DashboardLayout wrapper — same redirect rules as GuardedWorkspaceShell.
+function GuardedV3Route({ children, path }: { children: React.ReactNode; path: string }) {
+  const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
+  const [, setLocation] = useLocation();
+  const grantRole = normalizeGrantRole(access.data?.grant.role);
+  const canAccess = canGrantAccessWorkspace(grantRole, path);
+
+  useEffect(() => {
+    if (access.isSuccess && !canAccess) {
+      setLocation(roleHomePath(grantRole));
+    }
+  }, [access.isSuccess, canAccess, grantRole, setLocation]);
+
+  if (access.isSuccess && !canAccess) return null;
+  return <>{children}</>;
+}
+
 function LegacyExecutiveRedirect() {
   const [location, setLocation] = useLocation();
 
@@ -220,9 +239,12 @@ function Router() {
         </Route>
         <Route path="/learner">
           {() => (
-            <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey">
-              <RoleWorkspace role="learner" />
-            </GuardedWorkspaceShell>
+            // v3 Agent Workspace (Pilot 2). Revert to v2 by swapping back to the
+            // GuardedWorkspaceShell + <RoleWorkspace role="learner" /> block below.
+            <GuardedV3Route path="/learner">
+              <AgentWorkspaceView />
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey"><RoleWorkspace role="learner" /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/admin">
