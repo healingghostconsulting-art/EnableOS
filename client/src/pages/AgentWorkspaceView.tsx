@@ -10,7 +10,6 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
-import type { CalendarEvent } from "../../../shared/calendar";
 
 // v3 Agent Workspace (Pilot 2) — the Agent/Learner dashboard on the persistent AppShell.
 // Wired to the learner's own tRPC data only (never team KPIs). Supportive tone.
@@ -50,18 +49,19 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-function eventHref(event: CalendarEvent): string {
-  const q = event.deepLink.tab ? `?tab=${encodeURIComponent(event.deepLink.tab)}` : "";
-  return `${event.deepLink.route}${q}`;
-}
-
 export function AgentWorkspaceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
-  const learnerQuery = trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
-  const calendarQuery = trpc.demo.secureCalendar.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
+  // Authenticated viewers get their scoped dashboard; everyone else — including the
+  // unauthenticated demo where viewerAccess is 401 and tenantId is undefined — falls
+  // back to the tenant's canonical learner (the public demo.learner payload, the same
+  // getLearnerDashboard the v2 learner view rendered). This keeps every donut/tile
+  // populated instead of collapsing to 0.
+  const secureLearner = trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
+  const publicLearner = trpc.demo.learner.useQuery({});
 
-  const data: any = learnerQuery.data;
+  const data: any = secureLearner.data ?? publicLearner.data;
+  const isLoading = !data && (secureLearner.isLoading || publicLearner.isLoading);
   const learnerName: string = data?.learner?.name ?? "there";
   const roleTitle: string = data?.learner?.title ?? "Team Member";
   const initials = initialsOf(learnerName === "there" ? "EO" : learnerName);
@@ -83,9 +83,14 @@ export function AgentWorkspaceView() {
   const assignments: any[] = (data?.retrainingAssignments ?? []).filter((a: any) => a.status !== "completed");
   const nextCoaching = data?.nextCoachingSession ?? null;
   const notifications: any[] = data?.notifications ?? [];
-  const events: CalendarEvent[] = (calendarQuery.data ?? [])
-    .filter((e) => e.status !== "completed")
-    .sort((a, b) => a.start.localeCompare(b.start))
+  // Upcoming derives from the same learner payload (next coaching + training due
+  // dates), so it populates with the rest of the dashboard rather than depending on
+  // the protected calendar feed.
+  const upcoming: Array<{ start: string; title: string }> = [
+    ...(nextCoaching?.dueDate ? [{ start: nextCoaching.dueDate as string, title: nextCoaching.title ?? "Coaching session" }] : []),
+    ...assignments.filter((a) => a.dueAt).map((a) => ({ start: a.dueAt as string, title: `${a.moduleTitle} due` })),
+  ]
+    .sort((a, b) => String(a.start).localeCompare(String(b.start)))
     .slice(0, 4);
 
   // My Priorities — real, actionable items (never team data).
@@ -115,7 +120,7 @@ export function AgentWorkspaceView() {
       dateLabel={dateLabel}
       avatar={avatar}
     >
-      {learnerQuery.isLoading ? (
+      {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your dashboard…</p>
       ) : (
         <div className="space-y-5">
@@ -199,25 +204,29 @@ export function AgentWorkspaceView() {
 
             {/* Upcoming */}
             <WidgetCard title="Upcoming" action={<ViewLink href="/calendar">View Calendar</ViewLink>}>
-              {events.length === 0 ? (
+              {upcoming.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">Nothing scheduled yet.</p>
               ) : (
                 <ul className="space-y-2.5">
-                  {events.map((event) => (
-                    <li key={event.id}>
-                      <Link href={eventHref(event)} className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
-                        <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
-                          <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{new Date(event.start).toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
-                          <span className="text-[15px] font-bold leading-none text-[#1B303C]">{new Date(event.start).getUTCDate()}</span>
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] font-semibold text-[#1B303C]">{event.title}</span>
-                          <span className="block text-[12px] text-[#4A6373]">{event.allDay ? "All day" : fmtTime(event.start)}</span>
-                        </span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-[#4A6373]" aria-hidden="true" />
-                      </Link>
-                    </li>
-                  ))}
+                  {upcoming.map((item, i) => {
+                    const d = new Date(item.start);
+                    const allDay = d.getUTCHours() === 0 && d.getUTCMinutes() === 0;
+                    return (
+                      <li key={i}>
+                        <Link href="/calendar" className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
+                          <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
+                            <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{d.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
+                            <span className="text-[15px] font-bold leading-none text-[#1B303C]">{d.getUTCDate()}</span>
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13px] font-semibold text-[#1B303C]">{item.title}</span>
+                            <span className="block text-[12px] text-[#4A6373]">{allDay ? "All day" : fmtTime(item.start)}</span>
+                          </span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-[#4A6373]" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               <div className="mt-3"><ViewLink href="/calendar">View Full Calendar</ViewLink></div>
