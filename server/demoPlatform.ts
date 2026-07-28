@@ -2789,6 +2789,27 @@ export function canManageCoachingSession(
   return false;
 }
 
+export interface SchedulableLearners {
+  canSchedule: boolean;
+  learners: Array<{ id: string; name: string }>;
+}
+
+/** The learners a viewer may schedule for + whether they may schedule at all — the
+ *  same coverage canManageCoachingSession enforces, for populating the picker. */
+export function getSchedulableLearners(role: DemoRole | "platform_admin", tenantId: string, actorUserId: string): SchedulableLearners {
+  if (role === "manager" || role === "client_admin" || role === "platform_admin") {
+    return {
+      canSchedule: true,
+      learners: users.filter((user) => user.tenantId === tenantId && user.role === "learner").map((user) => ({ id: user.id, name: user.name })),
+    };
+  }
+  if (role === "coach") {
+    const ids = new Set(getCoachCoverageLearnerIds(tenantId, actorUserId));
+    return { canSchedule: true, learners: users.filter((user) => ids.has(user.id)).map((user) => ({ id: user.id, name: user.name })) };
+  }
+  return { canSchedule: false, learners: [] }; // agents (learner) + executive → view-only
+}
+
 /** The acting user id for a scheduling actor (the tenant's coach / manager / admin). */
 export function getSchedulingActorUserId(role: DemoRole | "platform_admin", tenantId: string): string {
   const mappedRole = role === "coach" ? "coach" : role === "manager" ? "manager" : role === "client_admin" ? "client_admin" : null;

@@ -132,15 +132,15 @@ describe("view switching (periodLabel / buildWeekDays)", () => {
 describe("board view wiring (source)", () => {
   const source = readFileSync(join(process.cwd(), "client/src/pages/CalendarView.tsx"), "utf8");
 
-  it("wires Month / Week / Agenda modes + toolbar + legend, read-only", () => {
+  it("wires Month / Week / Agenda modes + toolbar + legend (interactive as of CAL6)", () => {
     expect(source).toContain('const VIEW_MODES: CalendarViewMode[] = ["month", "week", "agenda"]');
     expect(source).toContain("function MonthGrid");
     expect(source).toContain("function WeekGrid");
     expect(source).toContain("function AgendaList"); // the CAL3 grouped list, preserved
     expect(source).toContain('aria-label="Viewing as"');
     expect(source).toContain("New Session");
-    expect(source).toContain("disabled title={disabledNewSession}"); // read-only this pass
-    expect(source).toContain('draggable={false}'); // drag-to-reschedule inert
     expect(source).toContain('aria-pressed={view === mode}'); // keyboard-navigable segmented control
+    // CAL6: the board is now interactive (create/reschedule/cancel wired) — see the
+    // dedicated wiring assertions in coachingSessions.test.ts.
   });
 });

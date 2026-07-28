@@ -50,6 +50,7 @@ import {
   getCoachingSessionById,
   getSchedulingActorUserId,
   canManageCoachingSession,
+  getSchedulableLearners,
   type DemoRole,
 } from "../demoPlatform";
 import { renderAllReminderPreviews } from "../notificationService";
@@ -898,6 +899,10 @@ export const demoRouter = router({
 
   // ── CAL5: coaching-session scheduling (create / reschedule / cancel) ──────────
   // Agents (learner) are view-only; coach → only their coachees; manager/admin → team.
+  secureSchedulableLearners: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
+    const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
+    return getSchedulableLearners(grant.role, tenantId, getSchedulingActorUserId(grant.role, tenantId));
+  }),
   secureCreateCoachingSession: protectedProcedure.input(createCoachingSessionInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
     const actorUserId = getSchedulingActorUserId(grant.role, tenantId);

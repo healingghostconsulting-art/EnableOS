@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
@@ -8,6 +10,7 @@ import {
   cancelCoachingSession,
   getTenantCalendar,
   canManageCoachingSession,
+  getSchedulableLearners,
 } from "./demoPlatform";
 import {
   InMemoryCoachingSessionRepository,
@@ -156,6 +159,38 @@ describe("coaching-session scheduling (CAL5)", () => {
     ).rejects.toThrow(/cannot schedule coaching/i);
   });
 
+  it("schedulable coverage (CAL6): coach → coachees, manager → all, agent → cannot", () => {
+    const coach = getSchedulableLearners("coach", ATLAS, "u-coach-1");
+    expect(coach.canSchedule).toBe(true);
+    expect(coach.learners.map((l) => l.id).sort()).toEqual(["u-learn-1", "u-learn-1b", "u-learn-1c"]);
+
+    const manager = getSchedulableLearners("manager", ATLAS, "u-mgr-1");
+    expect(manager.canSchedule).toBe(true);
+    expect(manager.learners.length).toBeGreaterThanOrEqual(3);
+
+    const agent = getSchedulableLearners("learner", ATLAS, "u-learn-1");
+    expect(agent.canSchedule).toBe(false); // agents never see New Session
+    expect(agent.learners).toEqual([]);
+  });
+
+  it("router: reschedule moves the event on the board and bumps the sequence (CAL6)", async () => {
+    const coach = appRouter.createCaller(ctx("coach", "atlas-coach"));
+    const created = await coach.demo.secureCreateCoachingSession({ tenantId: ATLAS, learnerUserId: "u-learn-1", title: "Sync", start: futureIso(2) });
+    const newStart = futureIso(5);
+    const updated = await coach.demo.secureRescheduleCoachingSession({ tenantId: ATLAS, sessionId: created.id, start: newStart });
+    expect(updated.sequence).toBe(1);
+    const calendar = await coach.demo.secureCalendar({ tenantId: ATLAS });
+    expect(calendar.find((e: { refId: string }) => e.refId === created.id)!.start).toBe(newStart);
+  });
+
+  it("router: cancel removes the event from the board (CAL6)", async () => {
+    const coach = appRouter.createCaller(ctx("coach", "atlas-coach"));
+    const created = await coach.demo.secureCreateCoachingSession({ tenantId: ATLAS, learnerUserId: "u-learn-1", title: "Sync", start: futureIso(2) });
+    await coach.demo.secureCancelCoachingSession({ tenantId: ATLAS, sessionId: created.id });
+    const calendar = await coach.demo.secureCalendar({ tenantId: ATLAS });
+    expect(calendar.some((e: { refId: string }) => e.refId === created.id)).toBe(false);
+  });
+
   it("restart-survival: a created session round-trips through the persisted row shape", () => {
     const start = futureIso(4);
     const session = createCoachingSession({ tenantId: ATLAS, coachUserId: "u-coach-1", learnerUserId: "u-learn-1", title: "Durable", start, durationMins: 45 });
@@ -174,5 +209,35 @@ describe("coaching-session scheduling (CAL5)", () => {
     expect(rehydrated.status).toBe("scheduled");
     expect(rehydrated.sequence).toBe(0);
     expect(rehydrated.type).toBe("coaching");
+  });
+});
+
+describe("calendar board interactivity wiring (CAL6, source)", () => {
+  const source = readFileSync(join(process.cwd(), "client/src/pages/CalendarView.tsx"), "utf8");
+
+  it("gates create/drag on backend coverage and wires the CAL5 mutations", () => {
+    // Affordances mirror the server guard.
+    expect(source).toContain("secureSchedulableLearners");
+    expect(source).toContain("const canManage = Boolean(schedulable.data?.canSchedule)");
+    // New Session (and the modal open) only render when canManage → agents never see it.
+    expect(source).toContain("{canManage ? (");
+    expect(source).toContain("New Session");
+    // All four CAL5 mutations wired.
+    expect(source).toContain("secureCreateCoachingSession.useMutation");
+    expect(source).toContain("secureRescheduleCoachingSession.useMutation");
+    expect(source).toContain("secureCancelCoachingSession.useMutation");
+    expect(source).toContain("secureRescheduleTrainingDue.useMutation");
+    // Drag-to-reschedule → reschedule + invalidate the feed.
+    expect(source).toContain("onDrop={canManage");
+    expect(source).toContain("const handleDropDay");
+    expect(source).toContain("rescheduleTraining.mutate({ tenantId, assignmentId: event.refId, dueAt: start })");
+    expect(source).toContain("utils.demo.secureCalendar.invalidate");
+    // Optimistic + revert-on-error.
+    expect(source).toContain("onMutate");
+    expect(source).toContain("if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev)");
+    // Focus-trap modal (shadcn Dialog) with the design's type toggle + coachee picker.
+    expect(source).toContain("<Dialog");
+    expect(source).toContain('aria-label="Session type"');
+    expect(source).toContain("Schedule session");
   });
 });
