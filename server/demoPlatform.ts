@@ -3986,6 +3986,27 @@ export function updateRetrainingAssignmentStatus(input: UpdateRetrainingAssignme
   return assignment;
 }
 
+export interface EntrySummary {
+  teamMembers: number;
+  coachingDue: number;
+  trainingCompletion: number; // percent, 0–100
+}
+
+/** Real counts for the v3 Workspace Entry info tiles, tenant-scoped (defaults to the
+ *  primary demo tenant when no id is known, e.g. pre-auth). */
+export function getEntrySummary(tenantId?: string): EntrySummary {
+  const tenant = getTenant(tenantId);
+  const teamMembers = users.filter((user) => user.tenantId === tenant.id).length;
+  const coachingDue = getTenantCoachingSessions(tenant.id).filter(
+    (session) => session.status === "scheduled" || session.status === "follow_up_due",
+  ).length;
+  const modules = journeys.filter((journey) => journey.tenantId === tenant.id).flatMap((journey) => journey.modules);
+  const trainingCompletion = modules.length
+    ? Math.round(modules.reduce((sum, module) => sum + module.completionRate, 0) / modules.length)
+    : 0;
+  return { teamMembers, coachingDue, trainingCompletion };
+}
+
 export function getDemoLanding() {
   return {
     tenants: tenants.map((tenant) => ({

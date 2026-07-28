@@ -10,6 +10,7 @@ import { ReminderBadgeProvider } from "./lib/reminderBadge";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
+import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -172,7 +173,8 @@ function Router() {
   return (
     <div key={location} className="route-fade-in">
       <Switch>
-        <Route path="/" component={LandingView} />
+        {/* v3 front door (Pilot 1). Revert to v2 with a one-line swap back to LandingView. */}
+        <Route path="/" component={WorkspaceEntryView} />
         <Route path="/mission-hub">
           {() => (
             <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
