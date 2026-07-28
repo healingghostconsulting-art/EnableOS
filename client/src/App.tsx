@@ -14,6 +14,8 @@ import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
 import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
 import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
+import { ClientAdminWorkspaceView } from "./pages/ClientAdminWorkspaceView";
+import { V3ShellWrapper } from "./components/v3/V3ShellWrapper";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -198,16 +200,20 @@ function Router() {
         <Route path="/" component={WorkspaceEntryView} />
         <Route path="/mission-hub">
           {() => (
-            <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub">
-              <MissionHubView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner MissionHubView is unchanged.
+            <GuardedV3Route path="/mission-hub">
+              <V3ShellWrapper path="/mission-hub"><MissionHubView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/mission-hub" roleLabel="Mission Hub"><MissionHubView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/guide">
           {() => (
-            <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide">
-              <GuideView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner GuideView is unchanged.
+            <GuardedV3Route path="/guide">
+              <V3ShellWrapper path="/guide"><GuideView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/guide" roleLabel="EnableOS Guide"><GuideView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/calendar">
@@ -220,9 +226,11 @@ function Router() {
         <Route path="/executive" component={LegacyExecutiveRedirect} />
         <Route path="/reporting">
           {() => (
-            <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace">
-              <ReportingWorkspaceView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner ReportingWorkspaceView is unchanged.
+            <GuardedV3Route path="/reporting">
+              <V3ShellWrapper path="/reporting"><ReportingWorkspaceView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/reporting" roleLabel="Client Reporting Workspace"><ReportingWorkspaceView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/manager">
@@ -257,9 +265,12 @@ function Router() {
         </Route>
         <Route path="/admin">
           {() => (
-            <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console">
-              <RoleWorkspace role="client_admin" />
-            </GuardedWorkspaceShell>
+            // v3 Client Admin Workspace (Pilot 5). Revert to v2 by swapping back to the
+            // GuardedWorkspaceShell + <RoleWorkspace role="client_admin" /> block below.
+            <GuardedV3Route path="/admin">
+              <ClientAdminWorkspaceView />
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/admin" roleLabel="Client Admin Console"><RoleWorkspace role="client_admin" /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/chcg-admin">
@@ -271,16 +282,21 @@ function Router() {
         </Route>
         <Route path="/training">
           {() => (
-            <GuardedWorkspaceShell path="/training" roleLabel="Interactive Training">
-              <TrainingExperienceView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner TrainingExperienceView (the
+            // Claude Code-owned player) is unchanged.
+            <GuardedV3Route path="/training">
+              <V3ShellWrapper path="/training"><TrainingExperienceView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/training" roleLabel="Interactive Training"><TrainingExperienceView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/library">
           {() => (
-            <GuardedWorkspaceShell path="/library" roleLabel="Training Library">
-              <ContentLibraryView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner ContentLibraryView is unchanged.
+            <GuardedV3Route path="/library">
+              <V3ShellWrapper path="/library"><ContentLibraryView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/library" roleLabel="Training Library"><ContentLibraryView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/404" component={NotFound} />
