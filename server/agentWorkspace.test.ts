@@ -40,9 +40,13 @@ describe("v3 AppShell kit (reusable, prop-driven)", () => {
 describe("v3 Agent dashboard — own data only + template widgets + brand rules", () => {
   const view = read("client/src/pages/AgentWorkspaceView.tsx");
 
-  it("wires the learner's OWN tRPC data and never team KPIs", () => {
+  it("wires the learner's OWN data and never team KPIs, with a canonical-learner fallback", () => {
+    // Scoped data when authenticated; the public canonical learner otherwise (so the
+    // donuts/tiles populate even on an unauthenticated hit, matching the v2 view).
     expect(view).toContain("trpc.demo.secureLearner.useQuery");
-    expect(view).toContain("trpc.demo.secureCalendar.useQuery");
+    expect(view).toContain("trpc.demo.learner.useQuery");
+    expect(view).toContain("secureLearner.data ?? publicLearner.data");
+    // Still learner-only — never team KPIs.
     expect(view).not.toContain("secureManager");
     expect(view).not.toContain("secureCoach");
     expect(view).not.toContain("teamLearners");
