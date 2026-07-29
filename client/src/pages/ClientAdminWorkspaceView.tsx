@@ -52,11 +52,14 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
 export function ClientAdminWorkspaceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
+  const demoMode = trpc.demo.config.useQuery().data?.demoMode ?? false;
   const secureAdmin = trpc.demo.secureAdmin.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
-  const publicAdmin = trpc.demo.admin.useQuery({});
+  // Public canonical fallback ONLY in demo mode; in production the mirror 404s and the
+  // authenticated secure* query is the only path to tenant data.
+  const publicAdmin = trpc.demo.admin.useQuery({}, { enabled: demoMode });
 
-  const data: any = secureAdmin.data ?? publicAdmin.data;
-  const isLoading = !data && (secureAdmin.isLoading || publicAdmin.isLoading);
+  const data: any = secureAdmin.data ?? (demoMode ? publicAdmin.data : undefined);
+  const isLoading = !data && (secureAdmin.isLoading || (demoMode && publicAdmin.isLoading));
 
   const adminName: string = data?.admin?.name ?? "Admin";
   const roleTitle: string = data?.admin?.title ?? "Client Administrator";

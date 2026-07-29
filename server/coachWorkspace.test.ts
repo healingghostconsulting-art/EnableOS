@@ -40,7 +40,7 @@ describe("v3 Coach dashboard — team data + fallback + widgets + brand rule", (
   it("wires the coach's data with a canonical-coach fallback (populates unauthenticated)", () => {
     expect(view).toContain("trpc.demo.secureCoach.useQuery");
     expect(view).toContain("trpc.demo.coach.useQuery");
-    expect(view).toContain("secureCoach.data ?? publicCoach.data");
+    expect(view).toContain("secureCoach.data ?? (demoMode ? publicCoach.data : undefined)");
   });
 
   it("shows TEAM-level coaching data (correct for the coach role)", () => {

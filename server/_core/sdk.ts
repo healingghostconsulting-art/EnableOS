@@ -247,6 +247,13 @@ class SDKServer {
         return null;
       }
 
+      // Reject tokens minted for a different app. Enforced only when this app's id is
+      // configured, so local/dev (no VITE_APP_ID) still works; production sets it.
+      if (ENV.appId && appId !== ENV.appId) {
+        console.warn("[Auth] Session appId does not match this app");
+        return null;
+      }
+
       return {
         openId,
         appId,
