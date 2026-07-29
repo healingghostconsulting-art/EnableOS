@@ -45,7 +45,7 @@ describe("v3 Agent dashboard — own data only + template widgets + brand rules"
     // donuts/tiles populate even on an unauthenticated hit, matching the v2 view).
     expect(view).toContain("trpc.demo.secureLearner.useQuery");
     expect(view).toContain("trpc.demo.learner.useQuery");
-    expect(view).toContain("secureLearner.data ?? publicLearner.data");
+    expect(view).toContain("secureLearner.data ?? (demoMode ? publicLearner.data : undefined)");
     // Still learner-only — never team KPIs.
     expect(view).not.toContain("secureManager");
     expect(view).not.toContain("secureCoach");

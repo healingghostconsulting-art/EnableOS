@@ -53,11 +53,14 @@ export function ManagerWorkspaceView() {
   const tenantId = access.data?.tenant.id;
   // Scoped when authenticated; the public canonical manager payload otherwise, so the
   // whole operational board populates even on an unauthenticated demo hit.
+  const demoMode = trpc.demo.config.useQuery().data?.demoMode ?? false;
   const secureManager = trpc.demo.secureManager.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
-  const publicManager = trpc.demo.manager.useQuery({});
+  // Public canonical fallback ONLY in demo mode; in production the mirror 404s and the
+  // authenticated secure* query is the only path to tenant data.
+  const publicManager = trpc.demo.manager.useQuery({}, { enabled: demoMode });
 
-  const data: any = secureManager.data ?? publicManager.data;
-  const isLoading = !data && (secureManager.isLoading || publicManager.isLoading);
+  const data: any = secureManager.data ?? (demoMode ? publicManager.data : undefined);
+  const isLoading = !data && (secureManager.isLoading || (demoMode && publicManager.isLoading));
 
   const managerName: string = data?.manager?.name ?? "Manager";
   const roleTitle: string = data?.manager?.title ?? "Operations Manager";

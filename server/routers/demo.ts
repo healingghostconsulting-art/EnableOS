@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, demoPublicProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { isDemoMode } from "../_core/env";
 import { storagePut } from "../storage";
 import {
   addWeeklyCoachingLogAttachments,
@@ -493,18 +494,21 @@ async function uploadWeeklyCoachingAttachments(
 }
 
 export const demoRouter = router({
-  landing: publicProcedure.query(() => getDemoLanding()),
-  entrySummary: publicProcedure.input(tenantInput).query(({ input }) => getEntrySummary(input.tenantId)),
-  tenants: publicProcedure.query(() => listTenants()),
+  // Always-public: returns only the demo-mode flag (no tenant data), so the client
+  // knows whether it may fall back to the public mirror procedures.
+  config: publicProcedure.query(() => ({ demoMode: isDemoMode() })),
+  landing: demoPublicProcedure.query(() => getDemoLanding()),
+  entrySummary: demoPublicProcedure.input(tenantInput).query(({ input }) => getEntrySummary(input.tenantId)),
+  tenants: demoPublicProcedure.query(() => listTenants()),
   methodologyMappings: publicProcedure.query(() => listMethodologyMappings()),
   viewerAccess: protectedProcedure.query(({ ctx }) => getViewerAccess(ctx.user.openId, ctx.user.role)),
-  bundle: publicProcedure.input(tenantInput).query(({ input }) => getDemoBundle(input.tenantId)),
-  executive: publicProcedure.input(tenantInput).query(({ input }) => getExecutiveDashboard(input.tenantId)),
-  manager: publicProcedure.input(tenantInput).query(({ input }) => getManagerDashboard(input.tenantId)),
-  coach: publicProcedure.input(tenantInput).query(({ input }) => getCoachDashboard(input.tenantId)),
-  learner: publicProcedure.input(tenantInput).query(({ input }) => getLearnerDashboard(input.tenantId)),
-  admin: publicProcedure.input(tenantInput).query(({ input }) => getAdminDashboard(input.tenantId)),
-  library: publicProcedure.input(libraryInput).query(({ input }) => listContentLibrary(input.tenantId, input.role)),
+  bundle: demoPublicProcedure.input(tenantInput).query(({ input }) => getDemoBundle(input.tenantId)),
+  executive: demoPublicProcedure.input(tenantInput).query(({ input }) => getExecutiveDashboard(input.tenantId)),
+  manager: demoPublicProcedure.input(tenantInput).query(({ input }) => getManagerDashboard(input.tenantId)),
+  coach: demoPublicProcedure.input(tenantInput).query(({ input }) => getCoachDashboard(input.tenantId)),
+  learner: demoPublicProcedure.input(tenantInput).query(({ input }) => getLearnerDashboard(input.tenantId)),
+  admin: demoPublicProcedure.input(tenantInput).query(({ input }) => getAdminDashboard(input.tenantId)),
+  library: demoPublicProcedure.input(libraryInput).query(({ input }) => listContentLibrary(input.tenantId, input.role)),
   secureExecutive: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "executive");
     return getExecutiveDashboard(tenantId);
@@ -579,7 +583,7 @@ export const demoRouter = router({
 
     return listContentLibrary(tenantId, requestedRole);
   }),
-  previewUploadContent: publicProcedure.input(clientContentInput).mutation(async ({ input }) => {
+  previewUploadContent: demoPublicProcedure.input(clientContentInput).mutation(async ({ input }) => {
     let fileUrl: string | undefined;
 
     if (input.dataBase64 && input.fileName && input.mimeType) {
@@ -642,7 +646,7 @@ export const demoRouter = router({
       fileUrl,
     });
   }),
-  previewUpdateBranding: publicProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
+  previewUpdateBranding: demoPublicProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
   secureUpdateBranding: protectedProcedure.input(brandingInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return updateTenantBranding({ ...input, tenantId });
@@ -650,20 +654,20 @@ export const demoRouter = router({
   updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
   // Content authoring writes (AUTHOR2). Tenant layer → client_admin (protected);
   // core layer → platform_admin (admin). preview = demo/public, mirroring branding.
-  previewAuthorQuizTenant: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
+  previewAuthorQuizTenant: demoPublicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
     authorQuizContent({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
   secureAuthorQuizTenant: protectedProcedure.input(authoringQuizWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return authorQuizContent({ scope: "tenant", tenantId, moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op });
   }),
-  previewAuthorQuizCore: publicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
+  previewAuthorQuizCore: demoPublicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
     authorQuizContent({ scope: "core", moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
   secureAuthorQuizCore: adminProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
     authorQuizContent({ scope: "core", moduleId: input.moduleId, checkpoint: input.checkpoint, op: input.op }),
   ),
-  previewAuthorLibraryTenant: publicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
+  previewAuthorLibraryTenant: demoPublicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
     authorLibraryContent({ scope: "tenant", tenantId: input.tenantId, op: input.op }),
   ),
   secureAuthorLibraryTenant: protectedProcedure.input(authoringLibraryWriteInput).mutation(({ ctx, input }) => {
@@ -680,7 +684,7 @@ export const demoRouter = router({
     }
     return getHiddenLibraryAssets(input);
   }),
-  previewAuthorLibraryCore: publicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
+  previewAuthorLibraryCore: demoPublicProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
     authorLibraryContent({ scope: "core", op: input.op }),
   ),
   secureAuthorLibraryCore: adminProcedure.input(authoringLibraryWriteInput).mutation(({ input }) =>
@@ -701,27 +705,27 @@ export const demoRouter = router({
     }
     return getAuthoringLesson(input);
   }),
-  previewAuthorLessonTenant: publicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
+  previewAuthorLessonTenant: demoPublicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
     authorLessonSlide({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, stage: input.stage, op: input.op }),
   ),
   secureAuthorLessonTenant: protectedProcedure.input(authoringLessonWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return authorLessonSlide({ scope: "tenant", tenantId, moduleId: input.moduleId, stage: input.stage, op: input.op });
   }),
-  previewAuthorLessonCore: publicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
+  previewAuthorLessonCore: demoPublicProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
     authorLessonSlide({ scope: "core", moduleId: input.moduleId, stage: input.stage, op: input.op }),
   ),
   secureAuthorLessonCore: adminProcedure.input(authoringLessonWriteInput).mutation(({ input }) =>
     authorLessonSlide({ scope: "core", moduleId: input.moduleId, stage: input.stage, op: input.op }),
   ),
-  previewAuthorBriefTenant: publicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
+  previewAuthorBriefTenant: demoPublicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
     authorModuleBrief({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
   ),
   secureAuthorBriefTenant: protectedProcedure.input(authoringBriefWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return authorModuleBrief({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
   }),
-  previewAuthorBriefCore: publicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
+  previewAuthorBriefCore: demoPublicProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
     authorModuleBrief({ scope: "core", moduleId: input.moduleId, op: input.op }),
   ),
   secureAuthorBriefCore: adminProcedure.input(authoringBriefWriteInput).mutation(({ input }) =>
@@ -736,14 +740,14 @@ export const demoRouter = router({
     }
     return getAuthoringDeck(input);
   }),
-  previewAuthorDeckTenant: publicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
+  previewAuthorDeckTenant: demoPublicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
     authorDeckVisual({ scope: "tenant", tenantId: input.tenantId, moduleId: input.moduleId, op: input.op }),
   ),
   secureAuthorDeckTenant: protectedProcedure.input(authoringDeckWriteInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return authorDeckVisual({ scope: "tenant", tenantId, moduleId: input.moduleId, op: input.op });
   }),
-  previewAuthorDeckCore: publicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
+  previewAuthorDeckCore: demoPublicProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
     authorDeckVisual({ scope: "core", moduleId: input.moduleId, op: input.op }),
   ),
   secureAuthorDeckCore: adminProcedure.input(authoringDeckWriteInput).mutation(({ input }) =>
@@ -752,7 +756,7 @@ export const demoRouter = router({
   // DECK3: image upload. All validation is server-side (magic bytes, size, dims).
   // The secure path derives scope/tenant from the authed grant, NOT client input —
   // tenant → client_admin's own tenant; core → platform_admin only.
-  previewUploadDeckImage: publicProcedure.input(deckImageUploadInput).mutation(({ input }) =>
+  previewUploadDeckImage: demoPublicProcedure.input(deckImageUploadInput).mutation(({ input }) =>
     uploadDeckImage({ scope: input.scope, tenantId: input.tenantId, dataBase64: input.dataBase64 }),
   ),
   secureUploadDeckImageTenant: protectedProcedure.input(deckImageUploadInput).mutation(({ ctx, input }) => {
@@ -765,7 +769,7 @@ export const demoRouter = router({
   secureCreateChcgTenant: adminProcedure.input(chcgTenantInput).mutation(({ input }) => createChcgTenant(input)),
   secureUpdateTenantTrainingAccess: adminProcedure.input(trainingAccessInput).mutation(({ input }) => updateTenantTrainingAccess(input)),
   secureUpdateChcgPlatformSettings: adminProcedure.input(chcgPlatformSettingsInput).mutation(({ input }) => updateChcgPlatformSettings(input)),
-  previewCreateReviewLog: publicProcedure.input(reviewLogInput).mutation(async ({ input }) => {
+  previewCreateReviewLog: demoPublicProcedure.input(reviewLogInput).mutation(async ({ input }) => {
     const attachments = await uploadWeeklyCoachingAttachments(input.tenantId, input.authorRole, input.attachments);
     return createReviewLog({ ...input, attachments });
   }),
@@ -774,7 +778,7 @@ export const demoRouter = router({
     const attachments = await uploadWeeklyCoachingAttachments(tenantId, input.authorRole, input.attachments);
     return createReviewLog({ ...input, tenantId, attachments });
   }),
-  previewCreateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogInput).mutation(async ({ input }) => {
+  previewCreateWeeklyCoachingLog: demoPublicProcedure.input(weeklyCoachingLogInput).mutation(async ({ input }) => {
     const attachments = await uploadWeeklyCoachingAttachments(input.tenantId, input.coachRole, input.attachments);
     return createWeeklyCoachingLog({ ...input, attachments });
   }),
@@ -789,7 +793,7 @@ export const demoRouter = router({
     const attachments = await uploadWeeklyCoachingAttachments(tenantId, coachRole, input.attachments);
     return createWeeklyCoachingLog({ ...input, tenantId, coachRole, attachments });
   }),
-  previewUpdateWeeklyCoachingTakeaways: publicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
+  previewUpdateWeeklyCoachingTakeaways: demoPublicProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ input }) => updateWeeklyCoachingLogTakeaways(input)),
   secureUpdateWeeklyCoachingTakeaways: protectedProcedure.input(weeklyCoachingTakeawaysInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
 
@@ -799,7 +803,7 @@ export const demoRouter = router({
 
     return updateWeeklyCoachingLogTakeaways({ ...input, tenantId });
   }),
-  previewUpdateWeeklyCoachingLog: publicProcedure.input(weeklyCoachingLogEditInput).mutation(({ input }) => updateWeeklyCoachingLog(input)),
+  previewUpdateWeeklyCoachingLog: demoPublicProcedure.input(weeklyCoachingLogEditInput).mutation(({ input }) => updateWeeklyCoachingLog(input)),
   secureUpdateWeeklyCoachingLog: protectedProcedure.input(weeklyCoachingLogEditInput).mutation(({ ctx, input }) => {
     const { grant, tenantId } = assertTenantMembership(ctx.user.openId, ctx.user.role, input.tenantId);
 
@@ -864,7 +868,7 @@ export const demoRouter = router({
   }),
 
   // ── DELIVER3: notification delivery surfaces (read-only outbox + previews, prefs) ──
-  notificationOutbox: publicProcedure.query(async () => {
+  notificationOutbox: demoPublicProcedure.query(async () => {
     const rows = await getNotificationOutboxRepository().loadAll();
     return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }),
@@ -874,7 +878,7 @@ export const demoRouter = router({
   notificationPreferences: publicProcedure.input(notificationPreferencesReadInput).query(({ input }) =>
     getNotificationPreferencesRepository().list(input.userId, input.tenantId),
   ),
-  setNotificationPreference: publicProcedure.input(notificationPreferenceInput).mutation(({ input }) => {
+  setNotificationPreference: demoPublicProcedure.input(notificationPreferenceInput).mutation(({ input }) => {
     const repo = getNotificationPreferencesRepository();
     repo.upsert({
       userId: input.userId,
@@ -886,7 +890,7 @@ export const demoRouter = router({
     });
     return repo.list(input.userId, input.tenantId);
   }),
-  setNotificationUnsubscribe: publicProcedure.input(notificationUnsubscribeInput).mutation(({ input }) => {
+  setNotificationUnsubscribe: demoPublicProcedure.input(notificationUnsubscribeInput).mutation(({ input }) => {
     const repo = getNotificationPreferencesRepository();
     repo.upsert({
       userId: input.userId,

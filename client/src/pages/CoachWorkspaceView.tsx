@@ -50,11 +50,14 @@ export function CoachWorkspaceView() {
   const tenantId = access.data?.tenant.id;
   // Scoped data when authenticated; the public canonical coach payload otherwise, so
   // every tile populates even on an unauthenticated demo hit.
+  const demoMode = trpc.demo.config.useQuery().data?.demoMode ?? false;
   const secureCoach = trpc.demo.secureCoach.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
-  const publicCoach = trpc.demo.coach.useQuery({});
+  // Public canonical fallback ONLY in demo mode; in production the mirror 404s and the
+  // authenticated secure* query is the only path to tenant data.
+  const publicCoach = trpc.demo.coach.useQuery({}, { enabled: demoMode });
 
-  const data: any = secureCoach.data ?? publicCoach.data;
-  const isLoading = !data && (secureCoach.isLoading || publicCoach.isLoading);
+  const data: any = secureCoach.data ?? (demoMode ? publicCoach.data : undefined);
+  const isLoading = !data && (secureCoach.isLoading || (demoMode && publicCoach.isLoading));
 
   const coachName: string = data?.coach?.name ?? "Coach";
   const roleTitle: string = data?.coach?.title ?? "Coach / Supervisor";

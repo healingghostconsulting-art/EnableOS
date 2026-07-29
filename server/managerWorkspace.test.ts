@@ -39,7 +39,7 @@ describe("v3 Manager dashboard — team/operational data + fallback + widgets + 
   it("wires the manager's data with a canonical-manager fallback (populates unauthenticated)", () => {
     expect(view).toContain("trpc.demo.secureManager.useQuery");
     expect(view).toContain("trpc.demo.manager.useQuery");
-    expect(view).toContain("secureManager.data ?? publicManager.data");
+    expect(view).toContain("secureManager.data ?? (demoMode ? publicManager.data : undefined)");
   });
 
   it("shows full-team operational data (broadest scope)", () => {

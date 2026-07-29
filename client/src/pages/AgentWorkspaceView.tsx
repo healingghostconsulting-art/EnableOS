@@ -57,11 +57,14 @@ export function AgentWorkspaceView() {
   // back to the tenant's canonical learner (the public demo.learner payload, the same
   // getLearnerDashboard the v2 learner view rendered). This keeps every donut/tile
   // populated instead of collapsing to 0.
+  const demoMode = trpc.demo.config.useQuery().data?.demoMode ?? false;
   const secureLearner = trpc.demo.secureLearner.useQuery(tenantId ? { tenantId } : {}, { enabled: Boolean(tenantId) });
-  const publicLearner = trpc.demo.learner.useQuery({});
+  // Public canonical fallback ONLY in demo mode; in production the mirror 404s and the
+  // authenticated secure* query is the only path to tenant data.
+  const publicLearner = trpc.demo.learner.useQuery({}, { enabled: demoMode });
 
-  const data: any = secureLearner.data ?? publicLearner.data;
-  const isLoading = !data && (secureLearner.isLoading || publicLearner.isLoading);
+  const data: any = secureLearner.data ?? (demoMode ? publicLearner.data : undefined);
+  const isLoading = !data && (secureLearner.isLoading || (demoMode && publicLearner.isLoading));
   const learnerName: string = data?.learner?.name ?? "there";
   const roleTitle: string = data?.learner?.title ?? "Team Member";
   const initials = initialsOf(learnerName === "there" ? "EO" : learnerName);

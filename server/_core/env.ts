@@ -23,3 +23,13 @@ export const ENV = {
   // digests only fire from the authenticated Heartbeat cron.
   allowManualDigest: process.env.ALLOW_MANUAL_DIGEST === "true",
 };
+
+// ── Demo mode (Phase 1 hardening) ─────────────────────────────────────────────
+// DEMO_MODE gates the unauthenticated public "mirror" procedures that back the demo
+// (dashboards + preview writers + notification outbox/prefs). Default TRUE so the
+// demo keeps working; set DEMO_MODE=false in production to force ALL tenant data
+// through the authenticated, server-scoped `secure*` procedures. Read at call time
+// (not import time) so it can be toggled per-request in tests.
+export function isDemoMode(): boolean {
+  return process.env.DEMO_MODE !== "false";
+}

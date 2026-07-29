@@ -39,7 +39,7 @@ describe("v3 Client Admin dashboard — org/config data + fallback + widgets + b
   it("wires the admin's data with a canonical-admin fallback (populates unauthenticated)", () => {
     expect(view).toContain("trpc.demo.secureAdmin.useQuery");
     expect(view).toContain("trpc.demo.admin.useQuery");
-    expect(view).toContain("secureAdmin.data ?? publicAdmin.data");
+    expect(view).toContain("secureAdmin.data ?? (demoMode ? publicAdmin.data : undefined)");
   });
 
   it("shows org/config data — not agent performance", () => {
