@@ -6,7 +6,8 @@ import {
   Megaphone, Sparkles, Target, Trophy, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { AppShell, DashboardGrid } from "@/components/v3/AppShell";
+import { AppShell } from "@/components/v3/AppShell";
+import { DashboardGrid } from "@/components/v3/DashboardGrid";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
@@ -45,7 +46,7 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
 const SEVERITY: Record<string, { tint: string; icon: typeof AlertTriangle }> = {
   high: { tint: "bg-rose-100 text-rose-700", icon: AlertTriangle },
   medium: { tint: "bg-amber-100 text-[#7A5200]", icon: AlertTriangle },
-  low: { tint: "bg-sky-100 text-sky-700", icon: Info },
+  low: { tint: "bg-slate-100 text-slate-600", icon: Info },
 };
 
 export function ManagerWorkspaceView() {
@@ -77,7 +78,6 @@ export function ManagerWorkspaceView() {
   const atRisk = roster.filter((r) => readi(r) >= 65 && readi(r) < 75).length;
   const needsAttention = roster.filter((r) => readi(r) < 65).length;
   const notStarted = Math.max(0, total - onTrack - atRisk - needsAttention);
-  const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
   const trainCompleted = roster.filter((r) => readi(r) >= 80).length;
   const trainInProgress = roster.filter((r) => readi(r) >= 50 && readi(r) < 80).length;
   const trainNotStarted = roster.filter((r) => readi(r) < 50).length;
@@ -122,13 +122,6 @@ export function ManagerWorkspaceView() {
     { label: "Resources", icon: FileText, href: "/library" },
   ];
 
-  const StatusRow = ({ color, label, count }: { color: string; label: string; count: number }) => (
-    <li className="flex items-center justify-between gap-2">
-      <span className="inline-flex items-center gap-2 text-[#4A6373]"><span className={`h-2.5 w-2.5 rounded-full ${color}`} />{label}</span>
-      <span className="flex items-center gap-2"><span className="font-semibold text-[#1B303C]">{count}</span><span className="w-9 text-right text-[12px] text-[#4A6373]">{pct(count)}%</span></span>
-    </li>
-  );
-
   return (
     <AppShell
       nav={NAV}
@@ -165,18 +158,21 @@ export function ManagerWorkspaceView() {
 
             {/* Team Overview */}
             <WidgetCard title="Team Overview" action={<ViewLink href="/reporting">View Team</ViewLink>}>
-              <div className="flex items-center gap-4">
-                <Donut value={pct(onTrack)} size={116} stroke={11} color="#16A34A" ariaLabel={`${onTrack} of ${total} agents on track`}>
-                  <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{total}</span>
-                  <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Agents</span>
-                </Donut>
-                <ul className="flex-1 space-y-2 text-[13px]">
-                  <StatusRow color="bg-emerald-500" label="On Track" count={onTrack} />
-                  <StatusRow color="bg-amber-400" label="At Risk" count={atRisk} />
-                  <StatusRow color="bg-rose-500" label="Needs Attention" count={needsAttention} />
-                  <StatusRow color="bg-slate-300" label="Not Started" count={notStarted} />
-                </ul>
-              </div>
+              <Donut
+                size={116}
+                stroke={11}
+                legend
+                segments={[
+                  { value: onTrack, color: "#16A34A", label: "On Track" },
+                  { value: atRisk, color: "#F59E0B", label: "At Risk" },
+                  { value: needsAttention, color: "#E11D48", label: "Needs Attention" },
+                  { value: notStarted, color: "#CBD5E1", label: "Not Started" },
+                ]}
+                ariaLabel={`Team readiness of ${total} agents: ${onTrack} on track, ${atRisk} at risk, ${needsAttention} need attention, ${notStarted} not started`}
+              >
+                <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{total}</span>
+                <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Agents</span>
+              </Donut>
             </WidgetCard>
 
             {/* Operational Readiness (three sub-widgets) */}
@@ -185,12 +181,12 @@ export function ManagerWorkspaceView() {
                 <div>
                   <div className="mb-3 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[#7A5200]" aria-hidden="true" /><p className="text-[13px] font-semibold text-[#1B303C]">Training Readiness</p></div>
                   <div className="flex items-center gap-3">
-                    <Donut value={trainingReadiness} size={84} stroke={9} color="#2563EB" ariaLabel={`Training readiness ${trainingReadiness}%`}>
+                    <Donut value={trainingReadiness} size={84} stroke={9} color="#16A34A" ariaLabel={`Training readiness ${trainingReadiness}%`}>
                       <span className="text-[15px] font-bold text-[#1B303C]">{trainingReadiness}%</span>
                     </Donut>
                     <ul className="space-y-1 text-[12px] text-[#4A6373]">
-                      <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-blue-600" />Completed <span className="font-semibold text-[#1B303C]">{trainCompleted}</span></li>
-                      <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-300" />In progress <span className="font-semibold text-[#1B303C]">{trainInProgress}</span></li>
+                      <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" />Completed <span className="font-semibold text-[#1B303C]">{trainCompleted}</span></li>
+                      <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-cyan-400" />In progress <span className="font-semibold text-[#1B303C]">{trainInProgress}</span></li>
                       <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-slate-300" />Not started <span className="font-semibold text-[#1B303C]">{trainNotStarted}</span></li>
                     </ul>
                   </div>
@@ -199,9 +195,9 @@ export function ManagerWorkspaceView() {
                 <div className="md:border-l md:border-[#1B303C]/8 md:pl-5">
                   <div className="mb-3 flex items-center gap-2"><Users2 className="h-4 w-4 text-[#7A5200]" aria-hidden="true" /><p className="text-[13px] font-semibold text-[#1B303C]">Coaching Pipeline</p></div>
                   <ul className="space-y-1.5 text-[13px]">
-                    <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-violet-500" />Due this week</span><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
+                    <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-amber-400" />Due this week</span><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
                     <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-rose-500" />Overdue</span><span className="font-semibold text-[#1B303C]">{signals.filter((s) => s.severity === "high").length}</span></li>
-                    <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-sky-400" />Scheduled</span><span className="font-semibold text-[#1B303C]">{scheduledCount}</span></li>
+                    <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-cyan-500" />Scheduled</span><span className="font-semibold text-[#1B303C]">{scheduledCount}</span></li>
                     <li className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[#4A6373]"><span className="h-2 w-2 rounded-full bg-emerald-500" />Completed</span><span className="font-semibold text-[#1B303C]">{completedCount}</span></li>
                   </ul>
                   <div className="mt-2"><ViewLink href="/calendar">View Coaching</ViewLink></div>

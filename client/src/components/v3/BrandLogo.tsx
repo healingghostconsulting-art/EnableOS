@@ -1,15 +1,15 @@
-// v3 kit — the EnableOS wordmark: a gold brand mark (the CHCG "C") + navy wordmark.
-// Gold is used here as a decorative fill (not text), with a navy stroke for contrast.
+// v3 kit — the EnableOS co-brand wordmark for light surfaces. CHCG palette only:
+// a navy wordmark with a gold "OS" in navy-gold ink (#7A5200, the dual-surface gold
+// on light — never #FCBC34), over a "by CH Consulting Group" attribution. No icon
+// mark — the official CHCG lockups in client/public/brand are a wide 1000×120
+// horizontal lockup that doesn't fit this compact wordmark slot.
 export function BrandLogo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="shrink-0">
-        <rect width="26" height="26" rx="8" fill="#FCBC34" />
-        <path d="M17.6 9.1a5.2 5.2 0 1 0 0 7.8" fill="none" stroke="#1B303C" strokeWidth="2.6" strokeLinecap="round" />
-      </svg>
+    <span className={`inline-flex flex-col leading-tight ${className}`}>
       <span className="text-[1.05rem] font-bold tracking-tight text-[#1B303C]">
-        Enable<span className="font-semibold">OS</span>
+        Enable<span className="text-[#7A5200]">OS</span>
       </span>
+      <span className="text-[8.5px] font-semibold uppercase tracking-[0.16em] text-[#4A6373]">by CH Consulting Group</span>
     </span>
   );
 }

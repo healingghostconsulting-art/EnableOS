@@ -6,9 +6,11 @@ import { ArrowRight } from "lucide-react";
 // affordance) with a keyboard focus ring and reduced-motion fallback.
 export type RoleTagTint = "manager" | "coach" | "learner" | "client_admin";
 
+// CHCG palette only: navy for the manager (structural), cyan for the coach (the
+// agreed coaching accent), emerald for the learner (progress), gold for the admin.
 const TAG_TINT: Record<RoleTagTint, string> = {
-  manager: "bg-indigo-50 text-indigo-700",
-  coach: "bg-violet-50 text-violet-700",
+  manager: "bg-[#1B303C]/8 text-[#1B303C]",
+  coach: "bg-cyan-100 text-cyan-800",
   learner: "bg-emerald-50 text-emerald-700",
   client_admin: "bg-amber-50 text-[#7A5200]",
 };

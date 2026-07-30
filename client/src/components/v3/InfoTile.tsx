@@ -1,14 +1,16 @@
 import { type ReactNode } from "react";
 
-// v3 kit — a summary stat tile: tinted icon + big value + label. Tints stay AA
-// (dark ink on a light wash); the gold tile uses navy-gold ink (#7A5200), never
-// #FCBC34, per the dual-surface gold rule on light backgrounds.
-export type InfoTileTint = "blue" | "gold" | "violet";
+// v3 kit — a summary stat tile: tinted icon + big value + label. CHCG palette only:
+// cyan for coaching, emerald for progress, navy for structural counts, gold for the
+// brand highlight. Tints stay AA (dark ink on a light wash); the gold tile uses
+// navy-gold ink (#7A5200), never #FCBC34, per the dual-surface gold rule on light.
+export type InfoTileTint = "cyan" | "gold" | "emerald" | "navy";
 
 const TINT: Record<InfoTileTint, string> = {
-  blue: "bg-sky-100 text-sky-700",
+  cyan: "bg-cyan-100 text-cyan-800",
   gold: "bg-amber-100 text-[#7A5200]",
-  violet: "bg-violet-100 text-violet-700",
+  emerald: "bg-emerald-100 text-emerald-700",
+  navy: "bg-[#1B303C]/8 text-[#1B303C]",
 };
 
 export function InfoTile({ icon, tint, value, label }: { icon: ReactNode; tint: InfoTileTint; value: string; label: string }) {

@@ -1,18 +1,15 @@
-// v3 kit — the EnableOS wordmark for dark surfaces (the sidebar rail). Gold on dark
-// is #FCBC34 (the dual-surface rule); the diamond mark nods to the CHCG brand.
+// v3 kit — the EnableOS co-brand wordmark for dark surfaces (the sidebar rail).
+// CHCG palette only: white wordmark with a gold "OS" (#FCBC34 is the dual-surface
+// gold, allowed here because the rail is dark), over a "by CH Consulting Group"
+// attribution. No icon mark — the official CHCG lockups in client/public/brand are a
+// wide 1000×120 horizontal lockup that doesn't fit this compact rail slot.
 export function BrandLogoWhite() {
   return (
-    <div className="flex items-center gap-2.5">
-      <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="shrink-0">
-        <rect x="4" y="4" width="22" height="22" rx="6" transform="rotate(45 15 15)" fill="#2C6FEC" />
-        <rect x="9.5" y="9.5" width="11" height="11" rx="3" transform="rotate(45 15 15)" fill="#FCBC34" />
-      </svg>
-      <div className="leading-tight">
-        <p className="text-[1.02rem] font-extrabold tracking-tight text-white">
-          ENABL<span className="text-[#FCBC34]">EOS</span>
-        </p>
-        <p className="text-[8.5px] font-semibold uppercase tracking-[0.16em] text-white/55">by CH Consulting Group</p>
-      </div>
+    <div className="leading-tight">
+      <p className="text-[1.02rem] font-extrabold tracking-tight text-white">
+        Enable<span className="text-[#FCBC34]">OS</span>
+      </p>
+      <p className="text-[8.5px] font-semibold uppercase tracking-[0.16em] text-white/55">by CH Consulting Group</p>
     </div>
   );
 }
