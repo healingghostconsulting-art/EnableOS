@@ -33,12 +33,16 @@ const NAV: NavItem[] = [
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
 
-const ROLES: Array<{ role: GrantRole; label: string }> = [
-  { role: "executive", label: "Executive" },
-  { role: "manager", label: "Manager" },
-  { role: "coach", label: "Coach" },
-  { role: "learner", label: "Learner" },
-  { role: "client_admin", label: "Client Admin" },
+// CHCG palette only, one hue per role for the segmented Org Overview donut: navy for
+// executive (structural), the CHCG lighter-blue for manager, cyan for coach (the
+// coaching accent), emerald for learner (progress), gold for client admin (brand
+// highlight — a decorative ring fill, not text, so the dual-surface rule allows it).
+const ROLES: Array<{ role: GrantRole; label: string; color: string }> = [
+  { role: "executive", label: "Executive", color: "#1B303C" },
+  { role: "manager", label: "Manager", color: "#4A6373" },
+  { role: "coach", label: "Coach", color: "#06B6D4" },
+  { role: "learner", label: "Learner", color: "#10B981" },
+  { role: "client_admin", label: "Client Admin", color: "#FCBC34" },
 ];
 const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLES.map((r) => [r.role, r.label]));
 
@@ -103,24 +107,16 @@ export function ClientAdminWorkspaceView() {
           <DashboardGrid>
             {/* Org Overview */}
             <WidgetCard title="Org Overview" action={<ViewLink href="/admin">Manage Users</ViewLink>} className="xl:col-span-2">
-              <div className="flex flex-wrap items-center gap-6">
-                <Donut value={100} size={116} stroke={11} color="#1B303C" ariaLabel={`${totalUsers} active users`}>
-                  <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{totalUsers}</span>
-                  <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Users</span>
-                </Donut>
-                <ul className="grid flex-1 grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3">
-                  {ROLES.map((r) => (
-                    <li key={r.role} className="flex items-center justify-between gap-2">
-                      <span className="text-[#4A6373]">{r.label}</span>
-                      <span className="font-semibold text-[#1B303C]">{roleCount(r.role)}</span>
-                    </li>
-                  ))}
-                  <li className="flex items-center justify-between gap-2">
-                    <span className="text-[#4A6373]">Custom roles</span>
-                    <span className="font-semibold text-[#1B303C]">{customRoles.length}</span>
-                  </li>
-                </ul>
-              </div>
+              <Donut
+                size={116}
+                stroke={11}
+                legend
+                segments={ROLES.map((r) => ({ value: roleCount(r.role), color: r.color, label: r.label }))}
+                ariaLabel={`${totalUsers} active users by role: ${ROLES.map((r) => `${roleCount(r.role)} ${r.label}`).join(", ")}`}
+              >
+                <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{totalUsers}</span>
+                <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Users</span>
+              </Donut>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {[
                   { label: "Active Seats", value: totalUsers, icon: Users2 },
