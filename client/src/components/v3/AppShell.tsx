@@ -25,9 +25,3 @@ export function AppShell({ nav, user, greeting, greetingName, subtitleTail, noti
     </div>
   );
 }
-
-/** Responsive widget canvas — a 3-column grid on wide screens; widgets set their own
- *  col-span. Collapses to a single column on small screens. */
-export function DashboardGrid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">{children}</div>;
-}

@@ -25,12 +25,12 @@ describe("v3 Agent Workspace — route swap", () => {
 
 describe("v3 AppShell kit (reusable, prop-driven)", () => {
   it("ships the shell primitives every role dashboard reuses", () => {
-    for (const file of ["AppShell", "SidebarNav", "TopBar", "WidgetCard", "Donut", "BrandLogoWhite"]) {
+    for (const file of ["AppShell", "SidebarNav", "TopBar", "WidgetCard", "Donut", "BrandLogoWhite", "DashboardGrid"]) {
       expect(() => read(`client/src/components/v3/${file}.tsx`)).not.toThrow();
     }
-    const shell = read("client/src/components/v3/AppShell.tsx");
-    expect(shell).toContain("export function AppShell");
-    expect(shell).toContain("export function DashboardGrid");
+    expect(read("client/src/components/v3/AppShell.tsx")).toContain("export function AppShell");
+    // DashboardGrid was extracted to its own module (reusable without the shell).
+    expect(read("client/src/components/v3/DashboardGrid.tsx")).toContain("export function DashboardGrid");
     // Prop-driven, not agent-specific.
     expect(read("client/src/components/v3/SidebarNav.tsx")).toContain("items: NavItem[]");
     expect(read("client/src/components/v3/TopBar.tsx")).toContain("export function greetingFor");

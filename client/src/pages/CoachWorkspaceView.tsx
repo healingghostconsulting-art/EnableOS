@@ -5,7 +5,8 @@ import {
   Gauge, HelpCircle, LayoutDashboard, Megaphone, Target, Trophy, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { AppShell, DashboardGrid } from "@/components/v3/AppShell";
+import { AppShell } from "@/components/v3/AppShell";
+import { DashboardGrid } from "@/components/v3/DashboardGrid";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
@@ -115,7 +116,7 @@ export function CoachWorkspaceView() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   { label: "Sessions Due", value: dueCount, icon: ClipboardCheck, tint: "bg-rose-100 text-rose-700", sub: "Follow-ups awaiting you" },
-                  { label: "Scheduled", value: scheduledCount, icon: CalendarClock, tint: "bg-sky-100 text-sky-700", sub: "On the calendar" },
+                  { label: "Scheduled", value: scheduledCount, icon: CalendarClock, tint: "bg-cyan-100 text-cyan-800", sub: "On the calendar" },
                   { label: "Completed", value: completedCount, icon: Trophy, tint: "bg-emerald-100 text-emerald-700", sub: "Logged this cycle" },
                 ].map((tile) => {
                   const Icon = tile.icon;

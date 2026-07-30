@@ -5,7 +5,8 @@ import {
   Heart, HelpCircle, LayoutDashboard, MessageSquare, Megaphone, Play, Target, Trophy, UserRound, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { AppShell, DashboardGrid } from "@/components/v3/AppShell";
+import { AppShell } from "@/components/v3/AppShell";
+import { DashboardGrid } from "@/components/v3/DashboardGrid";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
@@ -28,15 +29,17 @@ const NAV: NavItem[] = [
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
 
+// CHCG palette only: navy for training (structural), cyan for coaching (the agreed
+// coaching accent), gold for goals, emerald for modules (progress).
 const PRIORITY_TINT: Record<string, string> = {
-  training: "bg-sky-100 text-sky-700",
-  coaching: "bg-violet-100 text-violet-700",
+  training: "bg-[#1B303C]/8 text-[#1B303C]",
+  coaching: "bg-cyan-100 text-cyan-800",
   goal: "bg-amber-100 text-[#7A5200]",
   module: "bg-emerald-100 text-emerald-700",
 };
 const DUE_TINT: Record<string, string> = {
-  training: "bg-sky-50 text-sky-700",
-  coaching: "bg-violet-50 text-violet-700",
+  training: "bg-[#1B303C]/5 text-[#1B303C]",
+  coaching: "bg-cyan-50 text-cyan-800",
   goal: "bg-amber-50 text-[#7A5200]",
   module: "bg-emerald-50 text-emerald-700",
 };
@@ -184,13 +187,13 @@ export function AgentWorkspaceView() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="text-center">
                   <p className="mb-2 text-[13px] font-semibold text-[#1B303C]">Training Completion</p>
-                  <Donut value={trainingCompletion} size={120} stroke={12} color="#2563EB" ariaLabel={`Training completion ${trainingCompletion}%`}>
+                  <Donut value={trainingCompletion} size={120} stroke={12} color="#16A34A" ariaLabel={`Training completion ${trainingCompletion}%`}>
                     <span className="text-[1.4rem] font-bold leading-none text-[#1B303C]">{trainingCompletion}%</span>
                     <span className="mt-0.5 text-[10px] text-[#4A6373]">Overall</span>
                   </Donut>
                   <ul className="mt-3 space-y-1 text-left text-[12px] text-[#4A6373]">
-                    <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-blue-600" />Completed ({completed})</li>
-                    <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-300" />In progress ({inProgress})</li>
+                    <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" />Completed ({completed})</li>
+                    <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-cyan-400" />In progress ({inProgress})</li>
                     <li className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-slate-300" />Not started ({notStarted})</li>
                   </ul>
                 </div>

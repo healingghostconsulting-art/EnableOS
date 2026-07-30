@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { permittedWorkspaces, type GrantRole } from "@shared/workspaceAccess";
-import { AppShell, DashboardGrid } from "@/components/v3/AppShell";
+import { AppShell } from "@/components/v3/AppShell";
+import { DashboardGrid } from "@/components/v3/DashboardGrid";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";

@@ -73,9 +73,9 @@ export function WorkspaceEntryView() {
 
         {/* Info tiles — real counts */}
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <InfoTile icon={<Users2 className="h-5 w-5" />} tint="blue" value={String(stats.teamMembers)} label="Team Members" />
-          <InfoTile icon={<ClipboardCheck className="h-5 w-5" />} tint="gold" value={String(stats.coachingDue)} label="Coaching Due" />
-          <InfoTile icon={<GraduationCap className="h-5 w-5" />} tint="violet" value={`${stats.trainingCompletion}%`} label="Training Completion" />
+          <InfoTile icon={<Users2 className="h-5 w-5" />} tint="navy" value={String(stats.teamMembers)} label="Team Members" />
+          <InfoTile icon={<ClipboardCheck className="h-5 w-5" />} tint="cyan" value={String(stats.coachingDue)} label="Coaching Due" />
+          <InfoTile icon={<GraduationCap className="h-5 w-5" />} tint="emerald" value={`${stats.trainingCompletion}%`} label="Training Completion" />
         </div>
 
         {/* Workspace selector */}
