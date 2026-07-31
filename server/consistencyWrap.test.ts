@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // v3 consistency wrap — the remaining surfaces (Reporting, Library, Training player,
-// Mission Hub, Guide) render inside the v3 AppShell chrome via V3ShellWrapper, keeping
-// their existing inner components. Source-level assertions.
+// Mission Hub, Guide, Calendar, CHCG Admin) render inside the v3 AppShell chrome via
+// V3ShellWrapper, keeping their existing inner components. Source-level assertions.
 
 const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 
@@ -22,6 +22,8 @@ describe("v3 consistency wrap — surfaces wrapped in the AppShell chrome", () =
       ["/training", "TrainingExperienceView"],
       ["/mission-hub", "MissionHubView"],
       ["/guide", "GuideView"],
+      ["/calendar", "CalendarView"],
+      ["/chcg-admin", "ChcgAdminView"],
     ];
     for (const [path, view] of surfaces) {
       expect(app).toContain(`<V3ShellWrapper path="${path}"><${view} /></V3ShellWrapper>`);
