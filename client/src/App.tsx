@@ -218,9 +218,11 @@ function Router() {
         </Route>
         <Route path="/calendar">
           {() => (
-            <GuardedWorkspaceShell path="/calendar" roleLabel="Calendar">
-              <CalendarView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner CalendarView is unchanged.
+            <GuardedV3Route path="/calendar">
+              <V3ShellWrapper path="/calendar"><CalendarView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/calendar" roleLabel="Calendar"><CalendarView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/executive" component={LegacyExecutiveRedirect} />
@@ -275,9 +277,11 @@ function Router() {
         </Route>
         <Route path="/chcg-admin">
           {() => (
-            <GuardedWorkspaceShell path="/chcg-admin" roleLabel="CHCG Admin Control Plane">
-              <ChcgAdminView />
-            </GuardedWorkspaceShell>
+            // v3 chrome wrap (consistency pass). Inner ChcgAdminView is unchanged.
+            <GuardedV3Route path="/chcg-admin">
+              <V3ShellWrapper path="/chcg-admin"><ChcgAdminView /></V3ShellWrapper>
+            </GuardedV3Route>
+            /* v2: <GuardedWorkspaceShell path="/chcg-admin" roleLabel="CHCG Admin Control Plane"><ChcgAdminView /></GuardedWorkspaceShell> */
           )}
         </Route>
         <Route path="/training">
