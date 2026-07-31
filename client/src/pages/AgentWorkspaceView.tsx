@@ -52,6 +52,17 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
+// A widget action whose detail view doesn't exist in the demo yet. Rendered as a
+// visibly non-interactive label (muted, cursor-default, no hover, no arrow) so it
+// reads as a placeholder rather than a link that quietly reloads the same route.
+function PlaceholderAction({ children }: { children: ReactNode }) {
+  return (
+    <span aria-disabled="true" title="Available in the full workspace" className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60">
+      {children}
+    </span>
+  );
+}
+
 export function AgentWorkspaceView() {
   const access = trpc.demo.viewerAccess.useQuery();
   const tenantId = access.data?.tenant.id;
@@ -107,10 +118,12 @@ export function AgentWorkspaceView() {
   if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title });
   const shownPriorities = priorities.slice(0, 4);
 
-  const quickActions = [
+  // "Update Goal" has no goal-editor page in the demo yet, so it renders
+  // non-interactive (see the render below) instead of self-routing to /learner.
+  const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
     { label: "Continue Training", icon: Play, href: "/training" },
     { label: "View Coaching Notes", icon: Users2, href: "/calendar" },
-    { label: "Update Goal", icon: Target, href: "/learner" },
+    { label: "Update Goal", icon: Target, href: "/learner", placeholder: true },
     { label: "Ask a Question", icon: MessageSquare, href: "/guide" },
     { label: "View Resources", icon: BookOpen, href: "/library" },
   ];
@@ -132,7 +145,7 @@ export function AgentWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* My Priorities */}
-            <WidgetCard title="My Priorities" action={<ViewLink href="/learner">View All Priorities</ViewLink>} className="xl:col-span-2">
+            <WidgetCard title="My Priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {shownPriorities.map((p, i) => {
                   const Icon = p.icon;
@@ -156,7 +169,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* My Performance Snapshot */}
-            <WidgetCard title="My Performance Snapshot" action={<ViewLink href="/learner">View Details</ViewLink>}>
+            <WidgetCard title="My Performance Snapshot" action={<PlaceholderAction>View Details</PlaceholderAction>}>
               <div className="flex items-center gap-4">
                 <Donut value={qaScore} size={116} stroke={11} color="#1B303C" ariaLabel={`QA score ${qaScore} out of 100`}>
                   <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{qaScore}</span>
@@ -239,7 +252,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* Announcements */}
-            <WidgetCard title="Announcements" action={<ViewLink href="/learner">View All</ViewLink>}>
+            <WidgetCard title="Announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No announcements right now.</p>
               ) : (
@@ -260,7 +273,7 @@ export function AgentWorkspaceView() {
                   })}
                 </ul>
               )}
-              <div className="mt-3"><ViewLink href="/learner">View All Announcements</ViewLink></div>
+              <div className="mt-3"><PlaceholderAction>View All Announcements</PlaceholderAction></div>
             </WidgetCard>
 
             {/* Quick Actions */}
@@ -272,6 +285,14 @@ export function AgentWorkspaceView() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
+                  if (action.placeholder) {
+                    return (
+                      <div key={action.label} aria-disabled="true" title="Available in the full workspace" className="flex cursor-default items-center justify-between gap-2 rounded-xl border border-dashed border-[#1B303C]/12 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#4A6373]">
+                        <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#4A6373]/70" aria-hidden="true" />{action.label}</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4A6373]/70">Soon</span>
+                      </div>
+                    );
+                  }
                   return (
                     <Link key={action.label} href={action.href} className="flex items-center justify-between gap-2 rounded-xl border border-[#1B303C]/10 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#1B303C] transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#7A5200]" aria-hidden="true" />{action.label}</span>
