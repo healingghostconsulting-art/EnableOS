@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { Link } from "wouter";
 import {
-  ArrowRight, BarChart3, BookOpen, Building2, CalendarDays, ChevronRight, Download,
+  BarChart3, BookOpen, Building2, CalendarDays, ChevronRight, Download,
   FileText, HelpCircle, LayoutDashboard, Palette, ShieldCheck, UserPlus, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -42,11 +42,14 @@ const ROLES: Array<{ role: GrantRole; label: string }> = [
 ];
 const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLES.map((r) => [r.role, r.label]));
 
-function ViewLink({ href, children }: { href: string; children: ReactNode }) {
+// A widget action whose detail view doesn't exist in the demo yet. Rendered as a
+// visibly non-interactive label (muted, cursor-default, no hover, no arrow) so it
+// reads as a placeholder rather than a link that quietly reloads the same route.
+function PlaceholderAction({ children }: { children: ReactNode }) {
   return (
-    <Link href={href} className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#7A5200] hover:underline">
-      {children} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-    </Link>
+    <span aria-disabled="true" title="Available in the full workspace" className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60">
+      {children}
+    </span>
   );
 }
 
@@ -78,10 +81,13 @@ export function ClientAdminWorkspaceView() {
   const docs: any[] = data?.documentationEntries ?? [];
   const notifications: any[] = data?.notifications ?? [];
 
-  const quickActions = [
-    { label: "Add User", icon: UserPlus, href: "/admin" },
-    { label: "Manage Roles", icon: ShieldCheck, href: "/admin" },
-    { label: "Brand Settings", icon: Palette, href: "/admin" },
+  // `placeholder` actions have no backing page in the demo yet, so they render
+  // non-interactive (see the render below) instead of self-routing to /admin. Export
+  // navigates to /reporting, where the working XLSX/PDF/email export lives.
+  const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
+    { label: "Add User", icon: UserPlus, href: "/admin", placeholder: true },
+    { label: "Manage Roles", icon: ShieldCheck, href: "/admin", placeholder: true },
+    { label: "Brand Settings", icon: Palette, href: "/admin", placeholder: true },
     { label: "Export", icon: Download, href: "/reporting" },
   ];
 
@@ -102,7 +108,7 @@ export function ClientAdminWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* Org Overview */}
-            <WidgetCard title="Org Overview" action={<ViewLink href="/admin">Manage Users</ViewLink>} className="xl:col-span-2">
+            <WidgetCard title="Org Overview" action={<PlaceholderAction>Manage Users</PlaceholderAction>} className="xl:col-span-2">
               <div className="flex flex-wrap items-center gap-6">
                 <Donut value={100} size={116} stroke={11} color="#1B303C" ariaLabel={`${totalUsers} active users`}>
                   <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{totalUsers}</span>
@@ -139,7 +145,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Brand & Settings */}
-            <WidgetCard title="Brand & Settings" action={<ViewLink href="/admin">Edit</ViewLink>}>
+            <WidgetCard title="Brand & Settings" action={<PlaceholderAction>Edit</PlaceholderAction>}>
               <div className="flex items-center gap-3 rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3">
                 <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white" style={{ backgroundColor: branding.accent ?? "#1B303C" }} aria-hidden="true">{branding.logoMark ?? "EO"}</span>
                 <div className="min-w-0">
@@ -158,7 +164,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Workspace Access — from the real access matrix */}
-            <WidgetCard title="Workspace Access" action={<ViewLink href="/admin">Configure</ViewLink>}>
+            <WidgetCard title="Workspace Access" action={<PlaceholderAction>Configure</PlaceholderAction>}>
               <p className="mb-3 text-[12px] text-[#4A6373]">Role-scoped views are strictly enforced. Each role enters only its permitted workspaces.</p>
               <ul className="space-y-2 text-[13px]">
                 {ROLES.map((r) => (
@@ -171,7 +177,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* User Management */}
-            <WidgetCard title="User Management" action={<ViewLink href="/admin">View All</ViewLink>}>
+            <WidgetCard title="User Management" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {tenantUsers.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No users yet.</p>
               ) : (
@@ -191,7 +197,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Recent Admin Activity / audit */}
-            <WidgetCard title="Recent Admin Activity" action={<ViewLink href="/admin">View Audit</ViewLink>}>
+            <WidgetCard title="Recent Admin Activity" action={<PlaceholderAction>View Audit</PlaceholderAction>}>
               {docs.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (
@@ -219,6 +225,14 @@ export function ClientAdminWorkspaceView() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
+                  if (action.placeholder) {
+                    return (
+                      <div key={action.label} aria-disabled="true" title="Available in the full workspace" className="flex cursor-default items-center justify-between gap-2 rounded-xl border border-dashed border-[#1B303C]/12 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#4A6373]">
+                        <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#4A6373]/70" aria-hidden="true" />{action.label}</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4A6373]/70">Soon</span>
+                      </div>
+                    );
+                  }
                   return (
                     <Link key={action.label} href={action.href} className="flex items-center justify-between gap-2 rounded-xl border border-[#1B303C]/10 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#1B303C] transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#7A5200]" aria-hidden="true" />{action.label}</span>

@@ -113,10 +113,12 @@ export function ManagerWorkspaceView() {
   if (assignments.length) recommended.push({ title: `${assignments.length} agent${assignments.length === 1 ? " has" : "s have"} active retraining`, sub: "Confirm follow-through before the due dates." });
   if (needsAttention) recommended.push({ title: `${needsAttention} agent${needsAttention === 1 ? " needs" : "s need"} attention`, sub: "Readiness is below the coaching threshold." });
 
-  const quickActions = [
+  // "Create Goal" has no goal-authoring page in the demo yet, so it renders
+  // non-interactive (see the render below) instead of self-routing to /manager.
+  const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
     { label: "Start Coaching", icon: CalendarPlus, href: "/calendar" },
     { label: "Assign Training", icon: GraduationCap, href: "/training" },
-    { label: "Create Goal", icon: Target, href: "/manager" },
+    { label: "Create Goal", icon: Target, href: "/manager", placeholder: true },
     { label: "View Team", icon: Users2, href: "/reporting" },
     { label: "Run Report", icon: BarChart3, href: "/reporting" },
     { label: "Resources", icon: FileText, href: "/library" },
@@ -319,6 +321,14 @@ export function ManagerWorkspaceView() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
+                  if (action.placeholder) {
+                    return (
+                      <div key={action.label} aria-disabled="true" title="Available in the full workspace" className="flex cursor-default items-center justify-between gap-2 rounded-xl border border-dashed border-[#1B303C]/12 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#4A6373]">
+                        <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#4A6373]/70" aria-hidden="true" />{action.label}</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4A6373]/70">Soon</span>
+                      </div>
+                    );
+                  }
                   return (
                     <Link key={action.label} href={action.href} className="flex items-center justify-between gap-2 rounded-xl border border-[#1B303C]/10 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#1B303C] transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#7A5200]" aria-hidden="true" />{action.label}</span>

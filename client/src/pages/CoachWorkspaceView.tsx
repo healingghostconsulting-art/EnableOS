@@ -40,6 +40,17 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
+// A widget action whose detail view doesn't exist in the demo yet. Rendered as a
+// visibly non-interactive label (muted, cursor-default, no hover, no arrow) so it
+// reads as a placeholder rather than a link that quietly reloads the same route.
+function PlaceholderAction({ children }: { children: ReactNode }) {
+  return (
+    <span aria-disabled="true" title="Available in the full workspace" className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60">
+      {children}
+    </span>
+  );
+}
+
 function readinessStatus(score: number): { label: string; tint: string } {
   if (score >= 75) return { label: "On track", tint: "bg-emerald-50 text-emerald-700" };
   if (score >= 65) return { label: "Monitor", tint: "bg-amber-50 text-[#7A5200]" };
@@ -150,7 +161,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* My Coachees */}
-            <WidgetCard title="My Coachees" action={<ViewLink href="/coach">View All</ViewLink>}>
+            <WidgetCard title="My Coachees" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {coachees.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No coachees assigned yet.</p>
               ) : (
@@ -203,7 +214,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* Recent Activity / Alerts */}
-            <WidgetCard title="Recent Activity" action={<ViewLink href="/coach">View All</ViewLink>}>
+            <WidgetCard title="Recent Activity" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (
