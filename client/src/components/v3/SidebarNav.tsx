@@ -1,4 +1,4 @@
-import { type LucideIcon, ChevronDown, HelpCircle } from "lucide-react";
+import { type LucideIcon, HelpCircle } from "lucide-react";
 import { Link } from "wouter";
 import { BrandLogoWhite } from "./BrandLogoWhite";
 
@@ -47,13 +47,15 @@ export function SidebarNav({ items, user, helpHref = "/guide" }: { items: NavIte
       </nav>
 
       <div className="mt-4 space-y-3 px-3 pb-4">
+        {/* Identity card — display only. The account menu (sign out / sign in) lives on
+            the TopBar avatar, so no dropdown-affordance chevron here (it promised a menu
+            that did not exist). */}
         <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2.5">
           <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FCBC34] text-[13px] font-bold text-[#1B303C]" aria-hidden="true">{user.initials}</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-white">{user.name}</p>
             <p className="truncate text-[11px] text-white/55">{user.roleTitle}</p>
           </div>
-          <ChevronDown className="h-4 w-4 shrink-0 text-white/45" aria-hidden="true" />
         </div>
 
         <Link href={helpHref} className="flex items-center gap-3 rounded-xl px-3 py-2 text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/50 motion-reduce:transition-none">

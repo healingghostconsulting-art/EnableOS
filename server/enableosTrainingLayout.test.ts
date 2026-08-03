@@ -650,7 +650,9 @@ describe("learner training layout helpers", () => {
     expect(guideSource).not.toContain("bg-white/90");
     // They render as the shared dark PremiumCard with white/slate text.
     expect(guideSource).toContain("<PremiumCard key={step.title}>");
-    expect(guideSource).toContain("<PremiumCard key={workspace.title}>");
+    // The navigation-map cards are now real links (each wraps a PremiumCard in
+    // <Link href={workspace.href}>) so the whole card routes to its workspace.
+    expect(guideSource).toContain("<Link key={workspace.title} href={workspace.href}");
     expect(guideSource).toContain("<PremiumCard key={practice.title}>");
     // The in-content tab bar is dark chrome (still content tabs, not WorkspaceShell modes).
     expect(guideSource).toContain('<TabsList className="surface-dark grid w-full grid-cols-3');

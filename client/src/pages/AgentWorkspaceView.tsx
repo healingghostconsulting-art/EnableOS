@@ -11,6 +11,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Agent Workspace (Pilot 2) — the Agent/Learner dashboard on the persistent AppShell.
 // Wired to the learner's own tRPC data only (never team KPIs). Supportive tone.
@@ -24,7 +25,9 @@ const NAV: NavItem[] = [
   { label: "My Dashboard", icon: LayoutDashboard, href: "/learner", active: true },
   { label: "My Training", icon: GraduationCap, href: "/training" },
   { label: "My Coaching", icon: UserRound, href: "/calendar" },
-  { label: "My Goals", icon: Target, href: "/learner" },
+  // No dedicated goals surface exists yet; scroll to the actionable priorities
+  // list (which carries goal/training/coaching items) instead of reloading top.
+  { label: "My Goals", icon: Target, href: "/learner#learner-priorities" },
   { label: "Resources", icon: BookOpen, href: "/library" },
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
@@ -87,6 +90,9 @@ export function AgentWorkspaceView() {
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
 
+  // Receive in-page anchors (own nav "My Goals", any inbound #section deep-link).
+  useDeepLinkTarget();
+
   const modules: any[] = data?.activeJourney?.modules ?? [];
   const total = modules.length;
   const completed = modules.filter((m) => m.completionRate >= 80).length;
@@ -111,11 +117,13 @@ export function AgentWorkspaceView() {
     .slice(0, 4);
 
   // My Priorities — real, actionable items (never team data).
-  type Priority = { kind: keyof typeof PRIORITY_TINT; icon: typeof GraduationCap; title: string; subtitle: string; due?: string; dueTime?: boolean };
+  type Priority = { kind: keyof typeof PRIORITY_TINT; icon: typeof GraduationCap; title: string; subtitle: string; due?: string; dueTime?: boolean; href: string };
   const priorities: Priority[] = [];
-  for (const a of assignments.slice(0, 2)) priorities.push({ kind: "training", icon: GraduationCap, title: "Complete Training", subtitle: a.moduleTitle, due: a.dueAt });
-  if (nextCoaching) priorities.push({ kind: "coaching", icon: Users2, title: "Coaching Session", subtitle: nextCoaching.title, due: nextCoaching.dueDate, dueTime: true });
-  if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title });
+  // Each card links to where the item is acted on: training/modules open the player,
+  // a coaching session opens its day on the calendar.
+  for (const a of assignments.slice(0, 2)) priorities.push({ kind: "training", icon: GraduationCap, title: "Complete Training", subtitle: a.moduleTitle, due: a.dueAt, href: "/training" });
+  if (nextCoaching) priorities.push({ kind: "coaching", icon: Users2, title: "Coaching Session", subtitle: nextCoaching.title, due: nextCoaching.dueDate, dueTime: true, href: nextCoaching.dueDate ? `/calendar?date=${String(nextCoaching.dueDate).slice(0, 10)}` : "/calendar" });
+  if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title, href: "/training" });
   const shownPriorities = priorities.slice(0, 4);
 
   // "Update Goal" has no goal-editor page in the demo yet, so it renders
@@ -138,6 +146,7 @@ export function AgentWorkspaceView() {
       notificationCount={Math.min(notifications.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/learner#learner-announcements"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your dashboard…</p>
@@ -145,12 +154,12 @@ export function AgentWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* My Priorities */}
-            <WidgetCard title="My Priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
+            <WidgetCard title="My Priorities" id="learner-priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {shownPriorities.map((p, i) => {
                   const Icon = p.icon;
                   return (
-                    <div key={i} className="flex flex-col rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3.5">
+                    <Link key={i} href={p.href} className="group flex flex-col rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3.5 transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${PRIORITY_TINT[p.kind]}`} aria-hidden="true"><Icon className="h-5 w-5" /></span>
                       <p className="mt-3 text-[14px] font-semibold text-[#1B303C]">{p.title}</p>
                       <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-5 text-[#4A6373]">{p.subtitle}</p>
@@ -160,9 +169,9 @@ export function AgentWorkspaceView() {
                             {p.dueTime ? `${fmtDay(p.due)}, ${fmtTime(p.due)}` : `Due ${fmtDay(p.due)}`}
                           </span>
                         ) : <span />}
-                        <ChevronRight className="h-4 w-4 text-[#4A6373]" aria-hidden="true" />
+                        <ChevronRight className="h-4 w-4 text-[#4A6373] transition group-hover:translate-x-0.5 group-hover:text-[#7A5200]" aria-hidden="true" />
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -232,7 +241,7 @@ export function AgentWorkspaceView() {
                     const allDay = d.getUTCHours() === 0 && d.getUTCMinutes() === 0;
                     return (
                       <li key={i}>
-                        <Link href="/calendar" className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
+                        <Link href={`/calendar?date=${String(item.start).slice(0, 10)}`} className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
                           <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
                             <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{d.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
                             <span className="text-[15px] font-bold leading-none text-[#1B303C]">{d.getUTCDate()}</span>
@@ -252,7 +261,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* Announcements */}
-            <WidgetCard title="Announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="Announcements" id="learner-announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No announcements right now.</p>
               ) : (

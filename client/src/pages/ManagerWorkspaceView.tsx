@@ -12,6 +12,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Manager Workspace (Pilot 4) — the operational manager dashboard on the shared
 // AppShell. Reuses the v3 kit from Pilots 1–3 (nothing rebuilt). Wired to the manager's
@@ -24,12 +25,24 @@ const firstNameOf = (name: string) => name.split(/\s+/)[0] ?? name;
 const fmtDay = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
 
+// Reporting Hub deep-links. /reporting (ExecutivePanel) honors ?tab= + #section
+// via useDeepLinkTarget, so these land on-section instead of at page top.
+const REPORT = {
+  overview: "/reporting?tab=overview",
+  team: "/reporting?tab=trends#executive-trends-panel",
+  insights: "/reporting?tab=trends#executive-trends-panel",
+  performance: "/reporting?tab=risk#executive-risk-panel",
+} as const;
+
 const NAV: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/manager", active: true },
-  { label: "Team", icon: Users2, href: "/reporting" },
-  { label: "Coaching", icon: CalendarClock, href: "/calendar" },
+  // "Team" → team-readiness trends; "Reports" → the reporting overview. Distinct
+  // destinations so the two nav items no longer collide on a bare /reporting.
+  { label: "Team", icon: Users2, href: REPORT.team },
+  // "Coaching" → the agenda list of sessions; "Calendar" → the month board.
+  { label: "Coaching", icon: CalendarClock, href: "/calendar?view=agenda" },
   { label: "Training", icon: GraduationCap, href: "/training" },
-  { label: "Reports", icon: BarChart3, href: "/reporting" },
+  { label: "Reports", icon: BarChart3, href: REPORT.overview },
   { label: "Calendar", icon: CalendarDays, href: "/calendar" },
   { label: "Knowledge Base", icon: BookOpen, href: "/library" },
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
@@ -69,6 +82,10 @@ export function ManagerWorkspaceView() {
   const avatar = <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#1B303C] text-[12px] font-bold text-white" aria-hidden="true">{initials}</span>;
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
+
+  // Receive inbound #section deep-links (e.g. Calendar coaching/intervention events
+  // → /manager#manager-coaching-lane / #manager-interventions-lane).
+  useDeepLinkTarget();
 
   // Team roster (all agents the manager oversees).
   const roster: any[] = data?.leaderboard?.orgRoster ?? [];
@@ -119,8 +136,8 @@ export function ManagerWorkspaceView() {
     { label: "Start Coaching", icon: CalendarPlus, href: "/calendar" },
     { label: "Assign Training", icon: GraduationCap, href: "/training" },
     { label: "Create Goal", icon: Target, href: "/manager", placeholder: true },
-    { label: "View Team", icon: Users2, href: "/reporting" },
-    { label: "Run Report", icon: BarChart3, href: "/reporting" },
+    { label: "View Team", icon: Users2, href: REPORT.team },
+    { label: "Run Report", icon: BarChart3, href: REPORT.overview },
     { label: "Resources", icon: FileText, href: "/library" },
   ];
 
@@ -134,6 +151,7 @@ export function ManagerWorkspaceView() {
       notificationCount={Math.min(notifications.length + signals.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/manager#manager-interventions-lane"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>
@@ -141,7 +159,7 @@ export function ManagerWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* Operational Snapshot */}
-            <WidgetCard title="Operational Snapshot" action={<ViewLink href="/reporting">View Full Dashboard</ViewLink>} className="xl:col-span-2">
+            <WidgetCard title="Operational Snapshot" action={<ViewLink href={REPORT.overview}>View Full Dashboard</ViewLink>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {kpis.map((kpi) => {
                   const Icon = kpi.icon;
@@ -159,7 +177,7 @@ export function ManagerWorkspaceView() {
             </WidgetCard>
 
             {/* Team Overview */}
-            <WidgetCard title="Team Overview" action={<ViewLink href="/reporting">View Team</ViewLink>}>
+            <WidgetCard title="Team Overview" action={<ViewLink href={REPORT.team}>View Team</ViewLink>}>
               <Donut
                 size={116}
                 stroke={11}
@@ -178,7 +196,7 @@ export function ManagerWorkspaceView() {
             </WidgetCard>
 
             {/* Operational Readiness (three sub-widgets) */}
-            <WidgetCard title="Operational Readiness" action={<ViewLink href="/reporting">View All Insights</ViewLink>} className="xl:col-span-2">
+            <WidgetCard title="Operational Readiness" id="manager-coaching-lane" action={<ViewLink href={REPORT.insights}>View All Insights</ViewLink>} className="xl:col-span-2">
               <div className="grid gap-5 md:grid-cols-3">
                 <div>
                   <div className="mb-3 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[#7A5200]" aria-hidden="true" /><p className="text-[13px] font-semibold text-[#1B303C]">Training Readiness</p></div>
@@ -209,7 +227,7 @@ export function ManagerWorkspaceView() {
                   <p className="text-[2rem] font-bold leading-none text-[#1B303C]">{highSignals}</p>
                   <p className="mt-1 text-[13px] font-semibold text-[#1B303C]">Performance Alerts</p>
                   <p className="mt-0.5 text-[12px] text-[#4A6373]">Needs attention</p>
-                  <div className="mt-3"><ViewLink href="/reporting">View Performance</ViewLink></div>
+                  <div className="mt-3"><ViewLink href={REPORT.performance}>View Performance</ViewLink></div>
                 </div>
               </div>
             </WidgetCard>
@@ -225,7 +243,7 @@ export function ManagerWorkspaceView() {
                     const allDay = d.getUTCHours() === 0 && d.getUTCMinutes() === 0;
                     return (
                       <li key={i}>
-                        <Link href="/calendar" className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
+                        <Link href={`/calendar?date=${String(item.start).slice(0, 10)}`} className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
                           <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
                             <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{d.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
                             <span className="text-[15px] font-bold leading-none text-[#1B303C]">{d.getUTCDate()}</span>
@@ -244,7 +262,7 @@ export function ManagerWorkspaceView() {
             </WidgetCard>
 
             {/* Team Activity */}
-            <WidgetCard title="Team Activity" action={<ViewLink href="/reporting">View All</ViewLink>}>
+            <WidgetCard title="Team Activity" action={<ViewLink href={REPORT.overview}>View All</ViewLink>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (
@@ -281,7 +299,7 @@ export function ManagerWorkspaceView() {
                           <p className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#4A6373]">{rec.sub}</p>
                         </div>
                       </div>
-                      <Link href="/reporting" className="shrink-0 text-[12px] font-semibold text-[#7A5200] hover:underline">Review</Link>
+                      <Link href={REPORT.overview} className="shrink-0 text-[12px] font-semibold text-[#7A5200] hover:underline">Review</Link>
                     </li>
                   ))}
                 </ul>
@@ -290,7 +308,7 @@ export function ManagerWorkspaceView() {
             </WidgetCard>
 
             {/* Alerts / At-risk */}
-            <WidgetCard title="Alerts" action={<ViewLink href="/reporting">View All</ViewLink>}>
+            <WidgetCard title="Alerts" id="manager-interventions-lane" action={<ViewLink href={REPORT.performance}>View All</ViewLink>}>
               {signals.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No active alerts.</p>
               ) : (

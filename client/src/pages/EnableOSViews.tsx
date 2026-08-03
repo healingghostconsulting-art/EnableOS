@@ -16,6 +16,7 @@ import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../..
 import { ContentAuthoringPanel } from "@/components/ContentAuthoringPanel";
 import { ReportingPrintLayout } from "@/components/ReportingPrintLayout";
 import { buildReportingWorkbookBlob, copyReportingEmailSummary, downloadBlob } from "@/lib/reportingExport";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
@@ -3257,23 +3258,25 @@ export function GuideView() {
             <TabsContent value="navigation" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {workspaceMap.map((workspace) => (
-                  <PremiumCard key={workspace.title}>
-                    <CardHeader className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1.5">
-                          <CardTitle className="text-lg text-white">{workspace.title}</CardTitle>
-                          <CardDescription className="text-sm leading-6 text-slate-300">{workspace.description}</CardDescription>
+                  <Link key={workspace.title} href={workspace.href} className="group block rounded-[1.4rem] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+                    <PremiumCard className="h-full transition group-hover:border-white/20 group-hover:bg-white/[0.06]">
+                      <CardHeader className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1.5">
+                            <CardTitle className="text-lg text-white">{workspace.title}</CardTitle>
+                            <CardDescription className="text-sm leading-6 text-slate-300">{workspace.description}</CardDescription>
+                          </div>
+                          <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-slate-300">
+                            {workspace.audience}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-slate-300">
-                          {workspace.audience}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between pt-0 text-sm text-slate-400">
-                      <span>{workspace.href}</span>
-                      <ArrowRight className="h-4 w-4 text-slate-200" />
-                    </CardContent>
-                  </PremiumCard>
+                      </CardHeader>
+                      <CardContent className="flex items-center justify-between pt-0 text-sm text-slate-400">
+                        <span>{workspace.href}</span>
+                        <ArrowRight className="h-4 w-4 text-slate-200 transition group-hover:translate-x-0.5 group-hover:text-white" />
+                      </CardContent>
+                    </PremiumCard>
+                  </Link>
                 ))}
               </div>
             </TabsContent>
@@ -3911,6 +3914,14 @@ export function TrainingExperienceView() {
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /training?tab=checkpoint).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "brief" || tab === "lesson" || tab === "checkpoint" || tab === "resources") {
+        setTrainingWorkspacePage(tab);
+      }
+    },
+  });
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
@@ -6733,6 +6744,20 @@ export function ContentLibraryView() {
   const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest" | "resources">("explore");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /library?tab=explore#library-explore-rows).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "launcher" || tab === "explore" || tab === "ingest" || tab === "resources") {
+        setLibraryMode(tab);
+      }
+    },
+    resolveTabForSection: (sectionId) => ({
+      "library-explore-rows": "explore",
+      "library-filter-bar": "explore",
+      "library-resources-mode": "resources",
+      "library-ingest-mode": "ingest",
+    } as Record<string, string>)[sectionId],
+  });
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [formatFilter, setFormatFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -7326,7 +7351,7 @@ export function ContentLibraryView() {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
-                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
+                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-rows")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
                           </div>
                         </>
                       ) : (
@@ -7544,7 +7569,7 @@ export function ContentLibraryView() {
                         {uploadNotice ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{uploadNotice}</div> : null}
                         <div className="flex flex-wrap gap-2">
                           <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">{uploadMutation.isPending ? "Uploading..." : "Add structured asset"}</Button>
-                          <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
+                          <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-rows")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
                         </div>
                       </form>
                     </CardContent>
@@ -9195,6 +9220,19 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
   const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
   const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
   const [activeExecutiveMode, setActiveExecutiveMode] = useState<"overview" | "trends" | "risk" | "evidence" | "documentation">("overview");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /reporting?tab=trends#executive-trends-panel).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "overview" || tab === "trends" || tab === "risk" || tab === "evidence" || tab === "documentation") {
+        setActiveExecutiveMode(tab);
+      }
+    },
+    resolveTabForSection: (sectionId) => ({
+      "executive-trends-panel": "trends",
+      "executive-risk-panel": "risk",
+      "executive-documentation-panel": "documentation",
+    } as Record<string, string>)[sectionId],
+  });
   const roiTrendConfig = {
     readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
     qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
