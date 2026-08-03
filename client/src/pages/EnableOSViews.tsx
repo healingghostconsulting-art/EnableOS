@@ -3257,23 +3257,25 @@ export function GuideView() {
             <TabsContent value="navigation" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {workspaceMap.map((workspace) => (
-                  <PremiumCard key={workspace.title}>
-                    <CardHeader className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1.5">
-                          <CardTitle className="text-lg text-white">{workspace.title}</CardTitle>
-                          <CardDescription className="text-sm leading-6 text-slate-300">{workspace.description}</CardDescription>
+                  <Link key={workspace.title} href={workspace.href} className="group block rounded-[1.4rem] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+                    <PremiumCard className="h-full transition group-hover:border-white/20 group-hover:bg-white/[0.06]">
+                      <CardHeader className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1.5">
+                            <CardTitle className="text-lg text-white">{workspace.title}</CardTitle>
+                            <CardDescription className="text-sm leading-6 text-slate-300">{workspace.description}</CardDescription>
+                          </div>
+                          <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-slate-300">
+                            {workspace.audience}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="rounded-full border-white/12 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-slate-300">
-                          {workspace.audience}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between pt-0 text-sm text-slate-400">
-                      <span>{workspace.href}</span>
-                      <ArrowRight className="h-4 w-4 text-slate-200" />
-                    </CardContent>
-                  </PremiumCard>
+                      </CardHeader>
+                      <CardContent className="flex items-center justify-between pt-0 text-sm text-slate-400">
+                        <span>{workspace.href}</span>
+                        <ArrowRight className="h-4 w-4 text-slate-200 transition group-hover:translate-x-0.5 group-hover:text-white" />
+                      </CardContent>
+                    </PremiumCard>
+                  </Link>
                 ))}
               </div>
             </TabsContent>
@@ -7326,7 +7328,7 @@ export function ContentLibraryView() {
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" disabled={!canLaunchSelectedAsset} onClick={() => handleStartTraining(selectedAsset, selectedAssetRole, selectedAssetTrainingTarget?.journeyId, selectedAssetTrainingTarget?.moduleId)} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100 disabled:bg-slate-300 disabled:text-slate-600">{canLaunchSelectedAsset ? "Launch training" : "Launch pending alignment"}</Button>
-                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
+                            <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-rows")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Open compact shelves</Button>
                           </div>
                         </>
                       ) : (
@@ -7544,7 +7546,7 @@ export function ContentLibraryView() {
                         {uploadNotice ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">{uploadNotice}</div> : null}
                         <div className="flex flex-wrap gap-2">
                           <Button type="submit" disabled={uploadMutation.isPending} className="rounded-full bg-white px-5 text-slate-950 hover:bg-slate-100">{uploadMutation.isPending ? "Uploading..." : "Add structured asset"}</Button>
-                          <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-mode")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
+                          <Button type="button" variant="outline" onClick={() => jumpToLibraryMode("explore", "library-explore-rows")} className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">Return to compact shelves</Button>
                         </div>
                       </form>
                     </CardContent>
