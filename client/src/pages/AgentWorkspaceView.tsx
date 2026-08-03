@@ -117,11 +117,13 @@ export function AgentWorkspaceView() {
     .slice(0, 4);
 
   // My Priorities — real, actionable items (never team data).
-  type Priority = { kind: keyof typeof PRIORITY_TINT; icon: typeof GraduationCap; title: string; subtitle: string; due?: string; dueTime?: boolean };
+  type Priority = { kind: keyof typeof PRIORITY_TINT; icon: typeof GraduationCap; title: string; subtitle: string; due?: string; dueTime?: boolean; href: string };
   const priorities: Priority[] = [];
-  for (const a of assignments.slice(0, 2)) priorities.push({ kind: "training", icon: GraduationCap, title: "Complete Training", subtitle: a.moduleTitle, due: a.dueAt });
-  if (nextCoaching) priorities.push({ kind: "coaching", icon: Users2, title: "Coaching Session", subtitle: nextCoaching.title, due: nextCoaching.dueDate, dueTime: true });
-  if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title });
+  // Each card links to where the item is acted on: training/modules open the player,
+  // a coaching session opens its day on the calendar.
+  for (const a of assignments.slice(0, 2)) priorities.push({ kind: "training", icon: GraduationCap, title: "Complete Training", subtitle: a.moduleTitle, due: a.dueAt, href: "/training" });
+  if (nextCoaching) priorities.push({ kind: "coaching", icon: Users2, title: "Coaching Session", subtitle: nextCoaching.title, due: nextCoaching.dueDate, dueTime: true, href: nextCoaching.dueDate ? `/calendar?date=${String(nextCoaching.dueDate).slice(0, 10)}` : "/calendar" });
+  if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title, href: "/training" });
   const shownPriorities = priorities.slice(0, 4);
 
   // "Update Goal" has no goal-editor page in the demo yet, so it renders
@@ -144,6 +146,7 @@ export function AgentWorkspaceView() {
       notificationCount={Math.min(notifications.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/learner#learner-announcements"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your dashboard…</p>
@@ -156,7 +159,7 @@ export function AgentWorkspaceView() {
                 {shownPriorities.map((p, i) => {
                   const Icon = p.icon;
                   return (
-                    <div key={i} className="flex flex-col rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3.5">
+                    <Link key={i} href={p.href} className="group flex flex-col rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3.5 transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${PRIORITY_TINT[p.kind]}`} aria-hidden="true"><Icon className="h-5 w-5" /></span>
                       <p className="mt-3 text-[14px] font-semibold text-[#1B303C]">{p.title}</p>
                       <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-5 text-[#4A6373]">{p.subtitle}</p>
@@ -166,9 +169,9 @@ export function AgentWorkspaceView() {
                             {p.dueTime ? `${fmtDay(p.due)}, ${fmtTime(p.due)}` : `Due ${fmtDay(p.due)}`}
                           </span>
                         ) : <span />}
-                        <ChevronRight className="h-4 w-4 text-[#4A6373]" aria-hidden="true" />
+                        <ChevronRight className="h-4 w-4 text-[#4A6373] transition group-hover:translate-x-0.5 group-hover:text-[#7A5200]" aria-hidden="true" />
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -258,7 +261,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* Announcements */}
-            <WidgetCard title="Announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="Announcements" id="learner-announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No announcements right now.</p>
               ) : (

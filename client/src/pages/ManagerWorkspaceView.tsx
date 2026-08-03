@@ -151,6 +151,7 @@ export function ManagerWorkspaceView() {
       notificationCount={Math.min(notifications.length + signals.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/manager#manager-interventions-lane"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>

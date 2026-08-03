@@ -12,6 +12,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Client Admin Workspace (Pilot 5) — Client Control on the shared AppShell. Reuses
 // the v3 kit (nothing rebuilt). Wired to the admin's org/config tRPC data (secureAdmin,
@@ -24,9 +25,10 @@ const fmtDay = (iso: string) => new Date(iso).toLocaleDateString(undefined, { mo
 
 const NAV: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: true },
-  { label: "Users", icon: Users2, href: "/admin" },
-  { label: "Roles & Access", icon: ShieldCheck, href: "/admin" },
-  { label: "Branding", icon: Palette, href: "/admin" },
+  // Scroll to the on-page section instead of reloading /admin at the top.
+  { label: "Users", icon: Users2, href: "/admin#admin-users" },
+  { label: "Roles & Access", icon: ShieldCheck, href: "/admin#admin-access" },
+  { label: "Branding", icon: Palette, href: "/admin#admin-branding" },
   { label: "Reports", icon: BarChart3, href: "/reporting" },
   { label: "Calendar", icon: CalendarDays, href: "/calendar" },
   { label: "Knowledge Base", icon: BookOpen, href: "/library" },
@@ -72,6 +74,9 @@ export function ClientAdminWorkspaceView() {
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
 
+  // Receive in-page anchors from the nav (Users / Roles & Access / Branding).
+  useDeepLinkTarget();
+
   const tenantUsers: any[] = data?.tenantUsers ?? [];
   const totalUsers = tenantUsers.length;
   const roleCount = (role: string) => tenantUsers.filter((u) => u.role === role).length;
@@ -101,6 +106,7 @@ export function ClientAdminWorkspaceView() {
       notificationCount={Math.min(notifications.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/admin#admin-activity"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>
@@ -145,7 +151,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Brand & Settings */}
-            <WidgetCard title="Brand & Settings" action={<PlaceholderAction>Edit</PlaceholderAction>}>
+            <WidgetCard title="Brand & Settings" id="admin-branding" action={<PlaceholderAction>Edit</PlaceholderAction>}>
               <div className="flex items-center gap-3 rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3">
                 <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white" style={{ backgroundColor: branding.accent ?? "#1B303C" }} aria-hidden="true">{branding.logoMark ?? "EO"}</span>
                 <div className="min-w-0">
@@ -164,7 +170,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Workspace Access — from the real access matrix */}
-            <WidgetCard title="Workspace Access" action={<PlaceholderAction>Configure</PlaceholderAction>}>
+            <WidgetCard title="Workspace Access" id="admin-access" action={<PlaceholderAction>Configure</PlaceholderAction>}>
               <p className="mb-3 text-[12px] text-[#4A6373]">Role-scoped views are strictly enforced. Each role enters only its permitted workspaces.</p>
               <ul className="space-y-2 text-[13px]">
                 {ROLES.map((r) => (
@@ -177,7 +183,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* User Management */}
-            <WidgetCard title="User Management" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="User Management" id="admin-users" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {tenantUsers.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No users yet.</p>
               ) : (
@@ -197,7 +203,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Recent Admin Activity / audit */}
-            <WidgetCard title="Recent Admin Activity" action={<PlaceholderAction>View Audit</PlaceholderAction>}>
+            <WidgetCard title="Recent Admin Activity" id="admin-activity" action={<PlaceholderAction>View Audit</PlaceholderAction>}>
               {docs.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (

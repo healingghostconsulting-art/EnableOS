@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -119,10 +119,10 @@ function EventChip({
 }
 
 // ── Month view ────────────────────────────────────────────────────────────────
-function MonthGrid({ cursorMs, nowMs, byDay, canManage, onOpen, onDragStartEvent, onDropDay, onEmptyDay }: {
+function MonthGrid({ cursorMs, nowMs, byDay, canManage, onOpen, onDragStartEvent, onDropDay, onEmptyDay, onOverflow }: {
   cursorMs: number; nowMs: number; byDay: Map<number, CalendarEvent[]>;
   canManage: boolean; onOpen: (e: CalendarEvent) => void; onDragStartEvent: (e: CalendarEvent) => void;
-  onDropDay: (dayMs: number) => void; onEmptyDay: (dayMs: number) => void;
+  onDropDay: (dayMs: number) => void; onEmptyDay: (dayMs: number) => void; onOverflow: (dayMs: number) => void;
 }) {
   const weeks = buildMonthMatrix(cursorMs, nowMs);
   return (
@@ -152,7 +152,15 @@ function MonthGrid({ cursorMs, nowMs, byDay, canManage, onOpen, onDragStartEvent
               </div>
               <div className="space-y-1">
                 {shown.map((event) => <EventChip key={event.id} event={event} showTime canManage={canManage} onOpen={onOpen} onDragStartEvent={onDragStartEvent} />)}
-                {overflow > 0 ? <p className="px-1 text-[10px] font-medium text-[#4A6373]">+{overflow} more</p> : null}
+                {overflow > 0 ? (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onOverflow(cell.dateMs); }}
+                    className="w-full rounded px-1 text-left text-[10px] font-semibold text-[#7A5200] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30"
+                  >
+                    +{overflow} more
+                  </button>
+                ) : null}
               </div>
             </div>
           );
@@ -463,6 +471,20 @@ export function CalendarView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Coach "Schedule Session" / "Log a Session" arrive via /calendar?new=coaching and
+  // open the create-session modal. Deferred until the schedulable query settles so we
+  // know whether the viewer can manage sessions (otherwise the modal would be inert).
+  const newModalHandledRef = useRef(false);
+  useEffect(() => {
+    if (newModalHandledRef.current) return;
+    const wantsNew = new URLSearchParams(window.location.search).get("new") === "coaching";
+    if (!wantsNew) { newModalHandledRef.current = true; return; }
+    if (schedulable.isLoading) return;
+    newModalHandledRef.current = true;
+    if (schedulable.data?.canSchedule) setModal({ mode: "create", date: isoToDateInput(new Date(cursorMs).toISOString()) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedulable.isLoading]);
+
   const canManage = Boolean(schedulable.data?.canSchedule);
   const learners = schedulable.data?.learners ?? [];
 
@@ -580,7 +602,7 @@ export function CalendarView() {
             <p className="mt-1 text-sm text-[#4A6373]">Coaching sessions and training deadlines appear here as they are assigned.</p>
           </div>
         ) : view === "month" ? (
-          <MonthGrid cursorMs={cursorMs} nowMs={nowMs} byDay={byDay} canManage={canManage} onOpen={(e) => setModal({ mode: "reschedule", event: e })} onDragStartEvent={setDragging} onDropDay={handleDropDay} onEmptyDay={(dayMs) => setModal({ mode: "create", date: isoToDateInput(new Date(dayMs).toISOString()) })} />
+          <MonthGrid cursorMs={cursorMs} nowMs={nowMs} byDay={byDay} canManage={canManage} onOpen={(e) => setModal({ mode: "reschedule", event: e })} onDragStartEvent={setDragging} onDropDay={handleDropDay} onEmptyDay={(dayMs) => setModal({ mode: "create", date: isoToDateInput(new Date(dayMs).toISOString()) })} onOverflow={(dayMs) => { setView("week"); setCursorMs(startOfUtcDay(dayMs)); }} />
         ) : view === "week" ? (
           <WeekGrid cursorMs={cursorMs} nowMs={nowMs} byDay={byDay} canManage={canManage} onOpen={(e) => setModal({ mode: "reschedule", event: e })} onDragStartEvent={setDragging} onDropDay={handleDropDay} onEmptyDay={(dayMs) => setModal({ mode: "create", date: isoToDateInput(new Date(dayMs).toISOString()) })} />
         ) : (

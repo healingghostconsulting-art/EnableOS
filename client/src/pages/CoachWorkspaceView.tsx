@@ -107,8 +107,8 @@ export function CoachWorkspaceView() {
     .slice(0, 4);
 
   const quickActions = [
-    { label: "Schedule Session", icon: CalendarPlus, href: "/calendar" },
-    { label: "Log a Session", icon: ClipboardCheck, href: "/calendar" },
+    { label: "Schedule Session", icon: CalendarPlus, href: "/calendar?new=coaching" },
+    { label: "Log a Session", icon: ClipboardCheck, href: "/calendar?new=coaching" },
     { label: "View Calendar", icon: CalendarClock, href: "/calendar" },
     { label: "Team Reports", icon: Gauge, href: REPORT.overview },
     { label: "Resources", icon: FileText, href: "/library" },
@@ -124,6 +124,7 @@ export function CoachWorkspaceView() {
       notificationCount={Math.min(notifications.length, 9)}
       dateLabel={dateLabel}
       avatar={avatar}
+      notificationsHref="/coach#coach-activity"
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>
@@ -222,7 +223,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* Recent Activity / Alerts */}
-            <WidgetCard title="Recent Activity" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="Recent Activity" id="coach-activity" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (

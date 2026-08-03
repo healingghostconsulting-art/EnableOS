@@ -1,6 +1,10 @@
 import { type ReactNode } from "react";
-import { Search } from "lucide-react";
+import { ChevronDown, LogIn, LogOut, Search } from "lucide-react";
+import { useLocation } from "wouter";
 import { NotificationBell } from "./NotificationBell";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // v3 kit — the light top bar: a time-aware greeting, the viewer avatar + date, a
 // working notification bell (opens a popover of recent notification previews), and a
@@ -13,7 +17,7 @@ export function greetingFor(hour: number): string {
   return "Good evening";
 }
 
-export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLabel, avatar }: {
+export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLabel, avatar, notificationsHref }: {
   name: string;
   greeting: string;
   /** The gold-highlighted tail of the supportive subtitle (e.g. "great day"). */
@@ -21,7 +25,11 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
   notificationCount: number;
   dateLabel: string;
   avatar: ReactNode;
+  /** Optional "View all" target for the notification popover (the role's alerts). */
+  notificationsHref?: string;
 }) {
+  const { isAuthenticated, logout } = useAuth();
+  const [location] = useLocation();
   return (
     <header className="flex flex-col gap-4 border-b border-[#1B303C]/8 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
       <div>
@@ -41,11 +49,33 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
             className="h-10 w-64 cursor-default rounded-full border border-[#1B303C]/12 bg-[#F7F8FA] pl-9 pr-3 text-sm text-[#4A6373] placeholder:text-[#4A6373]"
           />
         </div>
-        <NotificationBell notificationCount={notificationCount} />
-        <div className="flex items-center gap-2.5">
-          {avatar}
-          <span className="hidden text-right text-[12px] leading-tight text-[#4A6373] lg:block">{dateLabel}</span>
-        </div>
+        <NotificationBell notificationCount={notificationCount} notificationsHref={notificationsHref} />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Account menu"
+              className="flex items-center gap-2.5 rounded-full px-1 py-0.5 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none"
+            >
+              {avatar}
+              <span className="hidden text-right text-[12px] leading-tight text-[#4A6373] lg:block">{dateLabel}</span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-[#4A6373]" aria-hidden="true" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            {isAuthenticated ? (
+              <DropdownMenuItem onClick={() => { void logout(); }} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => { window.location.href = getLoginUrl(location); }} className="cursor-pointer">
+                <LogIn className="mr-2 h-4 w-4" />
+                <span>Sign in</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
