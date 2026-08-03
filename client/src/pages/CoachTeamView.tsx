@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { AppShell } from "@/components/v3/AppShell";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { StatusMark, type CanonicalStatus } from "@/components/v3/StatusMark";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Coach "My Team" (/coachees) — the full coachee roster on the persistent AppShell,
@@ -31,10 +32,12 @@ const NAV: NavItem[] = [
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
 
-function readinessStatus(score: number): { label: string; pill: string; meter: string } {
-  if (score >= 75) return { label: "On track", pill: "bg-emerald-50 text-emerald-700", meter: "bg-emerald-500" };
-  if (score >= 65) return { label: "Monitor", pill: "bg-amber-50 text-[#7A5200]", meter: "bg-amber-500" };
-  return { label: "Needs attention", pill: "bg-rose-50 text-rose-700", meter: "bg-rose-500" };
+// Readiness → canonical StatusMark status (+ the label wording this surface uses and
+// the meter-bar tint). The silhouette carries the status; color reinforces.
+function readinessStatus(score: number): { status: CanonicalStatus; label: string; meter: string } {
+  if (score >= 75) return { status: "positive", label: "On track", meter: "bg-emerald-500" };
+  if (score >= 65) return { status: "overdue", label: "Monitor", meter: "bg-amber-500" };
+  return { status: "alert", label: "Needs attention", meter: "bg-rose-500" };
 }
 
 export function CoachTeamView() {
@@ -186,7 +189,7 @@ export function CoachTeamView() {
                           <span className="block text-[11px] uppercase tracking-wide text-[#4A6373]/70">Last session</span>
                           <span className="block font-medium text-[#1B303C]">{last ? fmtDay(last.date) : "None yet"}</span>
                         </span>
-                        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${status.pill}`}>{status.label}</span>
+                        <StatusMark status={status.status} label={status.label} variant="pill" className="shrink-0" />
                         <ChevronDown className={`h-4 w-4 shrink-0 text-[#4A6373] transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
                       </button>
 

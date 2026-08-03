@@ -11,6 +11,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { StatusMark, type CanonicalStatus } from "@/components/v3/StatusMark";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // Reporting Hub deep-link (ExecutivePanel honors ?tab=/#section via useDeepLinkTarget).
@@ -55,10 +56,11 @@ function PlaceholderAction({ children }: { children: ReactNode }) {
   );
 }
 
-function readinessStatus(score: number): { label: string; tint: string } {
-  if (score >= 75) return { label: "On track", tint: "bg-emerald-50 text-emerald-700" };
-  if (score >= 65) return { label: "Monitor", tint: "bg-amber-50 text-[#7A5200]" };
-  return { label: "Needs attention", tint: "bg-rose-50 text-rose-700" };
+// Readiness → canonical StatusMark status (+ this surface's label wording).
+function readinessStatus(score: number): { status: CanonicalStatus; label: string } {
+  if (score >= 75) return { status: "positive", label: "On track" };
+  if (score >= 65) return { status: "overdue", label: "Monitor" };
+  return { status: "alert", label: "Needs attention" };
 }
 
 export function CoachWorkspaceView() {
@@ -159,10 +161,10 @@ export function CoachWorkspaceView() {
                   <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Readiness</span>
                 </Donut>
                 <ul className="flex-1 space-y-2 text-[13px]">
-                  <li className="flex items-center justify-between"><span className="text-[#4A6373]">Coachees</span><span className="font-semibold text-[#1B303C]">{coachees.length}</span></li>
-                  <li className="flex items-center justify-between"><span className="text-[#4A6373]">On track</span><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) >= 75).length}</span></li>
-                  <li className="flex items-center justify-between"><span className="text-[#4A6373]">Need attention</span><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) < 65).length}</span></li>
-                  <li className="flex items-center justify-between"><span className="text-[#4A6373]">Sessions due</span><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
+                  <li className="flex items-center justify-between"><StatusMark status="neutral" label="Coachees" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.length}</span></li>
+                  <li className="flex items-center justify-between"><StatusMark status="positive" label="On track" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) >= 75).length}</span></li>
+                  <li className="flex items-center justify-between"><StatusMark status="alert" label="Need attention" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) < 65).length}</span></li>
+                  <li className="flex items-center justify-between"><StatusMark status="overdue" label="Sessions due" variant="dot" /><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
                 </ul>
               </div>
               <p className="mt-4 text-center text-[13px] font-semibold text-emerald-700">Your team is trending in the right direction.</p>
@@ -183,7 +185,7 @@ export function CoachWorkspaceView() {
                           <span className="block truncate text-[13px] font-semibold text-[#1B303C]">{l.name}</span>
                           <span className="block truncate text-[12px] text-[#4A6373]">{l.title ?? "Team Member"} · Readiness {l.readinessScore ?? 0}</span>
                         </span>
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${status.tint}`}>{status.label}</span>
+                        <StatusMark status={status.status} label={status.label} variant="pill" />
                       </li>
                     );
                   })}
