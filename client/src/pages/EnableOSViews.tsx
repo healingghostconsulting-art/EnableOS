@@ -16,6 +16,7 @@ import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../..
 import { ContentAuthoringPanel } from "@/components/ContentAuthoringPanel";
 import { ReportingPrintLayout } from "@/components/ReportingPrintLayout";
 import { buildReportingWorkbookBlob, copyReportingEmailSummary, downloadBlob } from "@/lib/reportingExport";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
@@ -3913,6 +3914,14 @@ export function TrainingExperienceView() {
   const [briefTransitionDirection, setBriefTransitionDirection] = useState<"forward" | "backward">("forward");
   const [lessonFlashCardFlipped, setLessonFlashCardFlipped] = useState(false);
   const [trainingWorkspacePage, setTrainingWorkspacePage] = useState<"brief" | "lesson" | "checkpoint" | "resources">("lesson");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /training?tab=checkpoint).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "brief" || tab === "lesson" || tab === "checkpoint" || tab === "resources") {
+        setTrainingWorkspacePage(tab);
+      }
+    },
+  });
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
@@ -6735,6 +6744,20 @@ export function ContentLibraryView() {
   const [statusFilter, setStatusFilter] = useState<"all" | "not_started" | "in_progress" | "completed" | "recommended">("all");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [libraryMode, setLibraryMode] = useState<"launcher" | "explore" | "ingest" | "resources">("explore");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /library?tab=explore#library-explore-rows).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "launcher" || tab === "explore" || tab === "ingest" || tab === "resources") {
+        setLibraryMode(tab);
+      }
+    },
+    resolveTabForSection: (sectionId) => ({
+      "library-explore-rows": "explore",
+      "library-filter-bar": "explore",
+      "library-resources-mode": "resources",
+      "library-ingest-mode": "ingest",
+    } as Record<string, string>)[sectionId],
+  });
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [formatFilter, setFormatFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -9197,6 +9220,19 @@ function ExecutivePanel({ data, onUpdated, headerActions }: { data: any; onUpdat
   const [selectedRoiTrendMetric, setSelectedRoiTrendMetric] = useState<"readiness" | "qaScore" | "csat">("readiness");
   const [selectedErrorTrendMetric, setSelectedErrorTrendMetric] = useState<"total" | "critical" | "moderate" | "minor">("total");
   const [activeExecutiveMode, setActiveExecutiveMode] = useState<"overview" | "trends" | "risk" | "evidence" | "documentation">("overview");
+  // Honor incoming ?tab=/#sectionId deep-links (e.g. /reporting?tab=trends#executive-trends-panel).
+  useDeepLinkTarget({
+    onTab: (tab) => {
+      if (tab === "overview" || tab === "trends" || tab === "risk" || tab === "evidence" || tab === "documentation") {
+        setActiveExecutiveMode(tab);
+      }
+    },
+    resolveTabForSection: (sectionId) => ({
+      "executive-trends-panel": "trends",
+      "executive-risk-panel": "risk",
+      "executive-documentation-panel": "documentation",
+    } as Record<string, string>)[sectionId],
+  });
   const roiTrendConfig = {
     readiness: { label: "Readiness", valueKey: "readiness", benchmarkKey: "benchmarkReadiness", benchmarkLabel: "Peer readiness", color: "#7DD3FC" },
     qaScore: { label: "QA score", valueKey: "qaScore", benchmarkKey: "benchmarkQa", benchmarkLabel: "Peer QA", color: "#34D399" },
