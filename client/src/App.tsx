@@ -12,6 +12,7 @@ import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
+import { LearnerGoalsView } from "./pages/LearnerGoalsView";
 import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
 import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
 import { ClientAdminWorkspaceView } from "./pages/ClientAdminWorkspaceView";
@@ -263,6 +264,16 @@ function Router() {
               <AgentWorkspaceView />
             </GuardedV3Route>
             /* v2: <GuardedWorkspaceShell path="/learner" roleLabel="Learner Journey"><RoleWorkspace role="learner" /></GuardedWorkspaceShell> */
+          )}
+        </Route>
+        <Route path="/goals">
+          {() => (
+            // v3 Learner Goals — a sub-surface of the learner workspace on its own
+            // AppShell. Gated exactly like /learner via the sub-route→parent map in
+            // shared/workspaceAccess.ts (WORKSPACE_SUBROUTE_PARENT).
+            <GuardedV3Route path="/goals">
+              <LearnerGoalsView />
+            </GuardedV3Route>
           )}
         </Route>
         <Route path="/admin">

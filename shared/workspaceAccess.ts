@@ -57,6 +57,19 @@ export const WORKSPACE_ACCESS: Record<GrantRole, readonly WorkspacePath[]> = {
  */
 export const SHARED_WORKSPACES: readonly WorkspacePath[] = ["/mission-hub", "/guide", "/calendar", "/training", "/library"];
 
+/**
+ * v3 sub-surfaces that hang off a parent workspace for ACCESS purposes only. They are
+ * deliberately NOT in WORKSPACE_ACCESS / WORKSPACE_ORDER: each renders inside its
+ * parent's v3 AppShell with the parent's own hardcoded rail, so they must never appear
+ * in the matrix-built sidebars — but the route guard has to gate them exactly like the
+ * parent (e.g. /goals is learner-only just like /learner). The guard resolves a
+ * sub-route to its parent before checking the access matrix.
+ */
+export const WORKSPACE_SUBROUTE_PARENT: Record<string, WorkspacePath> = {
+  "/goals": "/learner",
+  "/coachees": "/coach",
+};
+
 /** Dedicated role-home routes → the persona they represent. */
 export const DEDICATED_ROUTE_ROLE: Partial<Record<WorkspacePath, GrantRole>> = {
   "/reporting": "executive",
@@ -100,7 +113,8 @@ export function permittedWorkspaces(role: GrantRole | null | undefined): Workspa
 export function canGrantAccessWorkspace(grantRole: GrantRole | null | undefined, path: string): boolean {
   if (path === "/" || path === "/404") return true;
   if (!grantRole) return false;
-  return ADOPTABLE_ROLES[grantRole].some((role) => (WORKSPACE_ACCESS[role] as readonly string[]).includes(path));
+  const resolved = WORKSPACE_SUBROUTE_PARENT[path] ?? path;
+  return ADOPTABLE_ROLES[grantRole].some((role) => (WORKSPACE_ACCESS[role] as readonly string[]).includes(resolved));
 }
 
 /** Clamp a desired active role to one the grant may adopt; fall back to the grant role. */

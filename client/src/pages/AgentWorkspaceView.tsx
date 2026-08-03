@@ -25,9 +25,7 @@ const NAV: NavItem[] = [
   { label: "My Dashboard", icon: LayoutDashboard, href: "/learner", active: true },
   { label: "My Training", icon: GraduationCap, href: "/training" },
   { label: "My Coaching", icon: UserRound, href: "/calendar" },
-  // No dedicated goals surface exists yet; scroll to the actionable priorities
-  // list (which carries goal/training/coaching items) instead of reloading top.
-  { label: "My Goals", icon: Target, href: "/learner#learner-priorities" },
+  { label: "My Goals", icon: Target, href: "/goals" },
   { label: "Resources", icon: BookOpen, href: "/library" },
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
@@ -126,12 +124,12 @@ export function AgentWorkspaceView() {
   if (nextModule) priorities.push({ kind: "module", icon: Target, title: "Continue Learning", subtitle: nextModule.title, href: "/training" });
   const shownPriorities = priorities.slice(0, 4);
 
-  // "Update Goal" has no goal-editor page in the demo yet, so it renders
-  // non-interactive (see the render below) instead of self-routing to /learner.
+  // "Update Goal" opens the add/update dialog on the dedicated Goals surface
+  // (?compose=1 tells /goals to open it on arrival).
   const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
     { label: "Continue Training", icon: Play, href: "/training" },
     { label: "View Coaching Notes", icon: Users2, href: "/calendar" },
-    { label: "Update Goal", icon: Target, href: "/learner", placeholder: true },
+    { label: "Update Goal", icon: Target, href: "/goals?compose=1" },
     { label: "Ask a Question", icon: MessageSquare, href: "/guide" },
     { label: "View Resources", icon: BookOpen, href: "/library" },
   ];
