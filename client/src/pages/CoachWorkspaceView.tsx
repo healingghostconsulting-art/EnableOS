@@ -29,8 +29,7 @@ const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { h
 
 const NAV: NavItem[] = [
   { label: "My Dashboard", icon: LayoutDashboard, href: "/coach", active: true },
-  // Scrolls to the on-page My Coachees widget instead of reloading /coach at the top.
-  { label: "My Coachees", icon: Users2, href: "/coach#coach-coachees" },
+  { label: "My Team", icon: Users2, href: "/coachees" },
   { label: "Coaching Calendar", icon: CalendarClock, href: "/calendar" },
   { label: "Reports", icon: Gauge, href: REPORT.overview },
   { label: "Resources", icon: BookOpen, href: "/library" },
@@ -170,7 +169,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* My Coachees */}
-            <WidgetCard title="My Coachees" id="coach-coachees" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="My Coachees" id="coach-coachees" action={<ViewLink href="/coachees">View All</ViewLink>}>
               {coachees.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No coachees assigned yet.</p>
               ) : (

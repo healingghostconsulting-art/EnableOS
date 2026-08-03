@@ -14,6 +14,7 @@ import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
 import { LearnerGoalsView } from "./pages/LearnerGoalsView";
 import { CoachWorkspaceView } from "./pages/CoachWorkspaceView";
+import { CoachTeamView } from "./pages/CoachTeamView";
 import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
 import { ClientAdminWorkspaceView } from "./pages/ClientAdminWorkspaceView";
 import { V3ShellWrapper } from "./components/v3/V3ShellWrapper";
@@ -254,6 +255,15 @@ function Router() {
               <CoachWorkspaceView />
             </GuardedV3Route>
             /* v2: <GuardedWorkspaceShell path="/coach" roleLabel="Coach / Supervisor Workspace"><RoleWorkspace role="coach" /></GuardedWorkspaceShell> */
+          )}
+        </Route>
+        <Route path="/coachees">
+          {() => (
+            // v3 Coach "My Team" — a sub-surface of the coach workspace on its own
+            // AppShell. Gated exactly like /coach via WORKSPACE_SUBROUTE_PARENT.
+            <GuardedV3Route path="/coachees">
+              <CoachTeamView />
+            </GuardedV3Route>
           )}
         </Route>
         <Route path="/learner">
