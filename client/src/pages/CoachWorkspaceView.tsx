@@ -11,6 +11,10 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
+
+// Reporting Hub deep-link (ExecutivePanel honors ?tab=/#section via useDeepLinkTarget).
+const REPORT = { overview: "/reporting?tab=overview", readiness: "/reporting?tab=trends#executive-trends-panel" } as const;
 
 // v3 Coach Workspace (Pilot 3) — Coach Studio on the persistent AppShell. Reuses the
 // v3 kit from Pilots 1–2. Wired to the coach's own team-level tRPC data (secureCoach,
@@ -25,9 +29,10 @@ const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { h
 
 const NAV: NavItem[] = [
   { label: "My Dashboard", icon: LayoutDashboard, href: "/coach", active: true },
-  { label: "My Coachees", icon: Users2, href: "/coach" },
+  // Scrolls to the on-page My Coachees widget instead of reloading /coach at the top.
+  { label: "My Coachees", icon: Users2, href: "/coach#coach-coachees" },
   { label: "Coaching Calendar", icon: CalendarClock, href: "/calendar" },
-  { label: "Reports", icon: Gauge, href: "/reporting" },
+  { label: "Reports", icon: Gauge, href: REPORT.overview },
   { label: "Resources", icon: BookOpen, href: "/library" },
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
@@ -78,6 +83,9 @@ export function CoachWorkspaceView() {
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
 
+  // Receive in-page anchors (own nav "My Coachees", Calendar coaching deep-links).
+  useDeepLinkTarget();
+
   const coachees: any[] = data?.teamLearners ?? [];
   const learnerName = (id: string) => coachees.find((l) => l.id === id)?.name ?? "A coachee";
   const sessions: any[] = data?.teamCoachingSessions ?? [];
@@ -102,7 +110,7 @@ export function CoachWorkspaceView() {
     { label: "Schedule Session", icon: CalendarPlus, href: "/calendar" },
     { label: "Log a Session", icon: ClipboardCheck, href: "/calendar" },
     { label: "View Calendar", icon: CalendarClock, href: "/calendar" },
-    { label: "Team Reports", icon: Gauge, href: "/reporting" },
+    { label: "Team Reports", icon: Gauge, href: REPORT.overview },
     { label: "Resources", icon: FileText, href: "/library" },
   ];
 
@@ -123,7 +131,7 @@ export function CoachWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* Team Coaching Pipeline */}
-            <WidgetCard title="Team Coaching Pipeline" action={<ViewLink href="/calendar">Open Calendar</ViewLink>} className="xl:col-span-2">
+            <WidgetCard title="Team Coaching Pipeline" id="coach-coaching-lane" action={<ViewLink href="/calendar">Open Calendar</ViewLink>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   { label: "Sessions Due", value: dueCount, icon: ClipboardCheck, tint: "bg-rose-100 text-rose-700", sub: "Follow-ups awaiting you" },
@@ -144,7 +152,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* Team Readiness */}
-            <WidgetCard title="Team Readiness" action={<ViewLink href="/reporting">View Details</ViewLink>}>
+            <WidgetCard title="Team Readiness" action={<ViewLink href={REPORT.readiness}>View Details</ViewLink>}>
               <div className="flex items-center gap-4">
                 <Donut value={teamReadiness} size={116} stroke={11} color="#1B303C" ariaLabel={`Team readiness ${teamReadiness} out of 100`}>
                   <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{teamReadiness}</span>
@@ -161,7 +169,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* My Coachees */}
-            <WidgetCard title="My Coachees" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="My Coachees" id="coach-coachees" action={<PlaceholderAction>View All</PlaceholderAction>}>
               {coachees.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No coachees assigned yet.</p>
               ) : (
@@ -194,7 +202,7 @@ export function CoachWorkspaceView() {
                     const allDay = d.getUTCHours() === 0 && d.getUTCMinutes() === 0;
                     return (
                       <li key={i}>
-                        <Link href="/calendar" className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
+                        <Link href={`/calendar?date=${String(item.start).slice(0, 10)}`} className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
                           <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
                             <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{d.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
                             <span className="text-[15px] font-bold leading-none text-[#1B303C]">{d.getUTCDate()}</span>

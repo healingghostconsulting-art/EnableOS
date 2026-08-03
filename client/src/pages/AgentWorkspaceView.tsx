@@ -11,6 +11,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Agent Workspace (Pilot 2) — the Agent/Learner dashboard on the persistent AppShell.
 // Wired to the learner's own tRPC data only (never team KPIs). Supportive tone.
@@ -24,7 +25,9 @@ const NAV: NavItem[] = [
   { label: "My Dashboard", icon: LayoutDashboard, href: "/learner", active: true },
   { label: "My Training", icon: GraduationCap, href: "/training" },
   { label: "My Coaching", icon: UserRound, href: "/calendar" },
-  { label: "My Goals", icon: Target, href: "/learner" },
+  // No dedicated goals surface exists yet; scroll to the actionable priorities
+  // list (which carries goal/training/coaching items) instead of reloading top.
+  { label: "My Goals", icon: Target, href: "/learner#learner-priorities" },
   { label: "Resources", icon: BookOpen, href: "/library" },
   { label: "Help & Support", icon: HelpCircle, href: "/guide" },
 ];
@@ -87,6 +90,9 @@ export function AgentWorkspaceView() {
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
 
+  // Receive in-page anchors (own nav "My Goals", any inbound #section deep-link).
+  useDeepLinkTarget();
+
   const modules: any[] = data?.activeJourney?.modules ?? [];
   const total = modules.length;
   const completed = modules.filter((m) => m.completionRate >= 80).length;
@@ -145,7 +151,7 @@ export function AgentWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* My Priorities */}
-            <WidgetCard title="My Priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
+            <WidgetCard title="My Priorities" id="learner-priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {shownPriorities.map((p, i) => {
                   const Icon = p.icon;
@@ -232,7 +238,7 @@ export function AgentWorkspaceView() {
                     const allDay = d.getUTCHours() === 0 && d.getUTCMinutes() === 0;
                     return (
                       <li key={i}>
-                        <Link href="/calendar" className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
+                        <Link href={`/calendar?date=${String(item.start).slice(0, 10)}`} className="flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50">
                           <span className="flex w-10 shrink-0 flex-col items-center rounded-md bg-[#F2F5F8] py-1 text-center">
                             <span className="text-[9px] font-semibold uppercase text-[#4A6373]">{d.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}</span>
                             <span className="text-[15px] font-bold leading-none text-[#1B303C]">{d.getUTCDate()}</span>

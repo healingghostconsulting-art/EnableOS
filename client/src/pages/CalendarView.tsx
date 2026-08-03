@@ -448,6 +448,21 @@ export function CalendarView() {
   const [persona, setPersona] = useState<CalendarPersona>("manager");
   useEffect(() => { if (!personas.includes(persona)) setPersona(personas[0]!); }, [personas, persona]);
 
+  // Honor deep-links from the dashboards, e.g. an Upcoming row →
+  // /calendar?date=2026-08-10 or the "Coaching" nav → /calendar?view=agenda.
+  // Runs once on mount; the params seed the initial view/cursor only.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get("view");
+    if (v === "month" || v === "week" || v === "agenda") setView(v);
+    const d = params.get("date");
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const ms = Date.parse(`${d}T00:00:00.000Z`);
+      if (!Number.isNaN(ms)) setCursorMs(startOfUtcDay(ms));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const canManage = Boolean(schedulable.data?.canSchedule);
   const learners = schedulable.data?.learners ?? [];
 
