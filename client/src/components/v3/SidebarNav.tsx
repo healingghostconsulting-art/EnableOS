@@ -1,4 +1,4 @@
-import { type LucideIcon, HelpCircle } from "lucide-react";
+import { type LucideIcon, Check, HelpCircle } from "lucide-react";
 import { Link } from "wouter";
 import { BrandLogoWhite } from "./BrandLogoWhite";
 
@@ -10,6 +10,8 @@ export interface NavItem {
   icon: LucideIcon;
   href: string;
   active?: boolean;
+  /** Non-navigable item: 42% opacity, aria-disabled, pointer + keyboard blocked. */
+  disabled?: boolean;
 }
 
 export interface SidebarUser {
@@ -28,19 +30,47 @@ export function SidebarNav({ items, user, helpHref = "/guide" }: { items: NavIte
       <nav aria-label="Primary" className="flex-1 space-y-1 px-3">
         {items.map((item) => {
           const Icon = item.icon;
+
+          // Active state is built to survive grayscale(1): the cue is a LUMINANCE
+          // inversion (dark navy ink on a light gold pill), never hue alone, backed by
+          // redundant non-color cues — a gold left rail flush to the sidebar edge (on
+          // the dark bg, so it stays a visible gold marker beside the gold pill), a
+          // 500→700 weight bump, and a trailing check glyph.
+          const base = "relative flex min-h-[44px] items-center gap-3 rounded-lg px-3 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E2233] motion-reduce:transition-none";
+
+          if (item.disabled) {
+            return (
+              <span
+                key={item.label}
+                aria-disabled="true"
+                className={`${base} pointer-events-none cursor-not-allowed border-l-4 border-transparent font-medium text-white/70 opacity-[0.42]`}
+              >
+                <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                {item.label}
+              </span>
+            );
+          }
+
           return (
             <Link
               key={item.label}
               href={item.href}
               aria-current={item.active ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/50 motion-reduce:transition-none ${
+              className={`${base} ${
                 item.active
-                  ? "border-[#FCBC34] bg-white/[0.07] text-[#FCBC34]"
-                  : "border-transparent text-white/70 hover:bg-white/[0.04] hover:text-white"
+                  ? "bg-[#FCBC34] font-bold text-[#1B303C]"
+                  : "font-medium text-white/70 hover:bg-white/[0.06] hover:text-white"
               }`}
             >
+              {/* 4px gold left rail — sits at the sidebar's left edge (‑left‑3 reaches back
+                  through the nav padding onto the dark bg) so it reads as a distinct gold
+                  marker rather than merging into the gold pill. */}
+              {item.active ? (
+                <span aria-hidden="true" className="pointer-events-none absolute -left-3 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-[#FCBC34]" />
+              ) : null}
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-              {item.label}
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.active ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
             </Link>
           );
         })}
