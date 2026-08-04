@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/v3/Modal";
+import { Field, TextInput, TextArea, SelectField, Segmented } from "@/components/v3/Field";
+import { Button as V3Button } from "@/components/v3/Button";
+import { notify } from "@/components/v3/feedback";
 import { WorkspaceShell } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
 import { Surface } from "@/pages/EnableOSViews";
@@ -346,94 +346,76 @@ function SessionModal({ state, tenantId, learners, busy, onClose, onCreate, onRe
     }
   };
 
-  const inputClass = "h-9 w-full rounded-lg border border-[#1B303C]/15 bg-white px-3 text-sm text-[#1B303C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40";
+  const learnerOptions = learners.map((l) => ({ value: l.id, label: l.name }));
+  const durationOptions = DURATIONS.map((mins) => ({ value: String(mins), label: `${mins} min` }));
 
   return (
-    <Dialog open={Boolean(state)} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <DialogContent className="sm:max-w-[30rem]">
-        <DialogHeader>
-          <DialogTitle>{isReschedule ? "Reschedule session" : "New session"}</DialogTitle>
-          <DialogDescription>{isReschedule ? "Move or cancel this coaching session." : "Schedule a coaching session or follow-up."}</DialogDescription>
-        </DialogHeader>
+    <Modal open={Boolean(state)} onOpenChange={(open) => (!open ? onClose() : undefined)}>
+      <ModalHeader
+        title={isReschedule ? "Reschedule session" : "New session"}
+        description={isReschedule ? "Move or cancel this coaching session." : "Schedule a coaching session or follow-up."}
+      />
+      <ModalBody className="space-y-4">
+        <Field label="Type">
+          <Segmented
+            aria-label="Session type"
+            value={type}
+            onChange={(v) => setType(v as "coaching" | "follow_up")}
+            options={[{ value: "coaching", label: "Coaching 1:1" }, { value: "follow_up", label: "Follow-up" }]}
+          />
+        </Field>
 
-        <div className="space-y-4 py-1">
-          <div className="space-y-1.5">
-            <Label className="text-[12px] font-semibold text-[#4A6373]">Type</Label>
-            <div role="group" aria-label="Session type" className="inline-flex rounded-full border border-[#1B303C]/12 bg-white/70 p-1">
-              {(["coaching", "follow_up"] as const).map((option) => (
-                <button key={option} type="button" aria-pressed={type === option} onClick={() => setType(option)} className={`rounded-full px-3.5 py-1 text-[13px] font-medium transition-colors ${type === option ? "bg-[#1B303C] text-white" : "text-[#4A6373] hover:bg-slate-100"}`}>
-                  {option === "coaching" ? "Coaching 1:1" : "Follow-up"}
-                </button>
-              ))}
-            </div>
-          </div>
+        {!isReschedule ? (
+          <Field label="Coachee" htmlFor="cal-learner">
+            <SelectField id="cal-learner" value={learnerId} onValueChange={setLearnerId} options={learnerOptions} placeholder="Select a coachee" />
+          </Field>
+        ) : (
+          <p className="rounded-lg border border-[#1B303C]/10 bg-white/60 px-3 py-2 text-[13px] text-[#4A6373]">Rescheduling <span className="font-semibold text-[#1B303C]">{ev?.title}</span>.</p>
+        )}
 
-          {!isReschedule ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="cal-learner" className="text-[12px] font-semibold text-[#4A6373]">Coachee</Label>
-              <Select value={learnerId} onValueChange={setLearnerId}>
-                <SelectTrigger id="cal-learner" className="h-9 rounded-lg border-[#1B303C]/15 bg-white text-sm text-[#1B303C]"><SelectValue placeholder="Select a coachee" /></SelectTrigger>
-                <SelectContent>
-                  {learners.map((learner) => <SelectItem key={learner.id} value={learner.id}>{learner.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <p className="rounded-lg border border-[#1B303C]/10 bg-white/60 px-3 py-2 text-[13px] text-[#4A6373]">Rescheduling <span className="font-semibold text-[#1B303C]">{ev?.title}</span>.</p>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="cal-date" className="text-[12px] font-semibold text-[#4A6373]">Date (UTC)</Label>
-              <input id="cal-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="cal-time" className="text-[12px] font-semibold text-[#4A6373]">Time (UTC)</Label>
-              <input id="cal-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className={inputClass} />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="cal-duration" className="text-[12px] font-semibold text-[#4A6373]">Duration</Label>
-            <Select value={String(duration)} onValueChange={(value) => setDuration(Number(value))}>
-              <SelectTrigger id="cal-duration" className="h-9 rounded-lg border-[#1B303C]/15 bg-white text-sm text-[#1B303C]"><SelectValue /></SelectTrigger>
-              <SelectContent>{DURATIONS.map((mins) => <SelectItem key={mins} value={String(mins)}>{mins} min</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          {!isReschedule ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="cal-notes" className="text-[12px] font-semibold text-[#4A6373]">Notes (optional)</Label>
-              <Textarea id="cal-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="rounded-lg border-[#1B303C]/15 bg-white text-sm text-[#1B303C]" />
-            </div>
-          ) : null}
-
-          {isReschedule && confirmingCancel ? (
-            <div className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2.5">
-              <p className="text-[13px] font-medium text-rose-900">Cancel this session? The coachee is notified and it leaves the calendar.</p>
-              <div className="mt-2 flex gap-2">
-                <Button type="button" disabled={busy} onClick={() => ev && onCancelSession({ tenantId, sessionId: ev.refId })} className="h-8 rounded-full bg-rose-700 px-3 text-[13px] font-semibold text-white hover:bg-rose-800">Yes, cancel</Button>
-                <Button type="button" variant="outline" onClick={() => setConfirmingCancel(false)} className="h-8 rounded-full px-3 text-[13px]">Keep session</Button>
-              </div>
-            </div>
-          ) : null}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Date (UTC)" htmlFor="cal-date">
+            <TextInput id="cal-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </Field>
+          <Field label="Time (UTC)" htmlFor="cal-time">
+            <TextInput id="cal-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          </Field>
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-between">
-          {isReschedule ? (
-            <Button type="button" variant="ghost" onClick={() => setConfirmingCancel(true)} className="h-9 rounded-full px-3 text-[13px] font-medium text-rose-700 hover:bg-rose-50 hover:text-rose-800">
-              <Trash2 className="mr-1.5 h-4 w-4" /> Cancel session
-            </Button>
-          ) : <span />}
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="h-9 rounded-full px-4 text-sm">Cancel</Button>
-            <Button type="button" disabled={!canSubmit || busy} onClick={submit} className="h-9 rounded-full bg-accent-gold px-4 text-sm font-semibold text-[#1B303C] hover:bg-accent-gold/90 disabled:opacity-55">
-              {isReschedule ? "Reschedule" : "Schedule session"}
-            </Button>
+        <Field label="Duration" htmlFor="cal-duration">
+          <SelectField id="cal-duration" value={String(duration)} onValueChange={(value) => setDuration(Number(value))} options={durationOptions} />
+        </Field>
+
+        {!isReschedule ? (
+          <Field label="Notes (optional)" htmlFor="cal-notes">
+            <TextArea id="cal-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </Field>
+        ) : null}
+
+        {isReschedule && confirmingCancel ? (
+          <div className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2.5">
+            <p className="text-[13px] font-medium text-rose-900">Cancel this session? The coachee is notified and it leaves the calendar.</p>
+            <div className="mt-2 flex gap-2">
+              <V3Button variant="destructive" size="sm" disabled={busy} onClick={() => ev && onCancelSession({ tenantId, sessionId: ev.refId })}>Yes, cancel</V3Button>
+              <V3Button variant="secondary" size="sm" onClick={() => setConfirmingCancel(false)}>Keep session</V3Button>
+            </div>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        ) : null}
+      </ModalBody>
+
+      <ModalFooter
+        between={isReschedule ? (
+          <V3Button variant="ghost" onClick={() => setConfirmingCancel(true)} className="text-rose-700 hover:bg-rose-50 hover:text-rose-800">
+            <Trash2 className="h-4 w-4" /> Cancel session
+          </V3Button>
+        ) : undefined}
+      >
+        <V3Button variant="secondary" onClick={onClose}>Cancel</V3Button>
+        <V3Button variant="primary" disabled={!canSubmit || busy} onClick={submit}>
+          {isReschedule ? "Reschedule" : "Schedule session"}
+        </V3Button>
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -505,8 +487,8 @@ export function CalendarView() {
       utils.demo.secureCalendar.setData(calInput, (old) => old?.map((e) => (e.refId === vars.sessionId ? { ...e, start: vars.start } : e)));
       return { prev };
     },
-    onError: (_e, _v, context) => { if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev); toast.error("Could not reschedule"); },
-    onSuccess: () => { closeModal(); toast.success("Session rescheduled"); },
+    onError: (_e, _v, context) => { if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev); notify.error("Could not reschedule"); },
+    onSuccess: () => { closeModal(); notify.success("Session rescheduled"); },
     onSettled: () => utils.demo.secureCalendar.invalidate(calInput),
   });
   const rescheduleTraining = trpc.demo.secureRescheduleTrainingDue.useMutation({
@@ -516,16 +498,16 @@ export function CalendarView() {
       utils.demo.secureCalendar.setData(calInput, (old) => old?.map((e) => (e.refId === vars.assignmentId ? { ...e, start: vars.dueAt } : e)));
       return { prev };
     },
-    onError: (_e, _v, context) => { if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev); toast.error("Could not reschedule"); },
+    onError: (_e, _v, context) => { if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev); notify.error("Could not reschedule"); },
     onSettled: () => utils.demo.secureCalendar.invalidate(calInput),
   });
   const createSession = trpc.demo.secureCreateCoachingSession.useMutation({
-    onSuccess: () => { closeModal(); void utils.demo.secureCalendar.invalidate(calInput); toast.success("Session scheduled"); },
-    onError: () => toast.error("Could not schedule the session"),
+    onSuccess: () => { closeModal(); void utils.demo.secureCalendar.invalidate(calInput); notify.success("Session scheduled"); },
+    onError: () => notify.error("Could not schedule the session"),
   });
   const cancelSession = trpc.demo.secureCancelCoachingSession.useMutation({
-    onSuccess: () => { closeModal(); void utils.demo.secureCalendar.invalidate(calInput); toast.success("Session cancelled"); },
-    onError: () => toast.error("Could not cancel the session"),
+    onSuccess: () => { closeModal(); void utils.demo.secureCalendar.invalidate(calInput); notify.success("Session cancelled"); },
+    onError: () => notify.error("Could not cancel the session"),
   });
   const busy = rescheduleCoaching.isPending || createSession.isPending || cancelSession.isPending;
 

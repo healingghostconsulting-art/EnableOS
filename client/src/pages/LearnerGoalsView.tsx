@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowLeft, BookOpen, CheckCircle2, GraduationCap, HelpCircle, LayoutDashboard,
@@ -10,7 +10,10 @@ import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 import { StatusMark } from "@/components/v3/StatusMark";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/v3/Modal";
+import { Field, TextInput, SelectField } from "@/components/v3/Field";
+import { Button } from "@/components/v3/Button";
+import { notify } from "@/components/v3/feedback";
 
 // v3 Learner Goals (/goals) — a dedicated goals surface on the persistent AppShell,
 // sibling to the Agent dashboard. Learner-scoped data only (never team KPIs), same
@@ -60,6 +63,13 @@ const GOAL_META: Record<GoalStatus, { label: string; meter: string }> = {
   at_risk: { label: "At risk", meter: "bg-rose-500" },
   achieved: { label: "Achieved", meter: "bg-emerald-500" },
 };
+
+const CATEGORY_OPTIONS = ["Training", "Quality", "Assessment", "Consistency", "Coaching"].map((c) => ({ value: c, label: c }));
+const STATUS_OPTIONS = [
+  { value: "on_track", label: "On track" },
+  { value: "at_risk", label: "At risk" },
+  { value: "achieved", label: "Achieved" },
+];
 
 type FilterKey = "all" | GoalStatus;
 const FILTERS: Array<{ key: FilterKey; label: string }> = [
@@ -174,6 +184,7 @@ export function LearnerGoalsView() {
     const next: Goal = { ...draft, progress, title: draft.title.trim() || "Untitled goal", status: draft.status ?? deriveStatus(progress) };
     setGoals((prev) => (editingId ? prev.map((g) => (g.id === editingId ? next : g)) : [...prev, next]));
     setDialogOpen(false);
+    notify.success(editingId ? "Goal updated" : "Goal added", next.title);
   }
 
   const shown = filter === "all" ? goals : goals.filter((g) => g.status === filter);
@@ -321,118 +332,44 @@ export function LearnerGoalsView() {
         </div>
       )}
 
-      {/* Add / update dialog — v3 CHCG tokens, styled directly. */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg border-[#1B303C]/10 bg-white p-0 text-[#1B303C]">
-          <div className="border-b border-[#1B303C]/8 px-6 py-5">
-            <DialogHeader>
-              <DialogTitle className="text-[1.05rem] font-semibold text-[#1B303C]">{editingId ? "Update goal" : "Add a goal"}</DialogTitle>
-              <DialogDescription className="text-[13px] text-[#4A6373]">
-                {editingId ? "Adjust the target, progress, or status as your work moves." : "Define a development commitment with a clear target and date."}
-              </DialogDescription>
-            </DialogHeader>
-            <span aria-hidden="true" className="mt-3 block h-[3px] w-8 rounded-full bg-[#FCBC34]" />
-          </div>
+      {/* Add / update dialog — shared v3 Modal + form primitives. */}
+      <Modal open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ModalHeader
+          title={editingId ? "Update goal" : "Add a goal"}
+          description={editingId ? "Adjust the target, progress, or status as your work moves." : "Define a development commitment with a clear target and date."}
+        />
+        <ModalBody className="space-y-4">
+          <Field label="Goal title" htmlFor="goal-title">
+            <TextInput id="goal-title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Reach 85 QA readiness" />
+          </Field>
 
-          <div className="space-y-4 px-6 py-5">
-            <Field label="Goal title" htmlFor="goal-title">
-              <input
-                id="goal-title"
-                type="text"
-                value={draft.title}
-                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-                placeholder="e.g. Reach 85 QA readiness"
-                className="w-full rounded-xl border border-[#1B303C]/12 bg-white px-3.5 py-2.5 text-[13px] text-[#1B303C] outline-none placeholder:text-[#4A6373]/60 focus:border-[#7A5200]/40 focus:ring-2 focus:ring-[#1B303C]/15"
-              />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Category" htmlFor="goal-category">
+              <SelectField id="goal-category" value={draft.category} onValueChange={(v) => setDraft({ ...draft, category: v })} options={CATEGORY_OPTIONS} />
             </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Category" htmlFor="goal-category">
-                <select
-                  id="goal-category"
-                  value={draft.category}
-                  onChange={(e) => setDraft({ ...draft, category: e.target.value })}
-                  className="w-full rounded-xl border border-[#1B303C]/12 bg-white px-3.5 py-2.5 text-[13px] text-[#1B303C] outline-none focus:border-[#7A5200]/40 focus:ring-2 focus:ring-[#1B303C]/15"
-                >
-                  {["Training", "Quality", "Assessment", "Consistency", "Coaching"].map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </Field>
-              <Field label="Status" htmlFor="goal-status">
-                <select
-                  id="goal-status"
-                  value={draft.status}
-                  onChange={(e) => setDraft({ ...draft, status: e.target.value as GoalStatus })}
-                  className="w-full rounded-xl border border-[#1B303C]/12 bg-white px-3.5 py-2.5 text-[13px] text-[#1B303C] outline-none focus:border-[#7A5200]/40 focus:ring-2 focus:ring-[#1B303C]/15"
-                >
-                  <option value="on_track">On track</option>
-                  <option value="at_risk">At risk</option>
-                  <option value="achieved">Achieved</option>
-                </select>
-              </Field>
-            </div>
-
-            <Field label="Target" htmlFor="goal-target">
-              <input
-                id="goal-target"
-                type="text"
-                value={draft.targetLabel}
-                onChange={(e) => setDraft({ ...draft, targetLabel: e.target.value })}
-                placeholder="e.g. 100% of assigned modules"
-                className="w-full rounded-xl border border-[#1B303C]/12 bg-white px-3.5 py-2.5 text-[13px] text-[#1B303C] outline-none placeholder:text-[#4A6373]/60 focus:border-[#7A5200]/40 focus:ring-2 focus:ring-[#1B303C]/15"
-              />
+            <Field label="Status" htmlFor="goal-status">
+              <SelectField id="goal-status" value={draft.status} onValueChange={(v) => setDraft({ ...draft, status: v as GoalStatus })} options={STATUS_OPTIONS} />
             </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={`Progress — ${clampPct(draft.progress)}%`} htmlFor="goal-progress">
-                <input
-                  id="goal-progress"
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={draft.progress}
-                  onChange={(e) => setDraft({ ...draft, progress: Number(e.target.value) })}
-                  className="w-full accent-[#1B303C]"
-                />
-              </Field>
-              <Field label="Target date" htmlFor="goal-date">
-                <input
-                  id="goal-date"
-                  type="date"
-                  value={draft.targetDate}
-                  onChange={(e) => setDraft({ ...draft, targetDate: e.target.value })}
-                  className="w-full rounded-xl border border-[#1B303C]/12 bg-white px-3.5 py-2.5 text-[13px] text-[#1B303C] outline-none focus:border-[#7A5200]/40 focus:ring-2 focus:ring-[#1B303C]/15"
-                />
-              </Field>
-            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 border-t border-[#1B303C]/8 px-6 py-4">
-            <button
-              type="button"
-              onClick={() => setDialogOpen(false)}
-              className="rounded-full border border-[#1B303C]/12 bg-white px-4 py-2 text-[13px] font-semibold text-[#4A6373] transition-colors hover:text-[#1B303C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={saveDraft}
-              className="rounded-full bg-[#FCBC34] px-4 py-2 text-[13px] font-semibold text-[#1B303C] transition-colors hover:bg-[#e9ad1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40 focus-visible:ring-offset-2"
-            >
-              {editingId ? "Save changes" : "Add goal"}
-            </button>
+          <Field label="Target" htmlFor="goal-target">
+            <TextInput id="goal-target" value={draft.targetLabel} onChange={(e) => setDraft({ ...draft, targetLabel: e.target.value })} placeholder="e.g. 100% of assigned modules" />
+          </Field>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={`Progress — ${clampPct(draft.progress)}%`} htmlFor="goal-progress">
+              <input id="goal-progress" type="range" min={0} max={100} value={draft.progress} onChange={(e) => setDraft({ ...draft, progress: Number(e.target.value) })} className="mt-2 w-full accent-[#1B303C]" />
+            </Field>
+            <Field label="Target date" htmlFor="goal-date">
+              <TextInput id="goal-date" type="date" value={draft.targetDate} onChange={(e) => setDraft({ ...draft, targetDate: e.target.value })} />
+            </Field>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={saveDraft}>{editingId ? "Save changes" : "Add goal"}</Button>
+        </ModalFooter>
+      </Modal>
     </AppShell>
-  );
-}
-
-function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) {
-  return (
-    <label htmlFor={htmlFor} className="block">
-      <span className="mb-1.5 block text-[12px] font-semibold text-[#1B303C]">{label}</span>
-      {children}
-    </label>
   );
 }

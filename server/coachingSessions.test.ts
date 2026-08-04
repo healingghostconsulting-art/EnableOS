@@ -235,8 +235,8 @@ describe("calendar board interactivity wiring (CAL6, source)", () => {
     // Optimistic + revert-on-error.
     expect(source).toContain("onMutate");
     expect(source).toContain("if (context?.prev) utils.demo.secureCalendar.setData(calInput, context.prev)");
-    // Focus-trap modal (shadcn Dialog) with the design's type toggle + coachee picker.
-    expect(source).toContain("<Dialog");
+    // Focus-trap modal (v3 Modal → shadcn Dialog) with the type toggle + coachee picker.
+    expect(source).toContain("<Modal");
     expect(source).toContain('aria-label="Session type"');
     expect(source).toContain("Schedule session");
   });
