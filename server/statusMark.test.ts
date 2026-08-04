@@ -51,4 +51,16 @@ describe("StatusMark — applied on the dashboards + My Team roster", () => {
     expect(coach).toContain('status: "positive"');
     expect(team).toContain('status: "alert"');
   });
+
+  it("is extended to the Learner Goals cards and the My Team summary silhouettes", () => {
+    const goals = read("client/src/pages/LearnerGoalsView.tsx");
+    const team = read("client/src/pages/CoachTeamView.tsx");
+    // Goal status pills route through StatusMark instead of a bare color pill.
+    expect(goals).toContain("StatusMark");
+    expect(goals).toContain("status={goal.status}");
+    expect(goals).not.toContain("STATUS_META");
+    // My Team summary tiles use the canonical positive/alert silhouettes.
+    expect(team).toContain("icon: CheckCircle2");
+    expect(team).toContain("icon: AlertTriangle");
+  });
 });

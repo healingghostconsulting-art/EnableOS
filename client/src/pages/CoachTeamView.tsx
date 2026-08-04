@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
-  ArrowLeft, BookOpen, CalendarClock, CalendarPlus, ChevronDown, GraduationCap, Gauge,
-  HelpCircle, LayoutDashboard, Target, UserRound, Users2,
+  AlertTriangle, ArrowLeft, BookOpen, CalendarClock, CalendarPlus, CheckCircle2, ChevronDown,
+  GraduationCap, Gauge, HelpCircle, LayoutDashboard, UserRound, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { AppShell } from "@/components/v3/AppShell";
@@ -88,8 +88,8 @@ export function CoachTeamView() {
   const avgReadiness = total ? clampPct(coachees.reduce((s, l) => s + (l.readinessScore ?? 0), 0) / total) : 0;
   const summary = [
     { label: "Coachees", value: String(total), icon: Users2, tint: "bg-[#1B303C]/8 text-[#1B303C]" },
-    { label: "On track", value: String(onTrack), icon: Target, tint: "bg-emerald-100 text-emerald-700" },
-    { label: "Needs attention", value: String(needAttention), icon: Target, tint: "bg-rose-100 text-rose-700" },
+    { label: "On track", value: String(onTrack), icon: CheckCircle2, tint: "bg-emerald-100 text-emerald-700" },
+    { label: "Needs attention", value: String(needAttention), icon: AlertTriangle, tint: "bg-rose-100 text-rose-700" },
     { label: "Avg readiness", value: String(avgReadiness), icon: Gauge, tint: "bg-cyan-100 text-cyan-800" },
   ];
 
