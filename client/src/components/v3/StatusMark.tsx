@@ -1,4 +1,5 @@
 import { type LucideIcon, AlertTriangle, CheckCircle2, Clock, Minus, Users } from "lucide-react";
+import { useStatusLabels } from "@/contexts/StatusLabelsContext";
 
 // StatusMark — the canonical status affordance for v3. Semantic status must never be
 // carried by color alone (fails grayscale + color-vision deficiency), so every status
@@ -52,16 +53,21 @@ export function StatusMark({ status, variant = "pill", label, showLabel = true, 
   showLabel?: boolean;
   className?: string;
 }) {
+  // The Settings "always show status labels" preference forces the label on, overriding a
+  // call site's showLabel={false} (e.g. dense dot legends), so no status is icon-only.
+  const { alwaysShowLabels } = useStatusLabels();
+  const effectiveShowLabel = alwaysShowLabels || showLabel;
+
   const meta = META[normalizeStatus(status)];
   const Icon = meta.icon;
   const text = label ?? meta.label;
-  const labelNode = showLabel ? text : <span className="sr-only">{text}</span>;
+  const labelNode = effectiveShowLabel ? text : <span className="sr-only">{text}</span>;
 
   if (variant === "dot") {
     return (
       <span className={`inline-flex items-center gap-1.5 ${className}`}>
         <Icon className={`h-3.5 w-3.5 shrink-0 ${meta.dot}`} aria-hidden="true" />
-        {showLabel ? <span className="text-[12px] text-[#4A6373]">{text}</span> : <span className="sr-only">{text}</span>}
+        {effectiveShowLabel ? <span className="text-[12px] text-[#4A6373]">{text}</span> : <span className="sr-only">{text}</span>}
       </span>
     );
   }

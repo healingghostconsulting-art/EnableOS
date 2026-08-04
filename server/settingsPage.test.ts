@@ -40,9 +40,11 @@ describe("Settings — page contents", () => {
   it("binds grayscale to the shipped context and persists the other display prefs", () => {
     expect(view).toContain("useGrayscale");
     expect(view).not.toContain("GrayscaleProvider"); // reuses, does not fork
-    for (const key of ["highLegibility", "reduceMotion", "alwaysShowStatusLabels", "landingPage"]) {
+    for (const key of ["highLegibility", "reduceMotion", "landingPage"]) {
       expect(view).toContain(key);
     }
+    // always-show-labels is bound to the shipped StatusLabels context, not a local key.
+    expect(view).toContain("useStatusLabels");
     expect(view).toContain("usePersistedState");
   });
 

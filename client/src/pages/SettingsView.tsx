@@ -3,6 +3,7 @@ import { KeyRound, Download, Link2, Camera } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useGrayscale } from "@/contexts/GrayscaleContext";
+import { useStatusLabels } from "@/contexts/StatusLabelsContext";
 import { usePersistedState } from "@/lib/usePersistedState";
 import type { ReminderType } from "@shared/reminders";
 import { ToggleSwitch } from "@/components/v3/ToggleSwitch";
@@ -69,7 +70,8 @@ export function SettingsView() {
   const { grayscale, setGrayscale } = useGrayscale();
   const [highLegibility, setHighLegibility] = usePersistedState<boolean>("enableos.settings.highLegibility", false);
   const [reduceMotion, setReduceMotion] = usePersistedState<boolean>("enableos.settings.reduceMotion", false);
-  const [alwaysShowLabels, setAlwaysShowLabels] = usePersistedState<boolean>("enableos.alwaysShowStatusLabels", false);
+  // Bound to the shipped context so StatusMark reads the same source everywhere.
+  const { alwaysShowLabels, setAlwaysShowLabels } = useStatusLabels();
   const [landingPage, setLandingPage] = usePersistedState<string>("enableos.settings.landingPage", "/");
   useEffect(() => { document.documentElement.classList.toggle("app-legible", highLegibility); }, [highLegibility]);
   useEffect(() => { document.documentElement.classList.toggle("app-reduce-motion", reduceMotion); }, [reduceMotion]);

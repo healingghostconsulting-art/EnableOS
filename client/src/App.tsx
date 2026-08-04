@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout, { type DashboardMenuItem } from "./components/DashboardLayout";
 import { ReminderBadgeProvider } from "./lib/reminderBadge";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { StatusLabelsProvider } from "./contexts/StatusLabelsContext";
 import { GrayscaleProvider } from "./contexts/GrayscaleContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
@@ -358,10 +359,12 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <GrayscaleProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <StatusLabelsProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </StatusLabelsProvider>
         </GrayscaleProvider>
       </ThemeProvider>
     </ErrorBoundary>

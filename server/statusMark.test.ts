@@ -9,6 +9,23 @@ import { describe, expect, it } from "vitest";
 const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 const src = read("client/src/components/v3/StatusMark.tsx");
 
+describe("StatusMark — always-show-labels preference", () => {
+  it("reads the StatusLabels context and lets it force labels on (incl. dot)", () => {
+    expect(src).toContain("useStatusLabels");
+    expect(src).toContain("const effectiveShowLabel = alwaysShowLabels || showLabel");
+    // The dot variant honors the forced label, not the raw showLabel prop.
+    expect(src).toContain("effectiveShowLabel ? <span className=\"text-[12px] text-[#4A6373]\">");
+  });
+
+  it("is provided app-wide from App", () => {
+    const app = read("client/src/App.tsx");
+    expect(app).toContain("StatusLabelsProvider");
+    const ctx = read("client/src/contexts/StatusLabelsContext.tsx");
+    expect(ctx).toContain("export function useStatusLabels");
+    expect(ctx).toContain("enableos.alwaysShowStatusLabels");
+  });
+});
+
 describe("StatusMark — canonical status → icon system", () => {
   it("maps each semantic status to a distinct-silhouette icon", () => {
     // coaching→people, positive→check-ring, alert→triangle, overdue→clock, neutral→dash.
