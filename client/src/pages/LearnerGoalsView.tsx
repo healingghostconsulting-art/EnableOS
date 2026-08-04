@@ -213,7 +213,7 @@ export function LearnerGoalsView() {
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2 rounded-full bg-[#1B303C] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#24404f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30"
+              className="inline-flex items-center gap-2 rounded-full bg-[#FCBC34] px-4 py-2 text-[13px] font-semibold text-[#1B303C] transition-colors hover:bg-[#e9ad1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40 focus-visible:ring-offset-2"
             >
               <Plus className="h-4 w-4" aria-hidden="true" /> Add goal
             </button>
@@ -413,7 +413,7 @@ export function LearnerGoalsView() {
             <button
               type="button"
               onClick={saveDraft}
-              className="rounded-full bg-[#1B303C] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#24404f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30"
+              className="rounded-full bg-[#FCBC34] px-4 py-2 text-[13px] font-semibold text-[#1B303C] transition-colors hover:bg-[#e9ad1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40 focus-visible:ring-offset-2"
             >
               {editingId ? "Save changes" : "Add goal"}
             </button>
