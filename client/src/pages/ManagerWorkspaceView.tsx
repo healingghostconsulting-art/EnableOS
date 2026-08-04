@@ -12,6 +12,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { ComingSoonTile } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Manager Workspace (Pilot 4) — the operational manager dashboard on the shared
@@ -340,12 +341,7 @@ export function ManagerWorkspaceView() {
                 {quickActions.map((action) => {
                   const Icon = action.icon;
                   if (action.placeholder) {
-                    return (
-                      <div key={action.label} aria-disabled="true" title="Available in the full workspace" className="flex cursor-default items-center justify-between gap-2 rounded-xl border border-dashed border-[#1B303C]/12 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#4A6373]">
-                        <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#4A6373]/70" aria-hidden="true" />{action.label}</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4A6373]/70">Soon</span>
-                      </div>
-                    );
+                    return <ComingSoonTile key={action.label} label={action.label} icon={Icon} />;
                   }
                   return (
                     <Link key={action.label} href={action.href} className="flex items-center justify-between gap-2 rounded-xl border border-[#1B303C]/10 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#1B303C] transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">

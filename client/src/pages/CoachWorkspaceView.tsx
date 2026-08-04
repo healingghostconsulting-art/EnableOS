@@ -12,6 +12,7 @@ import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
 import { StatusMark, type CanonicalStatus } from "@/components/v3/StatusMark";
+import { ComingSoonAction } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // Reporting Hub deep-link (ExecutivePanel honors ?tab=/#section via useDeepLinkTarget).
@@ -42,17 +43,6 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
     <Link href={href} className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#7A5200] hover:underline">
       {children} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
     </Link>
-  );
-}
-
-// A widget action whose detail view doesn't exist in the demo yet. Rendered as a
-// visibly non-interactive label (muted, cursor-default, no hover, no arrow) so it
-// reads as a placeholder rather than a link that quietly reloads the same route.
-function PlaceholderAction({ children }: { children: ReactNode }) {
-  return (
-    <span aria-disabled="true" title="Available in the full workspace" className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60">
-      {children}
-    </span>
   );
 }
 
@@ -224,7 +214,7 @@ export function CoachWorkspaceView() {
             </WidgetCard>
 
             {/* Recent Activity / Alerts */}
-            <WidgetCard title="Recent Activity" id="coach-activity" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="Recent Activity" id="coach-activity" action={<ComingSoonAction>View All</ComingSoonAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No recent activity.</p>
               ) : (

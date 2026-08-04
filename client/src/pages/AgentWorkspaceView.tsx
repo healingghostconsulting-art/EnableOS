@@ -11,6 +11,7 @@ import { WidgetCard } from "@/components/v3/WidgetCard";
 import { Donut } from "@/components/v3/Donut";
 import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
+import { ComingSoonAction } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 
 // v3 Agent Workspace (Pilot 2) — the Agent/Learner dashboard on the persistent AppShell.
@@ -50,17 +51,6 @@ function ViewLink({ href, children }: { href: string; children: ReactNode }) {
     <Link href={href} className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#7A5200] hover:underline">
       {children} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
     </Link>
-  );
-}
-
-// A widget action whose detail view doesn't exist in the demo yet. Rendered as a
-// visibly non-interactive label (muted, cursor-default, no hover, no arrow) so it
-// reads as a placeholder rather than a link that quietly reloads the same route.
-function PlaceholderAction({ children }: { children: ReactNode }) {
-  return (
-    <span aria-disabled="true" title="Available in the full workspace" className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60">
-      {children}
-    </span>
   );
 }
 
@@ -126,7 +116,7 @@ export function AgentWorkspaceView() {
 
   // "Update Goal" opens the add/update dialog on the dedicated Goals surface
   // (?compose=1 tells /goals to open it on arrival).
-  const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
+  const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string }> = [
     { label: "Continue Training", icon: Play, href: "/training" },
     { label: "View Coaching Notes", icon: Users2, href: "/calendar" },
     { label: "Update Goal", icon: Target, href: "/goals?compose=1" },
@@ -152,7 +142,7 @@ export function AgentWorkspaceView() {
         <div className="space-y-5">
           <DashboardGrid>
             {/* My Priorities */}
-            <WidgetCard title="My Priorities" id="learner-priorities" action={<PlaceholderAction>View All Priorities</PlaceholderAction>} className="xl:col-span-2">
+            <WidgetCard title="My Priorities" id="learner-priorities" action={<ComingSoonAction>View All Priorities</ComingSoonAction>} className="xl:col-span-2">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {shownPriorities.map((p, i) => {
                   const Icon = p.icon;
@@ -176,7 +166,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* My Performance Snapshot */}
-            <WidgetCard title="My Performance Snapshot" action={<PlaceholderAction>View Details</PlaceholderAction>}>
+            <WidgetCard title="My Performance Snapshot" action={<ComingSoonAction>View Details</ComingSoonAction>}>
               <div className="flex items-center gap-4">
                 <Donut value={qaScore} size={116} stroke={11} color="#1B303C" ariaLabel={`QA score ${qaScore} out of 100`}>
                   <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{qaScore}</span>
@@ -259,7 +249,7 @@ export function AgentWorkspaceView() {
             </WidgetCard>
 
             {/* Announcements */}
-            <WidgetCard title="Announcements" id="learner-announcements" action={<PlaceholderAction>View All</PlaceholderAction>}>
+            <WidgetCard title="Announcements" id="learner-announcements" action={<ComingSoonAction>View All</ComingSoonAction>}>
               {notifications.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No announcements right now.</p>
               ) : (
@@ -280,7 +270,7 @@ export function AgentWorkspaceView() {
                   })}
                 </ul>
               )}
-              <div className="mt-3"><PlaceholderAction>View All Announcements</PlaceholderAction></div>
+              <div className="mt-3"><ComingSoonAction>View All Announcements</ComingSoonAction></div>
             </WidgetCard>
 
             {/* Quick Actions */}
@@ -292,14 +282,6 @@ export function AgentWorkspaceView() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
-                  if (action.placeholder) {
-                    return (
-                      <div key={action.label} aria-disabled="true" title="Available in the full workspace" className="flex cursor-default items-center justify-between gap-2 rounded-xl border border-dashed border-[#1B303C]/12 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#4A6373]">
-                        <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#4A6373]/70" aria-hidden="true" />{action.label}</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4A6373]/70">Soon</span>
-                      </div>
-                    );
-                  }
                   return (
                     <Link key={action.label} href={action.href} className="flex items-center justify-between gap-2 rounded-xl border border-[#1B303C]/10 bg-[#FBFCFD] px-3.5 py-3 text-[13px] font-semibold text-[#1B303C] transition-colors hover:border-[#7A5200]/25 hover:bg-amber-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none">
                       <span className="inline-flex items-center gap-2.5"><Icon className="h-[18px] w-[18px] text-[#7A5200]" aria-hidden="true" />{action.label}</span>
