@@ -406,6 +406,31 @@
     filter: grayscale(1);
   }
 
+  /* Reduce motion (Settings → Accessibility & display). A user-controlled companion to
+     the prefers-reduced-motion media query: near-instant animations/transitions app-wide. */
+  .app-reduce-motion *,
+  .app-reduce-motion *::before,
+  .app-reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* High-legibility mode (Settings → Accessibility & display): heavier body text and a
+     touch more tracking for readability. */
+  .app-legible {
+    letter-spacing: 0.01em;
+  }
+  .app-legible p,
+  .app-legible span,
+  .app-legible li,
+  .app-legible label,
+  .app-legible dd,
+  .app-legible dt {
+    font-weight: 500;
+  }
+
   .context-rail-card {
     border-radius: 1.4rem;
     border: 1px solid rgba(27,48,60,0.08);

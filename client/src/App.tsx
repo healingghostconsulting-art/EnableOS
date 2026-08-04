@@ -19,6 +19,7 @@ import { CoachTeamView } from "./pages/CoachTeamView";
 import { ManagerWorkspaceView } from "./pages/ManagerWorkspaceView";
 import { ClientAdminWorkspaceView } from "./pages/ClientAdminWorkspaceView";
 import { V3ShellWrapper } from "./components/v3/V3ShellWrapper";
+import { SettingsView } from "./pages/SettingsView";
 import { CalendarView } from "./pages/CalendarView";
 import {
   WORKSPACE_ORDER,
@@ -325,6 +326,15 @@ function Router() {
             /* v2: <GuardedWorkspaceShell path="/library" roleLabel="Training Library"><ContentLibraryView /></GuardedWorkspaceShell> */
           )}
         </Route>
+        <Route path="/settings">
+          {() => (
+            // Role-agnostic preferences page in the shipped v3 chrome. Gated like /guide
+            // (WORKSPACE_SUBROUTE_PARENT) so any authenticated viewer can open it.
+            <GuardedV3Route path="/settings">
+              <V3ShellWrapper path="/settings"><SettingsView /></V3ShellWrapper>
+            </GuardedV3Route>
+          )}
+        </Route>
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -333,6 +343,17 @@ function Router() {
 }
 
 function App() {
+  // Re-apply the persisted display prefs on load so they survive a reload (grayscale has
+  // its own provider; these two are lightweight root-class toggles).
+  useEffect(() => {
+    const root = document.documentElement;
+    try {
+      root.classList.toggle("app-legible", localStorage.getItem("enableos.settings.highLegibility") === "true");
+      root.classList.toggle("app-reduce-motion", localStorage.getItem("enableos.settings.reduceMotion") === "true");
+    } catch {
+      // Storage unavailable — skip.
+    }
+  }, []);
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">

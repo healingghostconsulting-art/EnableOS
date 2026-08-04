@@ -68,6 +68,9 @@ export const SHARED_WORKSPACES: readonly WorkspacePath[] = ["/mission-hub", "/gu
 export const WORKSPACE_SUBROUTE_PARENT: Record<string, WorkspacePath> = {
   "/goals": "/learner",
   "/coachees": "/coach",
+  // Settings is role-agnostic: gate it like /guide, which every role can reach, so any
+  // authenticated viewer may open it.
+  "/settings": "/guide",
 };
 
 /** Dedicated role-home routes → the persona they represent. */

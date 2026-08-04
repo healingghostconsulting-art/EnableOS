@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { BookOpen, Building2, ClipboardCheck, GraduationCap, ShieldCheck, UserRound, Users2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
@@ -30,6 +32,20 @@ const ROLES: Array<{ role: DemoRole; route: string; tag: string; tagTint: RoleTa
 ];
 
 export function WorkspaceEntryView() {
+  const [, setLocation] = useLocation();
+  // Honor the Settings "landing page" preference: if the viewer chose a specific
+  // workspace, send them there instead of the picker. Default "/" is a no-op.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("enableos.settings.landingPage");
+      const dest = raw ? (JSON.parse(raw) as string) : "/";
+      if (dest && dest !== "/" && dest.startsWith("/")) setLocation(dest);
+    } catch {
+      // Storage unavailable — stay on the picker.
+    }
+    // Once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const viewer = trpc.auth.me.useQuery();
   const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
   const summary = trpc.demo.entrySummary.useQuery(viewerAccess.data?.tenant.id ? { tenantId: viewerAccess.data.tenant.id } : {});
