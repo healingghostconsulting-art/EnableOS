@@ -10,6 +10,7 @@ import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
 import { StatusMark, type CanonicalStatus } from "@/components/v3/StatusMark";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
+import { LoadingState, SkeletonRows, ErrorState, EmptyState } from "@/components/v3/states";
 
 // v3 Coach "My Team" (/coachees) — the full coachee roster on the persistent AppShell,
 // a sibling of the Coach dashboard. Team-level data (correct for the coach role), same
@@ -49,6 +50,8 @@ export function CoachTeamView() {
 
   const data: any = secureCoach.data ?? (demoMode ? publicCoach.data : undefined);
   const isLoading = !data && (secureCoach.isLoading || (demoMode && publicCoach.isLoading));
+  const isError = !data && !isLoading && (secureCoach.isError || (demoMode && publicCoach.isError));
+  const refetch = () => { void secureCoach.refetch(); if (demoMode) void publicCoach.refetch(); };
 
   const coachName: string = data?.coach?.name ?? "Coach";
   const roleTitle: string = data?.coach?.title ?? "Coach / Supervisor";
@@ -106,7 +109,9 @@ export function CoachTeamView() {
       notificationsHref="/coach#coach-activity"
     >
       {isLoading ? (
-        <p className="text-sm text-[#4A6373]">Loading your team…</p>
+        <LoadingState label="Loading your team…"><SkeletonRows rows={4} /></LoadingState>
+      ) : isError ? (
+        <ErrorState description="We couldn't load your team just now." onRetry={refetch} />
       ) : (
         <div className="space-y-5">
           {/* Page heading */}
@@ -151,7 +156,7 @@ export function CoachTeamView() {
               <span aria-hidden="true" className="block h-[3px] w-8 rounded-full bg-[#FCBC34]" />
             </div>
             {coachees.length === 0 ? (
-              <p className="px-5 py-6 text-[13px] text-[#4A6373]">No coachees assigned yet.</p>
+              <div className="px-5 py-6"><EmptyState icon={Users2} title="No coachees yet" description="Coachees assigned to you will appear here." /></div>
             ) : (
               <ul className="divide-y divide-[#1B303C]/6">
                 {coachees.map((l) => {

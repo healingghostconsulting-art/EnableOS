@@ -53,6 +53,12 @@ describe("Learner Goals — view", () => {
     expect(view).toContain("seedGoalsFromLearner");
   });
 
+  it("shows loading / error / empty states instead of a blank flash", () => {
+    for (const bit of ["LoadingState", "SkeletonCard", "ErrorState", "EmptyState", "isError"]) {
+      expect(view).toContain(bit);
+    }
+  });
+
   it("follows the dual-surface gold rule (gold-ink on light, never text gold)", () => {
     expect(view).not.toContain("text-[#FCBC34]");
     expect(view).toContain("text-[#7A5200]");

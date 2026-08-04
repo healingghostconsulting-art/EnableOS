@@ -51,6 +51,12 @@ describe("Coach My Team — view + rail wiring", () => {
     expect(view).toContain("data?.teamLearners");
   });
 
+  it("shows loading / error / empty states instead of a blank flash", () => {
+    for (const bit of ["LoadingState", "SkeletonRows", "ErrorState", "EmptyState", "isError"]) {
+      expect(view).toContain(bit);
+    }
+  });
+
   it("renames the coach rail item to My Team and repoints it to /coachees", () => {
     expect(dash).toContain('label: "My Team", icon: Users2, href: "/coachees"');
     expect(dash).not.toContain('href: "/coach#coach-coachees"');

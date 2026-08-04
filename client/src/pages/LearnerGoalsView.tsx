@@ -14,6 +14,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/v3/Moda
 import { Field, TextInput, SelectField } from "@/components/v3/Field";
 import { Button } from "@/components/v3/Button";
 import { notify } from "@/components/v3/feedback";
+import { LoadingState, SkeletonCard, ErrorState, EmptyState } from "@/components/v3/states";
 
 // v3 Learner Goals (/goals) — a dedicated goals surface on the persistent AppShell,
 // sibling to the Agent dashboard. Learner-scoped data only (never team KPIs), same
@@ -116,6 +117,8 @@ export function LearnerGoalsView() {
 
   const data: any = secureLearner.data ?? (demoMode ? publicLearner.data : undefined);
   const isLoading = !data && (secureLearner.isLoading || (demoMode && publicLearner.isLoading));
+  const isError = !data && !isLoading && (secureLearner.isError || (demoMode && publicLearner.isError));
+  const refetch = () => { void secureLearner.refetch(); if (demoMode) void publicLearner.refetch(); };
 
   const learnerName: string = data?.learner?.name ?? "there";
   const roleTitle: string = data?.learner?.title ?? "Team Member";
@@ -213,7 +216,13 @@ export function LearnerGoalsView() {
       notificationsHref="/learner#learner-announcements"
     >
       {isLoading ? (
-        <p className="text-sm text-[#4A6373]">Loading your goals…</p>
+        <LoadingState label="Loading your goals…">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2].map((i) => <SkeletonCard key={i} />)}
+          </div>
+        </LoadingState>
+      ) : isError ? (
+        <ErrorState description="We couldn't load your goals just now." onRetry={refetch} />
       ) : (
         <div className="space-y-5">
           {/* Page heading + primary action */}
@@ -280,7 +289,18 @@ export function LearnerGoalsView() {
           {/* Goal cards */}
           <section id="learner-goals" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {shown.length === 0 ? (
-              <p className="text-[13px] text-[#4A6373]">No goals in this view. Try a different filter or add a goal.</p>
+              goals.length === 0 ? (
+                <div className="md:col-span-2 xl:col-span-3">
+                  <EmptyState
+                    icon={Target}
+                    title="No goals yet"
+                    description="Add your first development goal to start tracking progress."
+                    action={<Button variant="primary" size="sm" onClick={openCreate}>Add goal</Button>}
+                  />
+                </div>
+              ) : (
+                <p className="text-[13px] text-[#4A6373]">No goals in this view. Try a different filter or add a goal.</p>
+              )
             ) : (
               shown.map((goal) => {
                 const meta = GOAL_META[goal.status];
