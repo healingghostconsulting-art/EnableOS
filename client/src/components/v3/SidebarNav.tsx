@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { type LucideIcon, Check, HelpCircle } from "lucide-react";
 import { Link } from "wouter";
 import { BrandLogoWhite } from "./BrandLogoWhite";
@@ -21,13 +22,27 @@ export interface SidebarUser {
 }
 
 export function SidebarNav({ items, user, helpHref = "/guide" }: { items: NavItem[]; user: SidebarUser; helpHref?: string }) {
+  const navRef = useRef<HTMLElement | null>(null);
+
+  // Keep the selected item on screen: on mount, scroll the active (aria-current) row
+  // into view so it's never below the fold in a short viewport. Honors reduced-motion
+  // (the OS setting or the in-app "Reduce motion" preference) by skipping the animation.
+  useEffect(() => {
+    const active = navRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!active) return;
+    const reduce =
+      (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) ||
+      document.documentElement.classList.contains("app-reduce-motion");
+    active.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }, []);
+
   return (
     <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-hidden bg-[linear-gradient(180deg,#0E2233,#0A1826)] text-white">
       <div className="px-5 pt-6 pb-5">
         <BrandLogoWhite />
       </div>
 
-      <nav aria-label="Primary" className="flex-1 space-y-1 px-3">
+      <nav ref={navRef} aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3">
         {items.map((item) => {
           const Icon = item.icon;
 
