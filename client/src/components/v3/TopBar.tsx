@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { ChevronDown, Contrast, LogIn, LogOut, Search } from "lucide-react";
+import { ChevronDown, Contrast, LogIn, LogOut, Search, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -31,7 +31,7 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
 }) {
   const { isAuthenticated, logout } = useAuth();
   const { grayscale, toggleGrayscale } = useGrayscale();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   return (
     <header className="flex flex-col gap-4 border-b border-[#1B303C]/8 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
       <div>
@@ -65,6 +65,11 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setLocation("/settings")} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={grayscale}
               onCheckedChange={toggleGrayscale}

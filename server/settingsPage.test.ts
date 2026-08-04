@@ -28,6 +28,14 @@ describe("Settings — route + access", () => {
   });
 });
 
+describe("Settings — account-menu entry", () => {
+  it("adds a Settings item to the TopBar account menu that routes to /settings", () => {
+    const topbar = read("client/src/components/v3/TopBar.tsx");
+    expect(topbar).toContain('setLocation("/settings")');
+    expect(topbar).toContain("<span>Settings</span>");
+  });
+});
+
 describe("Settings — page contents", () => {
   const view = read("client/src/pages/SettingsView.tsx");
 
