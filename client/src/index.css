@@ -399,6 +399,13 @@
     animation: route-fade-in 280ms ease-out;
   }
 
+  /* Grayscale accessibility mode (toggled from the account menu). Desaturates the whole
+     app so non-color status cues can be verified. Applied to the document root so
+     portalled overlays (dialogs, popovers, toasts) desaturate too. */
+  .app-grayscale {
+    filter: grayscale(1);
+  }
+
   .context-rail-card {
     border-radius: 1.4rem;
     border: 1px solid rgba(27,48,60,0.08);

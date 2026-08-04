@@ -1,10 +1,11 @@
 import { type ReactNode } from "react";
-import { ChevronDown, LogIn, LogOut, Search } from "lucide-react";
+import { ChevronDown, Contrast, LogIn, LogOut, Search } from "lucide-react";
 import { useLocation } from "wouter";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useGrayscale } from "@/contexts/GrayscaleContext";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // v3 kit — the light top bar: a time-aware greeting, the viewer avatar + date, a
 // working notification bell (opens a popover of recent notification previews), and a
@@ -29,6 +30,7 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
   notificationsHref?: string;
 }) {
   const { isAuthenticated, logout } = useAuth();
+  const { grayscale, toggleGrayscale } = useGrayscale();
   const [location] = useLocation();
   return (
     <header className="flex flex-col gap-4 border-b border-[#1B303C]/8 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
@@ -62,7 +64,17 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
               <ChevronDown className="h-4 w-4 shrink-0 text-[#4A6373]" aria-hidden="true" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuCheckboxItem
+              checked={grayscale}
+              onCheckedChange={toggleGrayscale}
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer"
+            >
+              <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Grayscale mode</span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuSeparator />
             {isAuthenticated ? (
               <DropdownMenuItem onClick={() => { void logout(); }} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
