@@ -1,6 +1,7 @@
-import { Link } from "wouter";
+import { type ReactNode, useMemo, useState } from "react";
+import { Link, useLocation } from "wouter";
 import {
-  BarChart3, BookOpen, Building2, CalendarDays, ChevronRight, Download,
+  ArrowRight, BarChart3, BookOpen, Building2, CalendarDays, ChevronRight, Download,
   FileText, HelpCircle, LayoutDashboard, Palette, ShieldCheck, UserPlus, Users2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -13,36 +14,29 @@ import { greetingFor } from "@/components/v3/TopBar";
 import type { NavItem } from "@/components/v3/SidebarNav";
 import { ComingSoonAction, ComingSoonTile } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
+import { AdminUsers, type AdminUser, type InviteDraft } from "./admin/AdminUsers";
+import { ADMIN_ROLES, roleLabelOf } from "./admin/adminShared";
 
-// v3 Client Admin Workspace (Pilot 5) — Client Control on the shared AppShell. Reuses
-// the v3 kit (nothing rebuilt). Wired to the admin's org/config tRPC data (secureAdmin,
-// with the public demo.admin canonical payload as a fallback so it populates
-// unauthenticated). Admins see org + configuration data — not agent performance.
+// v3 Client Admin Workspace (Pilot 5) — Client Control on the shared AppShell. The
+// dashboard is the overview; the sidebar's Users / Roles & Access / Branding items open
+// full management sub-views (client/src/pages/admin/*) inside this same shell, selected
+// by the /admin/:section route. Reads come from secureAdmin (with the public demo.admin
+// canonical payload as a fallback so it populates unauthenticated). Every write is an
+// optimistic in-session stub owned here, so it survives section navigation and resets on
+// reload — no new server mutations.
 
 const initialsOf = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 const firstNameOf = (name: string) => name.split(/\s+/)[0] ?? name;
 const fmtDay = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 
-const NAV: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: true },
-  // Scroll to the on-page section instead of reloading /admin at the top.
-  { label: "Users", icon: Users2, href: "/admin#admin-users" },
-  { label: "Roles & Access", icon: ShieldCheck, href: "/admin#admin-access" },
-  { label: "Branding", icon: Palette, href: "/admin#admin-branding" },
-  { label: "Reports", icon: BarChart3, href: "/reporting" },
-  { label: "Calendar", icon: CalendarDays, href: "/calendar" },
-  { label: "Knowledge Base", icon: BookOpen, href: "/library" },
-  { label: "Help & Support", icon: HelpCircle, href: "/guide" },
-];
-
-const ROLES: Array<{ role: GrantRole; label: string }> = [
-  { role: "executive", label: "Executive" },
-  { role: "manager", label: "Manager" },
-  { role: "coach", label: "Coach" },
-  { role: "learner", label: "Learner" },
-  { role: "client_admin", label: "Client Admin" },
-];
-const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLES.map((r) => [r.role, r.label]));
+/** Gold corner link for a widget's header action (real destination). */
+function AdminCornerLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#7A5200] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30">
+      {children} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+    </Link>
+  );
+}
 
 export function ClientAdminWorkspaceView() {
   const access = trpc.demo.viewerAccess.useQuery();
@@ -63,7 +57,12 @@ export function ClientAdminWorkspaceView() {
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const greeting = greetingFor(new Date().getHours());
 
-  // Receive in-page anchors from the nav (Users / Roles & Access / Branding).
+  // Which management sub-view is active (from /admin/:section). Empty = the dashboard.
+  const [location] = useLocation();
+  const section = location.startsWith("/admin/") ? location.slice("/admin/".length).split(/[/?#]/)[0] : "";
+
+  // Receive in-page anchors from the dashboard nav (Roles & Access / Branding still deep
+  // link into the overview until those sub-views land).
   useDeepLinkTarget();
 
   const tenantUsers: any[] = data?.tenantUsers ?? [];
@@ -75,11 +74,53 @@ export function ClientAdminWorkspaceView() {
   const docs: any[] = data?.documentationEntries ?? [];
   const notifications: any[] = data?.notifications ?? [];
 
-  // `placeholder` actions have no backing page in the demo yet, so they render
-  // non-interactive (see the render below) instead of self-routing to /admin. Export
-  // navigates to /reporting, where the working XLSX/PDF/email export lives.
+  // Optimistic, in-session user state (resets on reload). Invited members are appended;
+  // deactivation flips a flag by id (works for seeded and invited users alike).
+  const [invited, setInvited] = useState<Array<Omit<AdminUser, "deactivated">>>([]);
+  const [deactivatedIds, setDeactivatedIds] = useState<Set<string>>(new Set());
+
+  const adminUsers: AdminUser[] = useMemo(() => [
+    ...invited.map((u) => ({ ...u, deactivated: deactivatedIds.has(u.id) })),
+    ...tenantUsers.map((u) => ({
+      id: u.id as string,
+      name: u.name as string,
+      email: u.email as string,
+      title: (u.title as string) ?? "Team Member",
+      role: u.role as GrantRole,
+      deactivated: deactivatedIds.has(u.id),
+    })),
+  ], [invited, tenantUsers, deactivatedIds]);
+
+  const handleInvite = (d: InviteDraft) => {
+    setInvited((prev) => [
+      { id: `invited-${d.email}`, name: d.name, email: d.email, title: "Invited member", role: d.role, invited: true },
+      ...prev.filter((u) => u.email !== d.email),
+    ]);
+  };
+  const handleToggleActive = (id: string) => {
+    setDeactivatedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const nav: NavItem[] = [
+    { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: section === "" },
+    { label: "Users", icon: Users2, href: "/admin/users", active: section === "users" },
+    { label: "Roles & Access", icon: ShieldCheck, href: "/admin#admin-access", active: false },
+    { label: "Branding", icon: Palette, href: "/admin#admin-branding", active: false },
+    { label: "Reports", icon: BarChart3, href: "/reporting" },
+    { label: "Calendar", icon: CalendarDays, href: "/calendar" },
+    { label: "Knowledge Base", icon: BookOpen, href: "/library" },
+    { label: "Help & Support", icon: HelpCircle, href: "/guide" },
+  ];
+
+  // `placeholder` actions have no backing sub-view yet, so they render non-interactive
+  // (ComingSoonTile) instead of self-routing. Export navigates to /reporting, where the
+  // working XLSX/PDF/email export lives.
   const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
-    { label: "Add User", icon: UserPlus, href: "/admin", placeholder: true },
+    { label: "Add User", icon: UserPlus, href: "/admin/users" },
     { label: "Manage Roles", icon: ShieldCheck, href: "/admin", placeholder: true },
     { label: "Brand Settings", icon: Palette, href: "/admin", placeholder: true },
     { label: "Export", icon: Download, href: "/reporting" },
@@ -87,7 +128,7 @@ export function ClientAdminWorkspaceView() {
 
   return (
     <AppShell
-      nav={NAV}
+      nav={nav}
       user={{ name: adminName, roleTitle, initials }}
       greeting={greeting}
       greetingName={firstNameOf(adminName)}
@@ -99,18 +140,20 @@ export function ClientAdminWorkspaceView() {
     >
       {isLoading ? (
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>
+      ) : section === "users" ? (
+        <AdminUsers users={adminUsers} onInvite={handleInvite} onToggleActive={handleToggleActive} />
       ) : (
         <div className="space-y-5">
           <DashboardGrid>
             {/* Org Overview */}
-            <WidgetCard title="Org Overview" action={<ComingSoonAction>Manage Users</ComingSoonAction>} className="xl:col-span-2">
+            <WidgetCard title="Org Overview" action={<AdminCornerLink href="/admin/users">Manage Users</AdminCornerLink>} className="xl:col-span-2">
               <div className="flex flex-wrap items-center gap-6">
                 <Donut value={100} size={116} stroke={11} color="#1B303C" ariaLabel={`${totalUsers} active users`}>
                   <span className="text-[1.6rem] font-bold leading-none text-[#1B303C]">{totalUsers}</span>
                   <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-[#4A6373]">Users</span>
                 </Donut>
                 <ul className="grid flex-1 grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3">
-                  {ROLES.map((r) => (
+                  {ADMIN_ROLES.map((r) => (
                     <li key={r.role} className="flex items-center justify-between gap-2">
                       <span className="text-[#4A6373]">{r.label}</span>
                       <span className="font-semibold text-[#1B303C]">{roleCount(r.role)}</span>
@@ -162,7 +205,7 @@ export function ClientAdminWorkspaceView() {
             <WidgetCard title="Workspace Access" id="admin-access" action={<ComingSoonAction>Configure</ComingSoonAction>}>
               <p className="mb-3 text-[12px] text-[#4A6373]">Role-scoped views are strictly enforced. Each role enters only its permitted workspaces.</p>
               <ul className="space-y-2 text-[13px]">
-                {ROLES.map((r) => (
+                {ADMIN_ROLES.map((r) => (
                   <li key={r.role} className="flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-2 text-[#1B303C]"><ShieldCheck className="h-4 w-4 text-[#7A5200]" aria-hidden="true" />{r.label}</span>
                     <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-[#4A6373]">{permittedWorkspaces(r.role).length} workspaces</span>
@@ -172,7 +215,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* User Management */}
-            <WidgetCard title="User Management" id="admin-users" action={<ComingSoonAction>View All</ComingSoonAction>}>
+            <WidgetCard title="User Management" id="admin-users" action={<AdminCornerLink href="/admin/users">View All</AdminCornerLink>}>
               {tenantUsers.length === 0 ? (
                 <p className="text-[13px] text-[#4A6373]">No users yet.</p>
               ) : (
@@ -184,7 +227,7 @@ export function ClientAdminWorkspaceView() {
                         <span className="block truncate text-[13px] font-semibold text-[#1B303C]">{u.name}</span>
                         <span className="block truncate text-[12px] text-[#4A6373]">{u.title ?? "Team Member"}</span>
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold capitalize text-[#4A6373]">{ROLE_LABEL[u.role] ?? String(u.role).replace("_", " ")}</span>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-[#4A6373]">{roleLabelOf(u.role)}</span>
                     </li>
                   ))}
                 </ul>

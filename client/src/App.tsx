@@ -289,10 +289,13 @@ function Router() {
             </GuardedV3Route>
           )}
         </Route>
-        <Route path="/admin">
+        <Route path="/admin/:section?">
           {() => (
-            // v3 Client Admin Workspace (Pilot 5). Revert to v2 by swapping back to the
-            // GuardedWorkspaceShell + <RoleWorkspace role="client_admin" /> block below.
+            // v3 Client Admin Workspace (Pilot 5). The optional :section drives the
+            // management sub-views (Users / Roles & Access / Branding) inside the same
+            // AppShell; the guard checks the parent /admin access for every section.
+            // Revert to v2 by swapping back to the GuardedWorkspaceShell +
+            // <RoleWorkspace role="client_admin" /> block below.
             <GuardedV3Route path="/admin">
               <ClientAdminWorkspaceView />
             </GuardedV3Route>
