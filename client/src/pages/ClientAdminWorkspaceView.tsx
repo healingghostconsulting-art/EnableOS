@@ -16,6 +16,7 @@ import { ComingSoonAction, ComingSoonTile } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 import { AdminUsers, type AdminUser, type InviteDraft } from "./admin/AdminUsers";
 import { AdminRolesAccess, type CustomRoleRecord } from "./admin/AdminRolesAccess";
+import { AdminBranding, coerceAccent, type BrandingState } from "./admin/AdminBranding";
 import { ADMIN_ROLES, roleLabelOf } from "./admin/adminShared";
 
 // v3 Client Admin Workspace (Pilot 5) — Client Control on the shared AppShell. The
@@ -117,11 +118,22 @@ export function ClientAdminWorkspaceView() {
   const [customRoleOverlay, setCustomRoleOverlay] = useState<CustomRoleRecord[] | null>(null);
   const customRoleRecords = customRoleOverlay ?? seededCustomRoles;
 
+  // Branding optimistic overlay (accent / display name), seeded from secureAdmin.branding.
+  // Resets on reload; accents are constrained to the curated set inside AdminBranding.
+  const brandingBase: BrandingState = {
+    accent: coerceAccent(branding.accent as string | undefined),
+    preferredLabel: (branding.preferredLabel as string) ?? "Workspace",
+    logoMark: (branding.logoMark as string) ?? "EO",
+  };
+  const [brandingOverride, setBrandingOverride] = useState<Partial<BrandingState> | null>(null);
+  const brandingState: BrandingState = { ...brandingBase, ...(brandingOverride ?? {}) };
+  const handleBrandingChange = (patch: Partial<BrandingState>) => setBrandingOverride((prev) => ({ ...(prev ?? {}), ...patch }));
+
   const nav: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: section === "" },
     { label: "Users", icon: Users2, href: "/admin/users", active: section === "users" },
     { label: "Roles & Access", icon: ShieldCheck, href: "/admin/roles", active: section === "roles" },
-    { label: "Branding", icon: Palette, href: "/admin#admin-branding", active: false },
+    { label: "Branding", icon: Palette, href: "/admin/branding", active: section === "branding" },
     { label: "Reports", icon: BarChart3, href: "/reporting" },
     { label: "Calendar", icon: CalendarDays, href: "/calendar" },
     { label: "Knowledge Base", icon: BookOpen, href: "/library" },
@@ -134,7 +146,7 @@ export function ClientAdminWorkspaceView() {
   const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
     { label: "Add User", icon: UserPlus, href: "/admin/users" },
     { label: "Manage Roles", icon: ShieldCheck, href: "/admin/roles" },
-    { label: "Brand Settings", icon: Palette, href: "/admin", placeholder: true },
+    { label: "Brand Settings", icon: Palette, href: "/admin/branding" },
     { label: "Export", icon: Download, href: "/reporting" },
   ];
 
@@ -156,6 +168,8 @@ export function ClientAdminWorkspaceView() {
         <AdminUsers users={adminUsers} onInvite={handleInvite} onToggleActive={handleToggleActive} />
       ) : section === "roles" ? (
         <AdminRolesAccess customRoles={customRoleRecords} onChange={setCustomRoleOverlay} />
+      ) : section === "branding" ? (
+        <AdminBranding branding={brandingState} onChange={handleBrandingChange} />
       ) : (
         <div className="space-y-5">
           <DashboardGrid>
@@ -197,12 +211,12 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Brand & Settings */}
-            <WidgetCard title="Brand & Settings" id="admin-branding" action={<ComingSoonAction>Edit</ComingSoonAction>}>
+            <WidgetCard title="Brand & Settings" id="admin-branding" action={<AdminCornerLink href="/admin/branding">Edit</AdminCornerLink>}>
               <div className="flex items-center gap-3 rounded-xl border border-[#1B303C]/8 bg-[#FBFCFD] p-3">
-                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white" style={{ backgroundColor: branding.accent ?? "#1B303C" }} aria-hidden="true">{branding.logoMark ?? "EO"}</span>
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white" style={{ backgroundColor: brandingState.accent }} aria-hidden="true">{brandingState.logoMark}</span>
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-semibold text-[#1B303C]">{branding.preferredLabel ?? "Workspace"}</p>
-                  <p className="text-[12px] text-[#4A6373]">Accent {branding.accent ?? "—"}</p>
+                  <p className="truncate text-[13px] font-semibold text-[#1B303C]">{brandingState.preferredLabel}</p>
+                  <p className="text-[12px] text-[#4A6373]">Accent {brandingState.accent}</p>
                 </div>
               </div>
               <ul className="mt-3 space-y-1.5 text-[12.5px]">
