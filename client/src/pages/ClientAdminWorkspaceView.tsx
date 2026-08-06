@@ -15,6 +15,7 @@ import type { NavItem } from "@/components/v3/SidebarNav";
 import { ComingSoonAction, ComingSoonTile } from "@/components/v3/ComingSoon";
 import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
 import { AdminUsers, type AdminUser, type InviteDraft } from "./admin/AdminUsers";
+import { AdminRolesAccess, type CustomRoleRecord } from "./admin/AdminRolesAccess";
 import { ADMIN_ROLES, roleLabelOf } from "./admin/adminShared";
 
 // v3 Client Admin Workspace (Pilot 5) — Client Control on the shared AppShell. The
@@ -105,10 +106,21 @@ export function ClientAdminWorkspaceView() {
     });
   };
 
+  // Custom-role optimistic overlay. Seeded from secureAdmin.customRoles (each narrows its
+  // `inheritsFrom` base); grants default to the full base ceiling and are narrowed in the
+  // matrix. Null overlay = show the seed; any edit switches to the working copy. Resets on
+  // reload. Access always derives from permittedWorkspaces() — the single source.
+  const seededCustomRoles: CustomRoleRecord[] = useMemo(() => customRoles.map((r) => {
+    const base = (r.inheritsFrom ?? "learner") as GrantRole;
+    return { id: r.id as string, name: r.name as string, description: (r.description as string) ?? "", base, grants: permittedWorkspaces(base) };
+  }), [customRoles]);
+  const [customRoleOverlay, setCustomRoleOverlay] = useState<CustomRoleRecord[] | null>(null);
+  const customRoleRecords = customRoleOverlay ?? seededCustomRoles;
+
   const nav: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: section === "" },
     { label: "Users", icon: Users2, href: "/admin/users", active: section === "users" },
-    { label: "Roles & Access", icon: ShieldCheck, href: "/admin#admin-access", active: false },
+    { label: "Roles & Access", icon: ShieldCheck, href: "/admin/roles", active: section === "roles" },
     { label: "Branding", icon: Palette, href: "/admin#admin-branding", active: false },
     { label: "Reports", icon: BarChart3, href: "/reporting" },
     { label: "Calendar", icon: CalendarDays, href: "/calendar" },
@@ -121,7 +133,7 @@ export function ClientAdminWorkspaceView() {
   // working XLSX/PDF/email export lives.
   const quickActions: Array<{ label: string; icon: NavItem["icon"]; href: string; placeholder?: boolean }> = [
     { label: "Add User", icon: UserPlus, href: "/admin/users" },
-    { label: "Manage Roles", icon: ShieldCheck, href: "/admin", placeholder: true },
+    { label: "Manage Roles", icon: ShieldCheck, href: "/admin/roles" },
     { label: "Brand Settings", icon: Palette, href: "/admin", placeholder: true },
     { label: "Export", icon: Download, href: "/reporting" },
   ];
@@ -142,6 +154,8 @@ export function ClientAdminWorkspaceView() {
         <p className="text-sm text-[#4A6373]">Loading your workspace…</p>
       ) : section === "users" ? (
         <AdminUsers users={adminUsers} onInvite={handleInvite} onToggleActive={handleToggleActive} />
+      ) : section === "roles" ? (
+        <AdminRolesAccess customRoles={customRoleRecords} onChange={setCustomRoleOverlay} />
       ) : (
         <div className="space-y-5">
           <DashboardGrid>
@@ -202,7 +216,7 @@ export function ClientAdminWorkspaceView() {
             </WidgetCard>
 
             {/* Workspace Access — from the real access matrix */}
-            <WidgetCard title="Workspace Access" id="admin-access" action={<ComingSoonAction>Configure</ComingSoonAction>}>
+            <WidgetCard title="Workspace Access" id="admin-access" action={<AdminCornerLink href="/admin/roles">Configure</AdminCornerLink>}>
               <p className="mb-3 text-[12px] text-[#4A6373]">Role-scoped views are strictly enforced. Each role enters only its permitted workspaces.</p>
               <ul className="space-y-2 text-[13px]">
                 {ADMIN_ROLES.map((r) => (
