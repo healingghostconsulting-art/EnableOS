@@ -103,7 +103,7 @@ export function AdminUsers({ users, onInvite, onToggleActive }: {
             <table className="w-full min-w-[44rem] border-collapse text-left">
               <thead>
                 <tr className="border-b border-[#1B303C]/8 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#4A6373]">
-                  <th scope="col" className="px-5 py-3 font-semibold">User</th>
+                  <th scope="col" className="sticky left-0 z-10 bg-white px-5 py-3 font-semibold">User</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Role</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Status</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Last active</th>
@@ -114,8 +114,8 @@ export function AdminUsers({ users, onInvite, onToggleActive }: {
                 {filtered.map((u) => {
                   const s = statusOf(u);
                   return (
-                    <tr key={u.id} className="border-b border-[#1B303C]/6 last:border-0 hover:bg-[#FBFCFD]">
-                      <td className="px-5 py-3">
+                    <tr key={u.id} className="group border-b border-[#1B303C]/6 last:border-0 hover:bg-[#FBFCFD]">
+                      <td className="sticky left-0 z-10 bg-white px-5 py-3 group-hover:bg-[#FBFCFD]">
                         <div className="flex items-center gap-3">
                           <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B303C] text-[12px] font-bold text-white ${u.deactivated ? "opacity-40" : ""}`} aria-hidden="true">{initialsOf(u.name)}</span>
                           <span className="min-w-0">

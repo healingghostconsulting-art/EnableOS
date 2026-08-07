@@ -126,7 +126,10 @@ function MonthGrid({ cursorMs, nowMs, byDay, canManage, onOpen, onDragStartEvent
 }) {
   const weeks = buildMonthMatrix(cursorMs, nowMs);
   return (
-    <div className="overflow-hidden rounded-[1.25rem] border border-[#1B303C]/10 bg-white/80 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+    <div className="overflow-x-auto rounded-[1.25rem] border border-[#1B303C]/10 bg-white/80 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      {/* Below the min-width the month scrolls horizontally (like the week grid) so day
+          cells stay a legible width on narrow screens instead of collapsing. */}
+      <div className="min-w-[46rem]">
       <div className="grid grid-cols-7 border-b border-[#1B303C]/10 bg-white/60">
         {WEEKDAYS.map((day) => (
           <div key={day} className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-[#4A6373]">{day}</div>
@@ -165,6 +168,7 @@ function MonthGrid({ cursorMs, nowMs, byDay, canManage, onOpen, onDragStartEvent
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
