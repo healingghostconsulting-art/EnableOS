@@ -121,7 +121,7 @@ function BrandGuardrail({ accent, onAccent }: { accent: string; onAccent: (value
                 aria-label={o.label}
                 title={`${o.label} ${o.value}`}
                 onClick={() => onAccent(o.value)}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full ring-offset-2 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40 ${selected ? "ring-2 ring-[#1B303C]" : "ring-1 ring-[#1B303C]/10 hover:ring-[#1B303C]/30"}`}
+                className={`inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40 ${selected ? "ring-2 ring-[#1B303C]" : "ring-1 ring-[#1B303C]/10 hover:ring-[#1B303C]/30"}`}
                 style={{ backgroundColor: o.value }}
               >
                 {selected ? <Check className="h-4 w-4 text-white" aria-hidden="true" /> : null}

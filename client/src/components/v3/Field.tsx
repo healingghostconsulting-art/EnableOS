@@ -83,7 +83,7 @@ export function Segmented({ options, value, onChange, ...rest }: {
             aria-pressed={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              "min-h-[36px] rounded-full px-3.5 text-[13px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none",
+              "min-h-[44px] rounded-full px-3.5 text-[13px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none",
               active ? "bg-[#1B303C] text-white" : "text-[#4A6373] hover:bg-slate-100",
             )}
           >
