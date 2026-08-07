@@ -33,3 +33,12 @@ export const ENV = {
 export function isDemoMode(): boolean {
   return process.env.DEMO_MODE !== "false";
 }
+
+// Persistence gate (Phase 1 hardening). Real write flows (goals, branding, admin writes,
+// notification preferences) persist to MySQL ONLY when this is true — i.e. in production
+// (DEMO_MODE=false). In the shared demo (DEMO_MODE=true) the same procedures run their
+// in-memory/optimistic path and never write, so the demo stays reset-friendly. Read at
+// call time so tests can flip DEMO_MODE per-case.
+export function shouldPersist(): boolean {
+  return !isDemoMode();
+}

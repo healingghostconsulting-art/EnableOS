@@ -39,6 +39,9 @@ export const tenantAccessGrants = mysqlTable("tenantAccessGrants", {
   tenantId: varchar("tenantId", { length: 64 }).notNull(),
   userOpenId: varchar("userOpenId", { length: 64 }).notNull(),
   workspaceRole: mysqlEnum("workspaceRole", ["executive", "manager", "learner", "client_admin", "platform_admin"]).notNull(),
+  // Additive (Phase 1 hardening): NULL = active. A timestamp deactivates the seat —
+  // the record is kept (never deleted) so it can be reactivated.
+  deactivatedAt: timestamp("deactivated_at"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -177,3 +180,75 @@ export const coachingSessionsTable = mysqlTable("coaching_sessions", {
 
 export type CoachingSessionRow = typeof coachingSessionsTable.$inferSelect;
 export type InsertCoachingSessionRow = typeof coachingSessionsTable.$inferInsert;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 1 hardening — durable surfaces for the write flows that were previously
+// optimistic-only. All additive; every mutation persists here only when
+// DEMO_MODE=false (shouldPersist()), so the shared demo stays reset-friendly.
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Learner SMART goals (create/update). detail is nullable because MySQL TEXT cannot
+ *  carry a column default; the app treats NULL as "". */
+export const learnerGoals = mysqlTable("learner_goals", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull(),
+  learnerUserId: varchar("learner_user_id", { length: 64 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  detail: text("detail"),
+  status: mysqlEnum("goal_status", ["active", "achieved", "archived"]).notNull().default("active"),
+  targetDate: varchar("target_date", { length: 40 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantLookup: index("learner_goals_tenant").on(table.tenantId, table.learnerUserId),
+}));
+
+/** Invited members (admin → Users). An invite is durable, but the person cannot sign in
+ *  until a managed IdP exists (demo OAuth mints openIds for real Manus users only) — see
+ *  the AUTH SEAM note. status flips to "accepted" when the IdP provisions the account. */
+export const tenantUserInvites = mysqlTable("tenant_user_invites", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  workspaceRole: mysqlEnum("invite_workspace_role", ["executive", "manager", "coach", "learner", "client_admin"]).notNull(),
+  status: mysqlEnum("invite_status", ["invited", "accepted", "revoked"]).notNull().default("invited"),
+  invitedByOpenId: varchar("invited_by_open_id", { length: 64 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantEmail: unique("tenant_user_invites_natural").on(table.tenantId, table.email),
+}));
+
+/** Tenant-defined custom roles (admin → Roles & Access). Narrow-only: a custom role
+ *  inherits a base role's workspaces and can only be restricted (enforced server-side). */
+export const tenantCustomRoles = mysqlTable("tenant_custom_roles", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: varchar("tenant_id", { length: 64 }).notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  baseRole: mysqlEnum("base_role", ["executive", "manager", "coach", "learner", "client_admin"]).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantLookup: index("tenant_custom_roles_tenant").on(table.tenantId),
+}));
+
+/** The narrowed workspace grant set for a custom role — one row per granted workspace. */
+export const tenantCustomRoleGrants = mysqlTable("tenant_custom_role_grants", {
+  id: int("id").autoincrement().primaryKey(),
+  customRoleId: varchar("custom_role_id", { length: 64 }).notNull(),
+  workspacePath: varchar("workspace_path", { length: 32 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  naturalKey: unique("tenant_custom_role_grants_natural").on(table.customRoleId, table.workspacePath),
+}));
+
+export type LearnerGoalRow = typeof learnerGoals.$inferSelect;
+export type InsertLearnerGoalRow = typeof learnerGoals.$inferInsert;
+export type TenantUserInviteRow = typeof tenantUserInvites.$inferSelect;
+export type InsertTenantUserInviteRow = typeof tenantUserInvites.$inferInsert;
+export type TenantCustomRoleRow = typeof tenantCustomRoles.$inferSelect;
+export type InsertTenantCustomRoleRow = typeof tenantCustomRoles.$inferInsert;
+export type TenantCustomRoleGrantRow = typeof tenantCustomRoleGrants.$inferSelect;
+export type InsertTenantCustomRoleGrantRow = typeof tenantCustomRoleGrants.$inferInsert;

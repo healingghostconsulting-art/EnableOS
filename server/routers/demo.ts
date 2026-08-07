@@ -1,7 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, demoPublicProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
-import { isDemoMode } from "../_core/env";
+import { isDemoMode, shouldPersist } from "../_core/env";
+import { getAdminPersistence } from "../adminPersistence";
+import { permittedWorkspaces, type WorkspacePath } from "@shared/workspaceAccess";
 import { storagePut } from "../storage";
 import {
   addWeeklyCoachingLogAttachments,
@@ -123,6 +125,47 @@ const brandingInput = z.object({
   logoMark: z.string().min(1).max(3),
   preferredLabel: z.string().min(3).max(80),
   heroStatement: z.string().min(12).max(180),
+});
+
+// ── Phase 1 hardening — validated inputs for the real write flows ────────────
+const tenantRoleEnum = z.enum(["executive", "manager", "coach", "learner", "client_admin"]);
+
+const goalSaveInput = z.object({
+  tenantId: z.string(),
+  id: z.string().max(80).optional(),
+  learnerUserId: z.string().min(1).max(64),
+  title: z.string().min(3).max(200),
+  detail: z.string().max(2000).optional(),
+  status: z.enum(["active", "achieved", "archived"]).default("active"),
+  targetDate: z.string().max(40).optional(),
+});
+
+const inviteUserInput = z.object({
+  tenantId: z.string(),
+  email: z.string().email().max(320),
+  name: z.string().min(1).max(200),
+  workspaceRole: tenantRoleEnum,
+});
+
+const userActivationInput = z.object({
+  tenantId: z.string(),
+  userOpenId: z.string().min(1).max(64),
+  deactivated: z.boolean(),
+});
+
+const roleChangeInput = z.object({
+  tenantId: z.string(),
+  userOpenId: z.string().min(1).max(64),
+  workspaceRole: z.enum(["executive", "manager", "learner", "client_admin", "platform_admin"]),
+});
+
+const customRoleSaveInput = z.object({
+  tenantId: z.string(),
+  id: z.string().max(80).optional(),
+  name: z.string().min(2).max(160),
+  baseRole: tenantRoleEnum,
+  description: z.string().max(1000).optional(),
+  grants: z.array(z.string().max(32)).max(20),
 });
 
 // ── Content authoring (AUTHOR2 / Wave 1) ────────────────────────────────────
@@ -649,9 +692,80 @@ export const demoRouter = router({
   previewUpdateBranding: demoPublicProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
   secureUpdateBranding: protectedProcedure.input(brandingInput).mutation(({ ctx, input }) => {
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
-    return updateTenantBranding({ ...input, tenantId });
+    const result = updateTenantBranding({ ...input, tenantId });
+    // Prod path (DEMO_MODE=false) persists to the tenants row so it survives reload;
+    // the demo keeps the in-memory override only.
+    if (shouldPersist()) getAdminPersistence().saveBranding(tenantId, { accent: result.accent, logoMark: result.logoMark, preferredLabel: result.preferredLabel, heroStatement: result.heroStatement });
+    return result;
   }),
-  updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => updateTenantBranding(input)),
+  updateBranding: adminProcedure.input(brandingInput).mutation(({ input }) => {
+    const result = updateTenantBranding(input);
+    if (shouldPersist()) getAdminPersistence().saveBranding(input.tenantId, { accent: result.accent, logoMark: result.logoMark, preferredLabel: result.preferredLabel, heroStatement: result.heroStatement });
+    return result;
+  }),
+
+  // ── Phase 1 hardening — real write flows, DEMO_MODE-gated ────────────────────
+  // Each persists to MySQL only in prod (shouldPersist); the demo returns the same
+  // optimistic result without writing. RBAC via assertScopedAccess (Phase 2).
+
+  /** Learner goal create/update. Self-scoped: any authenticated tenant member may write
+   *  their own goals (learner workspace). */
+  secureSaveGoal: protectedProcedure.input(goalSaveInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "learner");
+    const record = {
+      id: input.id ?? `goal-${tenantId}-${input.learnerUserId}-${Date.now()}`,
+      tenantId,
+      learnerUserId: input.learnerUserId,
+      title: input.title,
+      detail: input.detail ?? "",
+      status: input.status,
+      targetDate: input.targetDate ?? null,
+    };
+    if (shouldPersist()) getAdminPersistence().saveGoal(record);
+    return record;
+  }),
+
+  /** Invite a member (admin → Users). Persists the invite; the person cannot sign in
+   *  until a managed IdP provisions the account — see the AUTH SEAM note in
+   *  server/_core/authProvider.ts. */
+  secureInviteUser: protectedProcedure.input(inviteUserInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    const record = {
+      id: `invite-${tenantId}-${input.email}`,
+      tenantId, email: input.email, name: input.name, workspaceRole: input.workspaceRole,
+      status: "invited" as const, invitedByOpenId: ctx.user.openId ?? null,
+    };
+    if (shouldPersist()) getAdminPersistence().createInvite(record);
+    return record;
+  }),
+
+  /** Deactivate / reactivate a tenant seat (admin → Users). The grant row is kept. */
+  secureSetUserActivation: protectedProcedure.input(userActivationInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    if (shouldPersist()) getAdminPersistence().setGrantDeactivated(tenantId, input.userOpenId, input.deactivated);
+    return { tenantId, userOpenId: input.userOpenId, deactivated: input.deactivated };
+  }),
+
+  /** Create / edit a narrow-only custom role (admin → Roles & Access). The server clamps
+   *  the grant set to the base role's permitted workspaces so it can never widen. */
+  secureSaveCustomRole: protectedProcedure.input(customRoleSaveInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    const ceiling = new Set(permittedWorkspaces(input.baseRole));
+    const grants = input.grants.filter((path) => ceiling.has(path as WorkspacePath)); // narrow-only clamp
+    const record = {
+      id: input.id ?? `custom-role-${tenantId}-${Date.now()}`,
+      tenantId, name: input.name, baseRole: input.baseRole, description: input.description ?? "", grants,
+    };
+    if (shouldPersist()) getAdminPersistence().saveCustomRole(record);
+    return record;
+  }),
+
+  /** Change a member's workspace role (admin → Users / Roles). Updates the grant row. */
+  secureSetGrantRole: protectedProcedure.input(roleChangeInput).mutation(({ ctx, input }) => {
+    const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
+    if (shouldPersist()) getAdminPersistence().setGrantRole(tenantId, input.userOpenId, input.workspaceRole);
+    return { tenantId, userOpenId: input.userOpenId, workspaceRole: input.workspaceRole };
+  }),
   // Content authoring writes (AUTHOR2). Tenant layer → client_admin (protected);
   // core layer → platform_admin (admin). preview = demo/public, mirroring branding.
   previewAuthorQuizTenant: demoPublicProcedure.input(authoringQuizWriteInput).mutation(({ input }) =>
