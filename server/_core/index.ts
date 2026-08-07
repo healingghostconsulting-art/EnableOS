@@ -11,6 +11,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { hydrateContentStore } from "../demoPlatform";
 import { digestHandler } from "../scheduledDigest";
+import { rateLimit, securityHeaders } from "./hardening";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,14 +38,18 @@ async function startServer() {
   // PERSIST2: load durable authoring overrides into the in-memory ContentStore
   // before serving (no-op when no DATABASE_URL). Never blocks startup on failure.
   await hydrateContentStore().catch((error) => console.warn("[ContentStore] hydration skipped:", error));
+  // Security headers on every response (Phase 3 hardening). Safe/inert for the SPA;
+  // HSTS + CSP (Report-Only by default) apply in production only.
+  app.use(securityHeaders);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  // tRPC API
+  // tRPC API — rate-limited per IP (generous; scoped here so storage/OAuth are untouched).
   app.use(
     "/api/trpc",
+    rateLimit,
     createExpressMiddleware({
       router: appRouter,
       createContext,
