@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { ChevronDown, Contrast, LogIn, LogOut, Search, Settings } from "lucide-react";
+import { ChevronDown, Contrast, LogIn, LogOut, Menu, Search, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -18,7 +18,7 @@ export function greetingFor(hour: number): string {
   return "Good evening";
 }
 
-export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLabel, avatar, notificationsHref }: {
+export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLabel, avatar, notificationsHref, onMenuClick }: {
   name: string;
   greeting: string;
   /** The gold-highlighted tail of the supportive subtitle (e.g. "great day"). */
@@ -28,18 +28,32 @@ export function TopBar({ name, greeting, subtitleTail, notificationCount, dateLa
   avatar: ReactNode;
   /** Optional "View all" target for the notification popover (the role's alerts). */
   notificationsHref?: string;
+  /** Opens the off-canvas nav drawer; the hamburger shows only below lg. */
+  onMenuClick?: () => void;
 }) {
   const { isAuthenticated, logout } = useAuth();
   const { grayscale, toggleGrayscale } = useGrayscale();
   const [location, setLocation] = useLocation();
   return (
-    <header className="flex flex-col gap-4 border-b border-[#1B303C]/8 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
-      <div>
-        <h1 className="text-[1.6rem] font-bold tracking-tight text-[#1B303C]">{greeting}, {name}!</h1>
-        <p className="mt-0.5 text-[14px] text-[#4A6373]">Let's make it a <span className="font-semibold text-[#7A5200]">{subtitleTail}</span>.</p>
+    <header className="flex flex-col gap-3 border-b border-[#1B303C]/8 bg-white px-4 py-3.5 sm:px-6 sm:py-4 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        {onMenuClick ? (
+          <button
+            type="button"
+            onClick={onMenuClick}
+            aria-label="Open navigation menu"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#1B303C]/12 bg-white text-[#1B303C] transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/30 motion-reduce:transition-none lg:hidden"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </button>
+        ) : null}
+        <div className="min-w-0">
+          <h1 className="truncate text-[1.3rem] font-bold tracking-tight text-[#1B303C] sm:text-[1.6rem]">{greeting}, {name}!</h1>
+          <p className="mt-0.5 truncate text-[13px] text-[#4A6373] sm:text-[14px]">Let's make it a <span className="font-semibold text-[#7A5200]">{subtitleTail}</span>.</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <div className="relative hidden sm:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4A6373]" aria-hidden="true" />
           <input
