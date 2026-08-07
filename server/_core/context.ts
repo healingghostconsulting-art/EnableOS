@@ -1,6 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import { sdk } from "./sdk";
+import { getAuthProvider } from "./authProvider";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -14,9 +14,12 @@ export async function createContext(
   let user: User | null = null;
 
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    // Authentication runs through the AUTH SEAM (server/_core/authProvider.ts), so a
+    // managed IdP can replace the demo OAuth via AUTH_PROVIDER without touching this
+    // call site. Provider returns null for an anonymous/invalid session.
+    user = await getAuthProvider().authenticate(opts.req);
   } catch (error) {
-    // Authentication is optional for public procedures.
+    // Belt-and-braces: authentication is optional for public procedures.
     user = null;
   }
 
