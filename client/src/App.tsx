@@ -10,6 +10,7 @@ import { ReminderBadgeProvider } from "./lib/reminderBadge";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { StatusLabelsProvider } from "./contexts/StatusLabelsContext";
 import { GrayscaleProvider } from "./contexts/GrayscaleContext";
+import { PlayerThemeProvider } from "./contexts/PlayerThemeContext";
 import { trpc } from "./lib/trpc";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
@@ -362,12 +363,14 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <GrayscaleProvider>
-          <StatusLabelsProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </StatusLabelsProvider>
+          <PlayerThemeProvider>
+            <StatusLabelsProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </StatusLabelsProvider>
+          </PlayerThemeProvider>
         </GrayscaleProvider>
       </ThemeProvider>
     </ErrorBoundary>
