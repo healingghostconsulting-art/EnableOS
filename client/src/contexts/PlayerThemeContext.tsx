@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 // GrayscaleContext (persisted user preference) but is deliberately SCOPED: it never
 // touches the document root or the app-wide ThemeContext/.dark. The player reads `theme`
 // and applies its own conditional CHCG tokens, so nothing outside the player is affected.
-// Default is "focus" — the dark focus mode.
+// Default is "light" (mode B) per PLAYER_SPEC §0.2; "focus" is the dark focus mode.
 
 export type PlayerTheme = "focus" | "light";
 
@@ -22,8 +22,8 @@ const PlayerThemeContext = createContext<PlayerThemeContextType | undefined>(und
 
 export function PlayerThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<PlayerTheme>(() => {
-    if (typeof window === "undefined") return "focus";
-    return window.localStorage.getItem(STORAGE_KEY) === "light" ? "light" : "focus";
+    if (typeof window === "undefined") return "light";
+    return window.localStorage.getItem(STORAGE_KEY) === "focus" ? "focus" : "light";
   });
 
   // Persist only. No document-root class — this preference is local to the player.

@@ -10,9 +10,10 @@ const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 describe("PlayerThemeContext (scoped, mirrors GrayscaleContext)", () => {
   const src = read("client/src/contexts/PlayerThemeContext.tsx");
 
-  it("persists enableos.player.theme and defaults to focus (dark)", () => {
+  it("persists enableos.player.theme and defaults to light (mode B) per spec", () => {
     expect(src).toContain('"enableos.player.theme"');
-    expect(src).toContain('return "focus"'); // SSR/default
+    expect(src).toContain('return "light"'); // SSR/default is light
+    expect(src).toContain('=== "focus" ? "focus" : "light"'); // stored focus wins, else light
     expect(src).toContain("localStorage.setItem");
     expect(src).toContain('type PlayerTheme = "focus" | "light"');
     expect(src).toContain("usePlayerTheme");
