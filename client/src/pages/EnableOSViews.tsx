@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
 import { demoNow } from "../../../shared/demoClock";
 import { useReminderBadge } from "@/lib/reminderBadge";
+import { usePlayerTheme } from "@/contexts/PlayerThemeContext";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -55,6 +56,8 @@ import {
   Gauge,
   Layers3,
   Maximize2,
+  Moon,
+  Sun,
   Minimize2,
   Mic,
   PauseCircle,
@@ -1159,6 +1162,22 @@ function SectionShell({
 function PremiumCard({ className = "", children, id }: { className?: string; children: React.ReactNode; id?: string }) {
   return (
     <Card id={id} className={`energy-frame border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] shadow-[0_28px_90px_rgba(27,48,60,0.18)] backdrop-blur-2xl ${className}`}>
+      {children}
+    </Card>
+  );
+}
+
+// Theme-aware surface for the /training player (PLAYER_SPEC dual-mode). Mirrors
+// PremiumCard's dark surface for mode A (focus) and a white v3 surface for mode B
+// (light); reads PlayerThemeContext so call sites just swap PremiumCard -> PlayerCard.
+// Only used inside TrainingExperienceView, so no other view is affected.
+function PlayerCard({ className = "", children, id }: { className?: string; children: React.ReactNode; id?: string }) {
+  const { isDark } = usePlayerTheme();
+  const surface = isDark
+    ? "border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] shadow-[0_28px_90px_rgba(27,48,60,0.18)]"
+    : "border-[#1B303C]/10 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
+  return (
+    <Card id={id} className={`energy-frame border backdrop-blur-2xl ${surface} ${className}`}>
       {children}
     </Card>
   );
@@ -3928,6 +3947,9 @@ export function TrainingExperienceView() {
   const [progressRailCollapsed, setProgressRailCollapsed] = useState(false);
   const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);
   const [focusedMode, setFocusedMode] = useState(false);
+  // PLAYER_SPEC dual-mode: light (default, mode B) vs dark focus (mode A). Scoped to the
+  // player via PlayerThemeContext; the header toggle flips + persists it.
+  const { isDark: playerDark, toggleTheme: togglePlayerTheme } = usePlayerTheme();
   const [evidenceOpen, setEvidenceOpen] = useState(false);
 
   // Focused (full-screen) mode: lock body scroll and allow Escape to exit.
@@ -5341,35 +5363,48 @@ export function TrainingExperienceView() {
         {access.isLoading || learner.isLoading ? <LoadingState /> : null}
         {!learner.isLoading && learner.data && selectedModule ? (
           <div className="space-y-4">
-            <PremiumCard className="overflow-hidden">
+            <PlayerCard className="overflow-hidden">
               <CardContent className="flex h-14 items-center justify-between gap-4 px-4 py-0">
-                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{selectedModuleTitle}</p>
-                <div className="hidden shrink-0 items-center gap-2 text-xs font-medium text-slate-300 md:flex">
+                <p className={`min-w-0 flex-1 truncate text-sm font-semibold ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{selectedModuleTitle}</p>
+                <div className={`hidden shrink-0 items-center gap-2 text-xs font-medium md:flex ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>
                   <span>Stage {stageIndex + 1} of {stages.length}</span>
-                  <span className="text-slate-600">·</span>
+                  <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
                   <span>{currentStagePages.length > 0 ? `Slide ${lessonPageIndex + 1}/${currentStagePages.length}` : "Ready"}</span>
-                  <span className="text-slate-600">·</span>
+                  <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
                   <span>{overallProgress}%</span>
-                  <span className="text-slate-600">·</span>
+                  <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
                   <span>{remainingRuntimeMinutes} min left</span>
                 </div>
+                {/* Light/Dark toggle pill (PLAYER_SPEC) — Sun in light (default), Moon in dark.
+                    role=switch + aria-checked announces state; ≥44px hit target; persisted. */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={playerDark}
+                  onClick={togglePlayerTheme}
+                  aria-label={`Player theme ${playerDark ? "dark" : "light"} — switch to ${playerDark ? "light" : "dark"} mode`}
+                  className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 motion-reduce:transition-none ${playerDark ? "border-white/15 bg-white/8 text-slate-100 hover:bg-white/14 focus-visible:ring-[#FCBC34]/60 focus-visible:ring-offset-[#0E2233]" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 focus-visible:ring-[#1B303C]/30 focus-visible:ring-offset-white"}`}
+                >
+                  {playerDark ? <Moon className="h-4 w-4" aria-hidden="true" /> : <Sun className="h-4 w-4 text-[#7A5200]" aria-hidden="true" />}
+                  <span className="hidden sm:inline">{playerDark ? "Dark" : "Light"}</span>
+                </button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setFocusedMode(true)}
                   aria-label="Enter focused full-screen mode"
-                  className="hidden shrink-0 rounded-full border-cyan-300/25 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20 hover:text-white sm:inline-flex"
+                  className={`hidden shrink-0 rounded-full sm:inline-flex ${playerDark ? "border-cyan-300/25 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20 hover:text-white" : "border-[#7A5200]/25 bg-amber-50/60 text-[#7A5200] hover:bg-amber-100/60"}`}
                 >
                   <Maximize2 className="h-3.5 w-3.5" /> Focus
                 </Button>
                 <Link href={buildLearnerWorkspaceReturnPath({ freshStart: requestedFreshStart })} className="shrink-0">
-                  <Button variant="outline" size="sm" className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">
+                  <Button variant="outline" size="sm" className={`rounded-full ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50"}`}>
                     Back to learner
                   </Button>
                 </Link>
               </CardContent>
-            </PremiumCard>
+            </PlayerCard>
             <div className={`grid gap-4 xl:items-start ${railCollapsed ? (progressRailCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "xl:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
               <aside className="xl:sticky xl:top-6">
                 <PremiumCard className="h-fit">
