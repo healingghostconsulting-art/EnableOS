@@ -55,6 +55,7 @@ import {
   Clock3,
   Gauge,
   Layers3,
+  Check,
   Maximize2,
   Moon,
   Sun,
@@ -5407,39 +5408,42 @@ export function TrainingExperienceView() {
             </PlayerCard>
             <div className={`grid gap-4 xl:items-start ${railCollapsed ? (progressRailCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "xl:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
               <aside className="xl:sticky xl:top-6">
-                <PremiumCard className="h-fit">
+                <PlayerCard className="h-fit">
                   <CardContent className="space-y-4 p-3">
                     <button
                       type="button"
                       onClick={() => setRailCollapsed((current) => !current)}
                       aria-expanded={!railCollapsed}
                       aria-label={railCollapsed ? "Expand navigation rail" : "Collapse navigation rail"}
-                      className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-slate-300 transition hover:bg-white/5"
+                      className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-2 py-1.5 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-300 hover:bg-white/5 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}
                     >
-                      {!railCollapsed ? <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-subtle-dark">Navigation</span> : null}
+                      {!railCollapsed ? <span className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Navigation</span> : null}
                       <ChevronLeft className={`h-4 w-4 shrink-0 transition-transform ${railCollapsed ? "rotate-180" : ""}`} />
                     </button>
                     <div className="space-y-1.5">
-                      {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Stages</p> : null}
+                      {!railCollapsed ? <p className={`px-2 text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Stages</p> : null}
                       {stages.map((stage, index) => {
                         const stagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === stage.id);
                         const isActiveStage = index === stageIndex;
+                        // Accessible active cue (PLAYER_SPEC): gold pill + navy ink + trailing
+                        // check + aria-current, ≥44px — reads under grayscale, not color alone.
                         return (
                           <button
                             key={stage.id}
                             type="button"
                             title={stage.label}
+                            aria-current={isActiveStage ? "page" : undefined}
                             onClick={() => {
                               setStageIndex(index);
                               setLessonPageIndex(0);
                             }}
-                            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActiveStage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                            className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition focus:outline-none focus-visible:ring-2 ${isActiveStage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}
                           >
-                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActiveStage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{index + 1}</span>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActiveStage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{index + 1}</span>
                             {!railCollapsed ? (
                               <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
                                 <span className="truncate">{stage.label}</span>
-                                {stagePlan ? <span className={`shrink-0 text-[10px] uppercase tracking-[0.14em] ${isActiveStage ? "text-slate-600" : "text-cyan-100/70"}`}>{stagePlan.durationLabel}</span> : null}
+                                {isActiveStage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : stagePlan ? <span className={`shrink-0 text-[10px] uppercase tracking-[0.14em] ${playerDark ? "text-cyan-100/70" : "text-[#7A5200]"}`}>{stagePlan.durationLabel}</span> : null}
                               </span>
                             ) : null}
                           </button>
@@ -5447,8 +5451,8 @@ export function TrainingExperienceView() {
                       })}
                     </div>
                     {currentStagePages.length > 0 ? (
-                      <div className="space-y-1.5 border-t border-white/10 pt-3">
-                        {!railCollapsed ? <p className="px-2 text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Pages</p> : null}
+                      <div className={`space-y-1.5 border-t pt-3 ${playerDark ? "border-white/10" : "border-[#1B303C]/8"}`}>
+                        {!railCollapsed ? <p className={`px-2 text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Pages</p> : null}
                         {([
                           { key: "brief", label: "Overview" },
                           { key: "lesson", label: "Lesson" },
@@ -5461,11 +5465,12 @@ export function TrainingExperienceView() {
                               key={page.key}
                               type="button"
                               title={page.label}
+                              aria-current={isActivePage ? "page" : undefined}
                               onClick={() => setTrainingWorkspacePage(page.key)}
-                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${isActivePage ? "bg-white font-semibold text-slate-950 shadow-[0_10px_24px_rgba(255,255,255,0.12)]" : "text-slate-200 hover:bg-white/10"}`}
+                              className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition focus:outline-none focus-visible:ring-2 ${isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}
                             >
-                              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-slate-950 text-white" : "bg-white/10 text-slate-300"}`}>{page.label[0]}</span>
-                              {!railCollapsed ? <span className="truncate">{page.label}</span> : null}
+                              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{page.label[0]}</span>
+                              {!railCollapsed ? <span className="flex min-w-0 flex-1 items-center justify-between gap-1"><span className="truncate">{page.label}</span>{isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}</span> : null}
                             </button>
                           );
                         })}
@@ -5474,13 +5479,13 @@ export function TrainingExperienceView() {
                             type="button"
                             title="Curriculum"
                             onClick={openCurriculumViewer}
-                            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs text-slate-200 transition hover:bg-white/10"
+                            className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}
                           >
-                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-slate-300"><BookOpen className="h-3.5 w-3.5" /></span>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}><BookOpen className="h-3.5 w-3.5" /></span>
                             {!railCollapsed ? (
                               <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
                                 <span className="truncate">Curriculum</span>
-                                <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-subtle-dark">{curriculumDeck.length}</span>
+                                <span className={`shrink-0 text-[10px] uppercase tracking-[0.14em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>{curriculumDeck.length}</span>
                               </span>
                             ) : null}
                           </button>
@@ -5488,7 +5493,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
                   </CardContent>
-                </PremiumCard>
+                </PlayerCard>
               </aside>
               <div className="space-y-6">
                 <PremiumCard>
