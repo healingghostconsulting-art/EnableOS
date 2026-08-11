@@ -23,6 +23,7 @@ import { buildReminders, type Reminder, type ReminderType } from "../../../share
 import { demoNow } from "../../../shared/demoClock";
 import { useReminderBadge } from "@/lib/reminderBadge";
 import { usePlayerTheme } from "@/contexts/PlayerThemeContext";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Modal";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -5496,14 +5497,14 @@ export function TrainingExperienceView() {
                 </PlayerCard>
               </aside>
               <div className="space-y-6">
-                <PremiumCard>
+                <PlayerCard>
                   <CardHeader className="pb-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="text-base font-semibold text-white md:text-lg">Lesson canvas · {currentStage?.title}</CardTitle>
-                        <CardDescription className="mt-1 line-clamp-2 max-w-3xl text-xs leading-5 text-slate-400 md:text-sm">{currentStage?.body}</CardDescription>
+                        <CardTitle className={`text-base font-semibold md:text-lg ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Lesson canvas · {currentStage?.title}</CardTitle>
+                        <CardDescription className={`mt-1 line-clamp-2 max-w-3xl text-xs leading-5 md:text-sm ${playerDark ? "text-slate-400" : "text-[#4A6373]"}`}>{currentStage?.body}</CardDescription>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-200">{currentStage?.label}</Badge>
+                      <Badge className={`rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] ${playerDark ? "border-white/10 bg-white/8 text-slate-200" : "border-[#1B303C]/10 bg-[#1B303C]/5 text-[#1B303C]"}`}>{currentStage?.label}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 pt-0">
@@ -6348,7 +6349,7 @@ export function TrainingExperienceView() {
                       />
                     ) : null}
                   </CardContent>
-                </PremiumCard>
+                </PlayerCard>
 
                 <PremiumCard className={trainingWorkspacePage === "resources" ? "overflow-hidden" : "hidden overflow-hidden"}>
                   <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.32))]">
@@ -6574,12 +6575,19 @@ export function TrainingExperienceView() {
           </div>
         ) : null}
 
-        <Dialog open={slideLightboxOpen} onOpenChange={setSlideLightboxOpen}>
-          <DialogContent className="max-h-[96vh] border-white/10 bg-slate-950 p-3 text-slate-100 sm:max-w-[min(95vw,1400px)]">
-            <DialogHeader>
-              <DialogTitle className="text-white">{activeInteractiveVisual?.title ?? "Lesson slide"}</DialogTitle>
-              <DialogDescription className="text-slate-400">{activeInteractiveVisual?.pageLabel ?? ""}{activeInteractiveVisual ? ` · ${activeInteractiveVisual.sourceDeck}` : ""} · Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</DialogDescription>
-            </DialogHeader>
+        {/* Enlarge lightbox (PLAYER_SPEC) — v3 Modal with tone tracking the player theme;
+            paging lives in the footer. The deck visual itself stays light in both modes. */}
+        <Modal
+          open={slideLightboxOpen}
+          onOpenChange={setSlideLightboxOpen}
+          tone={playerDark ? "dark" : "light"}
+          className="max-h-[96vh] sm:max-w-[min(95vw,1400px)]"
+        >
+          <ModalHeader
+            title={activeInteractiveVisual?.title ?? "Lesson slide"}
+            description={`${activeInteractiveVisual?.pageLabel ?? ""}${activeInteractiveVisual ? ` · ${activeInteractiveVisual.sourceDeck}` : ""} · Visual ${activeInteractiveVisualIndex + 1} of ${interactiveGalleryVisuals.length}`}
+          />
+          <ModalBody>
             <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black">
               {activeScorecard ? (
                 <KpiScorecard scorecard={activeScorecard} clientName={kpiProfile.clientName} note={kpiProfile.note} />
@@ -6587,16 +6595,19 @@ export function TrainingExperienceView() {
                 <TrainingVisualFrame visual={activeInteractiveVisual} />
               ) : null}
             </div>
-            <DialogFooter className="sm:justify-between">
-              <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm text-white transition hover:bg-white/12 disabled:opacity-40">
+          </ModalBody>
+          <ModalFooter
+            between={
+              <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition focus:outline-none focus-visible:ring-2 disabled:opacity-40 ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 focus-visible:ring-[#FCBC34]/60" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 focus-visible:ring-[#1B303C]/30"}`}>
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
-              <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm text-white transition hover:bg-white/12 disabled:opacity-40">
-                Next <ChevronRight className="h-4 w-4" />
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            }
+          >
+            <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition focus:outline-none focus-visible:ring-2 disabled:opacity-40 ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 focus-visible:ring-[#FCBC34]/60" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 focus-visible:ring-[#1B303C]/30"}`}>
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          </ModalFooter>
+        </Modal>
 
         <Dialog open={curriculumViewerOpen} onOpenChange={setCurriculumViewerOpen}>
           <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl">

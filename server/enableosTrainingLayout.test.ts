@@ -954,9 +954,10 @@ describe("learner training layout helpers", () => {
     // Large fitted slide (aspect-video, object-contain) — the forced horizontal-scroll frame is gone.
     expect(trainingViewSource).toContain("flex aspect-video w-full items-center justify-center bg-black/40");
     expect(trainingViewSource).not.toContain("min-w-[980px]");
-    // Click-to-enlarge full-screen lightbox.
+    // Click-to-enlarge full-screen lightbox — the v3 Modal with a theme-tracking tone.
     expect(trainingViewSource).toContain("const [slideLightboxOpen, setSlideLightboxOpen] = useState(false)");
-    expect(trainingViewSource).toContain("<Dialog open={slideLightboxOpen} onOpenChange={setSlideLightboxOpen}>");
+    expect(trainingViewSource).toContain("open={slideLightboxOpen}");
+    expect(trainingViewSource).toContain('tone={playerDark ? "dark" : "light"}');
     expect(trainingViewSource).toContain("setSlideLightboxOpen(true)");
     // Compact thumbnail strip for quick jumping.
     expect(trainingViewSource).toContain("Go to slide ${index + 1}");
