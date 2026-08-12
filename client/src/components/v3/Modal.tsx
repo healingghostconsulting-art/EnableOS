@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useContext } from "react";
+import { type CSSProperties, type ReactNode, createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -21,6 +21,16 @@ const SURFACE: Record<ModalTone, string> = {
   dark: "border-white/10 bg-[#0E2233] text-white",
 };
 
+// DialogContent ships `bg-background` (white under the app's light theme). twMerge dedupes
+// it against the light surface's `bg-white` (a known color) but NOT against the dark
+// surface's arbitrary `bg-[#0E2233]`, so in dark tone both survive and the white
+// `bg-background` wins the cascade. Pin the dark background with an inline style — it beats
+// any class — so the dark modal chrome (e.g. the training Enlarge lightbox) is actually navy.
+const SURFACE_STYLE: Record<ModalTone, CSSProperties | undefined> = {
+  light: undefined,
+  dark: { backgroundColor: "#0E2233" },
+};
+
 export function Modal({ open, onOpenChange, size = "md", tone = "light", className, children }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,7 +42,7 @@ export function Modal({ open, onOpenChange, size = "md", tone = "light", classNa
   return (
     <ModalToneContext.Provider value={tone}>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={cn("gap-0 overflow-hidden p-0", SURFACE[tone], SIZES[size], className)}>
+        <DialogContent className={cn("gap-0 overflow-hidden p-0", SURFACE[tone], SIZES[size], className)} style={SURFACE_STYLE[tone]}>
           {children}
         </DialogContent>
       </Dialog>

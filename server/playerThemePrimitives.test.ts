@@ -47,4 +47,21 @@ describe("Modal tone prop (light default + dark variant)", () => {
     expect(src).toContain("ModalToneContext");
     expect(src).toContain("useContext(ModalToneContext)");
   });
+
+  it("pins the dark surface with an inline style so DialogContent's bg-background can't win", () => {
+    // twMerge dedupes bg-white (known color) against bg-background, but NOT the arbitrary
+    // bg-[#0E2233] — so the dark tone needs an inline style to actually render navy.
+    expect(src).toContain('backgroundColor: "#0E2233"');
+    expect(src).toContain("style={SURFACE_STYLE[tone]}");
+  });
+});
+
+describe("Enlarge lightbox tone tracks the player theme", () => {
+  const player = read("client/src/pages/EnableOSViews.tsx");
+
+  it("passes tone={playerDark ? dark : light} to the lightbox Modal", () => {
+    expect(player).toContain('tone={playerDark ? "dark" : "light"}');
+    // The deck visual frame stays a black photo-frame inside the (now navy) chrome.
+    expect(player).toContain("open={slideLightboxOpen}");
+  });
 });
