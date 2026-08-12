@@ -6362,74 +6362,74 @@ export function TrainingExperienceView() {
                   </CardContent>
                 </PlayerCard>
 
-                <PremiumCard className={trainingWorkspacePage === "resources" ? "overflow-hidden" : "hidden overflow-hidden"}>
-                  <CardHeader className="border-b border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.32))]">
+                <PlayerCard className={trainingWorkspacePage === "resources" ? "overflow-hidden" : "hidden overflow-hidden"}>
+                  <CardHeader className={`border-b ${playerDark ? "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(15,23,42,0.32))]" : "border-[#1B303C]/8 bg-[#FBFCFD]"}`}>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="max-w-2xl">
-                        <CardTitle className="text-white">Deep resources and transfer actions</CardTitle>
-                        <CardDescription className="mt-2 text-slate-300">The training now carries more of the underlying presentation substance into visible resources, coaching moves, evidence labels, and role-ready follow-through actions.</CardDescription>
+                        <CardTitle className={playerDark ? "text-white" : "text-[#1B303C]"}>Deep resources and transfer actions</CardTitle>
+                        <CardDescription className={`mt-2 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>The training now carries more of the underlying presentation substance into visible resources, coaching moves, evidence labels, and role-ready follow-through actions.</CardDescription>
                       </div>
-                      <Badge className="rounded-full border-white/10 bg-white/8 text-slate-100">{presentation?.resourceActions.length ?? 0} transfer prompts embedded</Badge>
+                      <Badge className={`rounded-full ${playerDark ? "border-white/10 bg-white/8 text-slate-100" : "border-[#1B303C]/10 bg-[#1B303C]/5 text-[#1B303C]"}`}>{presentation?.resourceActions.length ?? 0} transfer prompts embedded</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 p-6">
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                       <div className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm font-medium text-white">CHCG structure</p>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
+                        <div className={`rounded-[1.6rem] border p-5 ${playerDark ? "border-white/10 bg-white/5" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                          <p className={`text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>CHCG structure</p>
+                          <p className={`mt-2 text-sm leading-6 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>Core methodology sets the skill objective, instructional framing, and behavior expectations.</p>
                         </div>
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm font-medium text-white">Tenant context</p>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">Client-uploaded content provides scenario language, launch specifics, and operational cues that localize the lesson.</p>
+                        <div className={`rounded-[1.6rem] border p-5 ${playerDark ? "border-white/10 bg-white/5" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                          <p className={`text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Tenant context</p>
+                          <p className={`mt-2 text-sm leading-6 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>Client-uploaded content provides scenario language, launch specifics, and operational cues that localize the lesson.</p>
                         </div>
-                        <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
-                          <p className="text-sm font-medium text-white">Observable output</p>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
+                        <div className={`rounded-[1.6rem] border p-5 ${playerDark ? "border-white/10 bg-white/5" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                          <p className={`text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Observable output</p>
+                          <p className={`mt-2 text-sm leading-6 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>Every lesson ends with a behavior commitment that can roll into coaching logs, interventions, and review evidence.</p>
                         </div>
                       </div>
-                      <div className="rounded-[1.7rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/80">Why this matters in-product</p>
-                        <h4 className="mt-3 text-lg font-medium text-white">The course now closes with explicit transfer architecture</h4>
-                        <p className="mt-3 text-sm leading-7 text-slate-100">Learners leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
+                      <div className={`rounded-[1.7rem] border p-5 ${playerDark ? "border-cyan-400/20 bg-cyan-400/10" : "border-cyan-200 bg-cyan-50"}`}>
+                        <p className={`text-[11px] uppercase tracking-[0.24em] ${playerDark ? "text-cyan-100/80" : "text-cyan-800"}`}>Why this matters in-product</p>
+                        <h4 className={`mt-3 text-lg font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>The course now closes with explicit transfer architecture</h4>
+                        <p className={`mt-3 text-sm leading-7 ${playerDark ? "text-slate-100" : "text-[#4A6373]"}`}>Learners leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
                         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Narration proof</p>
-                            <p className="mt-2 text-sm text-white">Each guided page carries voice-ready script support rather than detached audio-only playback.</p>
+                          <div className={`rounded-[1.2rem] border px-4 py-3 ${playerDark ? "border-white/10 bg-slate-950/45" : "border-cyan-200/70 bg-white"}`}>
+                            <p className={`text-[11px] uppercase tracking-[0.2em] ${playerDark ? "text-cyan-100/75" : "text-cyan-800"}`}>Narration proof</p>
+                            <p className={`mt-2 text-sm ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Each guided page carries voice-ready script support rather than detached audio-only playback.</p>
                           </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Checkpoint proof</p>
-                            <p className="mt-2 text-sm text-white">Modal quiz gates confirm comprehension before learners move into the next stage.</p>
+                          <div className={`rounded-[1.2rem] border px-4 py-3 ${playerDark ? "border-white/10 bg-slate-950/45" : "border-cyan-200/70 bg-white"}`}>
+                            <p className={`text-[11px] uppercase tracking-[0.2em] ${playerDark ? "text-cyan-100/75" : "text-cyan-800"}`}>Checkpoint proof</p>
+                            <p className={`mt-2 text-sm ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Modal quiz gates confirm comprehension before learners move into the next stage.</p>
                           </div>
-                          <div className="rounded-[1.2rem] border border-white/10 bg-slate-950/45 px-4 py-3">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/75">Coaching proof</p>
-                            <p className="mt-2 text-sm text-white">Reflection commitments and coach prompts stay visible for manager follow-through.</p>
+                          <div className={`rounded-[1.2rem] border px-4 py-3 ${playerDark ? "border-white/10 bg-slate-950/45" : "border-cyan-200/70 bg-white"}`}>
+                            <p className={`text-[11px] uppercase tracking-[0.2em] ${playerDark ? "text-cyan-100/75" : "text-cyan-800"}`}>Coaching proof</p>
+                            <p className={`mt-2 text-sm ${playerDark ? "text-white" : "text-[#1B303C]"}`}>Reflection commitments and coach prompts stay visible for manager follow-through.</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       {presentation?.resourceActions.map((resource, index) => (
-                        <div key={resource.id} className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(15,23,42,0.62))] p-5 shadow-[0_18px_45px_rgba(2,8,23,0.18)]">
+                        <div key={resource.id} className={`rounded-[1.6rem] border p-5 ${playerDark ? "border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.78),rgba(15,23,42,0.62))] shadow-[0_18px_45px_rgba(2,8,23,0.18)]" : "border-[#1B303C]/10 bg-[#FBFCFD] shadow-[0_10px_28px_rgba(15,23,42,0.05)]"}`}>
                           <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Transfer action</p>
+                            <p className={`text-xs uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Transfer action</p>
                             <div className="flex items-center gap-2">
-                              <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">Outcome pack</Badge>
-                              <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">{String(index + 1).padStart(2, "0")}</Badge>
+                              <Badge className={`rounded-full ${playerDark ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-100" : "border-cyan-200 bg-cyan-50 text-cyan-800"}`}>Outcome pack</Badge>
+                              <Badge variant="outline" className={`rounded-full ${playerDark ? "border-white/10 bg-white/6 text-slate-200" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>{String(index + 1).padStart(2, "0")}</Badge>
                             </div>
                           </div>
-                          <h4 className="mt-3 text-lg font-medium text-white">{resource.label}</h4>
-                          <p className="mt-3 text-sm leading-6 text-slate-300">{resource.detail}</p>
+                          <h4 className={`mt-3 text-lg font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{resource.label}</h4>
+                          <p className={`mt-3 text-sm leading-6 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>{resource.detail}</p>
                           <div className="mt-4 flex flex-wrap gap-2">
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Narration-ready handoff</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Coach follow-through</Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/6 text-slate-200">Operational proof</Badge>
+                            <Badge variant="outline" className={`rounded-full ${playerDark ? "border-white/10 bg-white/6 text-slate-200" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>Narration-ready handoff</Badge>
+                            <Badge variant="outline" className={`rounded-full ${playerDark ? "border-white/10 bg-white/6 text-slate-200" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>Coach follow-through</Badge>
+                            <Badge variant="outline" className={`rounded-full ${playerDark ? "border-white/10 bg-white/6 text-slate-200" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>Operational proof</Badge>
                           </div>
                         </div>
                       ))}
                     </div>
                   </CardContent>
-                </PremiumCard>
+                </PlayerCard>
               </div>
 
               <PremiumCard className="2xl:sticky 2xl:top-6 h-fit">
