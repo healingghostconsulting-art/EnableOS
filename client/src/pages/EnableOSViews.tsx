@@ -24,6 +24,7 @@ import { demoNow } from "../../../shared/demoClock";
 import { useReminderBadge } from "@/lib/reminderBadge";
 import { usePlayerTheme } from "@/contexts/PlayerThemeContext";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Modal";
+import { StatusMark } from "@/components/v3/StatusMark";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6432,52 +6433,52 @@ export function TrainingExperienceView() {
                 </PlayerCard>
               </div>
 
-              <PremiumCard className="2xl:sticky 2xl:top-6 h-fit">
+              <PlayerCard className="2xl:sticky 2xl:top-6 h-fit">
                 {progressRailCollapsed ? (
                   <CardContent className="flex flex-col items-center gap-2 p-2">
-                    <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10">
+                    <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className={`min-h-[44px] min-w-[44px] rounded-lg p-2 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-300 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="text-[10px] uppercase tracking-[0.16em] text-subtle-dark">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
+                    <span className={`text-[10px] uppercase tracking-[0.16em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
                   </CardContent>
                 ) : (
                   <>
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-2">
-                          <CardTitle className="text-white">Progress rail</CardTitle>
-                          <CardDescription className="text-slate-400">Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
+                          <CardTitle className={playerDark ? "text-white" : "text-[#1B303C]"}>Progress rail</CardTitle>
+                          <CardDescription className={playerDark ? "text-slate-400" : "text-[#4A6373]"}>Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
                         </div>
-                        <button type="button" onClick={() => setProgressRailCollapsed(true)} aria-label="Collapse progress rail" className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-white/10">
+                        <button type="button" onClick={() => setProgressRailCollapsed(true)} aria-label="Collapse progress rail" className={`shrink-0 rounded-lg p-1.5 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-400 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
                           <ChevronRight className="h-4 w-4" />
                         </button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Next</p>
-                        <p className="mt-2 text-sm font-medium text-white">{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
+                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Next</p>
+                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Time left</p>
-                        <p className="mt-2 text-sm font-medium text-white">{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
+                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Time left</p>
+                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Score</p>
-                        <p className="mt-2 text-sm font-medium text-white">{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
+                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Score</p>
+                        <p className={`mt-2 flex items-center gap-1.5 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}><StatusMark status={finalQuizSubmitted ? "positive" : "neutral"} showLabel={false} className="shrink-0" />{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-4">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Reward</p>
-                        <p className="mt-2 text-sm font-medium text-white">{currentStageItemCountLabel}</p>
+                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
+                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Reward</p>
+                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{currentStageItemCountLabel}</p>
                       </div>
                       <div className="space-y-2 pt-2">
-                        <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className="w-full rounded-[1rem] bg-white text-slate-950 hover:bg-slate-100">Continue</Button>
-                        <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className="w-full rounded-[1rem] border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white">{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
+                        <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className={`w-full rounded-[1rem] ${playerDark ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"}`}>Continue</Button>
+                        <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className={`w-full rounded-[1rem] ${playerDark ? "border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50"}`}>{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
                       </div>
                     </CardContent>
                   </>
                 )}
-              </PremiumCard>
+              </PlayerCard>
             </div>
             <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/40">
               <button
