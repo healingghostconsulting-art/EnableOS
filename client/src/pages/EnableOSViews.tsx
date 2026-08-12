@@ -5419,8 +5419,17 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PlayerCard>
-            <div className={`grid gap-4 xl:items-start ${railCollapsed ? (progressRailCollapsed ? "xl:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "xl:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "xl:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
-              <aside className="xl:sticky xl:top-6">
+            {/* Mobile stat strip (< lg): the Progress rail's key metrics as a compact row,
+                since the full rail is desktop-only below (PLAYER_SPEC Phase 4). */}
+            <div role="group" aria-label="Lesson progress" className={`flex items-center gap-3 overflow-x-auto rounded-2xl border px-4 py-3 text-xs lg:hidden ${playerDark ? "border-white/10 bg-white/[0.03] text-slate-300" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><StatusMark status={finalQuizSubmitted ? "positive" : "neutral"} showLabel={false} className="shrink-0" /><span className={`font-semibold ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{finalQuizSubmitted ? `${activeModalScore}%` : `${overallProgress}%`}</span></span>
+              <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
+              <span className="whitespace-nowrap">Stage {stageIndex + 1}/{stages.length}</span>
+              <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
+              <span className="whitespace-nowrap">{remainingRuntimeMinutes} min left</span>
+            </div>
+            <div className={`grid gap-4 lg:items-start ${railCollapsed ? (progressRailCollapsed ? "lg:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
+              <aside className="lg:sticky lg:top-6">
                 <PlayerCard className="h-fit">
                   <CardContent className="space-y-4 p-3">
                     <button
@@ -6433,7 +6442,7 @@ export function TrainingExperienceView() {
                 </PlayerCard>
               </div>
 
-              <PlayerCard className="2xl:sticky 2xl:top-6 h-fit">
+              <PlayerCard className="hidden h-fit lg:block lg:sticky lg:top-6">
                 {progressRailCollapsed ? (
                   <CardContent className="flex flex-col items-center gap-2 p-2">
                     <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className={`min-h-[44px] min-w-[44px] rounded-lg p-2 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-300 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
