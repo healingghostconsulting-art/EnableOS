@@ -56,6 +56,25 @@ describe("Modal tone prop (light default + dark variant)", () => {
   });
 });
 
+describe("v3 prop deltas for the player reformat (additive, default no-op)", () => {
+  it("WidgetCard adds titleStyle spread onto the title element (KPI opt-out of card-title type)", () => {
+    const src = read("client/src/components/v3/WidgetCard.tsx");
+    expect(src).toContain("titleStyle?: CSSProperties");
+    expect(src).toContain("titleStyle = {}"); // default no-op — existing call sites unchanged
+    expect(src).toContain("style={titleStyle}"); // applied to the <h2> title element
+  });
+
+  it("InfoTile adds onDark for navy-card placement (default false = unchanged light tile)", () => {
+    const src = read("client/src/components/v3/InfoTile.tsx");
+    expect(src).toContain("onDark?: boolean");
+    expect(src).toContain("onDark = false"); // default no-op
+    expect(src).toContain("bg-white/[0.06]"); // translucent card wash on dark
+    expect(src).toContain("border-white/[0.12]"); // hairline on dark
+    expect(src).toContain('onDark ? "text-white"'); // value flips to #fff
+    expect(src).toContain("text-[#94a3b8]"); // muted caption on dark
+  });
+});
+
 describe("Enlarge lightbox tone tracks the player theme", () => {
   const player = read("client/src/pages/EnableOSViews.tsx");
 
