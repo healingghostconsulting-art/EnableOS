@@ -2702,7 +2702,7 @@ function AssessmentPanel({
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-4 grid gap-3">
+                <div className="mt-4 grid gap-3" role="radiogroup" aria-label={question.prompt} aria-readonly={submitted || undefined}>
                   {questionOptions.map((option: any) => {
                     const selected = answerValue === option.id;
                     const isCorrect = option.id === question.correctOptionId;
@@ -2724,8 +2724,10 @@ function AssessmentPanel({
                       <button
                         key={option.id}
                         type="button"
-                        onClick={() => onAnswer(question.id, option.id)}
-                        className={`min-w-0 overflow-hidden rounded-[1.4rem] border p-4 text-left transition ${stateClass}`}
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={submitted ? undefined : () => onAnswer(question.id, option.id)}
+                        className={`min-w-0 overflow-hidden rounded-[1.4rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 ${stateClass}`}
                       >
                         {submitted && (isCorrect || selected) ? (
                           <div className="mb-2 flex flex-wrap gap-2">
@@ -2776,9 +2778,18 @@ function AssessmentPanel({
             </div>
           </div>
           {submitted ? (
-            <div className={`relative mt-4 overflow-hidden rounded-2xl border p-4 ${resultStyles.containerClass}`}>
+            <div
+              role={passed ? "status" : "alert"}
+              aria-live={passed ? "polite" : "assertive"}
+              className={`relative mt-4 overflow-hidden rounded-2xl border p-4 ${resultStyles.containerClass}`}
+            >
               <CorrectAnswerCelebration active={showAssessmentCelebration} compact={compact} />
-              <p className={`text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
+              {/* Verdict is never color-only: a distinct glyph + text label lead the block. */}
+              <p className={`flex items-center gap-2 text-sm font-semibold ${resultStyles.scoreClass}`}>
+                {passed ? <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" /> : <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                {passed ? "Passed" : "Retry needed"}
+              </p>
+              <p className={`mt-1 text-sm font-medium ${resultStyles.scoreClass}`}>Score: {score}/{assessment.questions.length}</p>
               <p className={`mt-2 text-sm leading-6 ${resultStyles.bodyClass}`}>
                 {passed ? assessment.passMessage : assessment.failMessage}
               </p>
