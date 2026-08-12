@@ -25,6 +25,7 @@ import { useReminderBadge } from "@/lib/reminderBadge";
 import { usePlayerTheme } from "@/contexts/PlayerThemeContext";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Modal";
 import { StatusMark } from "@/components/v3/StatusMark";
+import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -58,6 +59,7 @@ import {
   Gauge,
   Layers3,
   Check,
+  List,
   Maximize2,
   Moon,
   Sun,
@@ -3964,6 +3966,8 @@ export function TrainingExperienceView() {
   // PLAYER_SPEC dual-mode: light (default, mode B) vs dark focus (mode A). Scoped to the
   // player via PlayerThemeContext; the header toggle flips + persists it.
   const { isDark: playerDark, toggleTheme: togglePlayerTheme } = usePlayerTheme();
+  // Below lg the Contents nav collapses into an off-canvas drawer (PLAYER_SPEC Phase 4).
+  const [contentsDrawerOpen, setContentsDrawerOpen] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
 
   // Focused (full-screen) mode: lock body scroll and allow Escape to exit.
@@ -5419,6 +5423,53 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PlayerCard>
+            {/* Contents drawer (< lg) — the Stages + Pages nav as an off-canvas Sheet on
+                narrow viewports (PLAYER_SPEC Phase 4); the desktop aside is hidden below lg. */}
+            <Sheet open={contentsDrawerOpen} onOpenChange={setContentsDrawerOpen}>
+              <SheetTrigger asChild>
+                <button type="button" className={`inline-flex min-h-[44px] items-center gap-2 self-start rounded-full border px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 lg:hidden ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 focus-visible:ring-[#FCBC34]/60" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 focus-visible:ring-[#1B303C]/30"}`}>
+                  <List className="h-4 w-4" aria-hidden="true" /> Contents
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className={`w-72 max-w-[85vw] gap-0 overflow-y-auto border-0 p-4 ${playerDark ? "bg-[linear-gradient(180deg,#0E2233,#0A1826)] text-white" : "bg-white text-[#1B303C]"}`}>
+                <SheetTitle className={playerDark ? "text-white" : "text-[#1B303C]"}>Contents</SheetTitle>
+                <SheetDescription className={`text-xs ${playerDark ? "text-slate-400" : "text-[#4A6373]"}`}>Jump between stages and lesson pages.</SheetDescription>
+                <div className="mt-4 space-y-1.5">
+                  <p className={`px-2 text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Stages</p>
+                  {stages.map((stage, index) => {
+                    const isActiveStage = index === stageIndex;
+                    return (
+                      <button key={stage.id} type="button" aria-current={isActiveStage ? "page" : undefined} onClick={() => { setStageIndex(index); setLessonPageIndex(0); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${isActiveStage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActiveStage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{index + 1}</span>
+                        <span className="flex-1 truncate">{stage.label}</span>
+                        {isActiveStage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
+                      </button>
+                    );
+                  })}
+                  {currentStagePages.length > 0 ? (
+                    <>
+                      <p className={`mt-3 px-2 text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Pages</p>
+                      {([{ key: "brief", label: "Overview" }, { key: "lesson", label: "Lesson" }, { key: "checkpoint", label: "Checkpoint" }, { key: "resources", label: "Resources" }] as const).map((page) => {
+                        const isActivePage = trainingWorkspacePage === page.key;
+                        return (
+                          <button key={page.key} type="button" aria-current={isActivePage ? "page" : undefined} onClick={() => { setTrainingWorkspacePage(page.key); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{page.label[0]}</span>
+                            <span className="flex-1 truncate">{page.label}</span>
+                            {isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
+                          </button>
+                        );
+                      })}
+                      {curriculumDeck.length ? (
+                        <button type="button" onClick={() => { openCurriculumViewer(); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
+                          <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}><BookOpen className="h-3.5 w-3.5" /></span>
+                          <span className="flex-1 truncate">Curriculum</span>
+                        </button>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              </SheetContent>
+            </Sheet>
             {/* Mobile stat strip (< lg): the Progress rail's key metrics as a compact row,
                 since the full rail is desktop-only below (PLAYER_SPEC Phase 4). */}
             <div role="group" aria-label="Lesson progress" className={`flex items-center gap-3 overflow-x-auto rounded-2xl border px-4 py-3 text-xs lg:hidden ${playerDark ? "border-white/10 bg-white/[0.03] text-slate-300" : "border-[#1B303C]/10 bg-white text-[#4A6373]"}`}>
@@ -5429,7 +5480,7 @@ export function TrainingExperienceView() {
               <span className="whitespace-nowrap">{remainingRuntimeMinutes} min left</span>
             </div>
             <div className={`grid gap-4 lg:items-start ${railCollapsed ? (progressRailCollapsed ? "lg:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]" : "lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]") : (progressRailCollapsed ? "lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]")}`}>
-              <aside className="lg:sticky lg:top-6">
+              <aside className="hidden lg:block lg:sticky lg:top-6">
                 <PlayerCard className="h-fit">
                   <CardContent className="space-y-4 p-3">
                     <button
