@@ -6621,22 +6621,22 @@ export function TrainingExperienceView() {
         </Modal>
 
         <Dialog open={curriculumViewerOpen} onOpenChange={setCurriculumViewerOpen}>
-          <DialogContent className="max-h-[90vh] overflow-hidden border-white/10 bg-slate-950 text-slate-100 sm:max-w-6xl">
+          <DialogContent className={`max-h-[90vh] overflow-hidden sm:max-w-6xl ${playerDark ? "border-white/10 bg-slate-950 text-slate-100" : "border-[#1B303C]/10 bg-white text-[#1B303C]"}`}>
             <DialogHeader>
-              <DialogTitle>{selectedModuleTitle} curriculum</DialogTitle>
-              <DialogDescription className="text-slate-400">Review the mapped slide deck for this module without leaving the focused player. The viewer opens to the curriculum section closest to the active lesson step.</DialogDescription>
+              <DialogTitle className={playerDark ? "text-white" : "text-[#1B303C]"}>{selectedModuleTitle} curriculum</DialogTitle>
+              <DialogDescription className={playerDark ? "text-slate-400" : "text-[#4A6373]"}>Review the mapped slide deck for this module without leaving the focused player. The viewer opens to the curriculum section closest to the active lesson step.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
+                <div className={`flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border px-4 py-3 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Curriculum slide</p>
-                    <p className="mt-2 text-sm font-medium text-white">{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-400">{activeCurriculumSlide?.stageLabel ?? "Lesson curriculum"} · Slide {Math.min(selectedCurriculumSlideIndex + 1, Math.max(curriculumDeck.length, 1))} of {curriculumDeck.length || 1}</p>
+                    <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Curriculum slide</p>
+                    <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{activeCurriculumSlide?.pageLabel ?? "Mapped curriculum"} · {activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</p>
+                    <p className={`mt-1 text-xs leading-5 ${playerDark ? "text-slate-400" : "text-[#4A6373]"}`}>{activeCurriculumSlide?.stageLabel ?? "Lesson curriculum"} · Slide {Math.min(selectedCurriculumSlideIndex + 1, Math.max(curriculumDeck.length, 1))} of {curriculumDeck.length || 1}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.max(current - 1, 0))} disabled={selectedCurriculumSlideIndex === 0} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Previous</Button>
-                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.min(current + 1, Math.max(curriculumDeck.length - 1, 0)))} disabled={selectedCurriculumSlideIndex >= curriculumDeck.length - 1} className="rounded-full border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white">Next</Button>
+                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.max(current - 1, 0))} disabled={selectedCurriculumSlideIndex === 0} className={`rounded-full ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50"}`}>Previous</Button>
+                    <Button type="button" variant="outline" onClick={() => setSelectedCurriculumSlideIndex((current) => Math.min(current + 1, Math.max(curriculumDeck.length - 1, 0)))} disabled={selectedCurriculumSlideIndex >= curriculumDeck.length - 1} className={`rounded-full ${playerDark ? "border-white/12 bg-white/6 text-white hover:bg-white/12 hover:text-white" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50"}`}>Next</Button>
                   </div>
                 </div>
                 <div className="overflow-hidden rounded-[1.7rem] border border-cyan-400/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.1),rgba(2,6,23,0.94))] shadow-[0_24px_70px_rgba(8,15,35,0.28)]">
@@ -6654,32 +6654,32 @@ export function TrainingExperienceView() {
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="rounded-[1.4rem] border border-white/10 bg-white/6 p-5">
+                <div className={`rounded-[1.4rem] border p-5 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">{activeCurriculumSlide?.stageLabel ?? "Curriculum"}</Badge>
-                    {activeCurriculumVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{activeCurriculumVisual.pageLabel}</Badge> : null}
+                    <Badge className={`rounded-full ${playerDark ? "border-white/10 bg-white/8 text-slate-200" : "border-[#1B303C]/10 bg-[#1B303C]/5 text-[#1B303C]"}`}>{activeCurriculumSlide?.stageLabel ?? "Curriculum"}</Badge>
+                    {activeCurriculumVisual ? <Badge className="rounded-full border-cyan-400/20 bg-cyan-50 text-cyan-800">{activeCurriculumVisual.pageLabel}</Badge> : null}
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold text-white">{activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">{activeCurriculumSlide?.slide.narrative ?? presentation?.heroSummary ?? "Open the matching curriculum for this module and return to the lesson when ready."}</p>
+                  <h3 className={`mt-4 text-xl font-semibold ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{activeCurriculumSlide?.slide.title ?? selectedModuleTitle}</h3>
+                  <p className={`mt-3 text-sm leading-7 ${playerDark ? "text-slate-300" : "text-[#4A6373]"}`}>{activeCurriculumSlide?.slide.narrative ?? presentation?.heroSummary ?? "Open the matching curriculum for this module and return to the lesson when ready."}</p>
                 </div>
-                <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-subtle-dark">Slide takeaways</p>
+                <div className={`rounded-[1.4rem] border p-5 ${playerDark ? "border-white/10 bg-slate-950/70" : "border-[#1B303C]/10 bg-white"}`}>
+                  <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Slide takeaways</p>
                   <div className="mt-4 space-y-3">
                     {(activeCurriculumSlide?.slide.bullets ?? []).map((bullet: string) => (
-                      <div key={bullet} className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-200">{bullet}</div>
+                      <div key={bullet} className={`rounded-[1rem] border px-4 py-3 text-sm leading-6 ${playerDark ? "border-white/10 bg-white/6 text-slate-200" : "border-[#1B303C]/10 bg-[#FBFCFD] text-[#1B303C]"}`}>{bullet}</div>
                     ))}
-                    {!activeCurriculumSlide?.slide.bullets?.length ? <div className="rounded-[1rem] border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-slate-300">This curriculum step is narrative-led, so the main coaching cue is in the module summary above.</div> : null}
+                    {!activeCurriculumSlide?.slide.bullets?.length ? <div className={`rounded-[1rem] border px-4 py-3 text-sm leading-6 ${playerDark ? "border-white/10 bg-white/6 text-slate-300" : "border-[#1B303C]/10 bg-[#FBFCFD] text-[#4A6373]"}`}>This curriculum step is narrative-led, so the main coaching cue is in the module summary above.</div> : null}
                   </div>
                 </div>
-                <div className="rounded-[1.4rem] border border-[#FCBC34]/20 bg-[#FCBC34]/10 p-5">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#FCBC34]">Return path</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-100">Use this viewer as a companion reference, then return directly to the lesson flow without losing your current place in the Training Zone.</p>
+                <div className={`rounded-[1.4rem] border p-5 ${playerDark ? "border-[#FCBC34]/20 bg-[#FCBC34]/10" : "border-[#7A5200]/20 bg-amber-50"}`}>
+                  <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-[#FCBC34]" : "text-[#7A5200]"}`}>Return path</p>
+                  <p className={`mt-3 text-sm leading-6 ${playerDark ? "text-slate-100" : "text-[#1B303C]"}`}>Use this viewer as a companion reference, then return directly to the lesson flow without losing your current place in the Training Zone.</p>
                 </div>
               </div>
             </div>
             <DialogFooter>
-              {activeCurriculumVisual?.imageUrl ? <a href={activeCurriculumVisual.imageUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-4 py-2 text-sm font-medium text-[#FCBC34] transition hover:border-[#FCBC34]/50 hover:bg-[#FCBC34]/15 hover:text-white">Open full-size slide</a> : null}
-              <Button type="button" onClick={() => setCurriculumViewerOpen(false)} className="rounded-full bg-white text-slate-950 hover:bg-slate-100">Return to lesson</Button>
+              {activeCurriculumVisual?.imageUrl ? <a href={activeCurriculumVisual.imageUrl} target="_blank" rel="noreferrer" className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 ${playerDark ? "border-[#FCBC34]/30 bg-[#FCBC34]/10 text-[#FCBC34] hover:border-[#FCBC34]/50 hover:bg-[#FCBC34]/15 hover:text-white focus-visible:ring-[#FCBC34]/60" : "border-[#7A5200]/25 bg-amber-50 text-[#7A5200] hover:bg-amber-100/70 focus-visible:ring-[#1B303C]/30"}`}>Open full-size slide</a> : null}
+              <Button type="button" onClick={() => setCurriculumViewerOpen(false)} className={`rounded-full ${playerDark ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"}`}>Return to lesson</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
