@@ -1,0 +1,55 @@
+/* EnableOS - Spacing, radii, shadows, motion
+   Radii run generous & rounded; shadows are large-radius, low-opacity, navy-tinted. */
+:root {
+  /* ---- Spacing scale ---- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii (rounded, generous - the brand reads soft) ---- */
+  --radius-xs: 8px;      /* inner tiles inside a card */
+  --radius-sm: 12px;     /* small controls, pills-inside */
+  --radius-md: 16px;     /* base card radius (--radius: 1rem) */
+  --radius-lg: 20px;     /* action cards (1.25rem) */
+  --radius-xl: 26px;     /* widget cards / command band (~1.6-1.75rem) */
+  --radius-2xl: 32px;    /* mission shell / hero (2rem) */
+  --radius-3xl: 40px;    /* largest shell (2.5rem) */
+  --radius-pill: 9999px;
+
+  /* ---- Shadows (navy-tinted, soft, elevated) ---- */
+  --shadow-xs: 0 1px 2px rgba(27, 48, 60, 0.06);
+  --shadow-sm: 0 10px 24px rgba(27, 48, 60, 0.06);
+  --shadow-card: 0 18px 44px rgba(15, 23, 42, 0.06);       /* header / widget cards */
+  --shadow-md: 0 14px 30px rgba(15, 23, 42, 0.12);         /* action cards, dark tiles */
+  --shadow-lg: 0 24px 80px rgba(27, 48, 60, 0.10);         /* glass panels */
+  --shadow-xl: 0 30px 120px rgba(27, 48, 60, 0.10);        /* mission shell */
+  --shadow-gold: 0 20px 54px rgba(252, 188, 52, 0.11);     /* gold-glow cards */
+  --shadow-inset-hi: inset 0 1px 0 rgba(255, 255, 255, 0.66); /* top highlight on light glass */
+
+  /* ---- Focus ring ---- */
+  --ring: 0 0 0 3px rgba(252, 188, 52, 0.45);   /* gold focus ring */
+  --ring-dark: 0 0 0 3px rgba(103, 232, 249, 0.45);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: ease;
+  --dur-fast: 180ms;
+  --dur: 280ms;
+  --dur-slow: 400ms;
+  /* Hover = lift + darker/gold-tinted border; press = settle. Fades, no bounce. */
+  --hover-lift: translateY(-3px);
+
+  /* ---- Layout ---- */
+  --sidebar-w: 288px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 68px;
+  --content-max: 1460px;
+}
