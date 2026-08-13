@@ -64,14 +64,16 @@ describe("v3 prop deltas for the player reformat (additive, default no-op)", () 
     expect(src).toContain("style={titleStyle}"); // applied to the <h2> title element
   });
 
-  it("InfoTile adds onDark for navy-card placement (default false = unchanged light tile)", () => {
+  it("InfoTile adds onDark: value+label flip to #fff, card surface delegated to a call-site wrapper", () => {
     const src = read("client/src/components/v3/InfoTile.tsx");
     expect(src).toContain("onDark?: boolean");
-    expect(src).toContain("onDark = false"); // default no-op
-    expect(src).toContain("bg-white/[0.06]"); // translucent card wash on dark
-    expect(src).toContain("border-white/[0.12]"); // hairline on dark
-    expect(src).toContain('onDark ? "text-white"'); // value flips to #fff
-    expect(src).toContain("text-[#94a3b8]"); // muted caption on dark
+    expect(src).toContain("onDark = false"); // default no-op — existing light call sites unchanged
+    expect(src).toContain('onDark ? "text-white" : "text-[#1B303C]"'); // value → #fff on dark
+    expect(src).toContain('onDark ? "text-white" : "text-[#4A6373]"'); // label → #fff on dark
+    // The correction moved the dark card surface OUT of InfoTile to a call-site wrapper, so
+    // onDark renders a bare row and the light branch keeps its original white-card chrome.
+    expect(src).toContain('onDark ? "flex items-center gap-3" :');
+    expect(src).toContain('"flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"');
   });
 });
 
