@@ -96,6 +96,117 @@
   --sidebar-ring: oklch(0.77 0.16 82);
 }
 
+/* ============================================================================
+   EnableOS v3 design-standard tokens (Phase 4 player reformat).
+   Ported from docs/tokens-handoff/*.css. Namespaced --eos-* so they never
+   collide with the app's shadcn scale — the standard's --radius-* are larger
+   than the app's calc()-derived ones, and its --ring is a SHADOW where the
+   app's --ring is a color. Dark mode uses model (a): these live in :root and
+   are applied per-component via the player's onDark / playerDark branches —
+   the app-wide .dark palette is deliberately untouched.
+   §2.4: keep --accent-gold / --accent-gold-ink; --gold / --gold-ink alias them.
+   ============================================================================ */
+:root {
+  /* Gold aliases (§2.4) — same values, standard's canonical names */
+  --gold: var(--accent-gold);
+  --gold-ink: var(--accent-gold-ink);
+
+  /* Radii (§2.1) — standard scale, namespaced; pill is collision-free */
+  --eos-radius-xs: 8px;
+  --eos-radius-sm: 12px;
+  --eos-radius-md: 16px;
+  --eos-radius-lg: 20px;
+  --eos-radius-xl: 26px;
+  --eos-radius-2xl: 32px;
+  --eos-radius-3xl: 40px;
+  --radius-pill: 9999px;
+
+  /* Spacing (§1.5) — 4px rhythm */
+  --eos-space-0: 0;
+  --eos-space-1: 4px;
+  --eos-space-2: 8px;
+  --eos-space-3: 12px;
+  --eos-space-4: 16px;
+  --eos-space-5: 20px;
+  --eos-space-6: 24px;
+  --eos-space-8: 32px;
+  --eos-space-10: 40px;
+  --eos-space-12: 48px;
+  --eos-space-16: 64px;
+
+  /* Type scale (§1.4) — Montserrat, one family */
+  --eos-fs-display: 30px;
+  --eos-fs-h1: 21px;
+  --eos-fs-h2: 17px;
+  --eos-fs-h3: 15px;
+  --eos-fs-body: 14px;
+  --eos-fs-sm: 13px;
+  --eos-fs-xs: 12px;
+  --eos-fs-micro: 11px;
+  --eos-fs-nano: 10px;
+  --eos-fw-regular: 400;
+  --eos-fw-medium: 500;
+  --eos-fw-semibold: 600;
+  --eos-fw-bold: 700;
+  --eos-fw-heavy: 800;
+  --eos-lh-tight: 1.15;
+  --eos-lh-snug: 1.35;
+  --eos-lh-normal: 1.5;
+  --eos-tracking-label: 0.2em;
+  --eos-tracking-label-wide: 0.24em;
+
+  /* Elevation (§1.7) — navy-tinted, large-radius, low-opacity */
+  --eos-shadow-xs: 0 1px 2px rgba(27, 48, 60, 0.06);
+  --eos-shadow-sm: 0 10px 24px rgba(27, 48, 60, 0.06);
+  --eos-shadow-card: 0 18px 44px rgba(15, 23, 42, 0.06);
+  --eos-shadow-md: 0 14px 30px rgba(15, 23, 42, 0.12);
+  --eos-shadow-lg: 0 24px 80px rgba(27, 48, 60, 0.10);
+  --eos-shadow-xl: 0 30px 120px rgba(27, 48, 60, 0.10);
+  --eos-shadow-gold: 0 20px 54px rgba(252, 188, 52, 0.11);
+  --eos-ring: 0 0 0 3px rgba(252, 188, 52, 0.45);
+  --eos-ring-dark: 0 0 0 3px rgba(103, 232, 249, 0.45);
+
+  /* Motion (§1.8) */
+  --eos-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --eos-dur-fast: 180ms;
+  --eos-dur: 280ms;
+  --eos-dur-slow: 400ms;
+
+  /* Dark surfaces (§1.3) — the player's Focus ground; never a .dark palette */
+  --eos-dark-1: #0b1826;
+  --eos-dark-2: #0f2334;
+  --eos-dark-3: #142430;
+  --eos-text-on-dark: #ffffff;
+  --eos-text-muted-dark: #94a3b8;
+  --eos-text-subtle-dark: #cbd5e1;
+
+  /* Light surfaces & text (§1.3) */
+  --eos-surface-page: #f7f8fa;
+  --eos-surface-card: #ffffff;
+  --eos-surface-sunken: #f2f4f6;
+  --eos-text-strong: #1B303C;
+  --eos-text-body: #34505f;
+  --eos-text-muted: #4A6373;
+  --eos-text-faint: #5b6b76;
+
+  /* Hairlines (§1.3) */
+  --eos-border-light: rgba(27, 48, 60, 0.10);
+  --eos-border-light-strong: rgba(27, 48, 60, 0.18);
+  --eos-border-dark: rgba(255, 255, 255, 0.12);
+  --eos-border-gold: rgba(252, 188, 52, 0.35);
+
+  /* Semantic status (§1.2) — always paired with icon + label, never color alone */
+  --eos-status-info: #22b8cf;  --eos-status-info-ink: #0e7490;  --eos-status-info-soft: rgba(34, 184, 207, 0.12);
+  --eos-status-green: #10b981; --eos-status-green-ink: #047857; --eos-status-green-soft: rgba(16, 185, 129, 0.15);
+  --eos-status-red: #f43f5e;   --eos-status-red-ink: #be123c;   --eos-status-red-soft: rgba(244, 63, 94, 0.15);
+  --eos-status-amber: #f59e0b; --eos-status-amber-ink: #b45309; --eos-status-amber-soft: rgba(245, 158, 11, 0.15);
+
+  /* Accent washes (§colors) */
+  --eos-gold-wash: rgba(252, 188, 52, 0.14);
+  --eos-gold-wash-strong: rgba(252, 188, 52, 0.24);
+  --eos-selection: rgba(252, 188, 52, 0.36);
+}
+
 .dark {
   --primary: oklch(0.77 0.16 82);
   --primary-foreground: oklch(0.22 0.02 243);
