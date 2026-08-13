@@ -77,6 +77,37 @@ describe("v3 prop deltas for the player reformat (additive, default no-op)", () 
   });
 });
 
+describe("v3 kit dark-tone extensions for the player regions (additive, default no-op)", () => {
+  it("WidgetCard adds tone/variant/eyebrow/padding; dark tone is navy, light default unchanged", () => {
+    const src = read("client/src/components/v3/WidgetCard.tsx");
+    expect(src).toContain('tone?: WidgetCardTone');
+    expect(src).toContain('variant?: WidgetCardVariant');
+    expect(src).toContain("eyebrow?: string");
+    expect(src).toContain("padding?: number");
+    expect(src).toContain('tone = "light"'); // default keeps the shipped white card
+    expect(src).toContain('variant = "section"'); // default keeps uppercase title + underline
+    expect(src).toContain("bg-[#0b1826]"); // navy card on dark tone
+    expect(src).toContain("rounded-2xl border-[#1B303C]/8 bg-white"); // light default byte-identical
+  });
+
+  it("Button adds a gold variant, a pill size, and an onDark prop (all additive)", () => {
+    const src = read("client/src/components/ui/button.tsx");
+    expect(src).toContain("gold: \"bg-[#FCBC34] text-[#1B303C]");
+    expect(src).toContain('pill: "h-11 rounded-full');
+    expect(src).toContain("onDark = false"); // default no-op
+    expect(src).toContain('variant === "ghost"'); // onDark restyles ghost/secondary/outline
+  });
+
+  it("StatusMark adds onDark with a brightened navy palette; light META unchanged", () => {
+    const src = read("client/src/components/v3/StatusMark.tsx");
+    expect(src).toContain("onDark?: boolean");
+    expect(src).toContain("onDark = false"); // default no-op
+    expect(src).toContain("META_DARK");
+    expect(src).toContain("onDark ? META_DARK[canonical] : meta");
+    expect(src).toContain('bg-emerald-50 text-emerald-700'); // shipped light palette intact
+  });
+});
+
 describe("Enlarge lightbox tone tracks the player theme", () => {
   const player = read("client/src/pages/EnableOSViews.tsx");
 

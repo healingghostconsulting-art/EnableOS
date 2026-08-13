@@ -44,7 +44,18 @@ const META: Record<CanonicalStatus, StatusMeta> = {
   neutral: { icon: Minus, label: "Neutral", pill: "bg-[#1B303C]/8 text-[#1B303C]", badge: "border-[#1B303C]/15 bg-[#1B303C]/5 text-[#1B303C]", inline: "text-[#4A6373]", dot: "text-[#4A6373]" },
 };
 
-export function StatusMark({ status, variant = "pill", label, showLabel = true, className = "" }: {
+// On a navy card the light -50 washes disappear and the -700/-800 inks go muddy, so `onDark`
+// swaps to a translucent status-soft fill + the brightened base hue (the -300/-400 tints read
+// AA on navy). The icon silhouette is unchanged — color stays redundant reinforcement.
+const META_DARK: Record<CanonicalStatus, Pick<StatusMeta, "pill" | "badge" | "inline" | "dot">> = {
+  coaching: { pill: "bg-[rgba(34,184,207,0.15)] text-[#67e8f9]", badge: "border-[rgba(34,184,207,0.35)] bg-[rgba(34,184,207,0.12)] text-[#67e8f9]", inline: "text-[#67e8f9]", dot: "text-[#67e8f9]" },
+  positive: { pill: "bg-[rgba(16,185,129,0.15)] text-[#6ee7b7]", badge: "border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.12)] text-[#6ee7b7]", inline: "text-[#6ee7b7]", dot: "text-[#6ee7b7]" },
+  alert: { pill: "bg-[rgba(244,63,94,0.15)] text-[#fda4af]", badge: "border-[rgba(244,63,94,0.35)] bg-[rgba(244,63,94,0.12)] text-[#fda4af]", inline: "text-[#fda4af]", dot: "text-[#fda4af]" },
+  overdue: { pill: "bg-[rgba(245,158,11,0.15)] text-[#fcd34d]", badge: "border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.12)] text-[#fcd34d]", inline: "text-[#fcd34d]", dot: "text-[#fcd34d]" },
+  neutral: { pill: "bg-white/[0.08] text-[#cbd5e1]", badge: "border-white/15 bg-white/[0.06] text-[#cbd5e1]", inline: "text-[#cbd5e1]", dot: "text-[#cbd5e1]" },
+};
+
+export function StatusMark({ status, variant = "pill", label, showLabel = true, className = "", onDark = false }: {
   status: string;
   variant?: StatusMarkVariant;
   /** Override the canonical label while keeping the canonical icon + tone. */
@@ -52,13 +63,17 @@ export function StatusMark({ status, variant = "pill", label, showLabel = true, 
   /** Icon-only marks (e.g. dense legends) still expose the label to assistive tech. */
   showLabel?: boolean;
   className?: string;
+  /** Brighten the chrome for a navy surface (default false = the shipped light treatment). */
+  onDark?: boolean;
 }) {
   // The Settings "always show status labels" preference forces the label on, overriding a
   // call site's showLabel={false} (e.g. dense dot legends), so no status is icon-only.
   const { alwaysShowLabels } = useStatusLabels();
   const effectiveShowLabel = alwaysShowLabels || showLabel;
 
-  const meta = META[normalizeStatus(status)];
+  const canonical = normalizeStatus(status);
+  const meta = META[canonical];
+  const palette = onDark ? META_DARK[canonical] : meta;
   const Icon = meta.icon;
   const text = label ?? meta.label;
   const labelNode = effectiveShowLabel ? text : <span className="sr-only">{text}</span>;
@@ -66,20 +81,20 @@ export function StatusMark({ status, variant = "pill", label, showLabel = true, 
   if (variant === "dot") {
     return (
       <span className={`inline-flex items-center gap-1.5 ${className}`}>
-        <Icon className={`h-3.5 w-3.5 shrink-0 ${meta.dot}`} aria-hidden="true" />
-        {effectiveShowLabel ? <span className="text-[12px] text-[#4A6373]">{text}</span> : <span className="sr-only">{text}</span>}
+        <Icon className={`h-3.5 w-3.5 shrink-0 ${palette.dot}`} aria-hidden="true" />
+        {effectiveShowLabel ? <span className={`text-[12px] ${onDark ? "text-[#cbd5e1]" : "text-[#4A6373]"}`}>{text}</span> : <span className="sr-only">{text}</span>}
       </span>
     );
   }
   if (variant === "inline") {
     return (
-      <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${meta.inline} ${className}`}>
+      <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${palette.inline} ${className}`}>
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         {labelNode}
       </span>
     );
   }
-  const chrome = variant === "badge" ? `rounded-md border px-2 py-0.5 ${meta.badge}` : `rounded-full px-2.5 py-0.5 ${meta.pill}`;
+  const chrome = variant === "badge" ? `rounded-md border px-2 py-0.5 ${palette.badge}` : `rounded-full px-2.5 py-0.5 ${palette.pill}`;
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${chrome} ${className}`}>
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

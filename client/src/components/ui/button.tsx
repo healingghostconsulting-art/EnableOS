@@ -19,6 +19,9 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // v3 brand pill — gold fill + navy ink. Same on light and navy surfaces (the gold
+        // rule: #FCBC34 is a fill behind dark text, valid on both). Used for Continue/Submit.
+        gold: "bg-[#FCBC34] text-[#1B303C] hover:bg-[#FCBC34]/90 shadow-[0_10px_24px_rgba(252,188,52,0.25)]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -27,6 +30,8 @@ const buttonVariants = cva(
         icon: "size-9",
         "icon-sm": "size-8",
         "icon-lg": "size-10",
+        // v3 pill row control — ≥44px target, fully rounded (player rails, Enlarge, nav).
+        pill: "h-11 rounded-full px-5 has-[>svg]:px-4",
       },
     },
     defaultVariants: {
@@ -41,17 +46,30 @@ function Button({
   variant,
   size,
   asChild = false,
+  onDark = false,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    /**
+     * Restyle secondary/ghost/outline buttons for a navy surface (default false = no-op).
+     * The gold/default/destructive variants read correctly on navy already and ignore it.
+     */
+    onDark?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
+  const darkAdj = onDark
+    ? variant === "ghost"
+      ? "text-white hover:bg-white/10"
+      : variant === "secondary" || variant === "outline"
+        ? "border-white/20 bg-white/10 text-white hover:bg-white/15"
+        : ""
+    : "";
 
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), darkAdj, className)}
       {...props}
     />
   );

@@ -13,8 +13,9 @@ describe("StatusMark — always-show-labels preference", () => {
   it("reads the StatusLabels context and lets it force labels on (incl. dot)", () => {
     expect(src).toContain("useStatusLabels");
     expect(src).toContain("const effectiveShowLabel = alwaysShowLabels || showLabel");
-    // The dot variant honors the forced label, not the raw showLabel prop.
-    expect(src).toContain("effectiveShowLabel ? <span className=\"text-[12px] text-[#4A6373]\">");
+    // The dot variant honors the forced label, not the raw showLabel prop. (The label
+    // color is now onDark-aware — light default stays #4A6373; navy uses #cbd5e1.)
+    expect(src).toContain('effectiveShowLabel ? <span className={`text-[12px] ${onDark ? "text-[#cbd5e1]" : "text-[#4A6373]"}`}>');
   });
 
   it("is provided app-wide from App", () => {
