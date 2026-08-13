@@ -1,4 +1,4 @@
-/* EnableOS — Typography tokens
+/* EnableOS - Typography tokens
    Montserrat for BOTH headings and body (no second display face).
    Weights in use: 400 / 500 / 600 / 700 / 800. */
 :root {
@@ -8,15 +8,15 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* ---- Weights ---- */
-  --fw-regular: 400;   /* @kind other */
-  --fw-medium: 500;    /* @kind other */
-  --fw-semibold: 600;  /* @kind other */
-  --fw-bold: 700;      /* @kind other */
-  --fw-heavy: 800;     /* @kind other */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-heavy: 800;
 
   /* ---- Type scale (px, matched to the shell) ---- */
-  --fs-gisplay: 30px;   /* landing / big hero */
-  --fs-h1: 21px;        /* shell H1 — 1.3rem, weight 600 */
+  --fs-display: 30px;   /* landing / big hero */
+  --fs-h1: 21px;        /* shell H1 - 1.3rem, weight 600 */
   --fs-h2: 17px;        /* section / card titles */
   --fs-h3: 15px;        /* action-card title, list heading */
   --fs-body: 14px;      /* default body */
@@ -26,11 +26,11 @@
   --fs-nano: 10px;      /* tightest eyebrow */
 
   /* ---- Line heights ---- */
-  --lh-tight: 1.15;   /* @kind other */
-  --lh-snug: 1.35;    /* @kind other */
-  --lh-normal: 1.5;   /* @kind other */
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-normal: 1.5;
 
   /* ---- Uppercase micro-label tracking (eyebrows, stat labels) ---- */
-  --tracking-label: 0.2em;         /* @kind other */
-  --tracking-label-wide: 0.24em;   /* @kind other */
+  --tracking-label: 0.2em;
+  --tracking-label-wide: 0.24em;
 }
