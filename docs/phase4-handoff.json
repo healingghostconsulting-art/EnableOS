@@ -1,0 +1,206 @@
+{
+  "phase4": {
+    "status": "SPEC READY — mock built and validated in the design system; code edits pending in the repo",
+    "title": "Training Zone lesson player — reformat onto the v3 card system",
+    "note": "The player was recolored to CHCG brand but never adopted the v3 card language. This is a REFORMAT, not a recolor: bespoke layout primitives (cream/gradient banner, gold-gradient panels, custom stage pills, flat rails) are replaced by the same components Mission Hub uses. The design system has no repo write access — this entry is the executable spec for Claude Code.",
+    "visualReference": {
+      "file": "templates/training-player-v3/TrainingPlayerV3.dc.html",
+      "commitAlongside": true,
+      "supportFile": "templates/training-player-v3/ds-base.js",
+      "note": "Commit the .dc.html as the visual reference. It opens directly in a browser and shows both modes side by side. $preview is 1440x2400 — the three-column composition needs >=1024px.",
+      "previewProps": {
+        "$preview": {
+          "width": 1440,
+          "height": 2400
+        },
+        "checkpointState": "auto | locked | unlocked (review affordance, not a shipped prop)"
+      }
+    },
+    "formatTarget": {
+      "source": "Mission Hub (client/src/pages/EnableOSViews.tsx — 512KB+, over the read cap, so this was built to the written format spec, not to its markup)",
+      "shell": "White outer shell, quiet header (title + one-line subtitle), 1px --border-light, --shadow-card, --radius-xl, 24px padding",
+      "kpiRow": "Row of deep-navy KPI tiles, gold micro-label + 24px/700 white value",
+      "cards": "Deep-navy content cards, --radius-xl, uppercase white heading over a 3x34px gold rule, inner navy pill rows",
+      "rhythm": "shell --radius-xl / 24px · cards --radius-xl / 18px · KPI + inner tiles --radius-md / 16px · pill rows --radius-pill / >=44px min-height"
+    },
+    "componentMap": [
+      {
+        "mock": "components/dashboard/WidgetCard.jsx",
+        "code": "client/src/components/v3/WidgetCard.tsx",
+        "export": "WidgetCard",
+        "usage": "Every navy card: stage rail, page rail, deck card, checkpoint card, progress card, reward card, and all 8 KPI tiles.",
+        "status": "NEEDS PROP — see propDeltas[0]",
+        "notes": [
+          "variant='section' + tone='dark' already produces the Mission Hub header (uppercase title + gold underline). Do not hand-roll it.",
+          "KPI tile = variant='card' (default) + tone='dark' + eyebrow (gold micro-label) + title (the value) + titleStyle."
+        ]
+      },
+      {
+        "mock": "components/dashboard/StatBadge.jsx",
+        "code": "client/src/components/v3/InfoTile.tsx",
+        "export": "StatBadge → InfoTile",
+        "usage": "Progress rail rows (Next / Time left / Score) and the Reward row, all inside navy WidgetCards.",
+        "status": "NEEDS PROP — see propDeltas[1]",
+        "notes": [
+          "Shipped InfoTile is icon-left/value-right and LIGHT-ONLY; on a navy card it renders white-on-white. This is why the rail was previously hand-rolled.",
+          "Shipped tint enum is cyan | gold | emerald | navy; the mock's softGold/softGreen map to gold/emerald.",
+          "Shipped icon badge is a rounded-xl SQUARE; the mock and the goal mock-ups use a CIRCLE — unresolved, see DESIGN_QA.md."
+        ]
+      },
+      {
+        "mock": "components/core/Button.jsx",
+        "code": "client/src/components/ui/button.tsx (brand pill variants)",
+        "export": "Button",
+        "usage": "Enlarge, Previous, Next page, Submit answer, Continue.",
+        "status": "aligned",
+        "notes": [
+          "variant='gold' = gold fill + navy text; 'secondary'/'ghost' take onDark on navy surfaces.",
+          "Using the component is what gives these the gold focus ring — hand-rolled <button> falls back to the UA default, which is low-contrast on a gold pill."
+        ]
+      },
+      {
+        "mock": "components/core/ToggleSwitch.jsx",
+        "code": "client/src/components/v3/ToggleSwitch.tsx",
+        "export": "ToggleSwitch",
+        "usage": "The Focus (light/dark) toggle in the player header.",
+        "status": "aligned",
+        "notes": [
+          "Already role='switch' + aria-checked, >=44px target, non-color state cue.",
+          "Bind to PlayerThemeContext per PLAYER_SPEC.md §0.1 — NOT the app-wide ThemeContext."
+        ]
+      },
+      {
+        "mock": "components/status/StatusMark.jsx",
+        "code": "client/src/components/v3/StatusMark.tsx",
+        "export": "StatusMark",
+        "usage": "Header 'In progress', checkpoint 'Answering', progress 'On track', locked checkpoint 'Locked'.",
+        "status": "aligned",
+        "notes": [
+          "Shipped normalizes via ALIAS, so status='on_track' and status='coaching' resolve correctly.",
+          "onDark brightens the glyph to the base hue on navy."
+        ]
+      },
+      {
+        "mock": "components/core/Icon.jsx",
+        "code": "lucide-react (direct import in the app)",
+        "export": "Icon",
+        "usage": "Every glyph in the rail, canvas, and progress tiles.",
+        "status": "aligned",
+        "notes": [
+          "The mock wraps the Lucide UMD global; the app imports lucide-react directly. Map Icon name='X' → <X />.",
+          "Glyphs used: CircleCheck, CirclePlay, Lock, BookOpen, Presentation, ClipboardCheck, Paperclip, Check, Maximize2, Image, SkipForward, Clock, Target, Trophy, Sun, Moon, Info."
+        ]
+      },
+      {
+        "mock": "components/core/InfoTip.jsx",
+        "code": "client/src/components/v3/InfoIcon.tsx",
+        "export": "InfoTip → InfoIcon",
+        "usage": "Transitive — WidgetCard imports it for its `info` prop. Not used directly by this template, but required for WidgetCard to compile.",
+        "status": "aligned",
+        "notes": [
+          "Ship it even though the player passes no `info`; WidgetCard references it unconditionally."
+        ]
+      },
+      {
+        "mock": "components/status/statusSystem.js",
+        "code": "inlined in client/src/components/v3/StatusMark.tsx",
+        "export": "STATUS_SYSTEM / STATUS_ALIASES / resolveStatus",
+        "usage": "Transitive — StatusMark imports resolveStatus.",
+        "status": "aligned",
+        "notes": [
+          "Shipped StatusMark already carries its own normalizeStatus + ALIAS map; no separate file needed in the repo."
+        ]
+      },
+      {
+        "mock": "styles.css + tokens/*.css",
+        "code": "client/src/index.css",
+        "export": "—",
+        "usage": "Every var(--*) reference in the template and components.",
+        "status": "divergent",
+        "notes": [
+          "The app tokenizes only --accent-gold, --accent-gold-ink, --brand-navy, --brand-blue, --font-sans. Type scale, spacing, elevation, and --status-* are NOT tokenized — see TOKENS_DELTA.md §2.2/§2.3.",
+          "The template uses 44 distinct var(--*) refs. Port the tokens first or the reformat lands as inline literals again."
+        ]
+      }
+    ],
+    "propDeltas": [
+      {
+        "file": "client/src/components/v3/WidgetCard.tsx",
+        "prop": "titleStyle",
+        "signature": "titleStyle?: React.CSSProperties",
+        "default": "{} (no-op — existing call sites are unaffected)",
+        "apply": "Spread LAST onto the title element's style object, after the variant/tone-derived values, so callers can override them.",
+        "why": "Routing a KPI value through the `title` slot inherits card-title typography (17px/600). At that size the number reads as an ordinary heading and loses the at-a-glance hierarchy that is the entire point of the Mission Hub KPI row.",
+        "kpiUsage": "titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.01em' }}",
+        "example": "<WidgetCard tone=\"dark\" padding={16} eyebrow=\"Course progress\" title=\"42%\" titleStyle={{fontSize:24,fontWeight:700,letterSpacing:'-0.01em'}}><p className=\"text-xs text-[#94a3b8]\">7 of 18 pages</p></WidgetCard>",
+        "callSites": "8 KPI tiles (4 per mode): Course progress 42% / Time left 12 min / Score 92% / Streak 8 days"
+      },
+      {
+        "file": "client/src/components/v3/InfoTile.tsx",
+        "prop": "onDark",
+        "signature": "onDark?: boolean",
+        "default": "false (no-op — existing light call sites are unaffected)",
+        "why": "InfoTile is light-only. Inside a navy WidgetCard it renders a white card with navy text — the exact defect that forced the progress rail to be hand-rolled. A root `style` override cannot fix it because the text colors are internal to the component.",
+        "styleBehavior": {
+          "value": "onDark ? '#fff' : '#1B303C'",
+          "label": "onDark ? '#fff' : '#1B303C'",
+          "sub": "onDark ? 'var(--text-muted-dark)' (#94a3b8) : 'var(--text-muted)' (#4A6373)",
+          "trailing": "same as sub",
+          "cardSurface": "when layout='card': background onDark ? 'rgba(255,255,255,0.06)' : '#fff' · border onDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(27,48,60,0.10)' · boxShadow onDark ? 'none' : the light xs shadow",
+          "iconBadge": "UNCHANGED — the tint enum already reads correctly on navy (gold/emerald tints keep their contrast)"
+        },
+        "example": "<InfoTile onDark layout=\"card\" tint=\"gold\" icon={<Clock/>} value=\"12 min\" label=\"Time left\" sub=\"This stage\" />",
+        "callSites": "8 rows (4 per mode): Next / Time left / Score in the progress card, plus the Reward row",
+        "benefit": "Applies to every dark surface in the app, not just this player — the same gap will appear anywhere InfoTile sits on navy."
+      }
+    ],
+    "behaviorDeltas": [
+      {
+        "name": "Checkpoint gating",
+        "summary": "The Checkpoint is no longer statically available. It is gated behind reaching the deck's final slide — visibly locked, never hidden.",
+        "trigger": "page >= LAST_PAGE (the deck's last visual). No extra button.",
+        "lockedState": [
+          "Page tab: opacity .55, Lock glyph, neutral 'Locked' chip replacing the gold 'Quiz' chip, cursor:not-allowed, aria-disabled='true', aria-describedby pointing at the reason line.",
+          "Reason line beneath the tab: 'Complete the lesson to unlock.'",
+          "Canvas card: a full navy WidgetCard (NOT removed) containing a dashed lock panel — 'Complete the lesson to unlock' + a live remaining-page count — and the quiz beneath it ghosted at 34% opacity as skeleton bars, aria-hidden.",
+          "Rationale: an empty card reads as broken; showing the shape of what is coming is what makes it read as intentionally-not-yet."
+        ],
+        "unlockedState": "Page tab flips to a gold-tinted row with a gold glyph and the gold 'Quiz' chip; the card returns to the live role='radiogroup' quiz.",
+        "transition": "A one-shot 2.2s gold ring via @keyframes tp-unlock on a wrapper div, with a prefers-reduced-motion guard. Implemented as a keyframe rather than state-driven inline style so the card's own styling stays literal and paints immediately.",
+        "a11y": "The unlock is a silent visual change otherwise — pair it with a polite live region (role='status' aria-live='polite') emitting 'Checkpoint unlocked'. Fire it ONLY on the auto transition, not when a state is pinned for review."
+      },
+      {
+        "name": "Responsive",
+        "summary": "Three columns at >=1024px; regions stack below; the deck slide goes single-column at <640px.",
+        "shipped": "In the app the stage/page rail moves into MobileNavDrawer and the progress rail becomes a stat strip, per RESPONSIVE_SPEC.md. The mock stacks instead, which is the simpler equivalent for a static reference."
+      },
+      {
+        "name": "Dark mode figure/ground",
+        "summary": "The card component NEVER changes between modes — only the ground does. Light = navy WidgetCards above a white shell. Focus = the same navy cards below a lifted #1B3547→#152B3A shell. This is what keeps the dark surface reading as navy rather than near-black.",
+        "goldRule": "Gold is #FCBC34 on every navy surface in BOTH modes. #7A5200 appears only on the light deck slide, which is source material and never inverts."
+      },
+      {
+        "name": "Deck slide stays light",
+        "summary": "The slide itself is #fff in both modes — it is source material. Only the surrounding chrome switches. An all-dark player dims the one thing the learner is there to read."
+      }
+    ],
+    "stillTemplateMarkup": {
+      "items": [
+        "stage rows (Learn/Practice/Apply/Reflect)",
+        "page rows (Overview/Lesson/Checkpoint/Resources)",
+        "quiz options"
+      ],
+      "why": "No component exports a bare nav row — SidebarNav is the whole app rail with logo and profile. These also need aria-current plus the trailing check.",
+      "contract": "They use the accessible active state verbatim: gold fill, navy ink, 4px left marker, trailing Check glyph, >=44px, aria-current='page'.",
+      "option": "If engineering would rather port one component than markup, extract a NavRow — say so and the design system will add it."
+    },
+    "portOrder": [
+      "1. Tokens first (TOKENS_DELTA.md §2.2/§2.3) — otherwise the reformat lands as inline literals again, which is the exact outcome this task exists to prevent.",
+      "2. propDeltas[0] — WidgetCard titleStyle.",
+      "3. propDeltas[1] — InfoTile onDark.",
+      "4. Extract the player from EnableOSViews.tsx into its own module. NOTE: that file is 512KB+ and over the read/grep cap, so the current implementation could not be inspected. If it carries structure not described here (bookmarking, notes, inline video), reconcile before porting.",
+      "5. Shell + header + KPI row, then the rail, then the canvas, then the progress rail.",
+      "6. Checkpoint gating (behaviorDeltas[0]), then the responsive rules."
+    ]
+  }
+}
