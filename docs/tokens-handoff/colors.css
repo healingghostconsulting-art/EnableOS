@@ -1,0 +1,86 @@
+/* EnableOS — Color tokens (CHCG brand, canonical)
+   Source of truth: healingghostconsulting-art/EnableOS · client/src/index.css
+   CRITICAL dual-surface gold rule: --gold (#FCBC34) is for DARK surfaces only.
+   On LIGHT surfaces use --gold-ink (#7A5200). Never put #FCBC34 text on white. */
+:root {
+  /* ---- Brand core (exact brand-guide values) ---- */
+  --brand-navy: #1B303C;   /* primary text on light; H1; primary button fill */
+  --brand-blue: #4A6373;   /* lighter blue — secondary text / subtitles on light */
+  --gold: #FCBC34;         /* the one accent. Labels/eyebrows/buttons on DARK */
+  --gold-ink: #7A5200;     /* gold darkened for AA on LIGHT surfaces */
+  --black: #000000;
+  --white: #FFFFFF;
+
+  /* ---- Dark surface (navy-black gradient stops) ---- */
+  --dark-1: #0b1826;       /* darkest stop of the dark-surface gradient */
+  --dark-2: #0f2334;       /* lighter stop */
+  --dark-3: #142430;       /* raised dark tile */
+
+  /* ---- Text on dark (WCAG AA on navy) ---- */
+  --text-on-dark: #ffffff;
+  --text-muted-dark: #94a3b8;   /* slate-400, ~5:1 on dark — secondary labels */
+  --text-subtle-dark: #cbd5e1;  /* slate-300 — brighter subtle label */
+
+  /* ---- Neutral surface ramp (light) ---- */
+  --surface-page: #f7f8fa;      /* app canvas */
+  --surface-card: #ffffff;      /* card fill */
+  --surface-raised: #ffffff;
+  --surface-sunken: #f2f4f6;
+
+  /* ---- Text on light ---- */
+  --text-strong: #1B303C;       /* = navy */
+  --text-body: #34505f;
+  --text-muted: #4A6373;        /* = brand-blue */
+  --text-faint: #5b6b76;        /* faint micro-labels (never slate-500 on light) */
+
+  /* ---- Lines & hairlines ---- */
+  --border-light: rgba(27, 48, 60, 0.10);   /* hairline on light surfaces */
+  --border-light-strong: rgba(27, 48, 60, 0.18);
+  --border-dark: rgba(255, 255, 255, 0.12);  /* hairline on dark surfaces */
+  --border-gold: rgba(252, 188, 52, 0.35);   /* gold-tinted hairline */
+
+  /* ---- Semantic status (R / Y / G — paired with icon + label, never color alone) ---- */
+  --status-green: #10b981;   --status-green-ink: #047857;   --status-green-soft: rgba(16,185,129,0.15);
+  --status-amber: #f59e0b;   --status-amber-ink: #b45309;   --status-amber-soft: rgba(245,158,11,0.15);
+  --status-red: #f43f5e;     --status-red-ink: #be123c;     --status-red-soft: rgba(244,63,94,0.15);
+  --status-info: #22b8cf;    --status-info-ink: #0e7490;    --status-info-soft: rgba(34,184,207,0.12);
+
+  /* ---- Accent tints (washes over light surfaces) ---- */
+  --gold-wash: rgba(252, 188, 52, 0.14);
+  --gold-wash-strong: rgba(252, 188, 52, 0.24);
+  --blue-wash: rgba(74, 99, 115, 0.10);
+  --selection: rgba(252, 188, 52, 0.36);
+
+  /* ---- Data-viz ramp (donuts, charts) — brand-anchored ---- */
+  --chart-1: #4A6373;   /* brand blue */
+  --chart-2: #FCBC34;   /* gold */
+  --chart-3: #1B303C;   /* navy */
+  --chart-4: #22b8cf;   /* cyan accent */
+  --chart-5: #94a3b8;   /* slate */
+
+  /* ============================================================
+     v3 SHIPPED VALUES — mirrors client/src/components/v3/*
+     These are the literals the real code uses today. Edit here and the
+     mapping in code-connect.json tells Claude Code which file to change.
+     ============================================================ */
+
+  /* Shell geometry (SidebarNav is w-60 = 240px in the shipped rail) */
+  --v3-sidebar-w: 240px;
+  --v3-rail-top: #0E2233;      /* rail gradient top stop */
+  --v3-rail-bottom: #0A1826;   /* rail gradient bottom stop */
+
+  /* Donut defaults (Donut.tsx) */
+  --v3-donut-color: #1B303C;
+  --v3-donut-track: #E6EAF0;
+
+  /* ---- v3 palette status: RESOLVED in code as of PR #11 (7fdbbc9).
+     No sky / violet / indigo / #2C6FEC remain anywhere in client/src.
+     Shipped enums are now: InfoTileTint = cyan | gold | emerald | navy;
+     RoleTagTint = manager (navy) | coach (cyan) | learner (emerald) |
+     client_admin (gold). Kept here as a record of what was replaced. ---- */
+  --v3-legacy-diamond-blue: #2C6FEC;   /* REMOVED from code ✓ */
+  --v3-legacy-tag-manager: #4338ca;    /* indigo-700 → now --brand-navy ✓ */
+  --v3-legacy-tag-coach: #6d28d9;      /* violet-700 → now cyan ✓ */
+  --v3-legacy-tile-blue: #0369a1;      /* sky-700    → now cyan/navy ✓ */
+  --v3-legacy-tile-violet: #6d28d9;    /* violet-700 → now cyan ✓ */
+}
