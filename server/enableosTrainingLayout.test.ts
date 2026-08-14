@@ -892,19 +892,24 @@ describe("learner training layout helpers", () => {
     expect(drawerGate).toBeGreaterThan(grid);
   });
 
-  it("moves stage and page navigation into a single collapsible left rail with no duplicate in-canvas tab strips", () => {
-    // 3-column grid (left rail 240px | dominant canvas | right rail 300px), both rails collapsible to ~56px.
+  it("moves stage and page navigation into two navy WidgetCard rails with no duplicate in-canvas tab strips", () => {
+    // 3-column grid (left rail 240px | dominant canvas | right rail 300px). Phase-4 reformat:
+    // the desktop rail no longer collapses (drawer + stat strip cover small screens), so the
+    // 3.5rem LEFT-column permutations are gone; the rail is two always-expanded navy cards.
     expect(trainingViewSource).toContain("lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
-    expect(trainingViewSource).toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
-    expect(trainingViewSource).toContain("const [railCollapsed, setRailCollapsed] = useState(false)");
-    expect(trainingViewSource).toContain(">Stages<");
-    expect(trainingViewSource).toContain(">Pages<");
+    expect(trainingViewSource).not.toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
+    expect(trainingViewSource).not.toContain("railCollapsed");
+    expect(trainingViewSource).toContain('<WidgetCard tone="dark" variant="section" title="Stages"');
+    expect(trainingViewSource).toContain('<WidgetCard tone="dark" variant="section" title="Pages"');
 
     // Navigation is still bound to the same state/handlers (highlight uses the same indices).
     expect(trainingViewSource).toContain("setStageIndex(index)");
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
     expect(trainingViewSource).toContain("const isActiveStage = index === stageIndex");
     expect(trainingViewSource).toContain("const isActivePage = trainingWorkspacePage === page.key");
+    // Accessible active state: gold fill + navy ink + 4px navy left marker + aria-current.
+    expect(trainingViewSource).toContain('aria-current={isActiveStage ? "page" : undefined}');
+    expect(trainingViewSource).toContain("absolute left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[#1B303C]");
 
     // The old in-canvas tab strips are gone — one navigation source.
     expect(trainingViewSource).not.toContain("Training pages");
@@ -915,11 +920,12 @@ describe("learner training layout helpers", () => {
   it("re-proportions the player so the center canvas dominates and the narrow side band is removed (W2)", () => {
     // Left rail 240px (15rem), right rail 300px (18.75rem), center canvas takes the remaining width.
     expect(trainingViewSource).toContain("lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
-    // All four collapse permutations exist (both rails collapsible to ~56px / 3.5rem).
-    expect(trainingViewSource).toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
+    // Phase-4: the left rail no longer collapses, so only the progress-rail (right) collapse
+    // permutation remains. The 3.5rem LEFT-column variants are gone.
+    expect(trainingViewSource).not.toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
     expect(trainingViewSource).toContain("lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]");
-    expect(trainingViewSource).toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]");
-    // Right Progress rail is now collapsible.
+    expect(trainingViewSource).not.toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]");
+    // Right Progress rail is still collapsible (removed in Region 3).
     expect(trainingViewSource).toContain("const [progressRailCollapsed, setProgressRailCollapsed] = useState(false)");
     expect(trainingViewSource).toContain("setProgressRailCollapsed");
     // The player uses the wide Surface variant (no narrow centered container / side band).
