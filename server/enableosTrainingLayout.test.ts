@@ -1467,4 +1467,16 @@ describe("learner training layout helpers", () => {
     // Score/Time reuse the progress-rail computations; Streak is a DEMO-derived momentum value.
     expect(trainingViewSource).toContain("Math.max(1, Math.round(overallProgress / 12))");
   });
+
+  it("reformats the Region-2 deck viewport onto the navy card rhythm (Enlarge 44px pill, nav pill row)", () => {
+    // Deck panel is a clean navy card (the cyan gradient / 2.1rem radius are gone).
+    expect(trainingViewSource).toContain('rounded-[var(--eos-radius-xl)] border border-white/[0.12] bg-[#0b1826] p-6 shadow-[var(--eos-shadow-md)]');
+    expect(trainingViewSource).not.toContain("bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))]");
+    // Enlarge is a 44px (h-11) gold-outline pill in the deck-card header.
+    expect(trainingViewSource).toContain('aria-label="Enlarge slide" className="inline-flex h-11 items-center gap-1.5 rounded-[var(--radius-pill)]');
+    // Deck nav is an inner navy pill row wrapping Previous · counter · Next (labels preserved).
+    expect(trainingViewSource).toContain('inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-white/[0.12] bg-white/[0.06] p-1');
+    // The deck slide itself still renders light on its black photo frame (deck-stays-light).
+    expect(trainingViewSource).toContain("flex aspect-video w-full items-center justify-center bg-black/40");
+  });
 });

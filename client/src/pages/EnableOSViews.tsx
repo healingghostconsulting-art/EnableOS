@@ -5665,7 +5665,7 @@ export function TrainingExperienceView() {
                           </div>
                         </div>
                         {(trainingWorkspacePage === "lesson" || trainingWorkspacePage === "checkpoint" || trainingWorkspacePage === "resources") && currentLessonPage ? (
-                          <div className="rounded-[2.1rem] border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.94))] p-6 shadow-[0_32px_90px_rgba(8,15,35,0.26)] lg:p-8 2xl:p-9">
+                          <div className="rounded-[var(--eos-radius-xl)] border border-white/[0.12] bg-[#0b1826] p-6 shadow-[var(--eos-shadow-md)] lg:p-8 2xl:p-9">
                             <div className="space-y-6">
                               {/* Slide-forward: the deck slide leads the lesson canvas; the headline, narrative and storyboard follow beneath it. */}
                               {/* On the Practice stage the recall deck stands alone as its own section — the slide
@@ -5678,15 +5678,19 @@ export function TrainingExperienceView() {
                                       <p className="mt-1 line-clamp-2 break-words text-sm font-medium leading-snug text-white">{activeInteractiveVisual.title}</p>
                                     </div>
                                     <div className="flex shrink-0 items-center gap-2">
-                                      <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} aria-label="Previous slide" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white transition hover:bg-white/12 disabled:opacity-40">
-                                        <ChevronLeft className="h-4 w-4" />
-                                      </button>
-                                      <span className="text-xs font-medium tabular-nums text-slate-300">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</span>
-                                      <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} aria-label="Next slide" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white transition hover:bg-white/12 disabled:opacity-40">
-                                        <ChevronRight className="h-4 w-4" />
-                                      </button>
-                                      <button type="button" onClick={() => setSlideLightboxOpen(true)} className="inline-flex items-center gap-1.5 rounded-full border border-[#FCBC34]/30 bg-[#FCBC34]/10 px-3 py-1.5 text-sm font-medium text-[#FCBC34] transition hover:bg-[#FCBC34]/15 hover:text-white">
-                                        <Maximize2 className="h-3.5 w-3.5" /> Enlarge
+                                      {/* Deck nav — inner navy pill row (≥44px tall). Prev · counter · Next. */}
+                                      <div className="inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-white/[0.12] bg-white/[0.06] p-1">
+                                        <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.max(current - 1, 0))} disabled={activeInteractiveVisualIndex === 0} aria-label="Previous slide" className="flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/60 disabled:opacity-40">
+                                          <ChevronLeft className="h-4 w-4" />
+                                        </button>
+                                        <span className="px-1.5 text-xs font-medium tabular-nums text-slate-300">Visual {activeInteractiveVisualIndex + 1} of {interactiveGalleryVisuals.length}</span>
+                                        <button type="button" onClick={() => setSelectedDeckVisualIndex((current) => Math.min(current + 1, Math.max(interactiveGalleryVisuals.length - 1, 0)))} disabled={activeInteractiveVisualIndex >= interactiveGalleryVisuals.length - 1} aria-label="Next slide" className="flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/12 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/60 disabled:opacity-40">
+                                          <ChevronRight className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                      {/* Enlarge — 44px gold-outline pill in the deck-card header. */}
+                                      <button type="button" onClick={() => setSlideLightboxOpen(true)} aria-label="Enlarge slide" className="inline-flex h-11 items-center gap-1.5 rounded-[var(--radius-pill)] border border-[#FCBC34]/40 bg-[#FCBC34]/10 px-4 text-sm font-semibold text-[#FCBC34] transition hover:bg-[#FCBC34]/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCBC34]/60">
+                                        <Maximize2 className="h-4 w-4" /> Enlarge
                                       </button>
                                     </div>
                                   </div>
