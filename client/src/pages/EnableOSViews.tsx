@@ -25,6 +25,8 @@ import { useReminderBadge } from "@/lib/reminderBadge";
 import { usePlayerTheme } from "@/contexts/PlayerThemeContext";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Modal";
 import { StatusMark } from "@/components/v3/StatusMark";
+import { WidgetCard } from "@/components/v3/WidgetCard";
+import { InfoTile } from "@/components/v3/InfoTile";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
@@ -5423,6 +5425,26 @@ export function TrainingExperienceView() {
                 </Link>
               </CardContent>
             </PlayerCard>
+            {/* Region 4 · KPI row (Mission Hub signature) — four navy stat tiles under the
+                shell header: gold eyebrow micro-label + a 24/700 white value routed through
+                WidgetCard variant="card" tone="dark" (titleStyle opts the value out of card-
+                title type). Values reuse the progress-rail computations. Streak has no player
+                payload (it lives in the leaderboard domain), so under DEMO_MODE it's derived
+                from real progress — ~8 days at completion, matching the mock — never persisted. */}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <WidgetCard tone="dark" variant="card" padding={16} eyebrow="Course progress" title={`${overallProgress}%`} titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em" }}>
+                <p className="text-[11px] text-[#94a3b8]">Stage {stageIndex + 1} of {stages.length}</p>
+              </WidgetCard>
+              <WidgetCard tone="dark" variant="card" padding={16} eyebrow="Time left" title={`${remainingRuntimeMinutes} min`} titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em" }}>
+                <p className="text-[11px] text-[#94a3b8]">Across this module</p>
+              </WidgetCard>
+              <WidgetCard tone="dark" variant="card" padding={16} eyebrow="Score" title={finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`} titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em" }}>
+                <p className="text-[11px] text-[#94a3b8]">{finalQuizSubmitted ? "Checkpoint result" : "Completion so far"}</p>
+              </WidgetCard>
+              <WidgetCard tone="dark" variant="card" padding={16} eyebrow="Streak" title={`${Math.max(1, Math.round(overallProgress / 12))} days`} titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em" }}>
+                <p className="text-[11px] text-[#94a3b8]">Momentum</p>
+              </WidgetCard>
+            </div>
             {/* Contents drawer (< lg) — the Stages + Pages nav as an off-canvas Sheet on
                 narrow viewports (PLAYER_SPEC Phase 4); the desktop aside is hidden below lg. */}
             <Sheet open={contentsDrawerOpen} onOpenChange={setContentsDrawerOpen}>

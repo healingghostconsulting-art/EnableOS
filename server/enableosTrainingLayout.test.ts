@@ -1448,4 +1448,17 @@ describe("learner training layout helpers", () => {
     // The old client-side quiz splice is gone (checkpoints now resolve server-side).
     expect(trainingViewSource).not.toContain("resolvedQuizModule");
   });
+
+  it("renders the Region-4 KPI row as four navy WidgetCard stat tiles (Phase-4 reformat)", () => {
+    // Mission Hub signature: four dark KPI tiles under the shell header. Value routes through
+    // WidgetCard variant="card" tone="dark" with a 24/700 titleStyle so it reads as a KPI.
+    expect(trainingViewSource).toContain('<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">');
+    expect(trainingViewSource).toContain('tone="dark" variant="card" padding={16} eyebrow="Course progress"');
+    expect(trainingViewSource).toContain('eyebrow="Time left"');
+    expect(trainingViewSource).toContain('eyebrow="Score"');
+    expect(trainingViewSource).toContain('eyebrow="Streak"');
+    expect(trainingViewSource).toContain('titleStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em" }}');
+    // Score/Time reuse the progress-rail computations; Streak is a DEMO-derived momentum value.
+    expect(trainingViewSource).toContain("Math.max(1, Math.round(overallProgress / 12))");
+  });
 });
