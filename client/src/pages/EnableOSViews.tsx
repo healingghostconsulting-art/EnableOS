@@ -3961,7 +3961,6 @@ export function TrainingExperienceView() {
   });
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
-  const [progressRailCollapsed, setProgressRailCollapsed] = useState(false);
   const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);
   const [focusedMode, setFocusedMode] = useState(false);
   // PLAYER_SPEC dual-mode: light (default, mode B) vs dark focus (mode A). Scoped to the
@@ -5500,7 +5499,7 @@ export function TrainingExperienceView() {
               <span className={playerDark ? "text-slate-600" : "text-[#4A6373]/50"}>·</span>
               <span className="whitespace-nowrap">{remainingRuntimeMinutes} min left</span>
             </div>
-            <div className={`grid gap-4 lg:items-start ${progressRailCollapsed ? "lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]" : "lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]"}`}>
+            <div className="grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem] lg:items-start">
               {/* Region 1 · Stage/Page rail — two navy WidgetCards (always navy in both player
                   modes per the figure/ground rule). Rows are accessible pill rows: gold fill +
                   navy ink + a 4px navy left marker + trailing Check + aria-current + ≥44px, so
@@ -6503,52 +6502,32 @@ export function TrainingExperienceView() {
                 </PlayerCard>
               </div>
 
-              <PlayerCard className="hidden h-fit lg:block lg:sticky lg:top-6">
-                {progressRailCollapsed ? (
-                  <CardContent className="flex flex-col items-center gap-2 p-2">
-                    <button type="button" onClick={() => setProgressRailCollapsed(false)} aria-label="Expand progress rail" title="Progress rail" className={`min-h-[44px] min-w-[44px] rounded-lg p-2 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-300 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <span className={`text-[10px] uppercase tracking-[0.16em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`}</span>
-                  </CardContent>
-                ) : (
-                  <>
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="space-y-2">
-                          <CardTitle className={playerDark ? "text-white" : "text-[#1B303C]"}>Progress rail</CardTitle>
-                          <CardDescription className={playerDark ? "text-slate-400" : "text-[#4A6373]"}>Keep the next action, runtime, and current score visible while the lesson stays centered.</CardDescription>
-                        </div>
-                        <button type="button" onClick={() => setProgressRailCollapsed(true)} aria-label="Collapse progress rail" className={`shrink-0 rounded-lg p-1.5 transition focus:outline-none focus-visible:ring-2 ${playerDark ? "text-slate-400 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
-                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Next</p>
-                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"}</p>
-                      </div>
-                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
-                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Time left</p>
-                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"}</p>
-                      </div>
-                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
-                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Score</p>
-                        <p className={`mt-2 flex items-center gap-1.5 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}><StatusMark status={finalQuizSubmitted ? "positive" : "neutral"} showLabel={false} className="shrink-0" />{finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}% complete`}</p>
-                      </div>
-                      <div className={`rounded-[1.25rem] border px-4 py-4 ${playerDark ? "border-white/10 bg-white/6" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
-                        <p className={`text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Reward</p>
-                        <p className={`mt-2 text-sm font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>{currentStageItemCountLabel}</p>
-                      </div>
-                      <div className="space-y-2 pt-2">
-                        <Button type="button" onClick={() => setTrainingWorkspacePage("lesson")} className={`w-full rounded-[1rem] ${playerDark ? "bg-white text-slate-950 hover:bg-slate-100" : "bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"}`}>Continue</Button>
-                        <Button type="button" variant="outline" onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className={`w-full rounded-[1rem] ${playerDark ? "border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" : "border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50"}`}>{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
-                      </div>
-                    </CardContent>
-                  </>
-                )}
-              </PlayerCard>
+              {/* Region 3 · Progress rail — navy WidgetCard. Each metric is an InfoTile onDark
+                  inside a translucent tile wrapper (per the InfoTile correction: the wrapper
+                  supplies the dark surface, the tile supplies white value + label). Continue is
+                  a 48px gold pill. Always expanded — the desktop collapse was dropped. */}
+              <div className="hidden h-fit lg:block lg:sticky lg:top-6">
+                <WidgetCard tone="dark" variant="section" title="Progress rail" padding={16}>
+                  <div className="space-y-3">
+                    <div className="rounded-xl bg-white/[0.06] p-4">
+                      <InfoTile onDark tint="cyan" icon={<Sparkles className="h-5 w-5" />} value={activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"} label="Next" />
+                    </div>
+                    <div className="rounded-xl bg-white/[0.06] p-4">
+                      <InfoTile onDark tint="gold" icon={<Clock3 className="h-5 w-5" />} value={guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"} label="Time left" />
+                    </div>
+                    <div className="rounded-xl bg-white/[0.06] p-4">
+                      <InfoTile onDark tint="emerald" icon={<Target className="h-5 w-5" />} value={finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`} label="Score" />
+                    </div>
+                    <div className="rounded-xl bg-white/[0.06] p-4">
+                      <InfoTile onDark tint="gold" icon={<Trophy className="h-5 w-5" />} value={currentStageItemCountLabel} label="Reward" />
+                    </div>
+                    <div className="space-y-2 pt-1">
+                      <Button type="button" variant="gold" size="pill" onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold">Continue</Button>
+                      <Button type="button" variant="secondary" size="pill" onDark onClick={() => setTrainingWorkspacePage(activeQuizTrigger ? "checkpoint" : "resources")} className="w-full">{activeQuizTrigger ? "Open checkpoint" : "Open transfer pack"}</Button>
+                    </div>
+                  </div>
+                </WidgetCard>
+              </div>
             </div>
             <div className="rounded-[1.25rem] border border-white/10 bg-slate-950/40">
               <button

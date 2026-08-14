@@ -920,14 +920,12 @@ describe("learner training layout helpers", () => {
   it("re-proportions the player so the center canvas dominates and the narrow side band is removed (W2)", () => {
     // Left rail 240px (15rem), right rail 300px (18.75rem), center canvas takes the remaining width.
     expect(trainingViewSource).toContain("lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem]");
-    // Phase-4: the left rail no longer collapses, so only the progress-rail (right) collapse
-    // permutation remains. The 3.5rem LEFT-column variants are gone.
+    // Phase-4: neither rail collapses anymore, so the grid is a single fixed 3-column template
+    // and NONE of the 3.5rem collapse permutations survive.
     expect(trainingViewSource).not.toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_18.75rem]");
-    expect(trainingViewSource).toContain("lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]");
+    expect(trainingViewSource).not.toContain("lg:grid-cols-[15rem_minmax(0,1fr)_3.5rem]");
     expect(trainingViewSource).not.toContain("lg:grid-cols-[3.5rem_minmax(0,1fr)_3.5rem]");
-    // Right Progress rail is still collapsible (removed in Region 3).
-    expect(trainingViewSource).toContain("const [progressRailCollapsed, setProgressRailCollapsed] = useState(false)");
-    expect(trainingViewSource).toContain("setProgressRailCollapsed");
+    expect(trainingViewSource).not.toContain("progressRailCollapsed");
     // The player uses the wide Surface variant (no narrow centered container / side band).
     expect(trainingViewSource).toContain("<Surface wide>");
     // Prose reading width is capped on the now-wide canvas.
@@ -1478,5 +1476,18 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-white/[0.12] bg-white/[0.06] p-1');
     // The deck slide itself still renders light on its black photo frame (deck-stays-light).
     expect(trainingViewSource).toContain("flex aspect-video w-full items-center justify-center bg-black/40");
+  });
+
+  it("reformats the Region-3 progress rail onto a navy WidgetCard with InfoTile onDark rows", () => {
+    // Navy WidgetCard hosting the rail; the desktop collapse is gone.
+    expect(trainingViewSource).toContain('<WidgetCard tone="dark" variant="section" title="Progress rail" padding={16}>');
+    expect(trainingViewSource).not.toContain("progressRailCollapsed");
+    // Each metric is an InfoTile onDark inside the bg-white/[0.06] p-4 wrapper (per the correction).
+    expect(trainingViewSource).toContain('<div className="rounded-xl bg-white/[0.06] p-4">');
+    expect(trainingViewSource).toContain('<InfoTile onDark tint="emerald" icon={<Target className="h-5 w-5" />}');
+    expect(trainingViewSource).toContain('label="Next"');
+    expect(trainingViewSource).toContain('label="Reward"');
+    // Continue is a 48px (h-12) gold pill.
+    expect(trainingViewSource).toContain('variant="gold" size="pill" onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold"');
   });
 });
