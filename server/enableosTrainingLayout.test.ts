@@ -1519,4 +1519,17 @@ describe("learner training layout helpers", () => {
     // The inline quiz a11y is untouched (radiogroup preserved elsewhere in the file).
     expect(trainingViewSource).toContain('role="radiogroup"');
   });
+
+  it("keeps the reformatted regions reflowing below lg / 640px (Region 6 responsive pass)", () => {
+    // KPI row: 2-up on mobile, 4-up at lg.
+    expect(trainingViewSource).toContain('<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">');
+    // The 3-column grid only engages at lg; below lg the regions stack in one column.
+    expect(trainingViewSource).toContain('grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)_18.75rem] lg:items-start');
+    // Desktop rail + progress rail are hidden below lg; the drawer + stat strip take over.
+    expect(trainingViewSource).toContain("hidden space-y-3 lg:block lg:sticky lg:top-6");
+    expect(trainingViewSource).toContain("hidden h-fit lg:block lg:sticky lg:top-6");
+    expect(trainingViewSource).toContain("lg:hidden"); // mobile stat strip + Contents drawer trigger
+    // The deck header wraps its nav/Enlarge below the label on narrow viewports.
+    expect(trainingViewSource).toContain("flex flex-wrap items-center justify-between gap-3");
+  });
 });
