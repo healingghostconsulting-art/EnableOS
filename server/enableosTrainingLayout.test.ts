@@ -9,6 +9,7 @@ import {
   orderQuestionsMissedFirst,
   getBriefBoxPages,
   getBriefCompletionStatus,
+  hasReachedLastLessonSlide,
   getLearnerFeedbackDescription,
   getLearnerFeedbackMotionLabel,
   getLearnerFeedbackMotionStatus,
@@ -20,6 +21,26 @@ import {
   readMotionPreferenceFromMediaQuery,
 } from "../client/src/pages/EnableOSViews";
 import { afterEach, vi } from "vitest";
+
+describe("checkpoint gate trigger — hasReachedLastLessonSlide (Region 5 fix)", () => {
+  it("stays LOCKED at the seeded start position and only unlocks on the actual last slide", () => {
+    // Fresh load: Learn stage, "Slide 1/16" → lessonPageIndex 0 of 16 pages → LOCKED.
+    // (Regression guard for the live-QA bug where a high seeded DECK index — "Visual 18/46" —
+    //  made the checkpoint render unlocked on load.)
+    expect(hasReachedLastLessonSlide(16, 0)).toBe(false);
+    // Mid-lesson is still locked.
+    expect(hasReachedLastLessonSlide(16, 8)).toBe(false);
+    // Reaching the last lesson slide unlocks.
+    expect(hasReachedLastLessonSlide(16, 15)).toBe(true);
+    // Pages not loaded yet (length 0) must NOT count as "reached the end" — this was the root
+    // cause: onLastLessonPage returned true here and latched the gate open before data arrived.
+    expect(hasReachedLastLessonSlide(0, 0)).toBe(false);
+    // A genuine single-page stage is immediately on its last slide.
+    expect(hasReachedLastLessonSlide(1, 0)).toBe(true);
+    // An out-of-range index (e.g. stale resume) past the end still reads as reached, not broken.
+    expect(hasReachedLastLessonSlide(16, 20)).toBe(true);
+  });
+});
 
 describe("learner training layout helpers", () => {
   const pages = Array.from({ length: 8 }, (_, index) => ({ id: `brief-${index + 1}` }));
@@ -1495,7 +1516,12 @@ describe("learner training layout helpers", () => {
     // Latch state + the genuine-transition announce/ring driver, reset per (module, stage).
     expect(trainingViewSource).toContain("const [checkpointUnlocked, setCheckpointUnlocked] = useState(false)");
     expect(trainingViewSource).toContain("const [announceCheckpointUnlock, setAnnounceCheckpointUnlock] = useState(false)");
-    expect(trainingViewSource).toContain("if (onLastLessonPage && !checkpointUnlocked)");
+    // A new stage/module ALWAYS starts locked; unlock keys off the last-lesson-slide trigger,
+    // never the loading-state onLastLessonPage (which is true before pages load) or the seed.
+    expect(trainingViewSource).toContain("setCheckpointUnlocked(false)");
+    expect(trainingViewSource).not.toContain("setCheckpointUnlocked(onLastLessonPage)");
+    expect(trainingViewSource).toContain("if (reachedLastLessonSlide && !checkpointUnlocked)");
+    expect(trainingViewSource).toContain("hasReachedLastLessonSlide(currentStagePages.length, lessonPageIndex)");
     // Locked page tab: aria-disabled + describedby → reason line, Lock glyph, neutral chip.
     expect(trainingViewSource).toContain("const checkpointLocked = isCheckpoint && !checkpointUnlocked");
     expect(trainingViewSource).toContain('aria-disabled={checkpointLocked || undefined}');

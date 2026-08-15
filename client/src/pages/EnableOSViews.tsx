@@ -536,6 +536,17 @@ export function getBriefCompletionStatus(lessonPageIndex: number, totalPages: nu
   };
 }
 
+// Region 5 checkpoint gate trigger. The checkpoint unlocks only once the learner is actually
+// on the LAST lesson slide of a stage that has pages. Two things this must NOT treat as
+// "reached the end": (1) a stage whose pages haven't loaded yet (pagesLength === 0) — the old
+// `onLastLessonPage` returned true there, which latched the gate open before data arrived; and
+// (2) the global deck "Visual X of 46" index — the gate keys off the per-stage lesson-slide
+// counter (lessonPageIndex within currentStagePages), never the seeded deck position. Pure +
+// exported so the locked-at-seeded-position behavior is unit-tested and can't regress.
+export function hasReachedLastLessonSlide(pagesLength: number, lessonPageIndex: number): boolean {
+  return pagesLength > 0 && lessonPageIndex >= pagesLength - 1;
+}
+
 export function getStageNavigatorLabel(stageId?: string | null) {
   return stageId === "brief"
     ? "Focused lesson path"
@@ -4813,25 +4824,28 @@ export function TrainingExperienceView() {
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
   // Checkpoint gate: pages still to read before the checkpoint unlocks (live count).
   const checkpointRemainingPages = Math.max(0, currentStagePages.length - 1 - lessonPageIndex);
+  // The gate keys off the per-stage lesson-slide counter, NOT onLastLessonPage (which is true
+  // while pages are still loading) and NOT the seeded global deck index.
+  const reachedLastLessonSlide = hasReachedLastLessonSlide(currentStagePages.length, lessonPageIndex);
   const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
   const currentStageItemLabel = `${stageDisplayLabel} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
-  // Latch the checkpoint gate per (module, stage). On a new stage the latch resets (unlocked
-  // only if the stage is already on its last page, e.g. a 1-page stage) WITHOUT announcing.
-  // Within a stage, when the learner reaches the last page it unlocks once and fires the
-  // announce + ring — the genuine auto-transition the spec calls for.
+  // Latch the checkpoint gate per (module, stage). A new stage/module ALWAYS starts LOCKED —
+  // the seeded slide/deck position never counts as "reached the end," so a fresh load sits
+  // locked until the learner actually advances. Within a stage, once they reach the last
+  // lesson slide it unlocks once and fires the announce + ring (the genuine auto-transition).
   useEffect(() => {
     const gateKey = `${moduleIndex}:${stageIndex}`;
     if (checkpointGateKeyRef.current !== gateKey) {
       checkpointGateKeyRef.current = gateKey;
-      setCheckpointUnlocked(onLastLessonPage);
+      setCheckpointUnlocked(false);
       setAnnounceCheckpointUnlock(false);
       return;
     }
-    if (onLastLessonPage && !checkpointUnlocked) {
+    if (reachedLastLessonSlide && !checkpointUnlocked) {
       setCheckpointUnlocked(true);
       setAnnounceCheckpointUnlock(true);
     }
-  }, [moduleIndex, stageIndex, onLastLessonPage, checkpointUnlocked]);
+  }, [moduleIndex, stageIndex, reachedLastLessonSlide, checkpointUnlocked]);
   // Clear the one-shot announce/ring after it has played (keeps role=status polite, not chatty).
   useEffect(() => {
     if (!announceCheckpointUnlock) return;
