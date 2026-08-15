@@ -108,6 +108,18 @@ describe("v3 kit dark-tone extensions for the player regions (additive, default 
   });
 });
 
+describe("Checkpoint unlock ring keyframe (Region 5)", () => {
+  const css = read("client/src/index.css");
+  it("defines a one-shot tp-unlock keyframe with a prefers-reduced-motion guard", () => {
+    expect(css).toContain("@keyframes tp-unlock");
+    expect(css).toContain(".tp-unlock-ring");
+    expect(css).toContain("animation: tp-unlock");
+    // Reduced-motion disables the ring.
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)\s*\{\s*\.tp-unlock-ring\s*\{\s*animation: none/);
+  });
+});
+
 describe("Enlarge lightbox tone tracks the player theme", () => {
   const player = read("client/src/pages/EnableOSViews.tsx");
 

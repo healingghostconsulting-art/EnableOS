@@ -62,6 +62,7 @@ import {
   Layers3,
   Check,
   List,
+  Lock,
   Maximize2,
   Moon,
   Sun,
@@ -3907,6 +3908,14 @@ export function TrainingExperienceView() {
   const [moduleIndex, setModuleIndex] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [lessonPageIndex, setLessonPageIndex] = useState(0);
+  // Region 5 · Checkpoint gating (behaviorDeltas[0]). The checkpoint is locked until the
+  // learner reaches the stage's last lesson page; `announceCheckpointUnlock` drives BOTH the
+  // one-shot gold ring and the polite live-region message, and fires only on the genuine
+  // in-stage transition (not on initial render or when a stage is re-entered). Optimistic /
+  // non-persisted per DEMO_MODE. The gate key resets the latch on stage/module change.
+  const [checkpointUnlocked, setCheckpointUnlocked] = useState(false);
+  const [announceCheckpointUnlock, setAnnounceCheckpointUnlock] = useState(false);
+  const checkpointGateKeyRef = useRef<string | null>(null);
   const [briefCheckpointAnswers, setBriefCheckpointAnswers] = useState<Record<string, string>>({});
   const [briefCheckpointSubmitted, setBriefCheckpointSubmitted] = useState(false);
   const [practiceChoice, setPracticeChoice] = useState<"coach_first" | "peer_shadow" | null>(null);
@@ -4802,8 +4811,33 @@ export function TrainingExperienceView() {
     : null;
   const lessonPageProgress = currentStagePages.length > 0 ? Math.round(((lessonPageIndex + 1) / currentStagePages.length) * 100) : 100;
   const onLastLessonPage = currentStagePages.length === 0 || lessonPageIndex >= currentStagePages.length - 1;
+  // Checkpoint gate: pages still to read before the checkpoint unlocks (live count).
+  const checkpointRemainingPages = Math.max(0, currentStagePages.length - 1 - lessonPageIndex);
   const stageDisplayLabel = currentStage?.id === "brief" ? "Lesson" : currentStage?.label ?? "Lesson";
   const currentStageItemLabel = `${stageDisplayLabel} ${currentStagePages.length > 0 ? lessonPageIndex + 1 : 0}`;
+  // Latch the checkpoint gate per (module, stage). On a new stage the latch resets (unlocked
+  // only if the stage is already on its last page, e.g. a 1-page stage) WITHOUT announcing.
+  // Within a stage, when the learner reaches the last page it unlocks once and fires the
+  // announce + ring — the genuine auto-transition the spec calls for.
+  useEffect(() => {
+    const gateKey = `${moduleIndex}:${stageIndex}`;
+    if (checkpointGateKeyRef.current !== gateKey) {
+      checkpointGateKeyRef.current = gateKey;
+      setCheckpointUnlocked(onLastLessonPage);
+      setAnnounceCheckpointUnlock(false);
+      return;
+    }
+    if (onLastLessonPage && !checkpointUnlocked) {
+      setCheckpointUnlocked(true);
+      setAnnounceCheckpointUnlock(true);
+    }
+  }, [moduleIndex, stageIndex, onLastLessonPage, checkpointUnlocked]);
+  // Clear the one-shot announce/ring after it has played (keeps role=status polite, not chatty).
+  useEffect(() => {
+    if (!announceCheckpointUnlock) return;
+    const timer = window.setTimeout(() => setAnnounceCheckpointUnlock(false), 2400);
+    return () => window.clearTimeout(timer);
+  }, [announceCheckpointUnlock]);
   const activeCurriculumSlide = curriculumDeck[Math.min(selectedCurriculumSlideIndex, Math.max(curriculumDeck.length - 1, 0))] ?? null;
   const activeCurriculumVisual = activeCurriculumSlide?.visual ?? featuredDeckVisual ?? null;
 
@@ -5471,11 +5505,12 @@ export function TrainingExperienceView() {
                       <p className={`mt-3 px-2 text-[11px] uppercase tracking-[0.22em] ${playerDark ? "text-subtle-dark" : "text-[#4A6373]"}`}>Pages</p>
                       {([{ key: "brief", label: "Overview" }, { key: "lesson", label: "Lesson" }, { key: "checkpoint", label: "Checkpoint" }, { key: "resources", label: "Resources" }] as const).map((page) => {
                         const isActivePage = trainingWorkspacePage === page.key;
+                        const checkpointLocked = page.key === "checkpoint" && !checkpointUnlocked;
                         return (
-                          <button key={page.key} type="button" aria-current={isActivePage ? "page" : undefined} onClick={() => { setTrainingWorkspacePage(page.key); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
-                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{page.label[0]}</span>
+                          <button key={page.key} type="button" aria-current={isActivePage ? "page" : undefined} aria-disabled={checkpointLocked || undefined} onClick={checkpointLocked ? undefined : () => { setTrainingWorkspacePage(page.key); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${checkpointLocked ? `cursor-not-allowed opacity-55 ${playerDark ? "text-slate-400" : "text-[#4A6373]"}` : isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{checkpointLocked ? <Lock className="h-3.5 w-3.5" aria-hidden="true" /> : page.label[0]}</span>
                             <span className="flex-1 truncate">{page.label}</span>
-                            {isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
+                            {checkpointLocked ? <span className="shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300">Locked</span> : isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
                           </button>
                         );
                       })}
@@ -5542,19 +5577,31 @@ export function TrainingExperienceView() {
                         { key: "resources", label: "Resources" },
                       ] as const).map((page) => {
                         const isActivePage = trainingWorkspacePage === page.key;
+                        const isCheckpoint = page.key === "checkpoint";
+                        const checkpointLocked = isCheckpoint && !checkpointUnlocked;
                         return (
-                          <button
-                            key={page.key}
-                            type="button"
-                            title={page.label}
-                            aria-current={isActivePage ? "page" : undefined}
-                            onClick={() => setTrainingWorkspacePage(page.key)}
-                            className={`relative flex min-h-[44px] w-full items-center gap-2 rounded-[var(--radius-pill)] py-2 pl-4 pr-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C] focus-visible:ring-[#FCBC34]/60" : "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50"}`}
-                          >
-                            {isActivePage ? <span aria-hidden="true" className="absolute left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[#1B303C]" /> : null}
-                            <span className="min-w-0 flex-1 truncate">{page.label}</span>
-                            {isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
-                          </button>
+                          <div key={page.key} className={isCheckpoint && announceCheckpointUnlock ? "rounded-[var(--radius-pill)] tp-unlock-ring" : undefined}>
+                            <button
+                              type="button"
+                              title={page.label}
+                              aria-current={isActivePage ? "page" : undefined}
+                              aria-disabled={checkpointLocked || undefined}
+                              aria-describedby={checkpointLocked ? "checkpoint-tab-reason" : undefined}
+                              onClick={checkpointLocked ? undefined : () => setTrainingWorkspacePage(page.key)}
+                              className={`relative flex min-h-[44px] w-full items-center gap-2 rounded-[var(--radius-pill)] py-2 pl-4 pr-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${checkpointLocked ? "cursor-not-allowed text-slate-400 opacity-55 focus-visible:ring-[#FCBC34]/40" : isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C] focus-visible:ring-[#FCBC34]/60" : "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50"}`}
+                            >
+                              {checkpointLocked ? <Lock className="h-4 w-4 shrink-0" aria-hidden="true" /> : isActivePage ? <span aria-hidden="true" className="absolute left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[#1B303C]" /> : null}
+                              <span className="min-w-0 flex-1 truncate">{page.label}</span>
+                              {isCheckpoint ? (
+                                checkpointLocked ? (
+                                  <span className="shrink-0 rounded-[var(--radius-pill)] bg-white/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300">Locked</span>
+                                ) : (
+                                  <span className={`shrink-0 rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${isActivePage ? "bg-[#1B303C]/15 text-[#1B303C]" : "bg-[#FCBC34]/15 text-[#FCBC34]"}`}>Quiz</span>
+                                )
+                              ) : isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
+                            </button>
+                            {checkpointLocked ? <p id="checkpoint-tab-reason" className="mt-1 px-4 text-[11px] text-[#94a3b8]">Complete the lesson to unlock.</p> : null}
+                          </div>
                         );
                       })}
                       {curriculumDeck.length ? (
@@ -5833,7 +5880,7 @@ export function TrainingExperienceView() {
                                     ) : null}
                                   </div>
                                 ) : null}
-                                {currentSlideInteraction && trainingWorkspacePage === "checkpoint" ? (
+                                {currentSlideInteraction && trainingWorkspacePage === "checkpoint" && checkpointUnlocked ? (
                                   <div className="mt-6 rounded-[1.8rem] border border-emerald-400/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.86))] p-5 shadow-[0_24px_60px_rgba(5,46,22,0.18)] sm:p-6">
                                     <div className="gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
                                       <div className="min-w-0">
@@ -6086,7 +6133,7 @@ export function TrainingExperienceView() {
                                     )}
                                   </div>
                                 ) : null}
-                                {lessonSignalCards.length && trainingWorkspacePage === "checkpoint" ? (
+                                {lessonSignalCards.length && trainingWorkspacePage === "checkpoint" && checkpointUnlocked ? (
                                   <div className="mt-6 grid grid-cols-3 gap-2">
                                     {lessonSignalCards.map((signal) => (
                                       <div key={`${currentLessonPage.id}-${signal.label}`} className="rounded-xl border border-white/10 bg-white/6 px-3 py-2.5">
@@ -6199,7 +6246,33 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "brief" ? (
+                    {/* Region 5 · Checkpoint gate (behaviorDeltas[0]). Polite announce fires
+                        only on the genuine unlock transition; the locked panel is a full navy
+                        WidgetCard (never removed) with a dashed lock panel + live remaining-page
+                        count over a ghosted, aria-hidden skeleton quiz. */}
+                    <div role="status" aria-live="polite" className="sr-only">{announceCheckpointUnlock ? "Checkpoint unlocked" : ""}</div>
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && !checkpointUnlocked ? (
+                      <WidgetCard tone="dark" variant="section" title="Checkpoint">
+                        <div className="relative">
+                          <div className="rounded-[var(--eos-radius-lg)] border-2 border-dashed border-white/20 bg-white/[0.03] p-6 text-center">
+                            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] text-slate-300"><Lock className="h-5 w-5" aria-hidden="true" /></span>
+                            <p id="checkpoint-canvas-reason" className="mt-3 text-sm font-semibold text-white">Complete the lesson to unlock.</p>
+                            <p className="mt-1 text-[13px] text-[#94a3b8]">{checkpointRemainingPages === 0 ? "Unlocking…" : `${checkpointRemainingPages} ${checkpointRemainingPages === 1 ? "page" : "pages"} remaining`}</p>
+                          </div>
+                          {/* Ghosted skeleton quiz — representational shape only, hidden from AT. */}
+                          <div aria-hidden="true" className="pointer-events-none mt-4 space-y-3 opacity-[0.34]">
+                            {[0, 1, 2].map((row) => (
+                              <div key={row} className="space-y-2 rounded-[var(--eos-radius-md)] border border-white/10 bg-white/[0.04] p-4">
+                                <div className="h-3 w-1/2 rounded-full bg-white/15" />
+                                <div className="h-9 w-full rounded-[var(--radius-pill)] bg-white/10" />
+                                <div className="h-9 w-full rounded-[var(--radius-pill)] bg-white/10" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </WidgetCard>
+                    ) : null}
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && checkpointUnlocked && currentStage?.id === "brief" ? (
                       <div className="space-y-5">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -6225,7 +6298,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "practice" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && checkpointUnlocked && currentStage?.id === "practice" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">
                           <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Practice scenario</p>
@@ -6269,7 +6342,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "apply" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && checkpointUnlocked && currentStage?.id === "apply" ? (
                       <div className="space-y-4">
                         <div className="rounded-[1.6rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
                           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -6299,7 +6372,7 @@ export function TrainingExperienceView() {
                       </div>
                     ) : null}
 
-                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && currentStage?.id === "reflect" ? (
+                    {trainingWorkspacePage === "checkpoint" && !activeModalQuizTrigger && checkpointUnlocked && currentStage?.id === "reflect" ? (
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="rounded-[1.6rem] border border-white/10 bg-white/5 p-5">

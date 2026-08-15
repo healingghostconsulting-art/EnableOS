@@ -262,6 +262,26 @@
   }
 }
 
+/* Training checkpoint unlock — a one-shot gold ring on the checkpoint card at the genuine
+   locked→unlocked transition (Region 5). Kept as a keyframe (not a state-driven inline
+   style) so the card's own styling stays literal and paints immediately, and disabled under
+   reduced-motion. */
+@keyframes tp-unlock {
+  0% { box-shadow: 0 0 0 0 rgba(252, 188, 52, 0); }
+  25% { box-shadow: 0 0 0 3px rgba(252, 188, 52, 0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(252, 188, 52, 0); }
+}
+
+.tp-unlock-ring {
+  animation: tp-unlock 2.2s var(--eos-ease-out, ease) 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-unlock-ring {
+    animation: none;
+  }
+}
+
 @keyframes shimmer-sweep {
   0% {
     transform: translateX(-140%);

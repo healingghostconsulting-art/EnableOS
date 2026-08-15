@@ -1490,4 +1490,33 @@ describe("learner training layout helpers", () => {
     // Continue is a 48px (h-12) gold pill.
     expect(trainingViewSource).toContain('variant="gold" size="pill" onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold"');
   });
+
+  it("gates the Region-5 checkpoint: locked by default, unlock on the last lesson page (behaviorDeltas[0])", () => {
+    // Latch state + the genuine-transition announce/ring driver, reset per (module, stage).
+    expect(trainingViewSource).toContain("const [checkpointUnlocked, setCheckpointUnlocked] = useState(false)");
+    expect(trainingViewSource).toContain("const [announceCheckpointUnlock, setAnnounceCheckpointUnlock] = useState(false)");
+    expect(trainingViewSource).toContain("if (onLastLessonPage && !checkpointUnlocked)");
+    // Locked page tab: aria-disabled + describedby → reason line, Lock glyph, neutral chip.
+    expect(trainingViewSource).toContain("const checkpointLocked = isCheckpoint && !checkpointUnlocked");
+    expect(trainingViewSource).toContain('aria-disabled={checkpointLocked || undefined}');
+    expect(trainingViewSource).toContain('aria-describedby={checkpointLocked ? "checkpoint-tab-reason" : undefined}');
+    expect(trainingViewSource).toContain('id="checkpoint-tab-reason"');
+    // The gold "Quiz" chip flips to a neutral "Locked" chip while locked.
+    expect(trainingViewSource).toContain(">Locked</span>");
+    expect(trainingViewSource).toContain(">Quiz</span>");
+    // Canvas: locked panel (dashed) + live remaining-page count over a ghosted, aria-hidden skeleton.
+    expect(trainingViewSource).toContain("border-2 border-dashed border-white/20");
+    expect(trainingViewSource).toContain("Complete the lesson to unlock.");
+    expect(trainingViewSource).toContain("checkpointRemainingPages === 0");
+    expect(trainingViewSource).toContain('aria-hidden="true" className="pointer-events-none mt-4 space-y-3 opacity-[0.34]"');
+    // Per-stage checkpoint content now requires the gate to be open.
+    expect(trainingViewSource).toContain('checkpointUnlocked && currentStage?.id === "brief"');
+    // Polite announce fires only on the genuine transition; one-shot ring via @keyframes.
+    // The ring rides the checkpoint TAB (visible from the lesson page where the unlock fires),
+    // not the locked panel (which is unmounted the moment the gate opens).
+    expect(trainingViewSource).toContain('<div role="status" aria-live="polite" className="sr-only">{announceCheckpointUnlock ? "Checkpoint unlocked" : ""}</div>');
+    expect(trainingViewSource).toContain('isCheckpoint && announceCheckpointUnlock ? "rounded-[var(--radius-pill)] tp-unlock-ring"');
+    // The inline quiz a11y is untouched (radiogroup preserved elsewhere in the file).
+    expect(trainingViewSource).toContain('role="radiogroup"');
+  });
 });
