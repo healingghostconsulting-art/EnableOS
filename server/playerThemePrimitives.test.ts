@@ -75,6 +75,20 @@ describe("v3 prop deltas for the player reformat (additive, default no-op)", () 
     expect(src).toContain('onDark ? "flex items-center gap-3" :');
     expect(src).toContain('"flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"');
   });
+
+  it("InfoTile: circular icon badge + valueScale (metric default, tabular-nums; text = 2-line)", () => {
+    const src = read("client/src/components/v3/InfoTile.tsx");
+    // Icon badge is a circle (measures/people/states), not a rounded-square.
+    expect(src).toContain("items-center justify-center rounded-full");
+    expect(src).not.toContain("items-center justify-center rounded-xl");
+    // valueScale defaults to metric so existing KPI callers are unchanged.
+    expect(src).toContain("valueScale?: InfoTileValueScale");
+    expect(src).toContain('valueScale = "metric"');
+    expect(src).toContain('metric: "text-[24px] font-bold leading-none tracking-tight tabular-nums"');
+    expect(src).toContain('text: "text-[15px] font-semibold leading-snug line-clamp-2"');
+    // Optional detail line between value and label (enables the Time-left copy split).
+    expect(src).toContain("sub?: string");
+  });
 });
 
 describe("v3 kit dark-tone extensions for the player regions (additive, default no-op)", () => {
