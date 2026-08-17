@@ -51,10 +51,10 @@ export function WidgetCard({
   // Player-only styling is gated on `dark`, so the light default is byte-identical to the
   // shipped card (radius-2xl, white, the same shadow) and existing call sites don't move.
   const surface = dark
-    ? "rounded-[var(--eos-radius-xl)] border-white/[0.12] bg-[#0b1826] shadow-[var(--eos-shadow-md)]"
-    : "rounded-2xl border-[#1B303C]/8 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]";
-  const titleColor = dark ? "text-white" : "text-[#1B303C]";
-  const eyebrowColor = dark ? "text-[#FCBC34]" : "text-[#7A5200]";
+    ? "rounded-[var(--eos-radius-xl)] border-[var(--eos-border-dark)] bg-[var(--eos-dark-1)] shadow-[var(--eos-shadow-md)]"
+    : "rounded-2xl border-[#1B303C]/8 bg-[var(--eos-surface-card)] shadow-[0_10px_30px_rgba(15,23,42,0.05)]";
+  const titleColor = dark ? "text-white" : "text-[var(--eos-text-strong)]";
+  const eyebrowColor = dark ? "text-[var(--gold)]" : "text-[var(--gold-ink)]";
   return (
     <section
       id={id}
@@ -64,15 +64,15 @@ export function WidgetCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           {eyebrow ? (
-            <p className={`mb-1 text-[11px] font-bold uppercase tracking-[0.2em] ${eyebrowColor}`}>{eyebrow}</p>
+            <p className={`mb-1 text-[length:var(--eos-fs-micro)] font-bold uppercase tracking-[0.2em] ${eyebrowColor}`}>{eyebrow}</p>
           ) : null}
           {variant === "section" ? (
             <>
-              <h2 className={`text-[12px] font-bold uppercase tracking-[0.12em] ${titleColor}`} style={titleStyle}>{title}</h2>
-              <span aria-hidden="true" className="mt-1.5 block h-[3px] w-8 rounded-full bg-[#FCBC34]" />
+              <h2 className={`text-[length:var(--eos-fs-xs)] font-bold uppercase tracking-[0.12em] ${titleColor}`} style={titleStyle}>{title}</h2>
+              <span aria-hidden="true" className="mt-1.5 block h-[3px] w-8 rounded-full bg-[var(--gold)]" />
             </>
           ) : (
-            <h2 className={`text-[15px] font-semibold ${titleColor}`} style={titleStyle}>{title}</h2>
+            <h2 className={`text-[length:var(--eos-fs-h3)] font-semibold ${titleColor}`} style={titleStyle}>{title}</h2>
           )}
         </div>
         {action}

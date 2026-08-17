@@ -103,8 +103,8 @@ describe("v3 kit dark-tone extensions for the player regions (additive, default 
     expect(src).toContain("padding?: number");
     expect(src).toContain('tone = "light"'); // default keeps the shipped white card
     expect(src).toContain('variant = "section"'); // default keeps uppercase title + underline
-    expect(src).toContain("bg-[#0b1826]"); // navy card on dark tone
-    expect(src).toContain("rounded-2xl border-[#1B303C]/8 bg-white"); // light default byte-identical
+    expect(src).toContain("bg-[var(--eos-dark-1)]"); // navy card on dark tone (token = #0b1826)
+    expect(src).toContain("rounded-2xl border-[#1B303C]/8 bg-[var(--eos-surface-card)]"); // light default (surface token)
   });
 
   it("Button adds a gold variant, a pill size, and an onDark prop (all additive)", () => {
