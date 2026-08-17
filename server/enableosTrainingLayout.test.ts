@@ -1510,6 +1510,12 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('label="Reward"');
     // Continue is a 48px (h-12) gold pill.
     expect(trainingViewSource).toContain('variant="gold" size="pill" onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold"');
+    // Punch list: prose tiles (Next/Reward) use the 2-line text scale; Time left keeps the
+    // metric scale via the copy split (value "50 min" + sub "guided experience"); Score stays metric.
+    expect(trainingViewSource).toContain('valueScale="text" icon={<Sparkles');
+    expect(trainingViewSource).toContain('valueScale="text" icon={<Trophy');
+    expect(trainingViewSource).toContain('value={stageRuntimeValue} sub={stageRuntimeDetail} label="Time left"');
+    expect(trainingViewSource).toContain('currentStageDurationLabel.replace(" guided experience", "")');
   });
 
   it("gates the Region-5 checkpoint: locked by default, unlock on the last lesson page (behaviorDeltas[0])", () => {

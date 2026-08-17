@@ -4962,6 +4962,11 @@ export function TrainingExperienceView() {
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
   const stageRuntimeLabel = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibrating";
+  // Time-left copy split (punch list 3): "50 min guided experience" → value "50 min" + sub
+  // "guided experience", so the progress-rail tile keeps its crisp metric scale.
+  const currentStageDurationLabel = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel;
+  const stageRuntimeValue = currentStageDurationLabel ? currentStageDurationLabel.replace(" guided experience", "") : "Calibrating";
+  const stageRuntimeDetail = currentStageDurationLabel ? "guided experience" : undefined;
   const totalRuntimeMinutes = guidedPlan.stageDurations.reduce((sum, entry) => sum + entry.minutes, 0);
   const elapsedRuntimeMinutes = guidedPlan.stageDurations.slice(0, Math.max(stageIndex, 0)).reduce((sum, entry) => sum + entry.minutes, 0);
   const remainingRuntimeMinutes = Math.max(totalRuntimeMinutes - elapsedRuntimeMinutes, 0);
@@ -6597,16 +6602,16 @@ export function TrainingExperienceView() {
                 <WidgetCard tone="dark" variant="section" title="Progress rail" padding={16}>
                   <div className="space-y-3">
                     <div className="rounded-xl bg-white/[0.06] p-4">
-                      <InfoTile onDark tint="cyan" icon={<Sparkles className="h-5 w-5" />} value={activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"} label="Next" />
+                      <InfoTile onDark tint="cyan" valueScale="text" icon={<Sparkles className="h-5 w-5" />} value={activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"} label="Next" />
                     </div>
                     <div className="rounded-xl bg-white/[0.06] p-4">
-                      <InfoTile onDark tint="gold" icon={<Clock3 className="h-5 w-5" />} value={guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Calibrating"} label="Time left" />
+                      <InfoTile onDark tint="gold" icon={<Clock3 className="h-5 w-5" />} value={stageRuntimeValue} sub={stageRuntimeDetail} label="Time left" />
                     </div>
                     <div className="rounded-xl bg-white/[0.06] p-4">
                       <InfoTile onDark tint="emerald" icon={<Target className="h-5 w-5" />} value={finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`} label="Score" />
                     </div>
                     <div className="rounded-xl bg-white/[0.06] p-4">
-                      <InfoTile onDark tint="gold" icon={<Trophy className="h-5 w-5" />} value={currentStageItemCountLabel} label="Reward" />
+                      <InfoTile onDark tint="gold" valueScale="text" icon={<Trophy className="h-5 w-5" />} value={currentStageItemCountLabel} label="Reward" />
                     </div>
                     <div className="space-y-2 pt-1">
                       <Button type="button" variant="gold" size="pill" onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold">Continue</Button>
