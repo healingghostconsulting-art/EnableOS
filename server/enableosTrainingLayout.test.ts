@@ -1580,10 +1580,22 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('role="group" aria-label="Checkpoint quiz" aria-describedby="resource-ready-checkpoint"');
     expect(trainingViewSource).toContain('id="resource-ready-checkpoint"');
     expect(trainingViewSource).toContain('label={checkpointUnlocked ? "Unlocked" : "After last slide"}');
-    // Coming-soon = dashed 62% + aria-disabled + the ComingSoon component + a real reason.
-    expect(trainingViewSource).toContain('aria-disabled="true" aria-describedby="resource-soon-export"');
+    // Coming-soon = dashed 62% + aria-disabled + the ComingSoon component (onDark) + a real reason.
+    expect(trainingViewSource).toContain('aria-label="Knowledge export" aria-disabled="true" aria-describedby="resource-soon-export"');
     expect(trainingViewSource).toContain("border-2 border-dashed border-white/20");
     expect(trainingViewSource).toContain("opacity-[0.62]");
-    expect(trainingViewSource).toContain("<ComingSoonAction>Soon</ComingSoonAction>");
+    expect(trainingViewSource).toContain("<ComingSoonAction onDark>Soon</ComingSoonAction>");
+    // Accessible name and visible label stay in lockstep after the roadmap rename.
+    expect(trainingViewSource).toContain('text-white">Knowledge export</span>');
+    expect(trainingViewSource).not.toContain("Transfer-pack export");
+    // Legend teaches the dashed-vs-dimmed grammar once, above the grid (swatches aria-hidden).
+    expect(trainingViewSource).toContain("Dimmed = exists, unlocks with progress");
+    expect(trainingViewSource).toContain("Dashed = coming soon");
+  });
+
+  it("gives ComingSoonAction an onDark variant that stays subtle-dark AA on navy (light default unchanged)", () => {
+    const comingSoon = readFileSync(join(process.cwd(), "client/src/components/v3/ComingSoon.tsx"), "utf8");
+    expect(comingSoon).toContain("onDark = false"); // light default preserved for all dashboard call sites
+    expect(comingSoon).toContain('onDark ? "text-[var(--eos-text-subtle-dark)]" : "text-[#4A6373]/60"');
   });
 });

@@ -6545,8 +6545,20 @@ export function TrainingExperienceView() {
                         gated on progress (dimmer, StatusMark names the condition, not a button,
                         reason wired via aria-describedby — same language as the checkpoint);
                         Coming-soon = not built (dashed 62% + aria-disabled + ComingSoon + a real
-                        reason). Icon badges are 40px circles (consistent with InfoTile). NOTE: the
-                        two Coming-soon items are honest stubs — no export exists yet; rename freely. */}
+                        reason). Icon badges are 40px circles (consistent with InfoTile). The two
+                        Coming-soon items map to roadmap modules (Knowledge export → Knowledge Base;
+                        Coaching-log sync → Coaching Engine) and are not yet built. */}
+                    {/* Legend: makes the dashed-vs-dimmed grammar teachable rather than reverse-engineered. */}
+                    <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">
+                      <span className="inline-flex items-center gap-2">
+                        <span aria-hidden="true" className="inline-block h-3.5 w-6 rounded border border-white/[0.08] bg-white/[0.03] opacity-80" />
+                        Dimmed = exists, unlocks with progress
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span aria-hidden="true" className="inline-block h-3.5 w-6 rounded border-2 border-dashed border-white/20 bg-white/[0.02]" />
+                        Dashed = coming soon
+                      </span>
+                    </div>
                     <div className="grid gap-4 lg:grid-cols-3">
                       <WidgetCard tone="dark" variant="section" title="Available now">
                         <p className="mb-3 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Resolves today.</p>
@@ -6593,13 +6605,13 @@ export function TrainingExperienceView() {
                       <WidgetCard tone="dark" variant="section" title="Coming soon">
                         <p className="mb-3 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Not built yet.</p>
                         <div className="space-y-2">
-                          <div role="group" aria-label="Transfer-pack export" aria-disabled="true" aria-describedby="resource-soon-export" className="flex items-center gap-3 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] px-3 py-3 opacity-[0.62]">
+                          <div role="group" aria-label="Knowledge export" aria-disabled="true" aria-describedby="resource-soon-export" className="flex items-center gap-3 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] px-3 py-3 opacity-[0.62]">
                             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-slate-300"><Download className="h-5 w-5" aria-hidden="true" /></span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-semibold text-white">Transfer-pack export</span>
-                              <span id="resource-soon-export" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Download the coaching-ready transfer pack — in development.</span>
+                              <span className="block truncate text-sm font-semibold text-white">Knowledge export</span>
+                              <span id="resource-soon-export" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Export lesson content to the knowledge base — in development.</span>
                             </span>
-                            <ComingSoonAction>Soon</ComingSoonAction>
+                            <ComingSoonAction onDark>Soon</ComingSoonAction>
                           </div>
                           <div role="group" aria-label="Coaching-log sync" aria-disabled="true" aria-describedby="resource-soon-log" className="flex items-center gap-3 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] px-3 py-3 opacity-[0.62]">
                             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-slate-300"><FileText className="h-5 w-5" aria-hidden="true" /></span>
@@ -6607,7 +6619,7 @@ export function TrainingExperienceView() {
                               <span className="block truncate text-sm font-semibold text-white">Coaching-log sync</span>
                               <span id="resource-soon-log" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Push commitments to the coaching log — in development.</span>
                             </span>
-                            <ComingSoonAction>Soon</ComingSoonAction>
+                            <ComingSoonAction onDark>Soon</ComingSoonAction>
                           </div>
                         </div>
                       </WidgetCard>

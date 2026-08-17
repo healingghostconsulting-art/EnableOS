@@ -8,12 +8,20 @@ import { type LucideIcon } from "lucide-react";
 // Coach, Manager, and Client Admin views.
 
 /** Inline widget-header action stand-in (e.g. a "View All" that has no destination yet). */
-export function ComingSoonAction({ children }: { children: ReactNode }) {
+export function ComingSoonAction({
+  children,
+  onDark = false,
+}: {
+  children: ReactNode;
+  onDark?: boolean;
+}) {
   return (
     <span
       aria-disabled="true"
       title="Available in the full workspace"
-      className="inline-flex cursor-default items-center gap-1 text-[12px] font-semibold text-[#4A6373]/60"
+      className={`inline-flex cursor-default items-center gap-1 text-[12px] font-semibold ${
+        onDark ? "text-[var(--eos-text-subtle-dark)]" : "text-[#4A6373]/60"
+      }`}
     >
       {children}
     </span>
