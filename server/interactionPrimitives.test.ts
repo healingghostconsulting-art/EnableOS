@@ -20,3 +20,13 @@ describe("Dialog — v3 §2.8 geometry", () => {
     expect(src).not.toContain("bg-black/50");
   });
 });
+
+describe("Input — v3 §2.8 geometry", () => {
+  const src = read("input.tsx");
+
+  it("is 42px tall with a 12px radius (not h-9 / rounded-md)", () => {
+    expect(src).toContain("h-[42px]");
+    expect(src).toContain("rounded-[var(--eos-radius-sm)]");
+    expect(src).not.toContain("h-9 w-full min-w-0 rounded-md");
+  });
+});
