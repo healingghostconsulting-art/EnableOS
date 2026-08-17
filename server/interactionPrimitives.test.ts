@@ -41,3 +41,12 @@ describe("SelectTrigger — v3 §2.8 geometry", () => {
     expect(src).not.toContain("flex w-fit items-center justify-between");
   });
 });
+
+describe("Skeleton — v3 §2.7 neutral loading surface", () => {
+  const src = read("skeleton.tsx");
+
+  it("uses the neutral sunken surface, not the gold-tinted bg-accent", () => {
+    expect(src).toContain("bg-[var(--eos-surface-sunken)]");
+    expect(src).not.toContain("bg-accent");
+  });
+});
