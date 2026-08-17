@@ -36,12 +36,16 @@ interface StatusMeta { icon: LucideIcon; label: string; pill: string; badge: str
 
 // Colors follow the dual-surface gold rule on light surfaces (amber tone uses gold-ink
 // #7A5200 for AA). The icon silhouette — not the color — is the primary cue.
+// §2.2 — the semantic fills + text resolve to the --eos-status-* family; the badge border
+// shades stay literal (no exact token, and /opacity on a var isn't used anywhere in the repo).
+// Overdue keeps navy-gold ink (--gold-ink) per the dual-surface gold rule. The icon
+// silhouette — not the color — is the primary cue.
 const META: Record<CanonicalStatus, StatusMeta> = {
-  coaching: { icon: Users, label: "Coaching", pill: "bg-cyan-50 text-cyan-800", badge: "border-cyan-200 bg-cyan-50 text-cyan-800", inline: "text-cyan-700", dot: "text-cyan-600" },
-  positive: { icon: CheckCircle2, label: "On track", pill: "bg-emerald-50 text-emerald-700", badge: "border-emerald-200 bg-emerald-50 text-emerald-700", inline: "text-emerald-700", dot: "text-emerald-600" },
-  alert: { icon: AlertTriangle, label: "At risk", pill: "bg-rose-50 text-rose-700", badge: "border-rose-200 bg-rose-50 text-rose-700", inline: "text-rose-700", dot: "text-rose-600" },
-  overdue: { icon: Clock, label: "Overdue", pill: "bg-amber-50 text-[#7A5200]", badge: "border-amber-200 bg-amber-50 text-[#7A5200]", inline: "text-[#7A5200]", dot: "text-[#7A5200]" },
-  neutral: { icon: Minus, label: "Neutral", pill: "bg-[#1B303C]/8 text-[#1B303C]", badge: "border-[#1B303C]/15 bg-[#1B303C]/5 text-[#1B303C]", inline: "text-[#4A6373]", dot: "text-[#4A6373]" },
+  coaching: { icon: Users, label: "Coaching", pill: "bg-[var(--eos-status-info-soft)] text-[var(--eos-status-info-ink)]", badge: "border-cyan-200 bg-[var(--eos-status-info-soft)] text-[var(--eos-status-info-ink)]", inline: "text-[var(--eos-status-info-ink)]", dot: "text-[var(--eos-status-info-ink)]" },
+  positive: { icon: CheckCircle2, label: "On track", pill: "bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]", badge: "border-emerald-200 bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]", inline: "text-[var(--eos-status-green-ink)]", dot: "text-[var(--eos-status-green-ink)]" },
+  alert: { icon: AlertTriangle, label: "At risk", pill: "bg-[var(--eos-status-red-soft)] text-[var(--eos-status-red-ink)]", badge: "border-rose-200 bg-[var(--eos-status-red-soft)] text-[var(--eos-status-red-ink)]", inline: "text-[var(--eos-status-red-ink)]", dot: "text-[var(--eos-status-red-ink)]" },
+  overdue: { icon: Clock, label: "Overdue", pill: "bg-[var(--eos-status-amber-soft)] text-[var(--gold-ink)]", badge: "border-amber-200 bg-[var(--eos-status-amber-soft)] text-[var(--gold-ink)]", inline: "text-[var(--gold-ink)]", dot: "text-[var(--gold-ink)]" },
+  neutral: { icon: Minus, label: "Neutral", pill: "bg-[#1B303C]/8 text-[var(--eos-text-strong)]", badge: "border-[#1B303C]/15 bg-[#1B303C]/5 text-[var(--eos-text-strong)]", inline: "text-[var(--eos-text-muted)]", dot: "text-[var(--eos-text-muted)]" },
 };
 
 // On a navy card the light -50 washes disappear and the -700/-800 inks go muddy, so `onDark`

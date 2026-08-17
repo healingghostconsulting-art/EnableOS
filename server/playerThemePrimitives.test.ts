@@ -121,7 +121,8 @@ describe("v3 kit dark-tone extensions for the player regions (additive, default 
     expect(src).toContain("onDark = false"); // default no-op
     expect(src).toContain("META_DARK");
     expect(src).toContain("onDark ? META_DARK[canonical] : meta");
-    expect(src).toContain('bg-emerald-50 text-emerald-700'); // shipped light palette intact
+    // Light META fills now resolve through the --eos-status-* family (§2.2 rewire).
+    expect(src).toContain('bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]');
   });
 });
 
