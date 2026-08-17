@@ -68,12 +68,12 @@ describe("v3 prop deltas for the player reformat (additive, default no-op)", () 
     const src = read("client/src/components/v3/InfoTile.tsx");
     expect(src).toContain("onDark?: boolean");
     expect(src).toContain("onDark = false"); // default no-op — existing light call sites unchanged
-    expect(src).toContain('onDark ? "text-white" : "text-[#1B303C]"'); // value → #fff on dark
-    expect(src).toContain('onDark ? "text-white" : "text-[#4A6373]"'); // label → #fff on dark
+    expect(src).toContain('onDark ? "text-white" : "text-[var(--eos-text-strong)]"'); // value → #fff on dark
+    expect(src).toContain('onDark ? "text-white" : "text-[var(--eos-text-muted)]"'); // label → #fff on dark
     // The correction moved the dark card surface OUT of InfoTile to a call-site wrapper, so
-    // onDark renders a bare row and the light branch keeps its original white-card chrome.
+    // onDark renders a bare row and the light branch keeps its (now token-wired) white card.
     expect(src).toContain('onDark ? "flex items-center gap-3" :');
-    expect(src).toContain('"flex items-center gap-3 rounded-2xl border border-[#1B303C]/10 bg-white px-4 py-3.5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"');
+    expect(src).toContain('"flex items-center gap-3 rounded-2xl border border-[var(--eos-border-light)] bg-[var(--eos-surface-card)] px-4 py-3.5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"');
   });
 
   it("InfoTile: circular icon badge + valueScale (metric default, tabular-nums; text = 2-line)", () => {
@@ -85,7 +85,10 @@ describe("v3 prop deltas for the player reformat (additive, default no-op)", () 
     expect(src).toContain("valueScale?: InfoTileValueScale");
     expect(src).toContain('valueScale = "metric"');
     expect(src).toContain('metric: "text-[24px] font-bold leading-none tracking-tight tabular-nums"');
-    expect(src).toContain('text: "text-[15px] font-semibold leading-snug line-clamp-2"');
+    expect(src).toContain('text: "text-[length:var(--eos-fs-h3)] font-semibold leading-snug line-clamp-2"');
+    // Status tints resolve to the --eos-status-* family (§2.2), not inline cyan/emerald.
+    expect(src).toContain("bg-[var(--eos-status-info-soft)] text-[var(--eos-status-info-ink)]");
+    expect(src).toContain("bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]");
     // Optional detail line between value and label (enables the Time-left copy split).
     expect(src).toContain("sub?: string");
   });
