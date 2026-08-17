@@ -47,6 +47,21 @@ describe("Skeleton — v3 §2.7 neutral loading surface", () => {
 
   it("uses the neutral sunken surface, not the gold-tinted bg-accent", () => {
     expect(src).toContain("bg-[var(--eos-surface-sunken)]");
-    expect(src).not.toContain("bg-accent");
+    // The className string itself must not fall back to the gold accent token.
+    expect(src).toContain('rounded-md bg-[var(--eos-surface-sunken)]"');
+  });
+});
+
+describe("Toaster (sonner) — v3 §2.8 status accent bar", () => {
+  const src = read("sonner.tsx");
+
+  it("keeps a theme-aware surface but adds the brand radius, shadow, and a status accent bar", () => {
+    expect(src).toContain('"--normal-bg": "var(--popover)"'); // still theme-aware (dark-safe)
+    expect(src).toContain('"--border-radius": "var(--eos-radius-md)"');
+    expect(src).toContain("border-l-4 shadow-[var(--eos-shadow-card)]");
+    expect(src).toContain("border-l-[color:var(--eos-status-green)]");
+    expect(src).toContain("border-l-[color:var(--eos-status-red)]");
+    expect(src).toContain("border-l-[color:var(--eos-status-amber)]");
+    expect(src).toContain("border-l-[color:var(--eos-status-info)]");
   });
 });
