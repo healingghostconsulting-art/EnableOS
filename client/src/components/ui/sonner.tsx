@@ -22,11 +22,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
         // v3 §2.8 — a left status accent bar (semantic color, paired with sonner's own icon)
         // on the branded card surface + shadow.
         classNames: {
-          toast: "border-l-4 shadow-[var(--eos-shadow-card)]",
-          success: "border-l-[color:var(--eos-status-green)]",
-          error: "border-l-[color:var(--eos-status-red)]",
-          warning: "border-l-[color:var(--eos-status-amber)]",
-          info: "border-l-[color:var(--eos-status-info)]",
+          // Sonner applies its own 1px border via an injected stylesheet, so force the accent
+          // bar with the v4 trailing-`!` important modifier (both width and color must win).
+          toast: "border-l-4! shadow-[var(--eos-shadow-card)]",
+          success: "border-l-[color:var(--eos-status-green)]!",
+          error: "border-l-[color:var(--eos-status-red)]!",
+          warning: "border-l-[color:var(--eos-status-amber)]!",
+          info: "border-l-[color:var(--eos-status-info)]!",
         },
       }}
       {...props}

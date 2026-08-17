@@ -58,11 +58,12 @@ describe("Toaster (sonner) — v3 §2.8 status accent bar", () => {
   it("keeps a theme-aware surface but adds the brand radius, shadow, and a status accent bar", () => {
     expect(src).toContain('"--normal-bg": "var(--popover)"'); // still theme-aware (dark-safe)
     expect(src).toContain('"--border-radius": "var(--eos-radius-md)"');
-    expect(src).toContain("border-l-4 shadow-[var(--eos-shadow-card)]");
-    expect(src).toContain("border-l-[color:var(--eos-status-green)]");
-    expect(src).toContain("border-l-[color:var(--eos-status-red)]");
-    expect(src).toContain("border-l-[color:var(--eos-status-amber)]");
-    expect(src).toContain("border-l-[color:var(--eos-status-info)]");
+    // v4 trailing-`!` important so the accent bar wins over sonner's injected border.
+    expect(src).toContain("border-l-4! shadow-[var(--eos-shadow-card)]");
+    expect(src).toContain("border-l-[color:var(--eos-status-green)]!");
+    expect(src).toContain("border-l-[color:var(--eos-status-red)]!");
+    expect(src).toContain("border-l-[color:var(--eos-status-amber)]!");
+    expect(src).toContain("border-l-[color:var(--eos-status-info)]!");
   });
 });
 
