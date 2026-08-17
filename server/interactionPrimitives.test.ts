@@ -30,3 +30,14 @@ describe("Input — v3 §2.8 geometry", () => {
     expect(src).not.toContain("h-9 w-full min-w-0 rounded-md");
   });
 });
+
+describe("SelectTrigger — v3 §2.8 geometry", () => {
+  const src = read("select.tsx");
+
+  it("is 42px tall (default size) and full-width, not h-9 / w-fit", () => {
+    expect(src).toContain("data-[size=default]:h-[42px]");
+    expect(src).toContain("flex w-full items-center justify-between");
+    expect(src).not.toContain("data-[size=default]:h-9");
+    expect(src).not.toContain("flex w-fit items-center justify-between");
+  });
+});
