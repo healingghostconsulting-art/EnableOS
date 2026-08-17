@@ -65,3 +65,12 @@ describe("Toaster (sonner) — v3 §2.8 status accent bar", () => {
     expect(src).toContain("border-l-[color:var(--eos-status-info)]");
   });
 });
+
+describe("Textarea — v3 §2.8 radius parity with Input", () => {
+  const src = read("textarea.tsx");
+
+  it("uses the 12px radius (--eos-radius-sm), not rounded-md", () => {
+    expect(src).toContain("rounded-[var(--eos-radius-sm)]");
+    expect(src).not.toContain("min-h-16 w-full rounded-md");
+  });
+});
