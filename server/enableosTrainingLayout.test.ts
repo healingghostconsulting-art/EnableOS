@@ -1564,4 +1564,26 @@ describe("learner training layout helpers", () => {
     // The deck header wraps its nav/Enlarge below the label on narrow viewports.
     expect(trainingViewSource).toContain("flex flex-wrap items-center justify-between gap-3");
   });
+
+  it("groups the Resources page into three state cards (Wired / Ready / Coming-soon)", () => {
+    // Transcript stays first and carries the Accessibility chip (the deck's text fallback).
+    expect(trainingViewSource).toContain('rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/10 text-[#FCBC34]">Accessibility');
+    // Three grouped cards, not one chip list.
+    expect(trainingViewSource).toContain('<div className="grid gap-4 lg:grid-cols-3">');
+    expect(trainingViewSource).toContain('title="Available now"');
+    expect(trainingViewSource).toContain('title="Unlocks with progress"');
+    expect(trainingViewSource).toContain('title="Coming soon"');
+    // Wired = real <button> with the gold action + 2px white focus ring; badge is a 40px circle.
+    expect(trainingViewSource).toContain("focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1826]");
+    expect(trainingViewSource).toContain("h-10 w-10 shrink-0 items-center justify-center rounded-full");
+    // Ready = not a button; StatusMark names the condition; reason wired via aria-describedby.
+    expect(trainingViewSource).toContain('role="group" aria-label="Checkpoint quiz" aria-describedby="resource-ready-checkpoint"');
+    expect(trainingViewSource).toContain('id="resource-ready-checkpoint"');
+    expect(trainingViewSource).toContain('label={checkpointUnlocked ? "Unlocked" : "After last slide"}');
+    // Coming-soon = dashed 62% + aria-disabled + the ComingSoon component + a real reason.
+    expect(trainingViewSource).toContain('aria-disabled="true" aria-describedby="resource-soon-export"');
+    expect(trainingViewSource).toContain("border-2 border-dashed border-white/20");
+    expect(trainingViewSource).toContain("opacity-[0.62]");
+    expect(trainingViewSource).toContain("<ComingSoonAction>Soon</ComingSoonAction>");
+  });
 });

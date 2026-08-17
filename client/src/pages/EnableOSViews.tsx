@@ -27,6 +27,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Moda
 import { StatusMark } from "@/components/v3/StatusMark";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { InfoTile } from "@/components/v3/InfoTile";
+import { ComingSoonAction } from "@/components/v3/ComingSoon";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
 import { ActionCard } from "@/components/ActionCard";
@@ -5841,7 +5842,11 @@ export function TrainingExperienceView() {
                                           <p className="text-xs uppercase tracking-[0.22em] text-subtle-dark">Transcript</p>
                                           <p className="mt-1 text-sm text-white">Open narration controls and the page transcript only when needed.</p>
                                         </div>
-                                        <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Reveal</Badge>
+                                        {/* Transcript stays first and carries the Accessibility chip — it's the deck's text fallback. */}
+                                        <div className="flex shrink-0 items-center gap-2">
+                                          <Badge className="rounded-full border-[#FCBC34]/30 bg-[#FCBC34]/10 text-[#FCBC34]">Accessibility</Badge>
+                                          <Badge className="rounded-full border-white/10 bg-white/8 text-slate-200">Reveal</Badge>
+                                        </div>
                                       </summary>
                                       <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
                                         <div className="flex flex-wrap items-center gap-3">
@@ -6535,6 +6540,78 @@ export function TrainingExperienceView() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 p-6">
+                    {/* Resources by state — three grouped cards that answer "what can I use now"
+                        in one glance. Wired = resolves today (real <button>s); Ready = exists but
+                        gated on progress (dimmer, StatusMark names the condition, not a button,
+                        reason wired via aria-describedby — same language as the checkpoint);
+                        Coming-soon = not built (dashed 62% + aria-disabled + ComingSoon + a real
+                        reason). Icon badges are 40px circles (consistent with InfoTile). NOTE: the
+                        two Coming-soon items are honest stubs — no export exists yet; rename freely. */}
+                    <div className="grid gap-4 lg:grid-cols-3">
+                      <WidgetCard tone="dark" variant="section" title="Available now">
+                        <p className="mb-3 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Resolves today.</p>
+                        <div className="space-y-2">
+                          {([
+                            { id: "curriculum", icon: <BookOpen className="h-5 w-5" aria-hidden="true" />, label: "Curriculum deck", detail: "Browse the mapped slide deck.", action: "Open", onClick: openCurriculumViewer, disabled: !curriculumDeck.length },
+                            { id: "narration", icon: <Volume2 className="h-5 w-5" aria-hidden="true" />, label: "Lesson narration", detail: "Hear the page script read aloud.", action: "Play", onClick: playNarrationPreview, disabled: !narrationSupported },
+                            { id: "enlarge", icon: <Maximize2 className="h-5 w-5" aria-hidden="true" />, label: "Enlarge slide", detail: "Open the current visual full-screen.", action: "Enlarge", onClick: () => setSlideLightboxOpen(true), disabled: !activeInteractiveVisual },
+                          ]).map((r) => (
+                            <button key={r.id} type="button" onClick={r.onClick} disabled={r.disabled} className="group flex w-full items-center gap-3 rounded-xl border border-white/[0.10] bg-white/[0.06] px-3 py-3 text-left transition hover:border-[#FCBC34]/40 hover:bg-[#FCBC34]/[0.10] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1826] disabled:pointer-events-none disabled:opacity-40">
+                              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--eos-status-info-soft)] text-[var(--eos-status-info-ink)]">{r.icon}</span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-semibold text-white">{r.label}</span>
+                                <span className="block truncate text-[length:var(--eos-fs-xs)] text-[#94a3b8]">{r.detail}</span>
+                              </span>
+                              <span className="inline-flex shrink-0 items-center gap-1 text-[length:var(--eos-fs-sm)] font-semibold text-[#FCBC34]">{r.action}<ChevronRight className="h-4 w-4" aria-hidden="true" /></span>
+                            </button>
+                          ))}
+                        </div>
+                      </WidgetCard>
+
+                      <WidgetCard tone="dark" variant="section" title="Unlocks with progress">
+                        <p className="mb-3 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Exists — not yours yet.</p>
+                        <div className="space-y-2">
+                          <div role="group" aria-label="Checkpoint quiz" aria-describedby="resource-ready-checkpoint" className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 opacity-80">
+                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]"><ShieldCheck className="h-5 w-5" aria-hidden="true" /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold text-white">Checkpoint quiz</span>
+                              <span id="resource-ready-checkpoint" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Complete the lesson to unlock the checkpoint.</span>
+                            </span>
+                            <StatusMark status={checkpointUnlocked ? "positive" : "overdue"} onDark label={checkpointUnlocked ? "Unlocked" : "After last slide"} className="shrink-0" />
+                          </div>
+                          <div role="group" aria-label="Practice recall" aria-describedby="resource-ready-practice" className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 opacity-80">
+                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]"><Target className="h-5 w-5" aria-hidden="true" /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold text-white">Practice recall deck</span>
+                              <span id="resource-ready-practice" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Opens on the Practice stage.</span>
+                            </span>
+                            <StatusMark status="overdue" onDark label="Practice page" className="shrink-0" />
+                          </div>
+                        </div>
+                      </WidgetCard>
+
+                      <WidgetCard tone="dark" variant="section" title="Coming soon">
+                        <p className="mb-3 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Not built yet.</p>
+                        <div className="space-y-2">
+                          <div role="group" aria-label="Transfer-pack export" aria-disabled="true" aria-describedby="resource-soon-export" className="flex items-center gap-3 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] px-3 py-3 opacity-[0.62]">
+                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-slate-300"><Download className="h-5 w-5" aria-hidden="true" /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold text-white">Transfer-pack export</span>
+                              <span id="resource-soon-export" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Download the coaching-ready transfer pack — in development.</span>
+                            </span>
+                            <ComingSoonAction>Soon</ComingSoonAction>
+                          </div>
+                          <div role="group" aria-label="Coaching-log sync" aria-disabled="true" aria-describedby="resource-soon-log" className="flex items-center gap-3 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] px-3 py-3 opacity-[0.62]">
+                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-slate-300"><FileText className="h-5 w-5" aria-hidden="true" /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold text-white">Coaching-log sync</span>
+                              <span id="resource-soon-log" className="block text-[length:var(--eos-fs-xs)] text-[#94a3b8]">Push commitments to the coaching log — in development.</span>
+                            </span>
+                            <ComingSoonAction>Soon</ComingSoonAction>
+                          </div>
+                        </div>
+                      </WidgetCard>
+                    </div>
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className={`rounded-[1.6rem] border p-5 ${playerDark ? "border-white/10 bg-white/5" : "border-[#1B303C]/10 bg-[#FBFCFD]"}`}>
