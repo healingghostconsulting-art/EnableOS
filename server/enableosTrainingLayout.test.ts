@@ -194,7 +194,7 @@ describe("learner training layout helpers", () => {
 
   it("keeps learner-facing affordances for focused lesson controls and quiz match-bank scanning", () => {
     expect(trainingViewSource).toContain("setTrainingWorkspacePage(\"lesson\")");
-    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
+    expect(trainingViewSource).toContain("goToWorkspacePage(page.key)"); // nav → helper that also scrolls
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
@@ -750,7 +750,7 @@ describe("learner training layout helpers", () => {
   it("keeps the training-zone lesson brief inside a guided flash-card deck and a page-based workspace flow", () => {
     expect(trainingViewSource).toContain("function BriefFlashCardDeck");
     expect(trainingViewSource).toContain(">Pages<");
-    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
+    expect(trainingViewSource).toContain("goToWorkspacePage(page.key)"); // nav → helper that also scrolls
     expect(trainingViewSource).toContain("selectedModule?.title ?? requestedModuleId ?? \"Training module\"");
     expect(trainingViewSource).toContain("selectedModuleTitle} curriculum");
     expect(trainingViewSource).toContain("Curriculum");
@@ -925,7 +925,7 @@ describe("learner training layout helpers", () => {
 
     // Navigation is still bound to the same state/handlers (highlight uses the same indices).
     expect(trainingViewSource).toContain("setStageIndex(index)");
-    expect(trainingViewSource).toContain("setTrainingWorkspacePage(page.key)");
+    expect(trainingViewSource).toContain("goToWorkspacePage(page.key)"); // nav → helper that also scrolls
     expect(trainingViewSource).toContain("const isActiveStage = index === stageIndex");
     expect(trainingViewSource).toContain("const isActivePage = trainingWorkspacePage === page.key");
     // Accessible active state: gold fill + navy ink + 4px navy left marker + aria-current.
@@ -1597,5 +1597,21 @@ describe("learner training layout helpers", () => {
     const comingSoon = readFileSync(join(process.cwd(), "client/src/components/v3/ComingSoon.tsx"), "utf8");
     expect(comingSoon).toContain("onDark = false"); // light default preserved for all dashboard call sites
     expect(comingSoon).toContain('onDark ? "text-[var(--eos-text-subtle-dark)]" : "text-[#4A6373]/60"');
+  });
+
+  it("scrolls the switched-in Pages section into view on nav click (cold-start bugfix)", () => {
+    // Nav clicks route through goToWorkspacePage (flags intent), not a bare state set.
+    expect(trainingViewSource).toContain("const goToWorkspacePage = useCallback((key");
+    expect(trainingViewSource).toContain("onClick={checkpointLocked ? undefined : () => goToWorkspacePage(page.key)}");
+    expect(trainingViewSource).toContain("goToWorkspacePage(page.key); setContentsDrawerOpen(false);");
+    // A post-commit effect scrolls the target anchor (rAF so cold-start / just-un-hidden works).
+    expect(trainingViewSource).toContain('key === "resources" ? "training-resources-top" : "training-lesson-canvas"');
+    expect(trainingViewSource).toContain("requestAnimationFrame(() => {");
+    expect(trainingViewSource).toContain('scrollIntoView({ behavior: "smooth", block: "start" })');
+    // Both anchors exist with scroll-margin so the heading isn't tucked under the sticky header.
+    expect(trainingViewSource).toContain('id="training-resources-top" aria-hidden="true" className="scroll-mt-24"');
+    expect(trainingViewSource).toContain('id="training-lesson-canvas" aria-hidden="true" className="scroll-mt-24"');
+    // Programmatic switches (Continue) still bypass the scroll (no goToWorkspacePage).
+    expect(trainingViewSource).toContain('onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold"');
   });
 });

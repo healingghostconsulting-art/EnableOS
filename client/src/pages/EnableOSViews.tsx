@@ -3980,6 +3980,27 @@ export function TrainingExperienceView() {
       }
     },
   });
+  // Pages-nav scroll (BUGFIX): switching a page updates the highlight but the target section
+  // can sit far below the fold (esp. Resources, whose cards live in a separate card that only
+  // un-hides on selection). The scrollspy reacts to real scrolling, not to the switch, so the
+  // click looked inert on the first/cold interaction. Flag the intent on click and scroll the
+  // section's anchor into view from an effect — which runs AFTER the switched-in section has
+  // committed to the DOM (fixes cold-start) — rather than relying on the scrollspy to move it.
+  const pendingPageScrollRef = useRef<string | null>(null);
+  const goToWorkspacePage = useCallback((key: "brief" | "lesson" | "checkpoint" | "resources") => {
+    pendingPageScrollRef.current = key;
+    setTrainingWorkspacePage(key);
+  }, []);
+  useEffect(() => {
+    const key = pendingPageScrollRef.current;
+    if (!key) return; // only nav clicks scroll — programmatic switches (Continue, deep-link) don't
+    pendingPageScrollRef.current = null;
+    const anchorId = key === "resources" ? "training-resources-top" : "training-lesson-canvas";
+    const raf = requestAnimationFrame(() => {
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [trainingWorkspacePage]);
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);
@@ -5527,7 +5548,7 @@ export function TrainingExperienceView() {
                         const isActivePage = trainingWorkspacePage === page.key;
                         const checkpointLocked = page.key === "checkpoint" && !checkpointUnlocked;
                         return (
-                          <button key={page.key} type="button" aria-current={isActivePage ? "page" : undefined} aria-disabled={checkpointLocked || undefined} onClick={checkpointLocked ? undefined : () => { setTrainingWorkspacePage(page.key); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${checkpointLocked ? `cursor-not-allowed opacity-55 ${playerDark ? "text-slate-400" : "text-[#4A6373]"}` : isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
+                          <button key={page.key} type="button" aria-current={isActivePage ? "page" : undefined} aria-disabled={checkpointLocked || undefined} onClick={checkpointLocked ? undefined : () => { goToWorkspacePage(page.key); setContentsDrawerOpen(false); }} className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${checkpointLocked ? `cursor-not-allowed opacity-55 ${playerDark ? "text-slate-400" : "text-[#4A6373]"}` : isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C]" : playerDark ? "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50" : "text-[#4A6373] hover:bg-slate-100 focus-visible:ring-[#1B303C]/30"}`}>
                             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${isActivePage ? "bg-[#1B303C] text-white" : playerDark ? "bg-white/10 text-slate-300" : "bg-[#1B303C]/8 text-[#4A6373]"}`}>{checkpointLocked ? <Lock className="h-3.5 w-3.5" aria-hidden="true" /> : page.label[0]}</span>
                             <span className="flex-1 truncate">{page.label}</span>
                             {checkpointLocked ? <span className="shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300">Locked</span> : isActivePage ? <Check className="h-4 w-4 shrink-0 text-[#1B303C]" aria-hidden="true" /> : null}
@@ -5607,7 +5628,7 @@ export function TrainingExperienceView() {
                               aria-current={isActivePage ? "page" : undefined}
                               aria-disabled={checkpointLocked || undefined}
                               aria-describedby={checkpointLocked ? "checkpoint-tab-reason" : undefined}
-                              onClick={checkpointLocked ? undefined : () => setTrainingWorkspacePage(page.key)}
+                              onClick={checkpointLocked ? undefined : () => goToWorkspacePage(page.key)}
                               className={`relative flex min-h-[44px] w-full items-center gap-2 rounded-[var(--radius-pill)] py-2 pl-4 pr-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 ${checkpointLocked ? "cursor-not-allowed text-slate-400 opacity-55 focus-visible:ring-[#FCBC34]/40" : isActivePage ? "bg-[#FCBC34] font-bold text-[#1B303C] focus-visible:ring-[#FCBC34]/60" : "text-slate-200 hover:bg-white/10 focus-visible:ring-[#FCBC34]/50"}`}
                             >
                               {checkpointLocked ? <Lock className="h-4 w-4 shrink-0" aria-hidden="true" /> : isActivePage ? <span aria-hidden="true" className="absolute left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[#1B303C]" /> : null}
@@ -5641,6 +5662,8 @@ export function TrainingExperienceView() {
                 ) : null}
               </aside>
               <div className="space-y-6">
+                {/* Scroll anchor for the Overview/Lesson/Checkpoint pages (Pages-nav click). */}
+                <div id="training-lesson-canvas" aria-hidden="true" className="scroll-mt-24" />
                 <PlayerCard>
                   <CardHeader className="pb-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
@@ -6548,6 +6571,8 @@ export function TrainingExperienceView() {
                         reason). Icon badges are 40px circles (consistent with InfoTile). The two
                         Coming-soon items map to roadmap modules (Knowledge export → Knowledge Base;
                         Coaching-log sync → Coaching Engine) and are not yet built. */}
+                    {/* Scroll anchor for the Resources page (Pages-nav click lands on "Available now"). */}
+                    <div id="training-resources-top" aria-hidden="true" className="scroll-mt-24" />
                     {/* Legend: makes the dashed-vs-dimmed grammar teachable rather than reverse-engineered. */}
                     <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[length:var(--eos-fs-xs)] text-[#94a3b8]">
                       <span className="inline-flex items-center gap-2">
