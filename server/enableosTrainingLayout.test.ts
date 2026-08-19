@@ -1599,19 +1599,28 @@ describe("learner training layout helpers", () => {
     expect(comingSoon).toContain('onDark ? "text-[var(--eos-text-subtle-dark)]" : "text-[#4A6373]/60"');
   });
 
-  it("scrolls the switched-in Pages section into view on nav click (cold-start bugfix)", () => {
-    // Nav clicks route through goToWorkspacePage (flags intent), not a bare state set.
+  it("scrolls the switched-in Pages section into view on nav click — imperative, scrollspy-proof", () => {
+    // Nav clicks route through goToWorkspacePage (desktop rail + mobile drawer).
     expect(trainingViewSource).toContain("const goToWorkspacePage = useCallback((key");
     expect(trainingViewSource).toContain("onClick={checkpointLocked ? undefined : () => goToWorkspacePage(page.key)}");
     expect(trainingViewSource).toContain("goToWorkspacePage(page.key); setContentsDrawerOpen(false);");
-    // A post-commit effect scrolls the target anchor (rAF so cold-start / just-un-hidden works).
-    expect(trainingViewSource).toContain('key === "resources" ? "training-resources-top" : "training-lesson-canvas"');
-    expect(trainingViewSource).toContain("requestAnimationFrame(() => {");
-    expect(trainingViewSource).toContain('scrollIntoView({ behavior: "smooth", block: "start" })');
+    // The scroll is IMPERATIVE in the handler (not a state-keyed effect a scrollspy can re-run
+    // and cancel), with behavior:"auto" ("smooth" is a no-op in some runtimes).
+    expect(trainingViewSource).toContain('scrollToSection(key === "resources" ? "training-resources-top" : "training-lesson-canvas", { behavior: "auto" })');
+    expect(trainingViewSource).toContain('import { useDeepLinkTarget, scrollToSection }');
+    // The racy effect + ref approach is gone.
+    expect(trainingViewSource).not.toContain("pendingPageScrollRef");
     // Both anchors exist with scroll-margin so the heading isn't tucked under the sticky header.
     expect(trainingViewSource).toContain('id="training-resources-top" aria-hidden="true" className="scroll-mt-24"');
     expect(trainingViewSource).toContain('id="training-lesson-canvas" aria-hidden="true" className="scroll-mt-24"');
     // Programmatic switches (Continue) still bypass the scroll (no goToWorkspacePage).
     expect(trainingViewSource).toContain('onClick={() => setTrainingWorkspacePage("lesson")} className="h-12 w-full text-sm font-semibold"');
+  });
+
+  it("scrollToSection only scrolls a LAID-OUT anchor (display:none under an inactive tab is skipped)", () => {
+    const helper = readFileSync(join(process.cwd(), "client/src/lib/useDeepLinkTarget.ts"), "utf8");
+    expect(helper).toContain("el.getClientRects().length > 0"); // no-op guard for hidden anchors
+    expect(helper).toContain("behavior?: ScrollBehavior"); // caller-selectable (nav passes "auto")
+    expect(helper).toContain("el.scrollIntoView({ behavior, block: \"start\" })");
   });
 });

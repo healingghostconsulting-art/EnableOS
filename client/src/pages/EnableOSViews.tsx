@@ -16,7 +16,7 @@ import { rankLeaderboard, leaderboardReward, type LeaderboardEntry } from "../..
 import { ContentAuthoringPanel } from "@/components/ContentAuthoringPanel";
 import { ReportingPrintLayout } from "@/components/ReportingPrintLayout";
 import { buildReportingWorkbookBlob, copyReportingEmailSummary, downloadBlob } from "@/lib/reportingExport";
-import { useDeepLinkTarget } from "@/lib/useDeepLinkTarget";
+import { useDeepLinkTarget, scrollToSection } from "@/lib/useDeepLinkTarget";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { buildReminders, type Reminder, type ReminderType } from "../../../shared/reminders";
@@ -3980,27 +3980,20 @@ export function TrainingExperienceView() {
       }
     },
   });
-  // Pages-nav scroll (BUGFIX): switching a page updates the highlight but the target section
-  // can sit far below the fold (esp. Resources, whose cards live in a separate card that only
-  // un-hides on selection). The scrollspy reacts to real scrolling, not to the switch, so the
-  // click looked inert on the first/cold interaction. Flag the intent on click and scroll the
-  // section's anchor into view from an effect — which runs AFTER the switched-in section has
-  // committed to the DOM (fixes cold-start) — rather than relying on the scrollspy to move it.
-  const pendingPageScrollRef = useRef<string | null>(null);
+  // Pages-nav scroll (BUGFIX v2): a Pages click updates the highlight but the target section can
+  // sit far below the fold (esp. Resources, whose cards live in a card that only un-hides on
+  // selection). The first fix scrolled from an EFFECT keyed on trainingWorkspacePage — but the
+  // live build carries a scrollspy that re-writes that same state on scroll, which re-ran the
+  // effect, cancelled the pending rAF, and read the already-nulled ref → scrollIntoView never
+  // fired. Fix: scroll IMPERATIVELY here, decoupled from that state, so nothing can cancel it.
+  // scrollToSection polls until the just-un-hidden anchor is laid out; behavior:"auto" because
+  // "smooth" is a no-op in some runtimes (observed live) and an instant jump also gives a
+  // scrollspy no mid-scroll frames to fight. Programmatic switches (Continue, deep-link) don't
+  // route through here, so they still don't force-scroll.
   const goToWorkspacePage = useCallback((key: "brief" | "lesson" | "checkpoint" | "resources") => {
-    pendingPageScrollRef.current = key;
     setTrainingWorkspacePage(key);
+    scrollToSection(key === "resources" ? "training-resources-top" : "training-lesson-canvas", { behavior: "auto" });
   }, []);
-  useEffect(() => {
-    const key = pendingPageScrollRef.current;
-    if (!key) return; // only nav clicks scroll — programmatic switches (Continue, deep-link) don't
-    pendingPageScrollRef.current = null;
-    const anchorId = key === "resources" ? "training-resources-top" : "training-lesson-canvas";
-    const raf = requestAnimationFrame(() => {
-      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [trainingWorkspacePage]);
   const [launchSetupOpen, setLaunchSetupOpen] = useState(false);
   const [courseContextOpen, setCourseContextOpen] = useState(false);
   const [slideLightboxOpen, setSlideLightboxOpen] = useState(false);

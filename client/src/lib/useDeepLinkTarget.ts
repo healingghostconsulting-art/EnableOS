@@ -21,14 +21,17 @@ import { useLocation } from "wouter";
  */
 export function scrollToSection(
   sectionId: string,
-  { attempts = 12, interval = 120, delay = 40 }: { attempts?: number; interval?: number; delay?: number } = {},
+  { attempts = 12, interval = 120, delay = 40, behavior = "smooth" }: { attempts?: number; interval?: number; delay?: number; behavior?: ScrollBehavior } = {},
 ): void {
   if (typeof window === "undefined" || !sectionId) return;
   let tries = 0;
   const tick = () => {
     const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Require the target to actually be LAID OUT, not merely present: an anchor under an
+    // inactive tab (display:none) is in the DOM but getClientRects() is empty, and
+    // scrollIntoView on it is a silent no-op. Poll until it un-hides, then scroll.
+    if (el && el.getClientRects().length > 0) {
+      el.scrollIntoView({ behavior, block: "start" });
       return;
     }
     if (++tries < attempts) window.setTimeout(tick, interval);
