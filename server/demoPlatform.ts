@@ -1394,7 +1394,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "module_completion",
     title: "Active listening module completion recorded",
     summary: "The platform captured completion of the active-listening microlearning and attached the targeted behavior change expected in monitored interactions.",
-    createdAt: "2026-04-19T18:05:00Z",
+    createdAt: isoDaysFromNow(-7),
     authoredByRole: "system",
     evidencePoints: [
       "Module: Active listening in high-friction interactions",
@@ -1409,7 +1409,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "journey_completion",
     title: "Service Foundations journey checkpoint",
     summary: "Journey progress and module completion were converted into a coaching-ready documentation artifact for manager and executive review.",
-    createdAt: "2026-04-20T08:10:00Z",
+    createdAt: isoDaysFromNow(-6),
     authoredByRole: "system",
     evidencePoints: [
       "Journey progress: 71%",
@@ -1424,7 +1424,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "intervention_completion",
     title: "Workflow precision intervention evidence",
     summary: "Assigned actions, due dates, and learner acknowledgment were assembled into a manager-ready documentation record.",
-    createdAt: "2026-04-20T09:40:00Z",
+    createdAt: isoDaysFromNow(-5),
     authoredByRole: "system",
     evidencePoints: [
       "Intervention: Restore workflow precision and score reliability",
@@ -1439,7 +1439,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "coaching_summary",
     title: "Quarterly review packet starter",
     summary: "The documentation hub assembled learning progress, intervention status, and coaching history into an executive-visible review starter.",
-    createdAt: "2026-04-20T16:40:00Z",
+    createdAt: isoDaysFromNow(-4),
     authoredByRole: "system",
     evidencePoints: [
       "Includes learning progress, QA movement, and manager follow-up evidence",
@@ -1455,7 +1455,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "coaching_summary",
     title: "Transfer coaching summary ready for review",
     summary: "The documentation lane now captures Avery's transfer-language follow-up and links directly to the structured weekly coaching log.",
-    createdAt: "2026-04-20T17:00:00Z",
+    createdAt: isoDaysFromNow(-3),
     authoredByRole: "system",
     evidencePoints: [
       "Focus area: escalation ownership and transfer explanations",
@@ -1486,7 +1486,7 @@ const documentationEntries: DocumentationEntry[] = [
     sourceType: "coaching_summary",
     title: "Empathy follow-through packet prepared",
     summary: "Maya's follow-up now links the completed refresher, the latest weekly coaching log, and the expected next-step language for the next monitored interaction.",
-    createdAt: "2026-04-20T18:25:00Z",
+    createdAt: isoDaysFromNow(-1),
     authoredByRole: "system",
     evidencePoints: [
       "Completed refresher: Active listening in high-friction interactions",
