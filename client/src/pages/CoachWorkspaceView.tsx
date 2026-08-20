@@ -158,7 +158,8 @@ export function CoachWorkspaceView() {
                   <li className="flex items-center justify-between"><StatusMark status="overdue" label="Sessions due" variant="dot" /><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
                 </ul>
               </div>
-              <p className="mt-4 text-center text-[13px] font-semibold text-emerald-700">Your team is trending in the right direction.</p>
+              {/* Gated on team readiness: upbeat only at/above the 75 On-track band, else neutral. */}
+              <p className={`mt-4 text-center text-[13px] font-semibold ${teamReadiness >= 75 ? "text-emerald-700" : "text-[#4A6373]"}`}>{teamReadiness >= 75 ? "Your team is trending in the right direction." : "A focused week of coaching will lift team readiness."}</p>
             </WidgetCard>
 
             {/* My Coachees */}

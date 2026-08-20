@@ -189,7 +189,9 @@ export function AgentWorkspaceView() {
                   })}
                 </ul>
               </div>
-              <p className="mt-4 text-center text-[13px] font-semibold text-emerald-700">Keep up the great work!</p>
+              {/* Celebratory copy is gated on the primary metric: upbeat only when QA meets
+                  its 90 target, otherwise a neutral/supportive line (no false praise below target). */}
+              <p className={`mt-4 text-center text-[13px] font-semibold ${qaScore >= 90 ? "text-emerald-700" : "text-[#4A6373]"}`}>{qaScore >= 90 ? "Keep up the great work!" : "Steady, focused reps will lift your QA score toward 90."}</p>
             </WidgetCard>
 
             {/* My Progress */}

@@ -123,7 +123,7 @@ export function ManagerWorkspaceView() {
     { icon: Users2, gold: false, value: dueCount + scheduledCount, label: "Coaching Due", sub: `${dueCount} due now` },
     { icon: GraduationCap, gold: true, value: assignments.length, label: "Training Active", sub: `${assignments.length} in flight` },
     { icon: BarChart3, gold: false, value: highSignals, label: "Performance Alerts", sub: "Needs attention" },
-    { icon: Target, gold: true, value: onTrack, label: "Agents On Track", sub: "Great progress!" },
+    { icon: Target, gold: true, value: onTrack, label: "Agents On Track", sub: needsAttention === 0 ? "Great progress!" : `${needsAttention} still below target` },
   ];
 
   const recommended: Array<{ title: string; sub: string }> = [];
