@@ -11,7 +11,7 @@ export const ADMIN_ROLES: ReadonlyArray<{ role: GrantRole; label: string }> = [
   { role: "executive", label: "Executive" },
   { role: "manager", label: "Manager" },
   { role: "coach", label: "Coach" },
-  { role: "learner", label: "Learner" },
+  { role: "learner", label: "Agent" },
   { role: "client_admin", label: "Client Admin" },
 ];
 
@@ -31,7 +31,7 @@ export const WORKSPACE_LABEL: Record<WorkspacePath, string> = {
   "/reporting": "Reporting",
   "/manager": "Manager",
   "/coach": "Coach",
-  "/learner": "Learner",
+  "/learner": "Agent",
   "/training": "Training",
   "/library": "Library",
   "/admin": "Client Control",

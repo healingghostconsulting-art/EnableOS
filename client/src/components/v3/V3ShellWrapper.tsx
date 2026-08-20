@@ -19,7 +19,7 @@ const V3_NAV: Record<WorkspacePath, { label: string; icon: NavItem["icon"] }> = 
   "/reporting": { label: "Reporting Hub", icon: BarChart3 },
   "/manager": { label: "Manager Ops", icon: ShieldCheck },
   "/coach": { label: "Coach Studio", icon: Users2 },
-  "/learner": { label: "Learner Journey", icon: BookOpen },
+  "/learner": { label: "Agent Journey", icon: BookOpen },
   "/training": { label: "Training Zone", icon: BookOpen },
   "/library": { label: "Training Library", icon: BookText },
   "/admin": { label: "Client Control", icon: Building2 },

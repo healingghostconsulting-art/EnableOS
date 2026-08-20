@@ -698,7 +698,7 @@ function BriefAuthoring({ scope, tenantId }: { scope: "core" | "tenant"; tenantI
                   <Input value={draft.scenarioTitle} disabled={tenantLocked} onChange={(event) => setDraft({ ...draft, scenarioTitle: event.target.value })} className={`h-9 ${inputClass} disabled:opacity-50`} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Learner task</Label>
+                  <Label className="text-xs uppercase tracking-[0.18em] text-slate-400">Agent task</Label>
                   <Input value={draft.scenarioLearnerTask} onChange={(event) => setDraft({ ...draft, scenarioLearnerTask: event.target.value })} className={`h-9 ${inputClass}`} />
                 </div>
               </div>

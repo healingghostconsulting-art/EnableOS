@@ -204,7 +204,7 @@ describe("learner training layout helpers", () => {
   });
 
   it("preserves the stronger learner readability treatments on the assignment and banner cards", () => {
-    expect(trainingViewSource).toContain("Learner journey");
+    expect(trainingViewSource).toContain("Agent journey");
     expect(trainingViewSource).toContain("Recommended path");
     expect(trainingViewSource).toContain("text-cyan-50");
     expect(trainingViewSource).toContain("text-slate-50");
@@ -347,7 +347,7 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain('id="manager-leaderboard"');
     // Three-level scope Org → Coach Team → Learner, default Org.
     expect(trainingViewSource).toContain('useState<"org" | "team" | "learner">("org")');
-    expect(trainingViewSource).toContain('["org", "Org"], ["team", "Coach team"], ["learner", "Learner"]');
+    expect(trainingViewSource).toContain('["org", "Org"], ["team", "Coach team"], ["learner", "Agent"]');
     // Managers see full names — the "First L." mask is turned off.
     expect(trainingViewSource).toContain("isCurrent={false} mask={false}");
     // Learner scope defaults to the manager's direct report (else the team's #1).
@@ -515,8 +515,8 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("Coach modes");
     expect(trainingViewSource).toContain("Coaching lane");
     expect(trainingViewSource).toContain("Training transfer");
-    expect(trainingViewSource).toContain("Learner journey");
-    expect(trainingViewSource).toContain("Learner modes");
+    expect(trainingViewSource).toContain("Agent journey");
+    expect(trainingViewSource).toContain("Agent modes");
     expect(trainingViewSource).toContain("Re-engagements");
     // Self-narrating workspace copy was stripped (L2); these must not return.
     expect(trainingViewSource).not.toContain("One clear next step at a time");
@@ -548,14 +548,14 @@ describe("learner training layout helpers", () => {
     expect(trainingViewSource).toContain("hideHeader={role ===");
   });
 
-  it("routes the Learner Journey through WorkspaceShell with a short header (W2)", () => {
+  it("routes the Agent Journey through WorkspaceShell with a short header (W2)", () => {
     // Short title + one-line subtitle (demoted from the old long H2); redundant eyebrow dropped.
-    expect(trainingViewSource).toContain("title=\"Learner Journey\"");
+    expect(trainingViewSource).toContain("title=\"Agent Journey\"");
     expect(trainingViewSource).toContain("subtitle=\"Complete assignments tied to skill opportunities, coaching actions, and readiness progress.\"");
     expect(trainingViewSource).not.toContain("LEARNER ENABLEMENT JOURNEY");
     // The 5 stat tiles inherit the dark high-contrast band via the shell.
     expect(trainingViewSource).toContain("const learnerStats: WorkspaceStat[]");
-    expect(trainingViewSource).toContain("modesLabel=\"Learner modes\"");
+    expect(trainingViewSource).toContain("modesLabel=\"Agent modes\"");
     // The priority strip stays between the stat row and the tabs.
     expect(trainingViewSource).toContain("betweenStatsAndTabs={");
     expect(trainingViewSource).toContain("id=\"learner-priority-strip\"");

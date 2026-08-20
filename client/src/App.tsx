@@ -46,7 +46,7 @@ const WORKSPACE_MENU_ITEMS: Record<WorkspacePath, DashboardMenuItem> = {
   "/reporting": { icon: BarChart3, label: "Reporting Hub", path: "/reporting" },
   "/manager": { icon: ShieldCheck, label: "Manager Ops", path: "/manager" },
   "/coach": { icon: Users2, label: "Coach Studio", path: "/coach" },
-  "/learner": { icon: BookOpen, label: "Learner Journey", path: "/learner" },
+  "/learner": { icon: BookOpen, label: "Agent Journey", path: "/learner" },
   "/training": { icon: BookOpen, label: "Training Zone", path: "/training" },
   "/library": { icon: BookText, label: "Training Library", path: "/library" },
   "/admin": { icon: Building2, label: "Client Control", path: "/admin" },

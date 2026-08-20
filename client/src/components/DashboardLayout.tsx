@@ -76,7 +76,7 @@ const workspaceMissionSignals: Record<string, {
     reward: "Support ready",
   },
   "/learner": {
-    eyebrow: "Learner journey",
+    eyebrow: "Agent journey",
     headline: "Resume the next assigned step.",
     focus: "Assigned learning",
     next: "Keep required work at the top and move optional material into secondary browse surfaces.",

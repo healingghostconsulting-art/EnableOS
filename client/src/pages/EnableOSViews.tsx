@@ -339,9 +339,9 @@ const roleMeta: Record<DemoRole, { title: string; route: string; eyebrow: string
     subtitle: "Run weekly coaching, monitor learner transfer, and connect lesson evidence to live performance follow-through.",
   },
   learner: {
-    title: "Learner enablement journey",
+    title: "Agent enablement journey",
     route: "/learner",
-    eyebrow: "Learner",
+    eyebrow: "Agent",
     subtitle: learnerWorkspaceCopy.routeSubtitle,
   },
   client_admin: {
@@ -365,7 +365,7 @@ const TRAINING_ROLE_FILTER_OPTIONS: Array<{ value: DemoRole | "all"; label: stri
   { value: "executive", label: "Executive" },
   { value: "manager", label: "Manager" },
   { value: "coach", label: "Coach / Supervisor" },
-  { value: "learner", label: "Learner" },
+  { value: "learner", label: "Agent" },
   { value: "client_admin", label: "Client admin" },
 ];
 
@@ -477,9 +477,9 @@ export function getOperationalLaunchReadinessBrief(role: DemoRole) {
       startLabel: "Launch coach preview",
     },
     learner: {
-      title: "Learner launch brief",
+      title: "Agent launch brief",
       trainingUse: "Present this asset as learner-facing context that makes the next module, practice language, and transfer expectations feel concrete.",
-      workflowOwner: "Learners use it to understand what they should practice now, why it matters, and how the content connects to their assigned path.",
+      workflowOwner: "Agents use it to understand what they should practice now, why it matters, and how the content connects to their assigned path.",
       launchAlignment: "The brief should stay simple, specific, and action-oriented so the learner immediately sees the relevant module lens.",
       followThrough: "Success looks like a clearer next step, stronger practice transfer, and less confusion about which training matters right now.",
       startLabel: "Launch learner preview",
@@ -3211,7 +3211,7 @@ export function GuideView() {
       description: "Run the active coaching session, open the log workflow, and keep coaching evidence connected to the learner journey.",
     },
     {
-      title: "Learner Journey",
+      title: "Agent Journey",
       audience: "Every learner path",
       href: "/learner",
       description: "Resume assigned re-engagements, complete next-step enablement work, and keep the next required action obvious.",
@@ -3246,7 +3246,7 @@ export function GuideView() {
           ? "Use the Guide to confirm the handoff model, then work Manager Ops for queues, assignments, and follow-through."
           : currentRole === "coach"
             ? "Use the Guide to reinforce how coaching, training, and documentation connect before you open Coach Studio."
-            : "Use the Guide to understand where to begin, then return to Learner Journey and Training Zone for assigned work.";
+            : "Use the Guide to understand where to begin, then return to Agent Journey and Training Zone for assigned work.";
 
   const bestPractices = [
     {
@@ -3427,10 +3427,10 @@ export function LandingView() {
       },
       {
         role: "learner" as DemoRole,
-        title: "Learner journey",
+        title: "Agent journey",
         route: "/learner",
         icon: BookOpen,
-        eyebrow: "Learner",
+        eyebrow: "Agent",
         subtitle: "Continue assigned re-engagements, learning missions, and training completions.",
       },
       {
@@ -3669,7 +3669,7 @@ export function MissionHubView() {
       ],
       progress: [
         { label: "Weekly logs", value: "On track" },
-        { label: "Learner focus", value: "Nina Patel" },
+        { label: "Agent focus", value: "Nina Patel" },
         { label: "Open coaching actions", value: "3" },
       ],
     },
@@ -4181,7 +4181,7 @@ export function TrainingExperienceView() {
       {
         id: "active",
         label: "Live learner path",
-        eyebrow: "Learner journey",
+        eyebrow: "Agent journey",
         description: "Use the current learner sequence with real completion rates and the native service-foundations flow.",
         journeyTitle: liveJourney?.title ?? "Enablement journey",
         competencyGap: liveJourney?.competencyGap ?? "Behavior consistency",
@@ -6346,7 +6346,7 @@ export function TrainingExperienceView() {
                           <h4 className="mt-2 text-lg font-medium text-white">{presentation?.practiceScenario.title}</h4>
                           <p className="mt-3 text-sm leading-6 text-slate-300">{presentation?.practiceScenario.situation}</p>
                           <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                            <p className="text-sm font-medium text-white">Learner task</p>
+                            <p className="text-sm font-medium text-white">Agent task</p>
                             <p className="mt-2 text-sm leading-6 text-slate-200">{presentation?.practiceScenario.learnerTask}</p>
                           </div>
                           <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -6504,7 +6504,7 @@ export function TrainingExperienceView() {
                       </Button>
                       <div className="flex items-center gap-3">
                         {activeQuizTrigger && !quizTriggerDismissed && !activeModalPassed ? <span className="text-sm text-amber-300">Assessment active: complete the inline quiz to continue.</span> : null}
-                        {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">{shouldReturnToLearnerWorkspace ? "Training complete. Return to learner workspace." : "Training preview complete."}</span> : null}
+                        {atJourneyEnd && canAdvance ? <span className="text-sm text-emerald-300">{shouldReturnToLearnerWorkspace ? "Training complete. Return to agent workspace." : "Training preview complete."}</span> : null}
                         <Button
                           type="button"
                           onClick={advanceStage}
@@ -6661,7 +6661,7 @@ export function TrainingExperienceView() {
                       <div className={`rounded-[1.7rem] border p-5 ${playerDark ? "border-cyan-400/20 bg-cyan-400/10" : "border-cyan-200 bg-cyan-50"}`}>
                         <p className={`text-[11px] uppercase tracking-[0.24em] ${playerDark ? "text-cyan-100/80" : "text-cyan-800"}`}>Why this matters in-product</p>
                         <h4 className={`mt-3 text-lg font-medium ${playerDark ? "text-white" : "text-[#1B303C]"}`}>The course now closes with explicit transfer architecture</h4>
-                        <p className={`mt-3 text-sm leading-7 ${playerDark ? "text-slate-100" : "text-[#4A6373]"}`}>Learners leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
+                        <p className={`mt-3 text-sm leading-7 ${playerDark ? "text-slate-100" : "text-[#4A6373]"}`}>Agents leave each module with observable actions, managers get coaching-ready prompts, and the platform preserves a visible bridge between source training material and operational follow-through.</p>
                         <div className="mt-4 grid gap-3 sm:grid-cols-3">
                           <div className={`rounded-[1.2rem] border px-4 py-3 ${playerDark ? "border-white/10 bg-slate-950/45" : "border-cyan-200/70 bg-white"}`}>
                             <p className={`text-[11px] uppercase tracking-[0.2em] ${playerDark ? "text-cyan-100/75" : "text-cyan-800"}`}>Narration proof</p>
@@ -7347,7 +7347,7 @@ export function ContentLibraryView() {
         ? `${selectedAssetPlannedTrainingTarget.journeyTitle} · ${selectedAssetPlannedTrainingTarget.moduleTitle} · ${selectedAssetCurriculumStatusLabel}`
         : `Estimated runtime ${selectedAssetEstimatedMinutes} min · ${selectedAssetSectionCount} lesson sections · ${selectedAssetCheckpointCount} checkpoints`
     : "Choose a shelf item to activate the course detail view.";
-  const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Learner";
+  const selectedAssetWorkflowLabel = selectedAsset ? getRoleLabel(selectedAssetRole) : "Agent";
   const selectedAssetNextActionLabel = selectedAssetTrainingTarget?.nextActionLabel
     ?? (selectedAssetPlannedTrainingTarget
       ? selectedAssetCurriculumState === "pending_alignment"
@@ -8773,7 +8773,7 @@ function WeeklyCoachingLogComposer({
             className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${visibility === "public" ? "border-emerald-300 bg-emerald-400/12 shadow-[0_18px_40px_rgba(16,185,129,0.16)]" : "border-white/10 bg-slate-950/60 hover:border-white/20 hover:bg-white/8"}`}
           >
             <p className="text-sm font-semibold text-white">Public coaching log</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">Learner, coach, and supervisor receive the same coaching record and linked follow-through.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Agent, coach, and supervisor receive the same coaching record and linked follow-through.</p>
           </button>
           <button
             type="button"
@@ -11611,7 +11611,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
         {/* Three-level scope filter: Org (everyone) → Coach Team → one Learner. */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
-            {([["org", "Org"], ["team", "Coach team"], ["learner", "Learner"]] as const).map(([value, label]) => (
+            {([["org", "Org"], ["team", "Coach team"], ["learner", "Agent"]] as const).map(([value, label]) => (
               <button key={value} type="button" onClick={() => setManagerLevel(value)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${managerLevel === value ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"}`}>{label}</button>
             ))}
           </div>
@@ -11621,7 +11621,7 @@ function LearnerLeaderboard({ leaderboard, variant = "learner" }: { leaderboard:
             </select>
           ) : null}
           {managerLevel === "learner" ? (
-            <select value={effectiveLearnerId} onChange={(event) => setManagerLearnerId(event.target.value)} aria-label="Learner" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
+            <select value={effectiveLearnerId} onChange={(event) => setManagerLearnerId(event.target.value)} aria-label="Agent" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
               {teamRanked.map((entry) => <option key={entry.id} value={entry.id} className="text-slate-900">{entry.name}</option>)}
             </select>
           ) : null}
@@ -11805,10 +11805,10 @@ function LearnerPanel({ data, onUpdated, freshStart = false, headerActions }: { 
 
   return (
     <WorkspaceShell
-      title="Learner Journey"
+      title="Agent Journey"
       subtitle="Complete assignments tied to skill opportunities, coaching actions, and readiness progress."
       actions={headerActions}
-      modesLabel="Learner modes"
+      modesLabel="Agent modes"
       activeTab={activeTab}
       onTabChange={(value) => { if (value === "alerts") markLearnerRemindersRead(); setActiveTab(value as "journey" | "leaderboard" | "alerts" | "reengagements" | "coaching" | "evidence"); }}
       stats={learnerStats}
@@ -12637,7 +12637,7 @@ function AdminPanel({ data, onUpdated, headerActions }: { data: any; onUpdated?:
                         <SelectItem value="executive">Executive</SelectItem>
                         <SelectItem value="manager">Manager</SelectItem>
                         <SelectItem value="coach">Coach</SelectItem>
-                        <SelectItem value="learner">Learner</SelectItem>
+                        <SelectItem value="learner">Agent</SelectItem>
                         <SelectItem value="client_admin">Client admin</SelectItem>
                       </SelectContent>
                     </Select>
