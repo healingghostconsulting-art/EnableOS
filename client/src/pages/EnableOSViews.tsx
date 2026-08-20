@@ -3707,27 +3707,23 @@ export function MissionHubView() {
         stats={missionHubContent.progress.map((entry) => ({ label: entry.label, value: entry.value }))}
         statsGridClassName="grid flex-1 gap-1.5 sm:grid-cols-3"
       >
+        {/* Mission Hub content panels — Manager Hub light standard (WidgetCard), navy text on
+            #FBFCFD tiles, 16px/1.5 body. Was dark PremiumCard/white-on-navy. */}
         <div className="grid gap-6 xl:grid-cols-2">
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Active goals</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <WidgetCard title="Active goals">
+            <div className="space-y-3">
               {missionHubContent.activeGoals.map((goal) => (
-                <div key={goal} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{goal}</div>
+                <div key={goal} className="rounded-[var(--eos-radius-lg)] border border-[rgba(27,48,60,0.08)] bg-[#FBFCFD] px-4 py-4 text-[16px] leading-[1.5] text-[#1B303C]">{goal}</div>
               ))}
-            </CardContent>
-          </PremiumCard>
-          <PremiumCard>
-            <CardHeader>
-              <CardTitle className="text-white">Key milestones</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            </div>
+          </WidgetCard>
+          <WidgetCard title="Key milestones">
+            <div className="space-y-3">
               {missionHubContent.keyMilestones.map((milestone) => (
-                <div key={milestone} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-slate-100">{milestone}</div>
+                <div key={milestone} className="rounded-[var(--eos-radius-lg)] border border-[rgba(27,48,60,0.08)] bg-[#FBFCFD] px-4 py-4 text-[16px] leading-[1.5] text-[#1B303C]">{milestone}</div>
               ))}
-            </CardContent>
-          </PremiumCard>
+            </div>
+          </WidgetCard>
         </div>
       </WorkspaceShell>
     </Surface>
