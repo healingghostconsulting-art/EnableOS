@@ -50,7 +50,12 @@ export function V3ShellWrapper({ path, children }: { path: string; children: Rea
   }));
 
   const grantName = access.data?.grant.name ?? null;
-  const name = grantName ?? "there";
+  // Resolve a real display name like the role views do (they fall back to a role-appropriate
+  // name, never the bare "there"). Mission Hub is wrapped here rather than rendering its own
+  // AppShell, so without this it showed "Good afternoon, there!" while every other route
+  // resolved a name. Fall back to the role title (e.g. platform_admin → "Platform Admin" →
+  // "Platform") so the greeting matches the rest of the app even before the grant name loads.
+  const name = grantName ?? ROLE_TITLE[role] ?? "there";
   const initials = grantName ? initialsOf(grantName) : "EO";
   const avatar = <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#1B303C] text-[12px] font-bold text-white" aria-hidden="true">{initials}</span>;
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
