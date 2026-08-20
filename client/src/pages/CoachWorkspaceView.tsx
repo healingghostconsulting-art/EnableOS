@@ -153,6 +153,7 @@ export function CoachWorkspaceView() {
                 <ul className="flex-1 space-y-2 text-[13px]">
                   <li className="flex items-center justify-between"><StatusMark status="neutral" label="Coachees" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.length}</span></li>
                   <li className="flex items-center justify-between"><StatusMark status="positive" label="On track" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) >= 75).length}</span></li>
+                  <li className="flex items-center justify-between"><StatusMark status="overdue" label="Monitor" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => { const s = l.readinessScore ?? 0; return s >= 65 && s < 75; }).length}</span></li>
                   <li className="flex items-center justify-between"><StatusMark status="alert" label="Need attention" variant="dot" /><span className="font-semibold text-[#1B303C]">{coachees.filter((l) => (l.readinessScore ?? 0) < 65).length}</span></li>
                   <li className="flex items-center justify-between"><StatusMark status="overdue" label="Sessions due" variant="dot" /><span className="font-semibold text-[#1B303C]">{dueCount}</span></li>
                 </ul>
