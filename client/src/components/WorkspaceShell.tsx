@@ -46,10 +46,17 @@ export function WorkspaceShell({
   betweenStatsAndTabs,
   statsGridClassName = "grid flex-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4",
   subTruncate = false,
+  tone = "dark",
   children,
 }: {
   title: string;
   subtitle: string;
+  /**
+   * Stat-row treatment. "dark" (default) is the shared Coach-Studio navy band used by most
+   * pages; "light" renders the Manager-Hub light standard (navy values on #FBFCFD tiles) for
+   * the Mission Hub / Reporting / CHCG Command reskin, without touching the other 8 callers.
+   */
+  tone?: "dark" | "light";
   /** Dark stat-row tiles. Omit (or pass []) for a help/overview page with no metrics. */
   stats?: WorkspaceStat[];
   /** Mode tabs. Omit (or pass []) for an overview page with no modes. */
@@ -72,6 +79,7 @@ export function WorkspaceShell({
   /** Gated <TabsContent> blocks, for tabs that don't supply `content` inline. */
   children?: ReactNode;
 }) {
+  const light = tone === "light";
   return (
     <div className="workspace-stack">
       <div className="rounded-[1.75rem] border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,248,250,0.92))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-5">
@@ -86,24 +94,31 @@ export function WorkspaceShell({
       <div className="focus-stack">
         <div className="space-y-3">
           {stats.length > 0 ? (
-          <div className="rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]">
+          <div className={light
+            ? "rounded-[var(--eos-radius-lg)] border border-[rgba(27,48,60,0.08)] bg-white px-4 py-3 shadow-[0_10px_24px_rgba(27,48,60,0.06)]"
+            : "rounded-[1.35rem] border border-white/12 bg-[linear-gradient(135deg,rgba(9,18,28,0.96),rgba(20,32,44,0.92))] px-4 py-2.5 shadow-[0_14px_30px_rgba(15,23,42,0.13)]"}>
             <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
               {statsLead}
               <div className={statsGridClassName}>
                 {stats.map((stat, index) => {
+                  // Gold stays on the ICON only (fill); the eyebrow label is navy on light
+                  // (gold-as-text on #FBFCFD fails AA), slate value/sub → navy/slate.
                   const inner = (
                     <>
-                      <div className="flex items-center gap-2 text-accent-gold">{stat.icon}<span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{stat.label}</span></div>
-                      <p className="mt-1.5 text-base font-semibold text-white">{stat.value}</p>
-                      {stat.sub ? <p className={subTruncate ? "truncate text-[11px] leading-4 text-slate-400" : "text-[11px] leading-4 text-slate-400"}>{stat.sub}</p> : null}
+                      <div className={`flex items-center gap-2 ${light ? "text-[#1B303C]" : "text-accent-gold"}`}><span className={light ? "text-[#FCBC34]" : undefined}>{stat.icon}</span><span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{stat.label}</span></div>
+                      <p className={`mt-1.5 font-bold ${light ? "text-[1.5rem] leading-none text-[#1B303C]" : "text-base font-semibold text-white"}`}>{stat.value}</p>
+                      {stat.sub ? <p className={`${subTruncate ? "truncate " : ""}text-[11px] leading-4 ${light ? "text-[#4A6373]" : "text-slate-400"}`}>{stat.sub}</p> : null}
                     </>
                   );
+                  const tileClass = light
+                    ? "rounded-[var(--eos-radius-md)] border border-[rgba(27,48,60,0.08)] bg-[#FBFCFD] px-3 py-2.5 text-left"
+                    : "rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left";
                   return stat.onClick ? (
-                    <button key={index} type="button" onClick={stat.onClick} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left transition hover:border-white/18 hover:bg-slate-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/45">
+                    <button key={index} type="button" onClick={stat.onClick} className={`${tileClass} transition focus:outline-none focus-visible:ring-2 ${light ? "hover:border-[#7A5200]/25 hover:bg-amber-50/40 focus-visible:ring-[#1B303C]/30" : "hover:border-white/18 hover:bg-slate-900/75 focus-visible:ring-cyan-300/45"}`}>
                       {inner}
                     </button>
                   ) : (
-                    <div key={index} className="rounded-[1rem] border border-white/12 bg-slate-950/45 px-2.5 py-2 text-left">
+                    <div key={index} className={tileClass}>
                       {inner}
                     </div>
                   );

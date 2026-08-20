@@ -3697,6 +3697,7 @@ export function MissionHubView() {
   return (
     <Surface>
       <WorkspaceShell
+        tone="light"
         title="Mission Hub"
         subtitle={missionHubContent.title}
         actions={
