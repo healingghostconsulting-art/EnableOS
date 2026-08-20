@@ -27,6 +27,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/v3/Moda
 import { StatusMark } from "@/components/v3/StatusMark";
 import { WidgetCard } from "@/components/v3/WidgetCard";
 import { InfoTile } from "@/components/v3/InfoTile";
+import { coerceAccent } from "./admin/AdminBranding";
 import { ComingSoonAction } from "@/components/v3/ComingSoon";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { WorkspaceShell, type WorkspaceStat } from "@/components/WorkspaceShell";
@@ -8182,7 +8183,7 @@ export function ChcgAdminView() {
                       { label: "Selected client", value: selectedTenant.tenant.name, sub: selectedTenant.tenant.industry },
                       { label: "Licensed journeys", value: `${licensedJourneyIds.length}`, sub: "Journeys currently unlocked for this client." },
                       { label: "Licensed assets", value: `${licensedAssetIds.length}`, sub: "Library assets available to this client." },
-                      { label: "Brand label", value: selectedTenant.branding.preferredLabel, sub: selectedTenant.branding.accent },
+                      { label: "Brand label", value: selectedTenant.branding.preferredLabel, sub: coerceAccent(selectedTenant.branding.accent) },
                     ].map((tile) => (
                       <div key={tile.label} className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-gold">{tile.label}</p>

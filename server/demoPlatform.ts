@@ -470,7 +470,10 @@ const tenants: DemoTenant[] = [
     id: "atlas-operations",
     name: "Enterprise Operations Workspace",
     industry: "Enterprise shared services",
-    accent: "#2F6FED",
+    // Canonical CHCG navy (in the AdminBranding ACCENT_OPTIONS set). Was #2F6FED, an off-set
+    // value that Client Control's coerceAccent snapped to navy while CHCG Command showed it
+    // raw — the two surfaces diverged. Seeding an in-set value keeps them identical.
+    accent: "#1B303C",
     logoMark: "EW",
     description: "A distributed service organization using CHCG methodology to connect coaching discipline, workflow precision, and measurable performance movement.",
     heroStatement: "CHCG-powered enablement intelligence for service teams that need stronger execution, cleaner coaching, and clearer ROI.",
