@@ -1323,9 +1323,10 @@ describe("learner training layout helpers", () => {
     // The sentence-style SectionShell header for the main view is gone (the
     // no-access fallback still uses SectionShell, which is fine).
     expect(chcgSource).not.toContain('title="Organization control plane"');
-    // The second (per-client portfolio) grid is dark gold-label tiles, not a
-    // second MetricCard stat bar. Only the no-access branch may keep SectionShell.
-    expect(chcgSource).toContain("text-accent-gold");
+    // The second (per-client portfolio) grid is light gold-ink-label tiles (reskin 3: the
+    // whole view is now the light standard, so the labels use gold-ink #7A5200 for AA on
+    // light rather than gold-on-dark), not a second MetricCard stat bar.
+    expect(chcgSource).toContain("text-[#7A5200]");
     // App-wide AA sweep: no faint uppercase text-slate-500 eyebrow labels remain.
     expect(chcgSource).not.toContain("uppercase tracking-[0.22em] text-slate-500");
   });

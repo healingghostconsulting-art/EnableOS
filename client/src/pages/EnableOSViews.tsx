@@ -1180,9 +1180,14 @@ function SectionShell({
   );
 }
 
-function PremiumCard({ className = "", children, id }: { className?: string; children: React.ReactNode; id?: string }) {
+function PremiumCard({ className = "", children, id, tone = "dark" }: { className?: string; children: React.ReactNode; id?: string; tone?: "dark" | "light" }) {
+  // Additive light tone for the reskin pages (Mission Hub / Reporting / CHCG Command); the
+  // dark default is byte-identical, so every other PremiumCall site is unaffected.
+  const surface = tone === "light"
+    ? "border border-[#1B303C]/10 bg-[var(--eos-surface-card)] shadow-[0_10px_30px_rgba(15,23,42,0.05)]"
+    : "energy-frame border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] shadow-[0_28px_90px_rgba(27,48,60,0.18)] backdrop-blur-2xl";
   return (
-    <Card id={id} className={`energy-frame border border-[#1B303C]/10 bg-[linear-gradient(180deg,rgba(27,48,60,0.98),rgba(17,29,37,0.96))] shadow-[0_28px_90px_rgba(27,48,60,0.18)] backdrop-blur-2xl ${className}`}>
+    <Card id={id} className={`${surface} ${className}`}>
       {children}
     </Card>
   );
@@ -8052,6 +8057,7 @@ export function ChcgAdminView() {
   return (
     <Surface>
       <WorkspaceShell
+        tone="light"
         title="CHCG Command"
         subtitle="Create and govern client workspaces, unlock training journeys, and manage CHCG-wide operating policy."
         stats={chcgStats}
@@ -8061,119 +8067,119 @@ export function ChcgAdminView() {
 
           <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
             <div className="space-y-6">
-              <PremiumCard>
+              <PremiumCard tone="light">
                 <CardHeader>
-                  <CardTitle className="text-white">Create client workspace</CardTitle>
-                  <CardDescription className="text-slate-400">Provision a new client under CHCG control with its own branding baseline and admin roster.</CardDescription>
+                  <CardTitle className="text-[#1B303C]">Create client workspace</CardTitle>
+                  <CardDescription className="text-[#4A6373]">Provision a new client under CHCG control with its own branding baseline and admin roster.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                    <label className="space-y-2 text-sm text-[#4A6373] md:col-span-2">
                       <span>Client name</span>
-                      <input value={clientName} onChange={(event) => setClientName(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <input value={clientName} onChange={(event) => setClientName(event.target.value)} className="w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300">
+                    <label className="space-y-2 text-sm text-[#4A6373]">
                       <span>Industry</span>
-                      <input value={industry} onChange={(event) => setIndustry(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <input value={industry} onChange={(event) => setIndustry(event.target.value)} className="w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300">
+                    <label className="space-y-2 text-sm text-[#4A6373]">
                       <span>Accent</span>
-                      <input value={accent} onChange={(event) => setAccent(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <input value={accent} onChange={(event) => setAccent(event.target.value)} className="w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300">
+                    <label className="space-y-2 text-sm text-[#4A6373]">
                       <span>Logo mark</span>
-                      <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <input value={logoMark} onChange={(event) => setLogoMark(event.target.value.slice(0, 3).toUpperCase())} className="w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                    <label className="space-y-2 text-sm text-[#4A6373] md:col-span-2">
                       <span>Description</span>
-                      <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                    <label className="space-y-2 text-sm text-[#4A6373] md:col-span-2">
                       <span>Hero statement</span>
-                      <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <textarea value={heroStatement} onChange={(event) => setHeroStatement(event.target.value)} className="min-h-[100px] w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="button"
-                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      className="rounded-full bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"
                       disabled={createTenant.isPending || clientName.trim().length < 3}
                       onClick={() => createTenant.mutate({ name: clientName, industry, accent, logoMark, description, heroStatement })}
                     >
                       {createTenant.isPending ? "Creating..." : "Add client workspace"}
                     </Button>
-                    {createTenant.isSuccess ? <span className="text-sm text-emerald-300">Client workspace added and ready for licensing.</span> : null}
+                    {createTenant.isSuccess ? <span className="text-sm text-emerald-700">Client workspace added and ready for licensing.</span> : null}
                   </div>
                 </CardContent>
               </PremiumCard>
 
-              <PremiumCard>
+              <PremiumCard tone="light">
                 <CardHeader>
-                  <CardTitle className="text-white">CHCG platform policy</CardTitle>
-                  <CardDescription className="text-slate-400">Control how provisioning, library governance, and training unlocks are managed across all clients.</CardDescription>
+                  <CardTitle className="text-[#1B303C]">CHCG platform policy</CardTitle>
+                  <CardDescription className="text-[#4A6373]">Control how provisioning, library governance, and training unlocks are managed across all clients.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2 text-sm text-slate-300">
+                    <label className="space-y-2 text-sm text-[#4A6373]">
                       <span>Provisioning mode</span>
                       <Select value={provisioningMode} onValueChange={(value) => setProvisioningMode(value as "Guided" | "Self-serve review")}>
-                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-12 border-[#1B303C]/12 bg-white text-[#1B303C]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Guided">Guided</SelectItem>
                           <SelectItem value="Self-serve review">Self-serve review</SelectItem>
                         </SelectContent>
                       </Select>
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300">
+                    <label className="space-y-2 text-sm text-[#4A6373]">
                       <span>Training unlock policy</span>
                       <Select value={trainingUnlockPolicy} onValueChange={(value) => setTrainingUnlockPolicy(value as "Manual CHCG approval" | "Client-admin request with CHCG confirmation")}>
-                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-12 border-[#1B303C]/12 bg-white text-[#1B303C]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Manual CHCG approval">Manual CHCG approval</SelectItem>
                           <SelectItem value="Client-admin request with CHCG confirmation">Client-admin request with CHCG confirmation</SelectItem>
                         </SelectContent>
                       </Select>
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                    <label className="space-y-2 text-sm text-[#4A6373] md:col-span-2">
                       <span>Default library policy</span>
                       <Select value={defaultLibraryPolicy} onValueChange={(value) => setDefaultLibraryPolicy(value as "CHCG core plus licensed tenant uploads" | "Tenant-curated with CHCG overlays")}>
-                        <SelectTrigger className="h-12 border-white/10 bg-slate-950/80 text-slate-100"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-12 border-[#1B303C]/12 bg-white text-[#1B303C]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="CHCG core plus licensed tenant uploads">CHCG core plus licensed tenant uploads</SelectItem>
                           <SelectItem value="Tenant-curated with CHCG overlays">Tenant-curated with CHCG overlays</SelectItem>
                         </SelectContent>
                       </Select>
                     </label>
-                    <label className="space-y-2 text-sm text-slate-300 md:col-span-2">
+                    <label className="space-y-2 text-sm text-[#4A6373] md:col-span-2">
                       <span>Governance note</span>
-                      <textarea value={governanceNote} onChange={(event) => setGovernanceNote(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-white/20" />
+                      <textarea value={governanceNote} onChange={(event) => setGovernanceNote(event.target.value)} className="min-h-[110px] w-full rounded-2xl border border-[#1B303C]/12 bg-white px-4 py-3 text-[#1B303C] outline-none transition focus:border-[#7A5200]/40" />
                     </label>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="button"
-                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      className="rounded-full bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"
                       disabled={updatePlatformSettings.isPending}
                       onClick={() => updatePlatformSettings.mutate({ provisioningMode, defaultLibraryPolicy, trainingUnlockPolicy, governanceNote })}
                     >
                       {updatePlatformSettings.isPending ? "Saving..." : "Apply platform policy"}
                     </Button>
-                    {updatePlatformSettings.isSuccess ? <span className="text-sm text-emerald-300">Platform policy updated.</span> : null}
+                    {updatePlatformSettings.isSuccess ? <span className="text-sm text-emerald-700">Platform policy updated.</span> : null}
                   </div>
                 </CardContent>
               </PremiumCard>
             </div>
 
             <div className="space-y-6">
-              <PremiumCard>
+              <PremiumCard tone="light">
                 <CardHeader>
-                  <CardTitle className="text-white">Client portfolio control</CardTitle>
-                  <CardDescription className="text-slate-400">Switch between tenants, review readiness for rollout, and decide which training resources are unlocked.</CardDescription>
+                  <CardTitle className="text-[#1B303C]">Client portfolio control</CardTitle>
+                  <CardDescription className="text-[#4A6373]">Switch between tenants, review readiness for rollout, and decide which training resources are unlocked.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <TenantPicker tenants={dashboard.data.tenants} tenantId={selectedTenant.tenant.id} setTenantId={setSelectedTenantId} />
-                    <Badge className="rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-100">{selectedTenant.users.length} users provisioned</Badge>
+                    <Badge className="rounded-full border-cyan-200 bg-cyan-50 text-cyan-800">{selectedTenant.users.length} users provisioned</Badge>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
                     {[
@@ -8182,33 +8188,33 @@ export function ChcgAdminView() {
                       { label: "Licensed assets", value: `${licensedAssetIds.length}`, sub: "Library assets available to this client." },
                       { label: "Brand label", value: selectedTenant.branding.preferredLabel, sub: coerceAccent(selectedTenant.branding.accent) },
                     ].map((tile) => (
-                      <div key={tile.label} className="rounded-[1.35rem] border border-white/12 bg-slate-950/50 px-4 py-4">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-gold">{tile.label}</p>
-                        <p className="mt-2 text-xl font-semibold text-white">{tile.value}</p>
-                        <p className="mt-1 text-xs leading-4 text-slate-300">{tile.sub}</p>
+                      <div key={tile.label} className="rounded-[1.35rem] border border-[#1B303C]/10 bg-[#FBFCFD] px-4 py-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#7A5200]">{tile.label}</p>
+                        <p className="mt-2 text-xl font-semibold text-[#1B303C]">{tile.value}</p>
+                        <p className="mt-1 text-xs leading-4 text-[#4A6373]">{tile.sub}</p>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </PremiumCard>
 
-              <PremiumCard>
+              <PremiumCard tone="light">
                 <CardHeader>
-                  <CardTitle className="text-white">Training journey unlocks</CardTitle>
-                  <CardDescription className="text-slate-400">Enable or withhold journey-based learning experiences for the selected client workspace.</CardDescription>
+                  <CardTitle className="text-[#1B303C]">Training journey unlocks</CardTitle>
+                  <CardDescription className="text-[#4A6373]">Enable or withhold journey-based learning experiences for the selected client workspace.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     {selectedTenant.availableJourneys.map((journey: any) => {
                       const enabled = licensedJourneyIds.includes(journey.id);
                       return (
-                        <div key={journey.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div key={journey.id} className="rounded-2xl border border-[#1B303C]/10 bg-[#FBFCFD] p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="font-medium text-white">{journey.title}</p>
-                              <p className="mt-2 text-sm text-slate-400 capitalize">Primary audience · {journey.role.replaceAll("_", " ")}</p>
+                              <p className="font-medium text-[#1B303C]">{journey.title}</p>
+                              <p className="mt-2 text-sm text-[#4A6373] capitalize">Primary audience · {journey.role.replaceAll("_", " ")}</p>
                             </div>
-                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" onClick={() => toggleSelection(journey.id, licensedJourneyIds, setLicensedJourneyIds)}>
+                            <Button type="button" variant="outline" className="rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 hover:text-[#1B303C]" onClick={() => toggleSelection(journey.id, licensedJourneyIds, setLicensedJourneyIds)}>
                               {enabled ? "Unlocked" : "Locked"}
                             </Button>
                           </div>
@@ -8219,30 +8225,30 @@ export function ChcgAdminView() {
                 </CardContent>
               </PremiumCard>
 
-              <PremiumCard>
+              <PremiumCard tone="light">
                 <CardHeader>
-                  <CardTitle className="text-white">Library and training asset unlocks</CardTitle>
-                  <CardDescription className="text-slate-400">Choose which CHCG or tenant-specific assets should be visible inside the selected client experience.</CardDescription>
+                  <CardTitle className="text-[#1B303C]">Library and training asset unlocks</CardTitle>
+                  <CardDescription className="text-[#4A6373]">Choose which CHCG or tenant-specific assets should be visible inside the selected client experience.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     {selectedTenant.availableAssets.map((asset: any) => {
                       const enabled = licensedAssetIds.includes(asset.id);
                       return (
-                        <div key={asset.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div key={asset.id} className="rounded-2xl border border-[#1B303C]/10 bg-[#FBFCFD] p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="font-medium text-white">{asset.title}</p>
-                              <p className="mt-2 text-sm text-slate-400">{asset.category} · {asset.sourceKind === "chcg" ? "CHCG core" : "Client content"}</p>
+                              <p className="font-medium text-[#1B303C]">{asset.title}</p>
+                              <p className="mt-2 text-sm text-[#4A6373]">{asset.category} · {asset.sourceKind === "chcg" ? "CHCG core" : "Client content"}</p>
                               <div className="mt-3 flex flex-wrap gap-2">
                                 {asset.linkedRoles.map((linked: string) => (
-                                  <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-white/10 bg-slate-950/60 text-slate-200">
+                                  <Badge key={`${asset.id}-${linked}`} variant="outline" className="rounded-full border-[#1B303C]/12 bg-[#FBFCFD] text-[#4A6373]">
                                     {linked === "all" ? "All roles" : linked.replaceAll("_", " ")}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
-                            <Button type="button" variant="outline" className="rounded-full border-white/10 bg-white/6 text-white hover:bg-white/10 hover:text-white" onClick={() => toggleSelection(asset.id, licensedAssetIds, setLicensedAssetIds)}>
+                            <Button type="button" variant="outline" className="rounded-full border-[#1B303C]/12 bg-white text-[#1B303C] hover:bg-slate-50 hover:text-[#1B303C]" onClick={() => toggleSelection(asset.id, licensedAssetIds, setLicensedAssetIds)}>
                               {enabled ? "Unlocked" : "Locked"}
                             </Button>
                           </div>
@@ -8253,13 +8259,13 @@ export function ChcgAdminView() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="button"
-                      className="rounded-full bg-white text-slate-950 hover:bg-slate-100"
+                      className="rounded-full bg-[#FCBC34] text-[#1B303C] hover:bg-[#e9ad1e]"
                       disabled={updateTrainingAccess.isPending}
                       onClick={() => updateTrainingAccess.mutate({ tenantId: selectedTenant.tenant.id, licensedJourneyIds, licensedAssetIds })}
                     >
                       {updateTrainingAccess.isPending ? "Saving access..." : "Apply client training access"}
                     </Button>
-                    {updateTrainingAccess.isSuccess ? <span className="text-sm text-emerald-300">Training access updated for {selectedTenant.tenant.name}.</span> : null}
+                    {updateTrainingAccess.isSuccess ? <span className="text-sm text-emerald-700">Training access updated for {selectedTenant.tenant.name}.</span> : null}
                   </div>
                 </CardContent>
               </PremiumCard>
@@ -8267,10 +8273,10 @@ export function ChcgAdminView() {
           </div>
         </div>
 
-        <PremiumCard>
+        <PremiumCard tone="light">
           <CardHeader>
-            <CardTitle className="text-white">Author CHCG core quiz content</CardTitle>
-            <CardDescription className="text-slate-300">
+            <CardTitle className="text-[#1B303C]">Author CHCG core quiz content</CardTitle>
+            <CardDescription className="text-[#4A6373]">
               Edit, add, or hide the canonical apply-checkpoint questions every client inherits. Clients can still override these for their own tenant from Client Control.
             </CardDescription>
           </CardHeader>
