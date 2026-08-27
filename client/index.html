@@ -15,10 +15,10 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+    <!-- Analytics (umami) is injected at runtime from main.tsx ONLY when the
+         analytics endpoint / website-id env vars are set. A static percent-delimited
+         Vite env placeholder here would ship literally in a build without those vars
+         and request a broken analytics URL that 503s. -->
   </body>
 
 </html>

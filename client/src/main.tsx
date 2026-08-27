@@ -8,6 +8,19 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+// Load umami analytics only when both env vars are configured. A deploy without them
+// (e.g. the demo, or any build without Manus's variables) simply gets no analytics —
+// never a broken script request or a render-time failure.
+const analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+if (typeof document !== "undefined" && analyticsEndpoint && analyticsWebsiteId) {
+  const analyticsScript = document.createElement("script");
+  analyticsScript.defer = true;
+  analyticsScript.src = `${analyticsEndpoint}/umami`;
+  analyticsScript.setAttribute("data-website-id", analyticsWebsiteId);
+  document.head.appendChild(analyticsScript);
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {

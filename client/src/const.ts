@@ -24,19 +24,29 @@ export function buildLoginUrl({
   returnPath = "/",
 }: BuildLoginUrlOptions) {
   const normalizedReturnPath = normalizeReturnPath(returnPath);
-  const redirectUri = new URL("/api/oauth/callback", origin).toString();
-  const state = encodeOAuthState({
-    redirectUri,
-    returnTo: normalizedReturnPath !== "/" ? normalizedReturnPath : undefined,
-  });
+  // No OAuth portal configured (e.g. a deploy without Manus's VITE_OAUTH_PORTAL_URL,
+  // such as the demo) — there is no sign-in destination to build. Degrade to the return
+  // path instead of throwing `new URL("undefined/app-auth")` ("Invalid URL"), which would
+  // otherwise take down any component that computes a login URL at render time.
+  if (!oauthPortalUrl) return normalizedReturnPath;
+  try {
+    const redirectUri = new URL("/api/oauth/callback", origin).toString();
+    const state = encodeOAuthState({
+      redirectUri,
+      returnTo: normalizedReturnPath !== "/" ? normalizedReturnPath : undefined,
+    });
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
+    const url = new URL(`${oauthPortalUrl}/app-auth`);
+    url.searchParams.set("appId", appId);
+    url.searchParams.set("redirectUri", redirectUri);
+    url.searchParams.set("state", state);
+    url.searchParams.set("type", "signIn");
 
-  return url.toString();
+    return url.toString();
+  } catch {
+    // Malformed portal URL or origin — never crash a render over a login link.
+    return normalizedReturnPath;
+  }
 }
 
 // Generate login URL at runtime so redirect URI reflects the current origin.
