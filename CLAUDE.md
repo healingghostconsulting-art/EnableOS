@@ -70,6 +70,13 @@ $env:NODE_ENV="development"; pnpm exec tsx watch server/_core/index.ts
 - **Hardcoded sizes / sticky.** e.g. `min-h-[12.6rem]`, curriculum viewer `min-h-[18rem]`/`min-h-[24rem]`, Progress rail `2xl:sticky 2xl:top-6`. Watch these in layout changes.
 - **Stray Manus temp files** at repo root (`tmp_training_zone_*.py`, `.manus-temp/EnableOSViews.broken-backup.tsx`, many `*_notes.md`) are not part of the build — ignore them; do not treat as source of truth.
 
+## Permission model — two systems that can disagree (read before wiring real auth)
+Access is decided in **two independent places** that are NOT derived from each other:
+- **`WORKSPACE_ACCESS`** (in [shared/workspaceAccess.ts](shared/workspaceAccess.ts)) drives the **sidebar nav and the route guard** — what appears in the menu and which routes a grant may enter (via `permittedWorkspaces` / `canGrantAccessWorkspace` over `ADOPTABLE_ROLES`).
+- **`getPermittedRolesForGrant`** (in [server/demoPlatform.ts](server/demoPlatform.ts)) drives the **in-view entitlement** — several views (`ReportingWorkspaceView`, `RoleWorkspace` in [client/src/pages/EnableOSViews.tsx](client/src/pages/EnableOSViews.tsx)) render their content only if `viewerAccess.permittedRoles.includes(<required role>)`, else show a **"outside your current entitlement"** card.
+
+Because they are separate lists, a route can be **in the nav / passable by the guard but refused by the view**. **Known current disagreement: `/reporting` for `manager` and `coach`.** Both have `/reporting` in `WORKSPACE_ACCESS` (so Reporting Hub shows in their sidebar and the guard lets them in), but their `getPermittedRolesForGrant` sets don't include `executive`, which the Reporting view requires — so clicking their own "Reporting Hub" yields the entitlement wall. This is a **known, deliberate-for-now product question** (should a manager see reporting?), not a bug to silently "fix". Whoever wires the real IdP must reconcile these two systems — or at least know which one to trust for which decision — before relying on either.
+
 ## Quick map
 - Routing / role menus / access guards: `client/src/App.tsx`
 - All page views (monolith): `client/src/pages/EnableOSViews.tsx`
