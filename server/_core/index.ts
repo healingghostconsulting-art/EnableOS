@@ -48,11 +48,13 @@ async function startServer() {
 
   // Bind the platform-assigned port directly on all interfaces. In a container
   // (Railway/etc.) PORT is injected and the app MUST bind exactly it on 0.0.0.0 —
-  // binding localhost, or probing to a different port, makes the app unreachable.
-  const port = Number(process.env.PORT) || 3000;
+  // binding localhost makes the app unreachable behind the platform proxy. The log
+  // echoes the real host+port it bound, so the deploy log tells the truth.
+  const host = "0.0.0.0";
+  const port = Number(process.env.PORT) || 8080;
 
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${port}/`);
+  server.listen(port, host, () => {
+    console.log(`Server running on http://${host}:${port}/`);
   });
 }
 
