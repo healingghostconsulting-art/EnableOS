@@ -12,6 +12,7 @@ import { StatusLabelsProvider } from "./contexts/StatusLabelsContext";
 import { GrayscaleProvider } from "./contexts/GrayscaleContext";
 import { PlayerThemeProvider } from "./contexts/PlayerThemeContext";
 import { trpc } from "./lib/trpc";
+import { DemoBadge } from "./components/v3/DemoBadge";
 import { ChcgAdminView, ContentLibraryView, GuideView, LandingView, MissionHubView, ReportingWorkspaceView, RoleWorkspace, TrainingExperienceView } from "./pages/EnableOSViews";
 import { WorkspaceEntryView } from "./pages/WorkspaceEntryView";
 import { AgentWorkspaceView } from "./pages/AgentWorkspaceView";
@@ -368,6 +369,7 @@ function App() {
               <TooltipProvider>
                 <Toaster />
                 <Router />
+                <DemoBadge />
               </TooltipProvider>
             </StatusLabelsProvider>
           </PlayerThemeProvider>

@@ -1,5 +1,7 @@
 import type { Request } from "express";
 import { sdk, type AuthenticatedUser } from "./sdk";
+import { isDemoMode } from "./env";
+import { DemoAuthProvider } from "./demoAuth";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // AUTH SEAM (Phase 5 hardening).
@@ -69,12 +71,20 @@ export function createAuthProvider(kind: string | undefined | null): AuthProvide
   }
 }
 
-let provider: AuthProvider | null = null;
+let provider: AuthProvider | null = null;          // explicit override (tests) wins
+let demoProviderInstance: DemoAuthProvider | null = null;
+let realProviderInstance: AuthProvider | null = null;
 
-/** The active provider, selected once from AUTH_PROVIDER. */
+/**
+ * The active provider. TEMPORARY (no auth server): while DEMO_MODE is on, seeded demo
+ * sessions are resolved in memory — no DB, no Manus. DEMO_MODE=false reverts to the real
+ * provider selected from AUTH_PROVIDER (the off-switch), so a leftover demo cookie in
+ * production is not honoured. isDemoMode() is read at call time so the toggle is live.
+ */
 export function getAuthProvider(): AuthProvider {
-  if (!provider) provider = createAuthProvider(process.env.AUTH_PROVIDER);
-  return provider;
+  if (provider) return provider;
+  if (isDemoMode()) return (demoProviderInstance ??= new DemoAuthProvider());
+  return (realProviderInstance ??= createAuthProvider(process.env.AUTH_PROVIDER));
 }
 
 /** Override / reset the provider (tests). */

@@ -4,6 +4,7 @@ import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerDemoEntry } from "./demoAuth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -26,6 +27,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  // TEMPORARY demo entry (server-gated on isDemoMode; 404 in production). Mints a
+  // role-scoped, in-memory-only demo session so the site is clickable without an auth server.
+  registerDemoEntry(app);
   // tRPC API — rate-limited per IP (generous; scoped here so storage/OAuth are untouched).
   app.use(
     "/api/trpc",

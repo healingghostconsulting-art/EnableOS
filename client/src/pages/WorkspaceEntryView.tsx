@@ -47,6 +47,7 @@ export function WorkspaceEntryView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const viewer = trpc.auth.me.useQuery();
+  const demoModeQuery = trpc.demo.config.useQuery();
   const viewerAccess = trpc.demo.viewerAccess.useQuery(undefined, { enabled: Boolean(viewer.data) });
   const summary = trpc.demo.entrySummary.useQuery(viewerAccess.data?.tenant.id ? { tenantId: viewerAccess.data.tenant.id } : {});
   const stats = summary.data ?? { teamMembers: 0, coachingDue: 0, trainingCompletion: 0 };
@@ -57,6 +58,13 @@ export function WorkspaceEntryView() {
     if (viewer.data) {
       const permitted = viewerAccess.data ? viewerAccess.data.permittedRoles.includes(role) : false;
       window.location.href = permitted ? route : homeHref;
+      return;
+    }
+    // TEMPORARY: with no auth server, enter a role-scoped DEMO session via the server-gated
+    // /api/demo/enter route (404s when DEMO_MODE is off). When real auth is wired
+    // (DEMO_MODE=false) this reverts to the OAuth login URL.
+    if (demoModeQuery.data?.demoMode !== false) {
+      window.location.href = `/api/demo/enter?role=${encodeURIComponent(role)}`;
       return;
     }
     window.location.href = getLoginUrl(route);
@@ -75,14 +83,14 @@ export function WorkspaceEntryView() {
             <p className="max-w-[42ch] text-[15px] leading-7 text-[#4A6373]">Select the workspace that matches your role and access the tools and information assigned to you.</p>
           </div>
 
-          <InfoPanel title="Entry status" infoLabel="After sign-in, access is still limited to the roles and tenant your account is granted.">
-            <p className="text-sm font-semibold text-[#1B303C]">How access works</p>
+          <InfoPanel title="Entry status" infoLabel="This is a demo with seeded sample data — not a signed-in account.">
+            <p className="text-sm font-semibold text-[#1B303C]">About this demo</p>
             <p className="mt-2 text-[13.5px] leading-6 text-[#4A6373]">
-              After you sign in, you'll be directed to the workspace designed for your role. Your view is tailored to your permissions and responsibilities.
+              Each card opens the workspace for that role, populated with seeded sample data. No account is created and nothing you do is saved.
             </p>
             <div className="mt-4 flex gap-2.5 rounded-xl border border-[#FCBC34]/35 bg-amber-50/70 px-3.5 py-3">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#7A5200]" aria-hidden="true" />
-              <p className="text-[13px] leading-6 text-[#4A6373]">Your organization's settings determine what you can see and do in each workspace.</p>
+              <p className="text-[13px] leading-6 text-[#4A6373]">Temporary demo access while a real sign-in provider is being set up.</p>
             </div>
           </InfoPanel>
         </div>
@@ -98,7 +106,7 @@ export function WorkspaceEntryView() {
         <div className="mt-8">
           <div className="flex items-center gap-1.5">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7A5200]">Select your workspace</h2>
-            <InfoIcon label="Each card opens sign-in and returns you to that workspace. Access stays limited to the roles your account is granted." />
+            <InfoIcon label="Each card opens a demo of that workspace with seeded sample data. No sign-in, no account." />
           </div>
           <p className="mt-1 text-[13.5px] text-[#4A6373]">Each workspace is built for the tasks that matter most in your role.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -112,6 +120,7 @@ export function WorkspaceEntryView() {
                   tagTint={entry.tagTint}
                   title={entry.title}
                   description={entry.description}
+                  actionLabel="Explore demo"
                   onSelect={() => selectRole(entry.role, entry.route)}
                 />
               );
