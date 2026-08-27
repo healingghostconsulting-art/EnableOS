@@ -143,7 +143,12 @@ export function registerDemoEntry(app: Express) {
     }
     try {
       const token = await signDemoToken(DEMO_ROLE_OPENID[role]);
-      res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
+      // Reuse the shared secure-flag logic but force SameSite=Lax for the demo cookie.
+      // The entry flow is all same-site, top-level navigation (card click -> /api/demo/enter
+      // 302 -> workspace), so Lax is sufficient AND, unlike SameSite=None, it does not require
+      // Secure — so the cookie also sticks over plain http://localhost for local browser
+      // testing, not just https. OAuth's getSessionCookieOptions is left untouched.
+      res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), sameSite: "lax", maxAge: ONE_YEAR_MS });
       res.redirect(302, ROLE_HOME[role] ?? "/mission-hub");
     } catch (error) {
       console.error("[DemoEntry] Failed to mint demo session:", error);

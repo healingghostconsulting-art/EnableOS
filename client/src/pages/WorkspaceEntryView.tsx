@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { BookOpen, Building2, ClipboardCheck, GraduationCap, ShieldCheck, UserRound, Users2 } from "lucide-react";
+import { BookOpen, Building2, ClipboardCheck, GraduationCap, LineChart, ShieldCheck, UserRound, Users2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import type { DemoRole } from "../../../server/demoPlatform";
@@ -25,6 +25,7 @@ const ROLE_HOME: Record<string, string> = {
 };
 
 const ROLES: Array<{ role: DemoRole; route: string; tag: string; tagTint: RoleTagTint; title: string; description: string; icon: typeof Users2 }> = [
+  { role: "executive", route: "/reporting", tag: "Executive", tagTint: "executive", title: "Executive Workspace", description: "Review organization-wide reporting, KPIs, and leadership intelligence across your teams.", icon: LineChart },
   { role: "manager", route: "/manager", tag: "Manager", tagTint: "manager", title: "Manager Workspace", description: "Oversee your team, track performance, manage coaching, and monitor training progress.", icon: Users2 },
   { role: "coach", route: "/coach", tag: "Coach / Supervisor", tagTint: "coach", title: "Coach Workspace", description: "Run coaching sessions, review performance, and support your team's development.", icon: UserRound },
   { role: "learner", route: "/learner", tag: "Learner", tagTint: "learner", title: "Learner Workspace", description: "Access your training, track your progress, and complete assignments and goals.", icon: BookOpen },
@@ -126,6 +127,24 @@ export function WorkspaceEntryView() {
               );
             })}
           </div>
+
+          {/* CHCG-side (platform operator) entry. Deliberately NOT a peer RoleCard: the four
+              cards above + Executive are client-tenant personas, whereas platform_admin is the
+              CHCG control plane (tenant switching, CHCG Command). Kept as a discreet, clearly
+              labelled link so it is reachable for internal demos without presenting the vendor's
+              admin view as a client workspace. Demo-only — hidden once DEMO_MODE is off. */}
+          {demoModeQuery.data?.demoMode !== false ? (
+            <div className="mt-5 flex items-center gap-2 border-t border-[#1B303C]/8 pt-4">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#7A5200]" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={() => { window.location.href = "/api/demo/enter?role=platform_admin"; }}
+                className="rounded text-[13px] font-semibold text-[#4A6373] underline-offset-4 transition-colors hover:text-[#1B303C] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B303C]/40"
+              >
+                CHCG platform team → open the internal CHCG Command demo
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-8">

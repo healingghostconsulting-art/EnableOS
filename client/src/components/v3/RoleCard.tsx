@@ -4,15 +4,17 @@ import { ArrowRight } from "lucide-react";
 // v3 kit — a workspace entry card: dark icon badge, role tag, title, 2-line
 // description, and a "Sign in →" action. Renders as a button (the whole card is the
 // affordance) with a keyboard focus ring and reduced-motion fallback.
-export type RoleTagTint = "manager" | "coach" | "learner" | "client_admin";
+export type RoleTagTint = "manager" | "coach" | "learner" | "client_admin" | "executive";
 
 // CHCG palette only: navy for the manager (structural), cyan for the coach (the
-// agreed coaching accent), emerald for the learner (progress), gold for the admin.
+// agreed coaching accent), emerald for the learner (progress), gold for the admin,
+// steel-blue for the executive (leadership/reporting — distinct from manager navy).
 const TAG_TINT: Record<RoleTagTint, string> = {
   manager: "bg-[#1B303C]/8 text-[var(--eos-text-strong)]",
   coach: "bg-[var(--eos-status-info-soft)] text-[var(--eos-status-info-ink)]",
   learner: "bg-[var(--eos-status-green-soft)] text-[var(--eos-status-green-ink)]",
   client_admin: "bg-[var(--eos-gold-wash)] text-[var(--gold-ink)]",
+  executive: "bg-[var(--brand-blue)]/12 text-[var(--brand-blue)]",
 };
 
 export function RoleCard({ icon, tag, tagTint, title, description, actionLabel = "Sign in", onSelect }: {
