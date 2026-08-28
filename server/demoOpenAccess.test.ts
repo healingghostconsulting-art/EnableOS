@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { getViewerAccess } from "./demoPlatform";
 import { isDemoOpenAccess } from "./_core/env";
 import { canGrantAccessWorkspace, permittedWorkspaces } from "../shared/workspaceAccess";
+import { appRouter } from "./routers";
+import type { TrpcContext } from "./_core/context";
 
 // DEMO_OPEN_ACCESS opens every workspace to every role for the demo WITHOUT editing either
 // permission system. The flag is read at call time and is structurally gated on isDemoMode()
@@ -17,6 +19,24 @@ afterEach(() => {
     else process.env[key] = savedEnv[key];
   }
 });
+
+function ctx(openId: string): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId,
+      email: "demo@example.com",
+      name: "Demo User",
+      loginMethod: "manus",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    },
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: () => undefined } as TrpcContext["res"],
+  };
+}
 
 describe("DEMO_OPEN_ACCESS", () => {
   it("(a) flag unset — viewerAccess keeps the real restricted permittedRoles", () => {
@@ -58,5 +78,35 @@ describe("DEMO_OPEN_ACCESS", () => {
     const coach = getViewerAccess("atlas-coach");
     expect(coach?.openAccess).toBe(false);
     expect(coach?.permittedRoles).toEqual(["coach", "learner"]);
+  });
+});
+
+describe("DEMO_OPEN_ACCESS — server gate (assertScopedAccess)", () => {
+  it("relaxes ONLY the role check: a coach can read secureExecutive within its own tenant", async () => {
+    delete process.env.DEMO_MODE; // demo mode on
+    process.env.DEMO_OPEN_ACCESS = "true";
+    const caller = appRouter.createCaller(ctx("atlas-coach"));
+    // Same tenant (atlas-operations): role check relaxed by the flag -> resolves.
+    await expect(caller.demo.secureExecutive({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  });
+
+  it("still blocks cross-tenant access even with DEMO_OPEN_ACCESS=true", async () => {
+    delete process.env.DEMO_MODE; // demo mode on
+    process.env.DEMO_OPEN_ACCESS = "true";
+    const caller = appRouter.createCaller(ctx("atlas-coach"));
+    // atlas-coach belongs to atlas-operations; requesting horizon-commerce must FORBID,
+    // flag or no flag — the cross-tenant check is untouched.
+    await expect(caller.demo.secureExecutive({ tenantId: "horizon-commerce" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("without the flag, a coach reading secureExecutive is still FORBIDDEN (role check intact)", async () => {
+    delete process.env.DEMO_MODE;
+    delete process.env.DEMO_OPEN_ACCESS;
+    const caller = appRouter.createCaller(ctx("atlas-coach"));
+    await expect(caller.demo.secureExecutive({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
   });
 });

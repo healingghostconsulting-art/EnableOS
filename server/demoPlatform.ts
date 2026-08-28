@@ -3341,6 +3341,12 @@ export function getPermittedRolesForGrant(role: DemoAccessGrant["role"]): DemoRo
 }
 
 export function canAccessWorkspace(grantRole: DemoAccessGrant["role"], requiredRole: DemoRole) {
+  // Demo open-access relaxes ONLY the role check (this backs all assertScopedAccess role
+  // gates, incl. secureExecutive — the server side the client flag couldn't reach). The
+  // cross-tenant check in assertScopedAccess runs separately and is NOT affected: opening
+  // roles within one tenant is the demo; letting one tenant read another's data is not.
+  // isDemoOpenAccess() is false the moment DEMO_MODE is off.
+  if (isDemoOpenAccess()) return true;
   return getPermittedRolesForGrant(grantRole).includes(requiredRole);
 }
 

@@ -3882,6 +3882,26 @@ export function ReportingWorkspaceView() {
           </CardHeader>
         </PremiumCard>
       ) : null}
+      {/* Error branch: without this, a failed secureExecutive query left the page on an
+          eternal skeleton with no visible cause (e.g. a 403). Show it and offer a retry. */}
+      {!access.isLoading && canAccessReporting && !query.isLoading && query.isError ? (
+        <PremiumCard>
+          <CardHeader>
+            <CardTitle className="text-white">We couldn't load this reporting workspace.</CardTitle>
+            <CardDescription className="text-slate-300">The reporting data didn't load. Try again — if it keeps failing, re-enter from your role's workspace, as your session may not have reporting access.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full border-white/12 bg-white/6 text-slate-100 hover:bg-white/12 hover:text-white"
+              onClick={() => { void query.refetch(); }}
+            >
+              Try again
+            </Button>
+          </CardContent>
+        </PremiumCard>
+      ) : null}
       {!query.isLoading && canAccessReporting && query.data ? (
         <ExecutivePanel data={query.data} onUpdated={refreshWorkspace} headerActions={reportingActions} />
       ) : null}
