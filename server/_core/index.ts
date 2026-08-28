@@ -10,6 +10,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { hydrateContentStore } from "../demoPlatform";
+import { getCoachingSessionRepository } from "../coachingSessionRepository";
 import { digestHandler } from "../scheduledDigest";
 import { rateLimit, securityHeaders } from "./hardening";
 
@@ -19,6 +20,11 @@ async function startServer() {
   // PERSIST2: load durable authoring overrides into the in-memory ContentStore
   // before serving (no-op when no DATABASE_URL). Never blocks startup on failure.
   await hydrateContentStore().catch((error) => console.warn("[ContentStore] hydration skipped:", error));
+  // Rehydrate DB-persisted coaching sessions into the in-memory store. loadAll() is an
+  // append-merge deduped by id (already-loaded seed sessions win and always render), and a
+  // no-op without a DB — so the demo can never go empty. Must run before listen() so ids
+  // assigned at create time see the rehydrated rows (prevents session-N id reuse).
+  await getCoachingSessionRepository().loadAll().catch((error) => console.warn("[coaching] session hydration skipped:", error));
   // Security headers on every response (Phase 3 hardening). Safe/inert for the SPA;
   // HSTS + CSP (Report-Only by default) apply in production only.
   app.use(securityHeaders);

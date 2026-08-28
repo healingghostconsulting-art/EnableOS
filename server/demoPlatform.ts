@@ -2840,13 +2840,25 @@ export interface CreateCoachingSessionInput {
   notes?: string;
 }
 
+// One past the highest existing `session-N` id in the store — robust to gaps and to any
+// future change in the seed count, so a rehydrated created id can never be silently reused
+// (that reuse is the bug that overwrites a prior row via onDuplicateKeyUpdate). Falls back
+// to the row count, so the first created id on a fresh store stays session-<count+1>.
+function nextCreatedSessionId(existing: CoachingSession[]): string {
+  const maxNum = existing.reduce((max, session) => {
+    const match = /^session-(\d+)$/.exec(session.id);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, existing.length);
+  return `session-${maxNum + 1}`;
+}
+
 export function createCoachingSession(input: CreateCoachingSessionInput): CoachingSession {
   const repo = getCoachingSessionRepository();
   const nowIso = demoNow().toISOString();
   const manager = users.find((entry) => entry.tenantId === input.tenantId && entry.role === "manager");
   const session: CoachingSession = {
     // id flows straight into the calendar refId (`coaching_session:${id}`) + .ics UID.
-    id: `session-${repo.list().length + 1}`,
+    id: nextCreatedSessionId(repo.list()),
     tenantId: input.tenantId,
     managerUserId: manager?.id ?? input.coachUserId,
     coachUserId: input.coachUserId,
