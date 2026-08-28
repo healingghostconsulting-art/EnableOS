@@ -1,8 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, demoPublicProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
-import { isDemoMode, isDemoOpenAccess, shouldPersist } from "../_core/env";
-import { NOT_ADMIN_ERR_MSG } from "@shared/const";
+import { isDemoMode, shouldPersist } from "../_core/env";
 import { getAdminPersistence } from "../adminPersistence";
 import { permittedWorkspaces, type WorkspacePath } from "@shared/workspaceAccess";
 import { storagePut } from "../storage";
@@ -591,17 +590,9 @@ export const demoRouter = router({
     const tenantId = assertScopedAccess(ctx.user.openId, ctx.user.role, input.tenantId, "client_admin");
     return getAdminDashboard(tenantId);
   }),
-  // Normally admin-only (was adminProcedure). Demo open-access opens the CHCG Command read
-  // so every demo role can explore it. The real admin gate is intact when the flag is off —
-  // a non-admin still gets the identical FORBIDDEN — and DEMO_MODE=false forces the flag off,
-  // so this can never open the control plane on a real tenant. Only the READ is opened; the
-  // CHCG admin mutations stay adminProcedure-gated.
-  secureChcgAdmin: protectedProcedure.input(tenantInput).query(({ ctx, input }) => {
-    if (!isDemoOpenAccess() && ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
-    }
-    return getChcgAdminDashboard(input.tenantId);
-  }),
+  // Admin-only read. adminProcedure opens READS to every role under demo open-access (see
+  // requireOneOfRoles in _core/trpc.ts); the CHCG admin MUTATIONS keep the real admin gate.
+  secureChcgAdmin: adminProcedure.input(tenantInput).query(({ input }) => getChcgAdminDashboard(input.tenantId)),
   // Content authoring reads (AUTHOR2). preview = demo/public; secure = authed.
   previewAuthoringQuiz: publicProcedure.input(authoringQuizReadInput).query(({ input }) => getAuthoringQuizContent(input)),
   secureAuthoringQuiz: protectedProcedure.input(authoringQuizReadInput).query(({ ctx, input }) => {

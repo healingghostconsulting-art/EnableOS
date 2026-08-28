@@ -125,4 +125,26 @@ describe("DEMO_OPEN_ACCESS — server gate (assertScopedAccess)", () => {
       code: "FORBIDDEN",
     });
   });
+
+  it("keeps admin MUTATIONS gated even with the flag on (a demo persona can't change tenant entitlements)", async () => {
+    delete process.env.DEMO_MODE; // demo mode on
+    process.env.DEMO_OPEN_ACCESS = "true";
+    const caller = appRouter.createCaller(ctx("atlas-coach")); // non-admin
+    await expect(
+      caller.demo.secureUpdateTenantTrainingAccess({
+        tenantId: "atlas-operations",
+        licensedJourneyIds: [],
+        licensedAssetIds: [],
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("(step 3) DEMO_MODE=false leaves adminProcedure exactly as today — query stays admin-only", async () => {
+    process.env.DEMO_MODE = "false";
+    process.env.DEMO_OPEN_ACCESS = "true";
+    const caller = appRouter.createCaller(ctx("atlas-coach"));
+    await expect(caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
 });

@@ -2,7 +2,7 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
-import { isDemoMode } from "./env";
+import { isDemoMode, isDemoOpenAccess } from "./env";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -43,9 +43,20 @@ export const demoPublicProcedure = t.procedure.use(demoOnly);
 
 function requireOneOfRoles(allowedRoles: Array<"admin" | "manager" | "coach">, message: string) {
   return t.middleware(async opts => {
-    const { ctx, next } = opts;
+    const { ctx, next, type } = opts;
 
-    if (!ctx.user || !allowedRoles.includes(ctx.user.role as "admin" | "manager" | "coach")) {
+    // Auth is always required (a demo persona is still a signed-in session).
+    if (!ctx.user) {
+      throw new TRPCError({ code: "FORBIDDEN", message });
+    }
+
+    // Demo open-access opens role-gated READS (queries) to every authenticated role so the
+    // whole demo is explorable — e.g. a learner persona can view CHCG Command. MUTATIONS are
+    // NEVER opened: a demo persona must not execute admin writes (create tenant, change
+    // entitlements, author core content). isDemoOpenAccess() ANDs isDemoMode(), so
+    // DEMO_MODE=false leaves this middleware behaving exactly as it does today.
+    const openReadForDemo = type === "query" && isDemoOpenAccess();
+    if (!openReadForDemo && !allowedRoles.includes(ctx.user.role as "admin" | "manager" | "coach")) {
       throw new TRPCError({ code: "FORBIDDEN", message });
     }
 
