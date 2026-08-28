@@ -102,7 +102,7 @@ import {
   getSlideCanvasVisuals,
   type TrainingGalleryVisual,
 } from "../../../shared/trainingPlayer";
-import { buildGuidedTrainingPlan } from "../../../shared/trainingFlow";
+import { buildGuidedTrainingPlan, STAGES, type StageId } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 
@@ -4527,33 +4527,29 @@ export function TrainingExperienceView() {
     }, 250);
   };
 
+  // Per-stage lesson copy (title/body). The stage id + canonical label come from the single
+  // STAGES source in shared/trainingFlow.ts, so this array and buildGuidedTrainingPlan can
+  // never drift apart on stage names again.
+  const stageCopy: Record<StageId, { title: string; body: string }> = {
+    brief: {
+      title: "Learn the core workflow behavior",
+      body: `This ${selectedModuleFormatLabel.toLowerCase()} turns ${selectedModuleSkillFocus.toLowerCase()} into a focused lesson path inside ${effectiveJourneyTitle}.`,
+    },
+    practice: {
+      title: "Choose how to rehearse the behavior",
+      body: `Before the next coaching checkpoint, decide how you would practice ${selectedModuleSkillFocus.toLowerCase()} in a realistic workflow moment.`,
+    },
+    apply: {
+      title: "Blend source content into live work",
+      body: `The system pairs this module with CHCG methodology and tenant content so it can transfer directly into interventions, readiness reviews, and workflow reinforcement.`,
+    },
+    reflect: {
+      title: "Capture the behavior change",
+      body: `Write the action you want to demonstrate before ${effectiveCoachingTitle}.`,
+    },
+  };
   const stages = selectedModule
-    ? [
-        {
-          id: "brief",
-          label: "Learn",
-          title: "Learn the core workflow behavior",
-          body: `This ${selectedModuleFormatLabel.toLowerCase()} turns ${selectedModuleSkillFocus.toLowerCase()} into a focused lesson path inside ${effectiveJourneyTitle}.`,
-        },
-        {
-          id: "practice",
-          label: "Practice",
-          title: "Choose how to rehearse the behavior",
-          body: `Before the next coaching checkpoint, decide how you would practice ${selectedModuleSkillFocus.toLowerCase()} in a realistic workflow moment.`,
-        },
-        {
-          id: "apply",
-          label: "Apply",
-          title: "Blend source content into live work",
-          body: `The system pairs this module with CHCG methodology and tenant content so it can transfer directly into interventions, readiness reviews, and workflow reinforcement.`,
-        },
-        {
-          id: "reflect",
-          label: "Reflect",
-          title: "Capture the behavior change",
-          body: `Write the action you want to demonstrate before ${effectiveCoachingTitle}.`,
-        },
-      ]
+    ? STAGES.map((stage) => ({ id: stage.id, label: stage.label, ...stageCopy[stage.id] }))
     : [];
   const stageActivities: Record<string, string[]> = {
     brief: [
@@ -4999,12 +4995,12 @@ export function TrainingExperienceView() {
   const currentStageQuizGatePassed = currentStageQuizTriggers.every((trigger) => completedQuizTriggerIds.includes(trigger.id));
   const totalSteps = Math.max(modules.length * Math.max(stages.length, 1), 1);
   const overallProgress = selectedModule ? Math.round((((moduleIndex * stages.length) + stageIndex + 1) / totalSteps) * 100) : 0;
-  const stageRuntimeLabel = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel ?? "Runtime calibrating";
-  // Time-left copy split (punch list 3): "50 min guided experience" → value "50 min" + sub
-  // "guided experience", so the progress-rail tile keeps its crisp metric scale.
-  const currentStageDurationLabel = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id)?.durationLabel;
-  const stageRuntimeValue = currentStageDurationLabel ? currentStageDurationLabel.replace(" guided experience", "") : "Calibrating";
-  const stageRuntimeDetail = currentStageDurationLabel ? "guided experience" : undefined;
+  const currentStagePlan = guidedPlan.stageDurations.find((entry) => entry.stageId === currentStage?.id);
+  const stageRuntimeLabel = currentStagePlan?.durationLabel ?? "Runtime calibrating";
+  // Progress-rail "Time left" tile: show the stage NAME and its runtime as separate parts —
+  // "Learn · 50 min" — not a bare duration string standing in for the stage name.
+  const stageRuntimeDuration = currentStagePlan ? currentStagePlan.durationLabel.replace(" guided experience", "") : undefined;
+  const stageRuntimeValue = currentStagePlan ? `${currentStagePlan.label} · ${stageRuntimeDuration}` : "Calibrating";
   const totalRuntimeMinutes = guidedPlan.stageDurations.reduce((sum, entry) => sum + entry.minutes, 0);
   const elapsedRuntimeMinutes = guidedPlan.stageDurations.slice(0, Math.max(stageIndex, 0)).reduce((sum, entry) => sum + entry.minutes, 0);
   const remainingRuntimeMinutes = Math.max(totalRuntimeMinutes - elapsedRuntimeMinutes, 0);
@@ -6735,7 +6731,7 @@ export function TrainingExperienceView() {
                       <InfoTile onDark tint="cyan" valueScale="text" icon={<Sparkles className="h-5 w-5" />} value={activeQuizTrigger ? activeQuizTrigger.label : nextRecommendedModule?.title ?? "Continue the current lesson"} label="Next" />
                     </div>
                     <div className="rounded-xl bg-white/[0.06] p-4">
-                      <InfoTile onDark tint="gold" icon={<Clock3 className="h-5 w-5" />} value={stageRuntimeValue} sub={stageRuntimeDetail} label="Time left" />
+                      <InfoTile onDark tint="gold" icon={<Clock3 className="h-5 w-5" />} value={stageRuntimeValue} label="Time left" />
                     </div>
                     <div className="rounded-xl bg-white/[0.06] p-4">
                       <InfoTile onDark tint="emerald" icon={<Target className="h-5 w-5" />} value={finalQuizSubmitted ? `${activeModalScore}%` : `${selectedModule?.completionRate ?? learner.data.activeJourney.progress}%`} label="Score" />

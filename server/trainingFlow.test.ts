@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildGuidedTrainingPlan } from "../shared/trainingFlow";
+import { buildGuidedTrainingPlan, STAGES, STAGE_BY_ID } from "../shared/trainingFlow";
 import { getTrainingPresentation } from "../shared/trainingContent";
 
 describe("buildGuidedTrainingPlan", () => {
@@ -30,10 +32,10 @@ describe("buildGuidedTrainingPlan", () => {
       presentation.slides.length + presentation.practiceSlides.length + presentation.applySlides.length,
     );
     expect(plan.stageDurations).toEqual([
-      expect.objectContaining({ stageId: "brief", label: "Brief + narrated walkthrough", minutes: 50, durationLabel: "50 min guided experience" }),
-      expect.objectContaining({ stageId: "practice", label: "Practice + coached rehearsal", minutes: 40, durationLabel: "40 min guided experience" }),
-      expect.objectContaining({ stageId: "apply", label: "Application + transfer proof", minutes: 40, durationLabel: "40 min guided experience" }),
-      expect.objectContaining({ stageId: "reflect", label: "Reflection + final quiz", minutes: 35, durationLabel: "35 min guided experience" }),
+      expect.objectContaining({ stageId: "brief", label: "Learn", detail: "Brief + narrated walkthrough", minutes: 50, durationLabel: "50 min guided experience" }),
+      expect.objectContaining({ stageId: "practice", label: "Practice", detail: "Practice + coached rehearsal", minutes: 40, durationLabel: "40 min guided experience" }),
+      expect.objectContaining({ stageId: "apply", label: "Apply", detail: "Application + transfer proof", minutes: 40, durationLabel: "40 min guided experience" }),
+      expect.objectContaining({ stageId: "reflect", label: "Reflect", detail: "Reflection + final quiz", minutes: 35, durationLabel: "35 min guided experience" }),
     ]);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "brief" && trigger.assessmentKey === "briefCheckpoint")).toBe(true);
     expect(plan.quizTriggers.some((trigger) => trigger.stageId === "practice" && trigger.assessmentKey === "practiceCheckpoint")).toBe(true);
@@ -78,10 +80,10 @@ describe("buildGuidedTrainingPlan", () => {
     expect(plan.targetDurationLabel).toContain("3.8 hr");
     expect(plan.pacingLabel).toContain("executive or leadership workshop");
     expect(plan.stageDurations).toEqual([
-      expect.objectContaining({ stageId: "brief", label: "Brief + narrated walkthrough", minutes: 70, durationLabel: "1.2 hr guided experience" }),
-      expect.objectContaining({ stageId: "practice", label: "Practice + coached rehearsal", minutes: 55, durationLabel: "55 min guided experience" }),
-      expect.objectContaining({ stageId: "apply", label: "Application + transfer proof", minutes: 50, durationLabel: "50 min guided experience" }),
-      expect.objectContaining({ stageId: "reflect", label: "Reflection + final quiz", minutes: 50, durationLabel: "50 min guided experience" }),
+      expect.objectContaining({ stageId: "brief", label: "Learn", detail: "Brief + narrated walkthrough", minutes: 70, durationLabel: "1.2 hr guided experience" }),
+      expect.objectContaining({ stageId: "practice", label: "Practice", detail: "Practice + coached rehearsal", minutes: 55, durationLabel: "55 min guided experience" }),
+      expect.objectContaining({ stageId: "apply", label: "Apply", detail: "Application + transfer proof", minutes: 50, durationLabel: "50 min guided experience" }),
+      expect.objectContaining({ stageId: "reflect", label: "Reflect", detail: "Reflection + final quiz", minutes: 50, durationLabel: "50 min guided experience" }),
     ]);
     expect(plan.quizTriggers.at(-1)).toEqual(
       expect.objectContaining({
@@ -90,5 +92,37 @@ describe("buildGuidedTrainingPlan", () => {
         label: "Final Quiz",
       }),
     );
+  });
+});
+
+// Step 5 lock: every stage id resolves to exactly ONE label, from the single STAGES source,
+// and BOTH consumers (buildGuidedTrainingPlan + the EnableOSViews stage array) read it. This
+// is what stops the two label sets drifting apart again.
+describe("single stage-label source of truth", () => {
+  it("STAGES gives each id exactly one canonical label", () => {
+    expect(STAGES.map((stage) => stage.id)).toEqual(["brief", "practice", "apply", "reflect"]);
+    expect(STAGES.map((stage) => stage.label)).toEqual(["Learn", "Practice", "Apply", "Reflect"]);
+    expect(new Set(STAGES.map((stage) => stage.id)).size).toBe(STAGES.length);
+    expect(new Set(STAGES.map((stage) => stage.label)).size).toBe(STAGES.length);
+    // The old content-descriptions are kept as `detail`, never as the label.
+    expect(STAGE_BY_ID.brief.detail).toBe("Brief + narrated walkthrough");
+    expect(STAGES.every((stage) => stage.label !== stage.detail)).toBe(true);
+  });
+
+  it("buildGuidedTrainingPlan takes every stage label/detail from STAGES", () => {
+    const plan = buildGuidedTrainingPlan({ journeyTitle: "", moduleTitle: "", skillFocus: "", presentation: null });
+    expect(plan.stageDurations.map((entry) => entry.stageId)).toEqual(STAGES.map((stage) => stage.id));
+    for (const entry of plan.stageDurations) {
+      expect(entry.label).toBe(STAGE_BY_ID[entry.stageId].label);
+      expect(entry.detail).toBe(STAGE_BY_ID[entry.stageId].detail);
+    }
+  });
+
+  it("the EnableOSViews stage array is built from STAGES, not an independent hardcoded label set", () => {
+    const source = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
+    expect(source).toContain('import { buildGuidedTrainingPlan, STAGES, type StageId } from "../../../shared/trainingFlow"');
+    expect(source).toContain("STAGES.map((stage) => ({ id: stage.id, label: stage.label");
+    // The old hardcoded per-stage label objects must be gone.
+    expect(source).not.toContain('id: "brief",\n          label: "Learn"');
   });
 });

@@ -2,9 +2,33 @@ import type { TrainingPresentation } from "./trainingContent";
 
 export type TrainingTrackFamily = "learner" | "leadership";
 
+export type StageId = "brief" | "practice" | "apply" | "reflect";
+
+/**
+ * SINGLE SOURCE OF TRUTH for the four guided training stages. BOTH the runtime stage array
+ * in client/src/pages/EnableOSViews.tsx and buildGuidedTrainingPlan (below) read this, so a
+ * stage id resolves to exactly one label. `label` is the canonical stage NAME; `detail`
+ * describes the stage CONTENT and is kept as a separate field — it must never stand in for
+ * the name.
+ *
+ * NOTE: the `id` values are PERSISTED — they appear in localStorage training progress
+ * (assessmentKey-derived fields) and in quiz-trigger ids (`${stageId}-...`) stored in
+ * dismissedQuizTriggerIds/completedQuizTriggerIds. Do NOT rename them or saved learner
+ * progress is orphaned. See CLAUDE.md.
+ */
+export const STAGES: ReadonlyArray<{ id: StageId; label: string; detail: string }> = [
+  { id: "brief", label: "Learn", detail: "Brief + narrated walkthrough" },
+  { id: "practice", label: "Practice", detail: "Practice + coached rehearsal" },
+  { id: "apply", label: "Apply", detail: "Application + transfer proof" },
+  { id: "reflect", label: "Reflect", detail: "Reflection + final quiz" },
+];
+
+export const STAGE_BY_ID: Record<StageId, { id: StageId; label: string; detail: string }> =
+  Object.fromEntries(STAGES.map((stage) => [stage.id, stage])) as Record<StageId, { id: StageId; label: string; detail: string }>;
+
 export type GuidedQuizTrigger = {
   id: string;
-  stageId: "brief" | "practice" | "apply" | "reflect";
+  stageId: StageId;
   pageIndex: number;
   pageCount: number;
   label: string;
@@ -22,6 +46,7 @@ export type GuidedTrainingPlan = {
   stageDurations: Array<{
     stageId: GuidedQuizTrigger["stageId"];
     label: string;
+    detail: string;
     minutes: number;
     durationLabel: string;
   }>;
@@ -53,16 +78,19 @@ function buildDurationLabel(minutes: number) {
 }
 
 function buildStageDurations(family: TrainingTrackFamily) {
-  const minutes = family === "leadership"
+  const minutes: Record<StageId, number> = family === "leadership"
     ? { brief: 70, practice: 55, apply: 50, reflect: 50 }
     : { brief: 50, practice: 40, apply: 40, reflect: 35 };
 
-  return [
-    { stageId: "brief" as const, label: "Brief + narrated walkthrough", minutes: minutes.brief, durationLabel: buildDurationLabel(minutes.brief) },
-    { stageId: "practice" as const, label: "Practice + coached rehearsal", minutes: minutes.practice, durationLabel: buildDurationLabel(minutes.practice) },
-    { stageId: "apply" as const, label: "Application + transfer proof", minutes: minutes.apply, durationLabel: buildDurationLabel(minutes.apply) },
-    { stageId: "reflect" as const, label: "Reflection + final quiz", minutes: minutes.reflect, durationLabel: buildDurationLabel(minutes.reflect) },
-  ];
+  // Read labels + content details from the single STAGES source. The canonical stage NAME
+  // is `label`; the old "Brief + narrated walkthrough"-style copy now lives in `detail`.
+  return STAGES.map((stage) => ({
+    stageId: stage.id,
+    label: stage.label,
+    detail: stage.detail,
+    minutes: minutes[stage.id],
+    durationLabel: buildDurationLabel(minutes[stage.id]),
+  }));
 }
 
 function buildStageTriggers(
