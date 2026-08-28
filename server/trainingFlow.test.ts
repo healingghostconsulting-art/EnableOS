@@ -109,6 +109,25 @@ describe("single stage-label source of truth", () => {
     expect(STAGES.every((stage) => stage.label !== stage.detail)).toBe(true);
   });
 
+  it("every stage carries all three per-stage strings, so adding a stage can't silently skip one", () => {
+    for (const stage of STAGES) {
+      for (const field of ["label", "detail", "navigatorLabel"] as const) {
+        expect(typeof stage[field]).toBe("string");
+        expect(stage[field].length).toBeGreaterThan(0);
+      }
+      // The two description fields must never stand in for the stage name.
+      expect(stage.detail).not.toBe(stage.label);
+      expect(stage.navigatorLabel).not.toBe(stage.label);
+    }
+    // navigatorLabel copy is folded in verbatim (was the getStageNavigatorLabel map).
+    expect(STAGES.map((stage) => stage.navigatorLabel)).toEqual([
+      "Focused lesson path",
+      "Practice walkthrough",
+      "Transfer walkthrough",
+      "Reflection checkpoint",
+    ]);
+  });
+
   it("buildGuidedTrainingPlan takes every stage label/detail from STAGES", () => {
     const plan = buildGuidedTrainingPlan({ journeyTitle: "", moduleTitle: "", skillFocus: "", presentation: null });
     expect(plan.stageDurations.map((entry) => entry.stageId)).toEqual(STAGES.map((stage) => stage.id));
@@ -120,7 +139,7 @@ describe("single stage-label source of truth", () => {
 
   it("the EnableOSViews stage array is built from STAGES, not an independent hardcoded label set", () => {
     const source = readFileSync(join(process.cwd(), "client/src/pages/EnableOSViews.tsx"), "utf8");
-    expect(source).toContain('import { buildGuidedTrainingPlan, STAGES, type StageId } from "../../../shared/trainingFlow"');
+    expect(source).toContain('import { buildGuidedTrainingPlan, STAGES, STAGE_BY_ID, type StageId } from "../../../shared/trainingFlow"');
     expect(source).toContain("STAGES.map((stage) => ({ id: stage.id, label: stage.label");
     // The old hardcoded per-stage label objects must be gone.
     expect(source).not.toContain('id: "brief",\n          label: "Learn"');

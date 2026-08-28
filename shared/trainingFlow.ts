@@ -7,24 +7,28 @@ export type StageId = "brief" | "practice" | "apply" | "reflect";
 /**
  * SINGLE SOURCE OF TRUTH for the four guided training stages. BOTH the runtime stage array
  * in client/src/pages/EnableOSViews.tsx and buildGuidedTrainingPlan (below) read this, so a
- * stage id resolves to exactly one label. `label` is the canonical stage NAME; `detail`
- * describes the stage CONTENT and is kept as a separate field — it must never stand in for
- * the name.
+ * stage id resolves to exactly one of each label. The three per-stage strings are distinct:
+ *   - `label`          — the canonical stage NAME (Learn/Practice/Apply/Reflect).
+ *   - `detail`         — content description ("Brief + narrated walkthrough" …).
+ *   - `navigatorLabel` — stage-navigator description copy ("Focused lesson path" …).
+ * `detail` and `navigatorLabel` are description copy and must NEVER stand in for the name.
  *
  * NOTE: the `id` values are PERSISTED — they appear in localStorage training progress
  * (assessmentKey-derived fields) and in quiz-trigger ids (`${stageId}-...`) stored in
  * dismissedQuizTriggerIds/completedQuizTriggerIds. Do NOT rename them or saved learner
  * progress is orphaned. See CLAUDE.md.
  */
-export const STAGES: ReadonlyArray<{ id: StageId; label: string; detail: string }> = [
-  { id: "brief", label: "Learn", detail: "Brief + narrated walkthrough" },
-  { id: "practice", label: "Practice", detail: "Practice + coached rehearsal" },
-  { id: "apply", label: "Apply", detail: "Application + transfer proof" },
-  { id: "reflect", label: "Reflect", detail: "Reflection + final quiz" },
+export type StageDefinition = { id: StageId; label: string; detail: string; navigatorLabel: string };
+
+export const STAGES: ReadonlyArray<StageDefinition> = [
+  { id: "brief", label: "Learn", detail: "Brief + narrated walkthrough", navigatorLabel: "Focused lesson path" },
+  { id: "practice", label: "Practice", detail: "Practice + coached rehearsal", navigatorLabel: "Practice walkthrough" },
+  { id: "apply", label: "Apply", detail: "Application + transfer proof", navigatorLabel: "Transfer walkthrough" },
+  { id: "reflect", label: "Reflect", detail: "Reflection + final quiz", navigatorLabel: "Reflection checkpoint" },
 ];
 
-export const STAGE_BY_ID: Record<StageId, { id: StageId; label: string; detail: string }> =
-  Object.fromEntries(STAGES.map((stage) => [stage.id, stage])) as Record<StageId, { id: StageId; label: string; detail: string }>;
+export const STAGE_BY_ID: Record<StageId, StageDefinition> =
+  Object.fromEntries(STAGES.map((stage) => [stage.id, stage])) as Record<StageId, StageDefinition>;
 
 export type GuidedQuizTrigger = {
   id: string;

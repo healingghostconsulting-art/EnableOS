@@ -102,7 +102,7 @@ import {
   getSlideCanvasVisuals,
   type TrainingGalleryVisual,
 } from "../../../shared/trainingPlayer";
-import { buildGuidedTrainingPlan, STAGES, type StageId } from "../../../shared/trainingFlow";
+import { buildGuidedTrainingPlan, STAGES, STAGE_BY_ID, type StageId } from "../../../shared/trainingFlow";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 
@@ -550,13 +550,10 @@ export function hasReachedLastLessonSlide(pagesLength: number, lessonPageIndex: 
 }
 
 export function getStageNavigatorLabel(stageId?: string | null) {
-  return stageId === "brief"
-    ? "Focused lesson path"
-    : stageId === "practice"
-      ? "Practice walkthrough"
-      : stageId === "apply"
-        ? "Transfer walkthrough"
-        : "Reflection checkpoint";
+  // Reads the navigatorLabel from the single STAGES source. Unknown/absent stageId keeps the
+  // prior default of the reflect stage's copy ("Reflection checkpoint").
+  const stage = stageId ? STAGE_BY_ID[stageId as StageId] : undefined;
+  return stage?.navigatorLabel ?? STAGE_BY_ID.reflect.navigatorLabel;
 }
 
 
