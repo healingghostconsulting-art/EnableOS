@@ -109,4 +109,20 @@ describe("DEMO_OPEN_ACCESS — server gate (assertScopedAccess)", () => {
       code: "FORBIDDEN",
     });
   });
+
+  it("opens the CHCG Command read (secureChcgAdmin) to a non-admin role under the flag", async () => {
+    delete process.env.DEMO_MODE; // demo mode on
+    process.env.DEMO_OPEN_ACCESS = "true";
+    const caller = appRouter.createCaller(ctx("atlas-coach")); // app-role "user", not "admin"
+    await expect(caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" })).resolves.toBeTruthy();
+  });
+
+  it("without the flag, secureChcgAdmin stays admin-only (non-admin FORBIDDEN)", async () => {
+    delete process.env.DEMO_MODE;
+    delete process.env.DEMO_OPEN_ACCESS;
+    const caller = appRouter.createCaller(ctx("atlas-coach"));
+    await expect(caller.demo.secureChcgAdmin({ tenantId: "atlas-operations" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
 });
