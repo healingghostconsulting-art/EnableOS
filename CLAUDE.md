@@ -77,6 +77,12 @@ Access is decided in **two independent places** that are NOT derived from each o
 
 Because they are separate lists, a route can be **in the nav / passable by the guard but refused by the view**. **Known current disagreement: `/reporting` for `manager` and `coach`.** Both have `/reporting` in `WORKSPACE_ACCESS` (so Reporting Hub shows in their sidebar and the guard lets them in), but their `getPermittedRolesForGrant` sets don't include `executive`, which the Reporting view requires — so clicking their own "Reporting Hub" yields the entitlement wall. This is a **known, deliberate-for-now product question** (should a manager see reporting?), not a bug to silently "fix". Whoever wires the real IdP must reconcile these two systems — or at least know which one to trust for which decision — before relying on either.
 
+**The two systems disagree in BOTH directions** — do not assume one is always the superset:
+- **Nav/guard grants more than the view:** `manager` and `coach` get `/reporting` from `WORKSPACE_ACCESS`, but the Reporting view refuses them (above).
+- **`getPermittedRolesForGrant` grants more than `WORKSPACE_ACCESS`:** a `manager` grant's `permittedRoles` includes `client_admin`, yet `WORKSPACE_ACCESS.manager` does **not** include `/admin` and `ADOPTABLE_ROLES.manager` does not list `client_admin`. So the entitlement list would admit a manager to the Client Admin view, and the only reason a manager can't reach `/admin` is **check ordering in the route guard** — `canGrantAccessWorkspace` (matrix) runs first and redirects before the view's `permittedRoles` check is ever reached. Reorder or bypass the guard and that masking disappears. Treat this as latent, not resolved.
+
+**Demo open-access flag (`DEMO_OPEN_ACCESS`).** `isDemoOpenAccess()` in [server/_core/env.ts](server/_core/env.ts) = `isDemoMode() && process.env.DEMO_OPEN_ACCESS === "true"`. When on, `getViewerAccess` widens `viewerAccess.permittedRoles` to every role and sets `openAccess: true`, and the client threads `openAccess` into `permittedWorkspaces` / `canGrantAccessWorkspace` so the nav and guard open every workspace. It **adds a widened view on top of** both systems — it edits neither `WORKSPACE_ACCESS` nor `getPermittedRolesForGrant`. The `isDemoMode()` conjunct is structural: `DEMO_MODE=false` forces it false, so it can never widen a real tenant.
+
 ## Quick map
 - Routing / role menus / access guards: `client/src/App.tsx`
 - All page views (monolith): `client/src/pages/EnableOSViews.tsx`

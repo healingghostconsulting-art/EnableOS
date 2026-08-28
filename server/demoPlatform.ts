@@ -28,6 +28,7 @@ import {
   initCoachingSessionRepository,
   getCoachingSessionRepository,
 } from "./coachingSessionRepository";
+import { isDemoOpenAccess } from "./_core/env";
 
 export type DemoRole = "executive" | "manager" | "coach" | "learner" | "client_admin";
 
@@ -436,6 +437,10 @@ export type DemoViewerAccess = {
   tenant: Pick<DemoTenant, "id" | "name" | "industry">;
   permittedRoles: DemoRole[];
   canSwitchTenant: boolean;
+  // True only under the demo open-access flag (isDemoOpenAccess): every workspace is
+  // opened to every role for the demo. permittedRoles above is widened to match, and the
+  // client threads this into the nav + route guard. See getViewerAccess.
+  openAccess: boolean;
 };
 
 export type TenantTrainingEntitlement = {
@@ -3314,6 +3319,10 @@ export function listMethodologyMappings() {
   return methodologyMappings;
 }
 
+// Every DemoRole — the permittedRoles set handed out under demo open-access. Kept separate
+// from getPermittedRolesForGrant so that function stays the untouched record of real intent.
+const ALL_DEMO_ROLES: DemoRole[] = ["executive", "manager", "coach", "learner", "client_admin"];
+
 export function getPermittedRolesForGrant(role: DemoAccessGrant["role"]): DemoRole[] {
   switch (role) {
     case "platform_admin":
@@ -3390,6 +3399,12 @@ export function getViewerAccess(openId?: string | null, appRole?: string | null)
 
   const tenant = getTenant(grant.tenantId);
 
+  // Demo open-access widens the RETURNED view only. getPermittedRolesForGrant stays the
+  // record of real intent; when open we hand out every role so both in-view entitlement
+  // gates (which check permittedRoles.includes(...)) pass. isDemoOpenAccess() is false the
+  // moment DEMO_MODE is off, so this can never widen a real tenant.
+  const openAccess = isDemoOpenAccess();
+
   return {
     grant,
     tenant: {
@@ -3397,8 +3412,9 @@ export function getViewerAccess(openId?: string | null, appRole?: string | null)
       name: tenant.name,
       industry: tenant.industry,
     },
-    permittedRoles: getPermittedRolesForGrant(grant.role),
+    permittedRoles: openAccess ? [...ALL_DEMO_ROLES] : getPermittedRolesForGrant(grant.role),
     canSwitchTenant: grant.role === "platform_admin",
+    openAccess,
   };
 }
 

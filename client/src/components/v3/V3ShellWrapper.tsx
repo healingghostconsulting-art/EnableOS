@@ -42,7 +42,7 @@ export function V3ShellWrapper({ path, children }: { path: string; children: Rea
   const access = trpc.demo.viewerAccess.useQuery();
   // Widest default (platform_admin) when unauthenticated so the demo shows a full nav.
   const role: GrantRole = normalizeGrantRole(access.data?.grant.role) ?? "platform_admin";
-  const nav: NavItem[] = permittedWorkspaces(role).map((workspace) => ({
+  const nav: NavItem[] = permittedWorkspaces(role, access.data?.openAccess ?? false).map((workspace) => ({
     label: V3_NAV[workspace].label,
     icon: V3_NAV[workspace].icon,
     href: workspace,

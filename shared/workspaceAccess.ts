@@ -105,16 +105,26 @@ export function normalizeGrantRole(value: unknown): GrantRole | null {
   return isGrantRole(value) ? value : null;
 }
 
-/** The ordered workspaces visible to a role — the sidebar nav set. */
-export function permittedWorkspaces(role: GrantRole | null | undefined): WorkspacePath[] {
+/**
+ * The ordered workspaces visible to a role — the sidebar nav set.
+ * `openAccess` (demo open-access only) returns every workspace regardless of role; it does
+ * NOT read or mutate WORKSPACE_ACCESS. Defaults false so every existing caller is unchanged.
+ */
+export function permittedWorkspaces(role: GrantRole | null | undefined, openAccess = false): WorkspacePath[] {
+  if (openAccess) return [...WORKSPACE_ORDER];
   if (!role) return [];
   const set = new Set(WORKSPACE_ACCESS[role]);
   return WORKSPACE_ORDER.filter((path) => set.has(path));
 }
 
-/** Whether a grant may enter a path — the union of every persona it can adopt. */
-export function canGrantAccessWorkspace(grantRole: GrantRole | null | undefined, path: string): boolean {
+/**
+ * Whether a grant may enter a path — the union of every persona it can adopt.
+ * `openAccess` (demo open-access only) allows every path; it does NOT read or mutate
+ * WORKSPACE_ACCESS. Defaults false so every existing caller is unchanged.
+ */
+export function canGrantAccessWorkspace(grantRole: GrantRole | null | undefined, path: string, openAccess = false): boolean {
   if (path === "/" || path === "/404") return true;
+  if (openAccess) return true;
   if (!grantRole) return false;
   const resolved = WORKSPACE_SUBROUTE_PARENT[path] ?? path;
   return ADOPTABLE_ROLES[grantRole].some((role) => (WORKSPACE_ACCESS[role] as readonly string[]).includes(resolved));

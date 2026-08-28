@@ -42,3 +42,14 @@ export function isDemoMode(): boolean {
 export function shouldPersist(): boolean {
   return !isDemoMode();
 }
+
+// Demo open-access flag. When DEMO_OPEN_ACCESS=true AND we are in demo mode, every
+// workspace opens to every role so the whole demo is explorable from any entry. The
+// isDemoMode() conjunct is structural, not cosmetic: DEMO_MODE=false forces this to false
+// no matter what DEMO_OPEN_ACCESS is set to, so the flag is incapable of opening up a real
+// tenant. Read at call time (like isDemoMode) so tests can flip it per-case. It only widens
+// the VIEW of access (viewerAccess.permittedRoles / the nav+guard); it never edits the two
+// underlying permission systems (WORKSPACE_ACCESS, getPermittedRolesForGrant).
+export function isDemoOpenAccess(): boolean {
+  return isDemoMode() && process.env.DEMO_OPEN_ACCESS === "true";
+}

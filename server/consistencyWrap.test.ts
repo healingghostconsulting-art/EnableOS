@@ -39,7 +39,7 @@ describe("V3ShellWrapper — reuses AppShell + the real access-matrix nav", () =
 
   it("renders through the shared AppShell and derives nav from permittedWorkspaces", () => {
     expect(wrapper).toContain('from "./AppShell"');
-    expect(wrapper).toContain("permittedWorkspaces(role)");
+    expect(wrapper).toContain("permittedWorkspaces(role, access.data?.openAccess ?? false)");
     expect(wrapper).toContain("normalizeGrantRole");
     // Safety net: keeps the reminder-badge context available to inner views.
     expect(wrapper).toContain("ReminderBadgeProvider");

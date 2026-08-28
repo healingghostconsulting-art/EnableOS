@@ -54,9 +54,10 @@ const WORKSPACE_MENU_ITEMS: Record<WorkspacePath, DashboardMenuItem> = {
   "/chcg-admin": { icon: ShieldCheck, label: "CHCG Command", path: "/chcg-admin" },
 };
 
-/** The sidebar nav for a role — the matrix-permitted workspaces, in display order. */
-export function buildWorkspaceMenu(role: GrantRole | null | undefined): DashboardMenuItem[] {
-  return permittedWorkspaces(role).map((path) => WORKSPACE_MENU_ITEMS[path]);
+/** The sidebar nav for a role — the matrix-permitted workspaces, in display order.
+ * `openAccess` (demo open-access) shows every workspace; defaults false. */
+export function buildWorkspaceMenu(role: GrantRole | null | undefined, openAccess = false): DashboardMenuItem[] {
+  return permittedWorkspaces(role, openAccess).map((path) => WORKSPACE_MENU_ITEMS[path]);
 }
 
 // Per-role menu constants, all derived from the single WORKSPACE_ACCESS matrix.
@@ -96,8 +97,8 @@ export function resolveRoleHomePath(grantRole?: string | null) {
   return roleHomePath(normalizeGrantRole(grantRole));
 }
 
-export function canAccessWorkspacePath(path: string, grantRole?: string | null) {
-  return canGrantAccessWorkspace(normalizeGrantRole(grantRole), path);
+export function canAccessWorkspacePath(path: string, grantRole?: string | null, openAccess = false) {
+  return canGrantAccessWorkspace(normalizeGrantRole(grantRole), path, openAccess);
 }
 
 /**
@@ -106,20 +107,20 @@ export function canAccessWorkspacePath(path: string, grantRole?: string | null) 
  * the coach nav); shared routes keep the selected role. The `?role=` query param is NOT
  * consulted.
  */
-export function resolveWorkspaceMenu(options?: { grantRole?: string | null; workspacePath?: string | null; persisted?: string | null }) {
+export function resolveWorkspaceMenu(options?: { grantRole?: string | null; workspacePath?: string | null; persisted?: string | null; openAccess?: boolean }) {
   const activeRole = resolveActiveWorkspaceRole({
     path: options?.workspacePath ?? "",
     grantRole: normalizeGrantRole(options?.grantRole),
     persisted: normalizeGrantRole(options?.persisted),
   });
-  return buildWorkspaceMenu(activeRole);
+  return buildWorkspaceMenu(activeRole, options?.openAccess ?? false);
 }
 
 function WorkspaceShell({ children, path, roleLabel }: { children: React.ReactNode; path: string; roleLabel: string }) {
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const grantRole = normalizeGrantRole(access.data?.grant.role);
   const activeRole = resolveActiveWorkspaceRole({ path, grantRole, persisted: getStoredActiveWorkspaceRole() });
-  const menuItems = buildWorkspaceMenu(activeRole);
+  const menuItems = buildWorkspaceMenu(activeRole, access.data?.openAccess ?? false);
 
   useEffect(() => {
     // Only persist a resolved role; never let the brief access-loading phase (activeRole
@@ -150,7 +151,7 @@ function GuardedWorkspaceShell({ children, path, roleLabel }: { children: React.
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const [, setLocation] = useLocation();
   const grantRole = normalizeGrantRole(access.data?.grant.role);
-  const canAccess = canGrantAccessWorkspace(grantRole, path);
+  const canAccess = canGrantAccessWorkspace(grantRole, path, access.data?.openAccess ?? false);
 
   useEffect(() => {
     if (access.isSuccess && !canAccess) {
@@ -175,7 +176,7 @@ function GuardedV3Route({ children, path }: { children: React.ReactNode; path: s
   const access = trpc.demo.viewerAccess.useQuery(undefined, { retry: false });
   const [, setLocation] = useLocation();
   const grantRole = normalizeGrantRole(access.data?.grant.role);
-  const canAccess = canGrantAccessWorkspace(grantRole, path);
+  const canAccess = canGrantAccessWorkspace(grantRole, path, access.data?.openAccess ?? false);
 
   useEffect(() => {
     if (access.isSuccess && !canAccess) {
